@@ -1,0 +1,245 @@
+let badges;
+
+export default class BadgesDAO {
+  static async injectDB(conn) {
+    if (badges) {
+      return;
+    }
+
+    try {
+      badges = await conn.db(process.env.DB_NAME).collection("badges");
+    } catch (err) {
+      console.error(`DB injection failed. ${err}`);
+    }
+  }
+
+  static async getBadges(filters = [], tipoBadge = "tutti") {
+    let exprList = filters
+      .filter((elem) => elem.value !== null)
+      .map((elem) => {
+        let fieldName;
+
+        switch (elem.key) {
+          case "nome":
+          case "cognome":
+            fieldName = `nominativo.${elem.key}`;
+            break;
+          case "ragSoc":
+            fieldName = "nominativo.rag_soc";
+            break;
+          case "numTel":
+            fieldName = "nominativo.num_tel";
+            break;
+          case "tipoDoc":
+            fieldName = "nominativo.documento.tipo";
+            break;
+          case "codDoc":
+            fieldName = "nominativo.documento.codice";
+            break;
+          case "indirizzo":
+          case "citta":
+          case "edificio":
+          case "piano":
+            fieldName = `chiave.${elem.key}`;
+            break;
+          default:
+            fieldName = elem.key;
+        }
+
+        let newElem = {};
+        newElem[fieldName] = { $regex: new RegExp(elem.value, "i") };
+        return newElem;
+      });
+    
+    switch(tipoBadge) {
+      case "nominativo":
+        exprList
+          .push({ "nominativo": { $ne: null } });
+        exprList
+          .push({ "chiave": { $eq: null } });
+        break;
+      case "chiave":
+        exprList
+          .push({ "nominativo": { $eq: null } });
+        exprList
+          .push({ "chiave": { $ne: null } });
+        break;
+      case "ospite":
+        exprList
+          .push({ "nominativo": { $eq: null } });
+        exprList
+          .push({ "chiave": { $eq: null } });
+        break;
+      default:
+    }
+
+    const query = exprList.length > 0 ? { $and: exprList } : null;
+    console.log(query);
+
+    try {
+      const cursor = await badges.find(query);
+      const displayCursor = cursor.limit(0).skip(0);
+      const badgesList = await displayCursor.toArray();
+      console.log(badgesList);
+      return badgesList;
+    } catch (err) {
+      console.log(`getBadges - ${err}`);
+      return [];
+    }
+  }
+
+  static async findBadgeByBarcode(barcode) {
+    try {
+      return await badges.findOne({ "barcode": barcode });
+    } catch (err) {
+      console.log(`findBadgeByBarcode - ${err}`);
+      return [];
+    }
+  }
+
+  static async addBadge(data) {
+    let badgeDoc = {
+      barcode: data.barcode,
+      descrizione: data.descrizione,
+      reparto: data.reparto,
+      ubicazione: data.ubicazione,
+      nominativo: {
+        nome: data.nome,
+        cognome: data.cognome,
+        rag_soc: data.ragSoc,
+        num_tel: data.numTel,
+        documento: {
+          tipo: data.tipoDoc,
+          codice: data.codDoc,
+        },
+        foto_profilo: data.fotoProfilo,
+      },
+      chiave: {
+        indirizzo: data.indirizzo,
+        citta: data.citta,
+        edificio: data.edificio,
+        piano: data.piano,
+      },
+    };
+
+    const nomNonNullVals = Object.values(badgeDoc.nominativo)
+        .filter(elem => elem != null && typeof elem !== "object");
+    const docNonNullVals = Object.values(badgeDoc.nominativo.documento).filter(
+        elem => elem != null
+    );
+    const isNom = nomNonNullVals.length > 0 || docNonNullVals.length > 0;
+    const isChiave = Object.values(badgeDoc.chiave).some(elem => elem != null);
+    if(!isNom) {
+        badgeDoc.nominativo = null;
+    }
+    if(!isChiave) {
+        badgeDoc.chiave = null;
+    }
+
+    try {
+      const badge = await this.findBadgeByBarcode(data.barcode);
+      if (badge) {
+        throw new Error(`Barcode ${data.barcode} già esistente.`);
+      }
+
+      return await badges.insertOne(badgeDoc);
+    } catch (err) {
+      console.log(`addBadge - ${err}`);
+      return { error: err };
+    }
+  }
+
+  static async updateBadge(data) {
+    const { barcode } = data;
+    let paramsToUpdate = {};
+
+    try {
+      const badge = await this.findBadgeByBarcode(barcode);
+      if (!badge) {
+        throw new Error(`Barcode ${barcode} non esistente.`);
+      }
+
+      Object.entries(data)
+        .filter(elem => elem[1] && elem[0] !== "barcode")
+        .forEach(elem => {
+          switch (elem[0]) {
+            case "nome":
+            case "cognome":
+              paramsToUpdate[`nominativo.${elem[0]}`] = elem[1];
+              break;
+            case "ragSoc":
+              paramsToUpdate[`nominativo.rag_soc`] = elem[1];
+              break;
+            case "numTel":
+              paramsToUpdate[`nominativo.num_tel`] = elem[1];
+              break;
+            case "fotoProfilo":
+              paramsToUpdate[`nominativo.foto_profilo`] = elem[1];
+              break;
+            case "tipoDoc":
+              paramsToUpdate[`nominativo.documento.tipo`] = elem[1];
+              break;
+            case "codDoc":
+              paramsToUpdate[`nominativo.documento.codice`] = elem[1];
+              break;
+            case "indirizzo":
+            case "citta":
+            case "edificio":
+            case "piano":
+              paramsToUpdate[`chiave.${elem[0]}`] = elem[1];
+              break;
+            default:
+              paramsToUpdate[elem[0]] = elem[1];
+          }
+        });
+
+      if(badge.nominativo && !badge.chiave) {
+        paramsToUpdate.chiave = undefined;
+      }
+      else if(!badge.nominativo && badge.chiave) {
+        paramsToUpdate.nominativo = undefined;
+      }
+
+      const badgeId = badge._id;
+
+      const updateResponse = await badges.updateOne(
+        { _id: badgeId },
+        { $set: paramsToUpdate }
+      );
+      return updateResponse;
+    } catch (err) {
+      console.log(`updateBadge - ${err}`);
+      return { error: err };
+    }
+  }
+
+  static async deleteBadge(barcode) {
+    try {
+      const deleteResponse = await badges.deleteOne({ barcode: barcode });
+      return deleteResponse;
+    } catch (err) {
+      console.log(`deleteBadge - ${err}`);
+      return { error: err };
+    }
+  }
+
+  static async getReparti() {
+    try {
+      const reparti = await badges.distinct("reparto");
+      return reparti;
+    } catch (err) {
+      console.log(`getReparti - ${err}`);
+      return [];
+    }
+  }
+
+  static async getTipiDoc() {
+    try {
+      const tipiDoc = await badges.distinct("nominativo.documento.tipo");
+      return tipiDoc;
+    } catch (err) {
+      console.log(`getTipiDoc - ${err}`);
+      return [];
+    }
+  }
+};
