@@ -32,11 +32,11 @@ export default class ArchivioController {
     const nominativo = {
       nome: req.body.nome,
       cognome: req.body.cognome,
-      ragSoc: req.body.ragSoc,
-      numTel: req.body.numTel,
-      tipoDoc: req.body.tipoDoc,
-      codDoc: req.body.codDoc,
-      fotoProfilo: req.body.fotoProfilo,
+      rag_soc: req.body.rag_soc,
+      num_tel: req.body.num_tel,
+      tipo_doc: req.body.tipo_doc,
+      cod_doc: req.body.cod_doc,
+      foto_profilo: req.body.foto_profilo,
     };
 
     try {

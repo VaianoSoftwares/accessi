@@ -6,7 +6,7 @@ const validPfpExt = [".png", ".jpeg", ".jpg"];
 const fileUplBadges = async (files, barcode) => {
     if(!files || Object.keys(files).length === 0) {
         console.log("No file to upload.");
-        return;
+        return {};
     }
 
     try {
@@ -23,9 +23,10 @@ const fileUplBadges = async (files, barcode) => {
         console.log("file path: ", filePath);
 
         await fotoProfilo.mv(filePath);
+        return { fileName: newName };
     } catch(err) {
         console.log(`fileUpload - ${err}`);
-        return { error: err }
+        return { error: err };
     }
 };
 

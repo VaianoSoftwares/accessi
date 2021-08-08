@@ -14,13 +14,15 @@ class BadgesDataService {
   find(tipo = "tutti", query = {}) {
     if (
       Object.keys(query).length === 0 ||
-      Object.values(query).some((value) => value !== null)
+      !Object.values(query).some((value) => value !== null)
     )
       return this.getAll(tipo);
 
     const params = Object.entries(query)
+      .filter(elem => elem[1])
       .map((elem) => `${elem[0]}=${elem[1]}`)
       .join("&");
+    console.log(params);
     return http.get(`/badges/tipo/${tipo}/?${params}`, {
       headers: {
         "auth-token": this.token

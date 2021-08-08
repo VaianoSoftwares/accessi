@@ -63,8 +63,8 @@ export default class ArchivioDAO {
             const isUni =
               barcode && barcode.length === 7 && /^\d+$/.test(barcode);
             if (isUni) {
-              nominativo.tipoDoc = "tessera studente";
-              nominativo.codDoc = barcode;
+              nominativo.tipo_doc = "tessera studente";
+              nominativo.cod_doc = barcode;
             }
 
             const response = await this.#timbraEntra(barcode, nominativo, isUni);
@@ -87,11 +87,11 @@ export default class ArchivioDAO {
                 nominativo: {
                     nome: nominativo.nome,
                     cognome: nominativo.cognome,
-                    rag_soc: nominativo.ragSoc,
-                    num_tel: nominativo.numTel,
+                    rag_soc: nominativo.rag_soc,
+                    num_tel: nominativo.num_tel,
                     documento: {
-                        tipo: nominativo.tipoDoc,
-                        codice: nominativo.codDoc
+                        tipo: nominativo.tipo_doc,
+                        codice: nominativo.cod_doc
                     }
                 }
             };

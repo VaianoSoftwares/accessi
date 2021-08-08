@@ -22,18 +22,14 @@ export default class BadgesDAO {
         switch (elem.key) {
           case "nome":
           case "cognome":
+          case "rag_soc":
+          case "num_tel":
             fieldName = `nominativo.${elem.key}`;
             break;
-          case "ragSoc":
-            fieldName = "nominativo.rag_soc";
-            break;
-          case "numTel":
-            fieldName = "nominativo.num_tel";
-            break;
-          case "tipoDoc":
+          case "tipo_doc":
             fieldName = "nominativo.documento.tipo";
             break;
-          case "codDoc":
+          case "cod_doc":
             fieldName = "nominativo.documento.codice";
             break;
           case "indirizzo":
@@ -69,6 +65,14 @@ export default class BadgesDAO {
           .push({ "nominativo": { $eq: null } });
         exprList
           .push({ "chiave": { $eq: null } });
+        break;
+      case "nominativo-ospite":
+        exprList
+          .push({ "chiave": { $eq: null } });
+        break;
+      case "chiave-ospite":
+        exprList
+          .push({ "nominativo": { $eq: null }});
         break;
       default:
     }
@@ -106,13 +110,13 @@ export default class BadgesDAO {
       nominativo: {
         nome: data.nome,
         cognome: data.cognome,
-        rag_soc: data.ragSoc,
-        num_tel: data.numTel,
+        rag_soc: data.rag_soc,
+        num_tel: data.num_tel,
         documento: {
-          tipo: data.tipoDoc,
-          codice: data.codDoc,
+          tipo: data.tipo_doc,
+          codice: data.cod_doc,
         },
-        foto_profilo: data.fotoProfilo,
+        foto_profilo: data.foto_profilo,
       },
       chiave: {
         indirizzo: data.indirizzo,
@@ -165,21 +169,15 @@ export default class BadgesDAO {
           switch (elem[0]) {
             case "nome":
             case "cognome":
+            case "rag_soc":
+            case "num_tel":
+            case "foto_profilo":
               paramsToUpdate[`nominativo.${elem[0]}`] = elem[1];
               break;
-            case "ragSoc":
-              paramsToUpdate[`nominativo.rag_soc`] = elem[1];
-              break;
-            case "numTel":
-              paramsToUpdate[`nominativo.num_tel`] = elem[1];
-              break;
-            case "fotoProfilo":
-              paramsToUpdate[`nominativo.foto_profilo`] = elem[1];
-              break;
-            case "tipoDoc":
+            case "tipo_doc":
               paramsToUpdate[`nominativo.documento.tipo`] = elem[1];
               break;
-            case "codDoc":
+            case "cod_doc":
               paramsToUpdate[`nominativo.documento.codice`] = elem[1];
               break;
             case "indirizzo":

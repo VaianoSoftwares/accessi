@@ -3,6 +3,7 @@ import BadgeDataService from "../services/badge.js";
 
 const NomForm = props => {
   const [tipiDoc, setTipiDoc] = React.useState([]);
+  const [isNomCheckbox, setIsNomCheckbox] = React.useState(true);
 
   React.useEffect(() => {
     BadgeDataService.token = props.token;
@@ -20,10 +21,11 @@ const NomForm = props => {
       });
   };
 
-  const checkboxHandler = event => {
+  const checkboxHandler = () => {
+    setIsNomCheckbox(!isNomCheckbox);
     const inputs = document.querySelectorAll(".nom-form input:not(#is_nom)");
     inputs.forEach(input => {
-      input.disabled = !Boolean(event.target.checked);
+      input.disabled = isNomCheckbox;
     });
   };
 
@@ -35,8 +37,8 @@ const NomForm = props => {
           type="checkbox"
           className="form-check-input"
           id="is_nom"
-          checked
-          onChange={() => checkboxHandler}
+          checked={isNomCheckbox}
+          onChange={checkboxHandler}
         />
       </div>
       <div className="form-group col-md-3">
@@ -74,7 +76,7 @@ const NomForm = props => {
           type="text"
           className="form-control"
           id="rag_soc"
-          value={props.badgeForm.ragSoc}
+          value={props.badgeForm.rag_soc}
           onChange={props.handleInputChanges}
           name="rag_soc"
         />
@@ -85,7 +87,7 @@ const NomForm = props => {
           type="text"
           className="form-control"
           id="num_tel"
-          value={props.badgeForm.numTel}
+          value={props.badgeForm.num_tel}
           onChange={props.handleInputChanges}
           name="num_tel"
         />
@@ -95,7 +97,7 @@ const NomForm = props => {
         <select
           className="form-control"
           id="tipo_doc"
-          value={props.badgeForm.tipoDoc}
+          value={props.badgeForm.tipo_doc}
           onChange={props.handleInputChanges}
           name="tipo_doc"
         >
@@ -112,7 +114,7 @@ const NomForm = props => {
           type="text"
           className="form-control"
           id="cod_doc"
-          value={props.badgeForm.codDoc}
+          value={props.badgeForm.cod_doc}
           onChange={props.handleInputChanges}
           name="cod_doc"
         />

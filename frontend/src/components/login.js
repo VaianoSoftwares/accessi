@@ -19,7 +19,6 @@ const Login = props => {
     UserDataService.login(username, password)
       .then(response => {
         console.log(`login - response.data: ${response.data}`);
-        console.log(response.headers["auth-token"]);
         if(response.data.success === true) {
           props.login(response.data.data);
           props.setToken(response.headers["auth-token"]);
