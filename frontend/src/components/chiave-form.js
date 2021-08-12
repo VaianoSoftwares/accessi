@@ -1,10 +1,13 @@
 import React from "react";
 
 const ChiaveForm = props => {
-  const checkboxHandler = event => {
+  const [isChiaveCheckbox, setIsChiaveCheckbox] = React.useState(true);
+
+  const checkboxHandler = () => {
+    setIsChiaveCheckbox(!isChiaveCheckbox);
     const inputs = document.querySelectorAll(".chiave-form input:not(#is_chiave)");
     inputs.forEach(input => {
-      input.disabled = !Boolean(event.target.checked);
+      input.disabled = isChiaveCheckbox;
     });
   };
 
@@ -16,7 +19,7 @@ const ChiaveForm = props => {
           type="checkbox"
           className="form-check-input"
           id="is_chiave"
-          checked
+          checked={isChiaveCheckbox}
           onChange={checkboxHandler}
         />
       </div>

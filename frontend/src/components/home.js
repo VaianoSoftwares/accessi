@@ -1,4 +1,5 @@
 import React from "react";
+import dateFormat from "dateformat";
 
 import BadgeDataService from "../services/badge.js";
 import SerialApi from "../services/serial-api.js";
@@ -17,28 +18,27 @@ const Home = props => {
     ubicazione: "",
     nome: "",
     cognome: "",
-    numTel: "",
-    ragSoc: "",
-    tipoDoc: "",
-    codDoc: "",
-    fotoProfilo: "",
+    num_tel: "",
+    rag_soc: "",
+    tipo_doc: "",
+    cod_doc: "",
+    foto_profilo: null,
     indirizzo: "",
     edificio: "",
     citta: "",
     piano: ""
   };
 
-  const getCurrDate = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() >= 9 ? now.getMonth() + 1 : `0${now.getMonth() + 1}`;
-    const day = now.getDate() >= 10 ? now.getDate() : `0${now.getDate()}`;
-    return [year, month, day].join("-");
+  const addHours = (date, h) => {
+    if(!date)
+      date = new Date();
+    date.setHours(date.getHours() + h);
+    return date;
   };
 
   const initialArchivioFormState = {
-    inizio: getCurrDate(),
-    fine: getCurrDate()
+    inizio: dateFormat(addHours(new Date(), -2), "yyyy-mm-dd"),
+    fine: dateFormat(addHours(new Date(), -2), "yyyy-mm-dd")
   };
 
   const [badges, setBadges] = React.useState([]);
@@ -71,6 +71,11 @@ const Home = props => {
     setBadgeForm({ ...badgeForm, [name]: value });
   };
 
+  const handleInputFileChanges = e => {
+    const { name, files } = e.target;
+    setBadgeForm({ ...badgeForm, [name]: files[0] });
+  };
+
   const handleInputChangesArchivio = e => {
     const { name, value } = e.target;
     setArchivioForm({ ...archivioForm, [name]: value });
@@ -88,6 +93,7 @@ const Home = props => {
   };
 
   const retriveBadges = (tipo = "tutti") => {
+    tipo = tableContentType === "chiave" ? "chiave-ospite" : "nominativo-ospite";
     BadgeDataService.getAll(tipo)
       .then(response => {
         console.log(response.data);
@@ -111,13 +117,17 @@ const Home = props => {
   };
 
   const findBadges = () => {
-    BadgeDataService.find("tutti", badgeForm)
+    const findParam = tableContentType === "chiave" ? "chiave-ospite" : "nominativo-ospite";
+    if(tableContentType !== "chiave") {
+      setTableContentType("_nominativo");
+    }
+    BadgeDataService.find(findParam, badgeForm)
       .then(response => {
         console.log(response.data);
         const findResponse = mapToTableContent(response.data.data); 
         setBadges(findResponse);
         if(findResponse.length === 1) {
-          autocompleteForm();
+          autocompleteForm(findResponse[0]);
         }
       })
       .catch(err => {
@@ -126,6 +136,9 @@ const Home = props => {
   };
 
   const insertBadge = () => {
+    if(tableContentType !== "chiave") {
+      setTableContentType("_nominativo");
+    }
     const formData = createFormData();
     BadgeDataService.insertBadge(formData)
       .then(response => {
@@ -138,10 +151,23 @@ const Home = props => {
         console.log(err);
         const { success, msg } = err.response.data;
         props.setAlert({ success, msg });
+      })
+      .finally(() => {
+        setBadgeForm(initialBadgeFormState);
+        setDefaultPfp();
       });
   };
 
   const updateBadge = () => {
+    const confirmed = window.confirm("Procedere alla modifica del badge?");
+		if (!confirmed) {
+      return;
+    }
+    
+    if(tableContentType !== "chiave") {
+      setTableContentType("_nominativo");
+    }
+
     const formData = createFormData();
     BadgeDataService.updateBadge(formData)
       .then(response => {
@@ -149,15 +175,29 @@ const Home = props => {
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
         retriveBadges();
+        setBadgeForm(initialBadgeFormState);
       })
       .catch(err => {
         console.log(err);
         const { success, msg } = err.response.data;
         props.setAlert({ success, msg });
+      })
+      .finally(() => {
+        setBadgeForm(initialBadgeFormState);
+        setDefaultPfp();
       });
   };
 
   const deleteBadge = () => {
+    const confirmed = window.confirm("Procedere alla rimozione del badge?");
+		if (!confirmed) {
+      return;
+    }
+    
+    if(tableContentType !== "chiave") {
+      setTableContentType("_nominativo");
+    }
+
     BadgeDataService.deleteBadge(badgeForm.barcode)
       .then(response => {
         console.log(response.data);
@@ -169,6 +209,10 @@ const Home = props => {
         console.log(err);
         const { success, msg } = err.response.data;
         props.setAlert({ success, msg });
+      })
+      .finally(() => {
+        setBadgeForm(initialBadgeFormState);
+        setDefaultPfp();
       });
   };
 
@@ -200,8 +244,10 @@ const Home = props => {
   const createFormData = () => {
     const formData = new FormData();
     Object.entries(badgeForm).forEach(elem => formData.append(elem[0], elem[1]));
+    /*
     const pfp = document.querySelector("#foto_profilo");
     formData.append("fotoProfilo", pfp);
+    */
     return formData;
   };
 
@@ -210,13 +256,13 @@ const Home = props => {
       if(elem.nominativo) {
         elem["nome"] = elem.nominativo.nome;
         elem["cognome"] = elem.nominativo.cognome;
-        elem["ragSoc"] = elem.nominativo.ragSoc;
-        elem["numTel"] = elem.nominativo.numTel;
+        elem["rag_soc"] = elem.nominativo.rag_soc;
+        elem["num_tel"] = elem.nominativo.num_tel;
         if(elem.nominativo.documento) {
-          elem["tipoDoc"] = elem.nominativo.documento.tipo;
-          elem["codDoc"] = elem.nominativo.documento.codice;
+          elem["tipo_doc"] = elem.nominativo.documento.tipo;
+          elem["cod_doc"] = elem.nominativo.documento.codice;
         }
-        elem["fotoProfilo"] = elem.nominativo.fotoProfilo;
+        elem["foto_profilo"] = elem.nominativo.foto_profilo;
       }
       if(elem.chiave) {
         elem["indirizzo"] = elem.chiave.indirizzo;
@@ -225,27 +271,47 @@ const Home = props => {
         elem["piano"] = elem.chiave.piano;
       }
       if(elem.data) {
-        elem["dataEntra"] = elem.data.entrata;
-        elem["dataEsce"] = elem.data.uscita;
+        elem["dataEntra"] = dateFormat(addHours(new Date(elem.data.entrata), -2), "dd-mm-yyyy HH:MM:ss");
+        elem["dataEsce"] = dateFormat(addHours(new Date(elem.data.entrata), -2), "dd-mm-yyyy HH:MM:ss");
       }
       elem.nominativo = elem.chiave = elem.data = elem._id = undefined;
-      if(props.tableContentType === "in_struttura")
+      if(tableContentType === "in_struttura")
         elem.dataEsce = undefined;
   
       return elem;
     });
   };
 
-  const autocompleteForm = () => {
-    Object.entries(badges[0]).forEach(elem => {
-      const input = document.querySelector(`div.submit-form input[name=${elem[0]}]`);
-      input.value = elem[1];
-    });
-    if(badges[0].fotoProfilo) {
+  const autocompleteForm = badge => {
+    Object.entries(badge)
+      .filter(elem => elem[0] !== "foto_profilo")
+      .forEach(elem => {
+        const input = document.querySelector(
+          `div.submit-form input[name=${elem[0]}]`
+        );
+        if (input) {
+          input.value = elem[1];
+        }
+      });
+    console.log(`autocompleteForm - ${badge.foto_profilo}`);
+    console.log(badge);
+    if(badge.foto_profilo) {
       const pfp = document.querySelector("div.nom-form img");
-      pfp.src =`${window.env.API_URL}/public/foto-profilo/USER_${badges[0].barcode}.*`;
+      pfp.src =`${window.env.API_URL}/public/foto-profilo/${badge.foto_profilo}`;
     }
   };
+
+  const setDefaultPfp = () => {
+    const pfp = document.querySelector("div.nom-form img");
+    pfp.src = window.env.DEFAULT_IMG;
+  };
+
+  const refreshPage = () => {
+    setBadgeForm(initialBadgeFormState);
+    setArchivioForm(initialArchivioFormState);
+    setTableContentType("in_struttura");
+    setDefaultPfp();
+  }
 
   const serialApi = async () => {
     let serialPort;
@@ -297,10 +363,10 @@ const Home = props => {
   return (
     <div>
       <Navbar {...props} user={props.user} logout={props.logout} />
-      <button onClick={() => serialApi} className="btn btn-outline-secondary">
+      <button onClick={async () => await serialApi()} className="btn btn-outline-secondary">
         Connetti Seriale
       </button>
-      <div className="">
+      <div className="btn-menu">
         <button 
           onClick={() => setTableContentType("in_struttura")} 
           className="btn btn-outline-secondary d-inline-block"
@@ -322,7 +388,7 @@ const Home = props => {
         <div className="input-group col-lg-4">
           <div className="input-group-append">
             <button
-              onClick={() => findArchivio}
+              onClick={() => findArchivio()}
               className="btn btn-outline-secondary"
             >
               archivio
@@ -361,22 +427,26 @@ const Home = props => {
             {...props}
             badgeForm={badgeForm}
             handleInputChanges={handleInputChanges}
+            handleInputFileChanges={handleInputFileChanges}
           />
         )}
-        <button onClick={() => timbra} className="btn btn-success">
+        <button onClick={() => timbra()} className="btn btn-success">
           Timbra
         </button>
-        <button onClick={() => findBadges} className="btn btn-success">
+        <button onClick={() => findBadges()} className="btn btn-success">
           Cerca
         </button>
-        <button onClick={() => insertBadge} className="btn btn-success">
+        <button onClick={() => insertBadge()} className="btn btn-success">
           Inserisci
         </button>
-        <button onClick={() => updateBadge} className="btn btn-success">
+        <button onClick={() => updateBadge()} className="btn btn-success">
           Aggiorna
         </button>
-        <button onClick={() => deleteBadge} className="btn btn-success">
+        <button onClick={() => deleteBadge()} className="btn btn-success">
           Elimina
+        </button><br/>
+        <button onClick={() => refreshPage()} className="btn btn-success">
+          Refresh
         </button>
       </div>
       <BadgeTable {...props} badges={badges} tableContentType={tableContentType} />

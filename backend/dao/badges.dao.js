@@ -22,18 +22,14 @@ export default class BadgesDAO {
         switch (elem.key) {
           case "nome":
           case "cognome":
+          case "rag_soc":
+          case "num_tel":
             fieldName = `nominativo.${elem.key}`;
             break;
-          case "ragSoc":
-            fieldName = "nominativo.rag_soc";
-            break;
-          case "numTel":
-            fieldName = "nominativo.num_tel";
-            break;
-          case "tipoDoc":
+          case "tipo_doc":
             fieldName = "nominativo.documento.tipo";
             break;
-          case "codDoc":
+          case "cod_doc":
             fieldName = "nominativo.documento.codice";
             break;
           case "indirizzo":
@@ -69,6 +65,14 @@ export default class BadgesDAO {
           .push({ "nominativo": { $eq: null } });
         exprList
           .push({ "chiave": { $eq: null } });
+        break;
+      case "nominativo-ospite":
+        exprList
+          .push({ "chiave": { $eq: null } });
+        break;
+      case "chiave-ospite":
+        exprList
+          .push({ "nominativo": { $eq: null }});
         break;
       default:
     }
@@ -106,13 +110,13 @@ export default class BadgesDAO {
       nominativo: {
         nome: data.nome,
         cognome: data.cognome,
-        rag_soc: data.ragSoc,
-        num_tel: data.numTel,
+        rag_soc: data.rag_soc,
+        num_tel: data.num_tel,
         documento: {
-          tipo: data.tipoDoc,
-          codice: data.codDoc,
+          tipo: data.tipo_doc,
+          codice: data.cod_doc,
         },
-        foto_profilo: data.fotoProfilo,
+        foto_profilo: data.foto_profilo,
       },
       chiave: {
         indirizzo: data.indirizzo,
@@ -123,12 +127,13 @@ export default class BadgesDAO {
     };
 
     const nomNonNullVals = Object.values(badgeDoc.nominativo)
-        .filter(elem => elem != null && typeof elem !== "object");
-    const docNonNullVals = Object.values(badgeDoc.nominativo.documento).filter(
-        elem => elem != null
+        .filter(value => typeof value !== "object")
+        .some(value => value);
+    const docNonNullVals = Object.values(badgeDoc.nominativo.documento).some(
+        value => value
     );
-    const isNom = nomNonNullVals.length > 0 || docNonNullVals.length > 0;
-    const isChiave = Object.values(badgeDoc.chiave).some(elem => elem != null);
+    const isNom = nomNonNullVals || docNonNullVals;
+    const isChiave = Object.values(badgeDoc.chiave).some(value => value);
     if(!isNom) {
         badgeDoc.nominativo = null;
     }
@@ -160,36 +165,30 @@ export default class BadgesDAO {
       }
 
       Object.entries(data)
-        .filter(elem => elem[1] && elem[0] !== "barcode")
-        .forEach(elem => {
-          switch (elem[0]) {
+        .filter(([key, value]) => value && key !== "barcode")
+        .forEach(([key, value]) => {
+          switch (key) {
             case "nome":
             case "cognome":
-              paramsToUpdate[`nominativo.${elem[0]}`] = elem[1];
+            case "rag_soc":
+            case "num_tel":
+            case "foto_profilo":
+              paramsToUpdate[`nominativo.${key}`] = value;
               break;
-            case "ragSoc":
-              paramsToUpdate[`nominativo.rag_soc`] = elem[1];
+            case "tipo_doc":
+              paramsToUpdate[`nominativo.documento.tipo`] = value;
               break;
-            case "numTel":
-              paramsToUpdate[`nominativo.num_tel`] = elem[1];
-              break;
-            case "fotoProfilo":
-              paramsToUpdate[`nominativo.foto_profilo`] = elem[1];
-              break;
-            case "tipoDoc":
-              paramsToUpdate[`nominativo.documento.tipo`] = elem[1];
-              break;
-            case "codDoc":
-              paramsToUpdate[`nominativo.documento.codice`] = elem[1];
+            case "cod_doc":
+              paramsToUpdate[`nominativo.documento.codice`] = value;
               break;
             case "indirizzo":
             case "citta":
             case "edificio":
             case "piano":
-              paramsToUpdate[`chiave.${elem[0]}`] = elem[1];
+              paramsToUpdate[`chiave.${key}`] = value;
               break;
             default:
-              paramsToUpdate[elem[0]] = elem[1];
+              paramsToUpdate[key] = value;
           }
         });
 

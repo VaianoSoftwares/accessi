@@ -45,9 +45,18 @@ export default class BadgesController {
             }
 
             const fileUplResp = await fileUpl(req.files, req.body.barcode);
-            if(fileUplResp && fileUplResp.error) {
+            if(fileUplResp.error) {
                 return res.status(400).json({ success: false, msg: fileUplResp.error.message });
-            } 
+            }
+            else if(fileUplResp.fileName) {
+                const updPfpResp = await BadgesDAO.updateBadge({
+                  barcode: req.body.barcode,
+                  foto_profilo: fileUplResp.fileName,
+                });
+                if(updPfpResp.error) {
+                    return res.status(400).json({ success: false, msg: updPfpResp.error.message });
+                }
+            }
 
             res.json({ success: true, msg: "Badge aggiunto con successo", data: badgesResponse });
         } catch(err) {
@@ -69,15 +78,23 @@ export default class BadgesController {
                 return res.status(400).json({ success: false, msg: error.message });
             }
 
-            if(badgesResponse.modifiedCount === 0) {
-                throw new Error(
-                    `Badge ${req.body.barcode} non aggiornato.`
-                );
-            }
-
             const fileUplResp = await fileUpl(req.files, req.body.barcode);
-            if(fileUplResp && fileUplResp.error) {
+            if(fileUplResp.error) {
                 return res.status(400).json({ success: false, msg: fileUplResp.error.message });
+            }
+            else if(fileUplResp.fileName) {
+                const updPfpResp = await BadgesDAO.updateBadge({
+                  barcode: req.body.barcode,
+                  foto_profilo: fileUplResp.fileName,
+                });
+                if(updPfpResp.error) {
+                    return res.status(400).json({ success: false, msg: updPfpResp.error.message });
+                }
+            }
+            else if(badgesResponse.modifiedCount === 0) {
+                throw new Error(
+                    `Badge ${req.body.barcode} non aggiornato. Nessun campo inserito.`
+                );
             }
 
             res.json({ success: true, msg: "Badge aggiornato con successo.", data: badgesResponse });
@@ -88,7 +105,7 @@ export default class BadgesController {
     }
 
     static async apiDeleteBadges(req, res) {
-        const { barcode } = req.body;
+        const { barcode } = req.query;
 
         try {
             const badgesResponse = await BadgesDAO.deleteBadge(barcode);
