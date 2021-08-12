@@ -22,7 +22,7 @@ const Home = props => {
     rag_soc: "",
     tipo_doc: "",
     cod_doc: "",
-    foto_profilo: "",
+    foto_profilo: null,
     indirizzo: "",
     edificio: "",
     citta: "",
@@ -69,6 +69,11 @@ const Home = props => {
   const handleInputChanges = e => {
     const { name, value } = e.target;
     setBadgeForm({ ...badgeForm, [name]: value });
+  };
+
+  const handleInputFileChanges = e => {
+    const { name, files } = e.target;
+    setBadgeForm({ ...badgeForm, [name]: files[0] });
   };
 
   const handleInputChangesArchivio = e => {
@@ -149,6 +154,7 @@ const Home = props => {
       })
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
+        setDefaultPfp();
       });
   };
 
@@ -178,6 +184,7 @@ const Home = props => {
       })
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
+        setDefaultPfp();
       });
   };
 
@@ -205,6 +212,7 @@ const Home = props => {
       })
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
+        setDefaultPfp();
       });
   };
 
@@ -236,8 +244,10 @@ const Home = props => {
   const createFormData = () => {
     const formData = new FormData();
     Object.entries(badgeForm).forEach(elem => formData.append(elem[0], elem[1]));
+    /*
     const pfp = document.querySelector("#foto_profilo");
     formData.append("fotoProfilo", pfp);
+    */
     return formData;
   };
 
@@ -291,12 +301,16 @@ const Home = props => {
     }
   };
 
+  const setDefaultPfp = () => {
+    const pfp = document.querySelector("div.nom-form img");
+    pfp.src = window.env.DEFAULT_IMG;
+  };
+
   const refreshPage = () => {
     setBadgeForm(initialBadgeFormState);
     setArchivioForm(initialArchivioFormState);
     setTableContentType("in_struttura");
-    const pfp = document.querySelector("div.nom-form img");
-    pfp.src = window.env.DEFAULT_IMG;
+    setDefaultPfp();
   }
 
   const serialApi = async () => {
@@ -413,6 +427,7 @@ const Home = props => {
             {...props}
             badgeForm={badgeForm}
             handleInputChanges={handleInputChanges}
+            handleInputFileChanges={handleInputFileChanges}
           />
         )}
         <button onClick={() => timbra()} className="btn btn-success">

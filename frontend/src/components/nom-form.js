@@ -127,7 +127,7 @@ const NomForm = props => {
           id="foto_profilo"
           value={props.badgeForm.fotoProfilo}
           onChange={event => {
-            props.handleInputChanges(event);
+            props.handleInputFileChanges(event);
             const pfp = document.querySelector("div.nom-form img");
             const { files } = event.target;
             pfp.src = files[0] ? window.URL.createObjectURL(files[0]) : window.env.DEFAULT_IMG;

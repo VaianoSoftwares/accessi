@@ -1,4 +1,6 @@
 import path from "path";
+import fs from "fs/promises";
+
 const __dirname = path.resolve("../backend");
 
 const validPfpExt = [".png", ".jpeg", ".jpg"];
@@ -10,7 +12,7 @@ const fileUplBadges = async (files, barcode) => {
     }
 
     try {
-        const { fotoProfilo } = files;
+        const fotoProfilo = files.foto_profilo;
         console.log("file name: ", fotoProfilo.name);
 
         const fileExt = path.extname(fotoProfilo.name);
@@ -26,6 +28,16 @@ const fileUplBadges = async (files, barcode) => {
         return { fileName: newName };
     } catch(err) {
         console.log(`fileUpload - ${err}`);
+        return { error: err };
+    }
+};
+
+const deleteTmpFiles = async () => {
+    try {
+        const files = await fs.readdir(path.resolve(__dirname, "tmp"));
+        files.forEach(async file => await fs.unlink(file));
+    } catch(err) {
+        console.log(`deleteTmpFiles - ${err}`);
         return { error: err };
     }
 };

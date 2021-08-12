@@ -127,12 +127,13 @@ export default class BadgesDAO {
     };
 
     const nomNonNullVals = Object.values(badgeDoc.nominativo)
-        .filter(elem => elem != null && typeof elem !== "object");
-    const docNonNullVals = Object.values(badgeDoc.nominativo.documento).filter(
-        elem => elem != null
+        .filter(value => typeof value !== "object")
+        .some(value => value);
+    const docNonNullVals = Object.values(badgeDoc.nominativo.documento).some(
+        value => value
     );
-    const isNom = nomNonNullVals.length > 0 || docNonNullVals.length > 0;
-    const isChiave = Object.values(badgeDoc.chiave).some(elem => elem != null);
+    const isNom = nomNonNullVals || docNonNullVals;
+    const isChiave = Object.values(badgeDoc.chiave).some(value => value);
     if(!isNom) {
         badgeDoc.nominativo = null;
     }
@@ -164,30 +165,30 @@ export default class BadgesDAO {
       }
 
       Object.entries(data)
-        .filter(elem => elem[1] && elem[0] !== "barcode")
-        .forEach(elem => {
-          switch (elem[0]) {
+        .filter(([key, value]) => value && key !== "barcode")
+        .forEach(([key, value]) => {
+          switch (key) {
             case "nome":
             case "cognome":
             case "rag_soc":
             case "num_tel":
             case "foto_profilo":
-              paramsToUpdate[`nominativo.${elem[0]}`] = elem[1];
+              paramsToUpdate[`nominativo.${key}`] = value;
               break;
             case "tipo_doc":
-              paramsToUpdate[`nominativo.documento.tipo`] = elem[1];
+              paramsToUpdate[`nominativo.documento.tipo`] = value;
               break;
             case "cod_doc":
-              paramsToUpdate[`nominativo.documento.codice`] = elem[1];
+              paramsToUpdate[`nominativo.documento.codice`] = value;
               break;
             case "indirizzo":
             case "citta":
             case "edificio":
             case "piano":
-              paramsToUpdate[`chiave.${elem[0]}`] = elem[1];
+              paramsToUpdate[`chiave.${key}`] = value;
               break;
             default:
-              paramsToUpdate[elem[0]] = elem[1];
+              paramsToUpdate[key] = value;
           }
         });
 

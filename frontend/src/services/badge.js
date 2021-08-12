@@ -6,8 +6,8 @@ class BadgesDataService {
   getAll(tipo = "tutti") {
     return http.get(`/badges/tipo/${tipo}`, {
       headers: {
-        "auth-token": this.token
-      }
+        "auth-token": this.token,
+      },
     });
   }
 
@@ -19,13 +19,13 @@ class BadgesDataService {
       return this.getAll(tipo);
 
     const params = Object.entries(query)
-      .filter(elem => elem[1])
-      .map((elem) => `${elem[0]}=${elem[1]}`)
+      .filter((elem) => elem[1])
+      .map(([key, value]) => `${key}=${value}`)
       .join("&");
     console.log(params);
     return http.get(`/badges/tipo/${tipo}/?${params}`, {
       headers: {
-        "auth-token": this.token
+        "auth-token": this.token,
       },
     });
   }
@@ -49,21 +49,17 @@ class BadgesDataService {
   }
 
   deleteBadge(barcode) {
-    return http.delete(
-      "/badges",
-      { barcode: barcode },
-      {
-        headers: {
-          "auth-token": this.token
-        },
-      }
-    );
+    return http.delete(`/badges?barcode=${barcode}`, {
+      headers: {
+        "auth-token": this.token,
+      },
+    });
   }
 
   getReparti() {
     return http.get("/badges/reparti", {
       headers: {
-        "auth-token": this.token
+        "auth-token": this.token,
       },
     });
   }
@@ -71,7 +67,7 @@ class BadgesDataService {
   getTipiDoc() {
     return http.get("/badges/tipi-doc", {
       headers: {
-        "auth-token": this.token
+        "auth-token": this.token,
       },
     });
   }
@@ -79,22 +75,24 @@ class BadgesDataService {
   getArchivio(entrata = "", uscita = "") {
     return http.get(`/badges/archivio?entrata=${entrata}&uscita=${uscita}`, {
       headers: {
-        "auth-token": this.token
+        "auth-token": this.token,
       },
     });
   }
 
   getInStrutt() {
-    return http.get("/badges/archivio/in-struttura", { headers: {
-        "auth-token": this.token
-      }
+    return http.get("/badges/archivio/in-struttura", {
+      headers: {
+        "auth-token": this.token,
+      },
     });
   }
 
   timbra(data) {
-    return http.post("/badges/archivio", data, { headers: {
-        "auth-token": this.token
-      }
+    return http.post("/badges/archivio", data, {
+      headers: {
+        "auth-token": this.token,
+      },
     });
   }
 }
