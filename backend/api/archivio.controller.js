@@ -2,20 +2,20 @@ import ArchivioDAO from "../dao/archivio.dao.js";
 
 export default class ArchivioController {
   static async apiGetArchivio(req, res) {
-    const { entrata, uscita } = req.query;
+    const { inizio, fine } = req.query;
     try {
-      const archivioResponse = await ArchivioDAO.getArchivio(entrata, uscita);
+      const archivioResponse = await ArchivioDAO.getArchivio(inizio, fine);
       res.json({
         success: true,
         data: archivioResponse,
-        filters: { entrata, uscita },
+        filters: { inizio, fine },
       });
     } catch (err) {
       console.log(`apiGetArchivio - ${err}`);
       res.status(500).json({
         success: false,
         data: [],
-        filters: { entrata, uscita },
+        filters: { inizio, fine },
         msg: err.msg,
       });
     }

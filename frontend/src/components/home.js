@@ -36,9 +36,16 @@ const Home = props => {
     return date;
   };
 
+  const addDays = (date, d) => {
+    if(!date)
+      date = new Date();
+    date.setDate(date.getDate() + d);
+    return date;
+  };
+
   const initialArchivioFormState = {
-    inizio: dateFormat(addHours(new Date(), -2), "yyyy-mm-dd"),
-    fine: dateFormat(addHours(new Date(), -2), "yyyy-mm-dd")
+    inizio: dateFormat(addDays(new Date(), -1), "yyyy-mm-dd"),
+    fine: dateFormat(new Date(), "yyyy-mm-dd")
   };
 
   const [badges, setBadges] = React.useState([]);
@@ -226,13 +233,18 @@ const Home = props => {
         props.setAlert({ success, msg });
 
         const rowTimbra = response.data.data;
-        setBadges(mapToTableContent([ rowTimbra, ...badges ]));
+        const filteredBadges = badges.filter(badge => badge.barcode !== rowTimbra.barcode);
+        setBadges(mapToTableContent([ rowTimbra, ...filteredBadges ]));
 
-        if(response.data.msg && response.data.msg === "Timbra Esce") {
-          setTimeout(() => {
-            setBadges(mapToTableContent(badges));
-          }, 4000);
-        }
+        const firstRow = document.querySelector("table.badge-table").tBodies[0].rows[0];
+        firstRow.style.backgroundColor = msg === "Timbra Entra" ? "green" : "red";
+
+        setTimeout(() => {
+          firstRow.style.backgroundColor = "white";
+          if(msg === "Timbra Esce") {
+            setBadges(mapToTableContent(filteredBadges));
+          }
+        }, 4000);
       })
       .catch(err => {
         console.log(err);
@@ -272,11 +284,14 @@ const Home = props => {
       }
       if(elem.data) {
         elem["dataEntra"] = dateFormat(addHours(new Date(elem.data.entrata), -2), "dd-mm-yyyy HH:MM:ss");
-        elem["dataEsce"] = dateFormat(addHours(new Date(elem.data.entrata), -2), "dd-mm-yyyy HH:MM:ss");
+        elem["dataEsce"] = elem.data.uscita
+          ? dateFormat(
+              addHours(new Date(elem.data.uscita), -2),
+              "dd-mm-yyyy HH:MM:ss"
+            )
+          : undefined;
       }
       elem.nominativo = elem.chiave = elem.data = elem._id = undefined;
-      if(tableContentType === "in_struttura")
-        elem.dataEsce = undefined;
   
       return elem;
     });
@@ -349,8 +364,9 @@ const Home = props => {
             .trim();
 
           console.log(`serialApi - Value (trimmed): ${scannedValue}`);
+          badgeForm.barcode = scannedValue;
 
-          timbra({ ...badgeForm, barcode: scannedValue });
+          timbra();
         }
       }
     } catch(err) {
@@ -399,6 +415,7 @@ const Home = props => {
             className="form-control"
             placeholder="data inizio"
             value={archivioForm.inizio}
+            name="inizio"
             onChange={handleInputChangesArchivio}
           />
           <input
@@ -406,6 +423,7 @@ const Home = props => {
             className="form-control"
             placeholder="data fine"
             value={archivioForm.fine}
+            name="fine"
             onChange={handleInputChangesArchivio}
           />
         </div>

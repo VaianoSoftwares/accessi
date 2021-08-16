@@ -72,8 +72,8 @@ class BadgesDataService {
     });
   }
 
-  getArchivio(entrata = "", uscita = "") {
-    return http.get(`/badges/archivio?entrata=${entrata}&uscita=${uscita}`, {
+  getArchivio({ inizio = "", fine = "" }) {
+    return http.get(`/badges/archivio?inizio=${inizio}&fine=${fine}`, {
       headers: {
         "auth-token": this.token,
       },
