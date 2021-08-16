@@ -12,7 +12,7 @@ const BadgeTable = props => {
 
   return (
     //<iframe title="badge-table">
-    <table className="table table-striped">
+    <table className="badge-table table table-striped">
       <thead>
         <tr>
           {props.badges.length > 0 &&
