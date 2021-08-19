@@ -11,7 +11,7 @@ const AccessiNavbar = props => {
   return (
     <nav className="navbar navbar-expand navbar-dark bg-primary">
         <Link to={"/home"} className="navbar-brand">
-          <img src={window.env.DEFAULT_IMG} width="100" height="100" alt="accessi"></img>
+          <h3>Gestione Accessi</h3>
         </Link>
         <div className="navbar-nav mr-auto">
           <li className="nav-item">
@@ -25,7 +25,7 @@ const AccessiNavbar = props => {
             </Link>
           </li>
           <li className="nav-item">
-            <a href="" onClick={() => logout} className="navbar-brand" style={{cursor:"pointer"}}>
+            <a href="" onClick={() => logout} className="nav-link" style={{cursor:"pointer"}}>
                 Logout {props.user.name}
             </a>
           </li>

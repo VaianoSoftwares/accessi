@@ -29,7 +29,7 @@ const BadgeForm = props => {
           <label htmlFor="barcode">barcode</label>
           <input
             type="text"
-            className="form-control"
+            className="form-control form-control-sm"
             id="barcode"
             value={props.badgeForm.barcode}
             onChange={props.handleInputChanges}
@@ -40,7 +40,7 @@ const BadgeForm = props => {
           <label htmlFor="descrizione">descrizione</label>
           <input
             type="text"
-            className="form-control"
+            className="form-control form-control-sm"
             id="descrizione"
             value={props.badgeForm.descrizione}
             onChange={props.handleInputChanges}
@@ -52,7 +52,7 @@ const BadgeForm = props => {
         <div className="form-group col-md-3">
           <label htmlFor="reparto">reparto</label>
           <select
-            className="form-control"
+            className="form-control form-control-sm"
             id="reparto"
             value={props.badgeForm.reparto}
             onChange={props.handleInputChanges}
@@ -69,7 +69,7 @@ const BadgeForm = props => {
           <label htmlFor="ubicazione">ubicazione</label>
           <input
             type="text"
-            className="form-control"
+            className="form-control form-control-sm"
             id="ubicazione"
             value={props.badgeForm.ubicazione}
             onChange={props.handleInputChanges}

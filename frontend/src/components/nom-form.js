@@ -58,22 +58,23 @@ const NomForm = (props) => {
         </div>
         <div className="col-8">
           <div className="row">
-            <div className="form-group col-md-5">
+            <div className="form-group col-sm-3">
               <label htmlFor="nome">nome</label>
               <input
                 type="text"
-                className="form-control"
+                className="form-control form-control-sm"
                 id="nome"
                 value={props.badgeForm.nome}
                 onChange={props.handleInputChanges}
                 name="nome"
+                placeholder="nome"
               />
             </div>
-            <div className="form-group col-md-5">
+            <div className="form-group col-sm-3">
               <label htmlFor="cognome">cognome</label>
               <input
                 type="text"
-                className="form-control"
+                className="form-control form-control-sm"
                 id="cognome"
                 value={props.badgeForm.cognome}
                 onChange={props.handleInputChanges}
@@ -82,22 +83,22 @@ const NomForm = (props) => {
             </div>
           </div>
           <div className="row">
-            <div className="form-group col-md-5">
+            <div className="form-group col-sm-3">
               <label htmlFor="rag_soc">ragione sociale</label>
               <input
                 type="text"
-                className="form-control"
+                className="form-control form-control-sm"
                 id="rag_soc"
                 value={props.badgeForm.rag_soc}
                 onChange={props.handleInputChanges}
                 name="rag_soc"
               />
             </div>
-            <div className="form-group col-md-5">
+            <div className="form-group col-sm-3">
               <label htmlFor="num_tel">numero telefono</label>
               <input
                 type="text"
-                className="form-control"
+                className="form-control form-control-sm"
                 id="num_tel"
                 value={props.badgeForm.num_tel}
                 onChange={props.handleInputChanges}
@@ -106,10 +107,10 @@ const NomForm = (props) => {
             </div>
           </div>
           <div className="row">
-            <div className="form-group col-md-5">
+            <div className="form-group col-sm-3">
               <label htmlFor="tipo_doc">tipo documento</label>
               <select
-                className="form-control"
+                className="form-control form-control-sm"
                 id="tipo_doc"
                 value={props.badgeForm.tipo_doc}
                 onChange={props.handleInputChanges}
@@ -122,11 +123,11 @@ const NomForm = (props) => {
                 ))}
               </select>
             </div>
-            <div className="form-group col-md-5">
+            <div className="form-group col-sm-3">
               <label htmlFor="cod_doc">codice documento</label>
               <input
                 type="text"
-                className="form-control"
+                className="form-control form-control-sm"
                 id="cod_doc"
                 value={props.badgeForm.cod_doc}
                 onChange={props.handleInputChanges}
@@ -134,26 +135,27 @@ const NomForm = (props) => {
               />
             </div>
           </div>
+          <div className="row">
+            <div className="form-group col-sm-3">
+              <label htmlFor="foto_profilo">foto profilo</label>
+              <input
+                type="file"
+                className="form-control-file form-control-file-sm"
+                id="foto_profilo"
+                value={props.badgeForm.fotoProfilo}
+                onChange={(event) => {
+                  props.handleInputFileChanges(event);
+                  const pfp = document.querySelector("div.nom-form img");
+                  const { files } = event.target;
+                  pfp.src = files[0]
+                    ? window.URL.createObjectURL(files[0])
+                    : window.env.DEFAULT_IMG;
+                }}
+                name="foto_profilo"
+              />
+            </div>
+          </div>
         </div>
-      </div>
-      <br/>
-      <div className="form-group col-md-3">
-        <label htmlFor="foto_profilo">foto profilo</label>
-        <input
-          type="file"
-          className="form-control-file"
-          id="foto_profilo"
-          value={props.badgeForm.fotoProfilo}
-          onChange={(event) => {
-            props.handleInputFileChanges(event);
-            const pfp = document.querySelector("div.nom-form img");
-            const { files } = event.target;
-            pfp.src = files[0]
-              ? window.URL.createObjectURL(files[0])
-              : window.env.DEFAULT_IMG;
-          }}
-          name="foto_profilo"
-        />
       </div>
       <br/>
     </div>
