@@ -33,12 +33,13 @@ const Login = props => {
   };
 
   return (
-    <div className="submit-form">
-      <div className="form-group row">
+    <div
+      className="submit-form login-form center" align="center">
+      <div className="form-group">
         <label htmlFor="username" className="col-sm-2 col-form-label">
           Username
         </label>
-        <div className="col-sm-10">
+        <div className="col-sm-7">
           <input
             type="text"
             className="form-control"
@@ -50,11 +51,11 @@ const Login = props => {
           />
         </div>
       </div>
-      <div className="form-group row">
+      <div className="form-group">
         <label htmlFor="password" className="col-sm-2 col-form-label">
-          password
+          Password
         </label>
-        <div className="col-sm-10">
+        <div className="col-sm-7">
           <input
             type="password"
             className="form-control"
@@ -66,6 +67,7 @@ const Login = props => {
           />
         </div>
       </div>
+      <br />
       <button onClick={login} className="btn btn-success">
         Login
       </button>

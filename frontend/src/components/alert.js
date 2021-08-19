@@ -11,7 +11,7 @@ const Alert = (props) => {
         }
         role="alert"
       >
-        <strong>{props.alert.success === true ? "Success" : "Error"}</strong> {props.alert.msg} <button
+        <strong>{props.alert.success === true ? "Success" : "Error"}</strong> {props.alert.msg.replace("Error:", "")} <button
           type="button"
           className="close"
           data-dismiss="alert"

@@ -22,8 +22,9 @@ const BadgeForm = props => {
   };
 
   return (
-    <div>
-      <div className="form-row">
+    <div className="badge-form">
+      <br/>
+      <div className="row">
         <div className="form-group col-md-3">
           <label htmlFor="barcode">barcode</label>
           <input
@@ -35,7 +36,7 @@ const BadgeForm = props => {
             name="barcode"
           />
         </div>
-        <div className="form-group col-md-6">
+        <div className="form-group col-md-4">
           <label htmlFor="descrizione">descrizione</label>
           <input
             type="text"
@@ -47,7 +48,7 @@ const BadgeForm = props => {
           />
         </div>
       </div>
-      <div className="form-row">
+      <div className="row">
         <div className="form-group col-md-3">
           <label htmlFor="reparto">reparto</label>
           <select

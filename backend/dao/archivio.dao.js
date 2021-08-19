@@ -66,7 +66,7 @@ export default class ArchivioDAO {
 
             if (timbraResp.modifiedCount === 0) {
               throw new Error(
-                `Non è stato possibile timbrare badge ${barcode}`
+                `Non è stato possibile timbrare badge ${barcode}.`
               );
             }
 
@@ -82,6 +82,12 @@ export default class ArchivioDAO {
             }
 
             const timbraResp = await this.#timbraEntra(barcode, nominativo, isUni);
+
+            const { error } = timbraResp;
+            if (error) {
+              throw new Error(error);
+            }
+
             inStrutt = await this.getInStruttBy("_id", timbraResp.insertedId);
             return { response: inStrutt, msg: "Timbra Entra" };
           }
@@ -107,7 +113,8 @@ export default class ArchivioDAO {
                     documento: {
                         tipo: nominativo.tipo_doc,
                         codice: nominativo.cod_doc
-                    }
+                    },
+                    foto_profilo: nominativo.foto_profilo
                 }
             };
             

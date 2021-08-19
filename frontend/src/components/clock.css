@@ -1,0 +1,21 @@
+#orologio {
+	font-family: 'Roboto', monospace;
+	text-align: center;
+	position: absolute;
+	left: 65%;
+	top: 15%;
+	color: #1851FB;
+	text-shadow: 0 0 20px #05c1fd, 0 0 20px rgb(0, 46, 62);
+}
+
+#orologio .tempo {
+	letter-spacing: 0.05em;
+	font-size: 80px;
+	padding: 5px 0;
+	margin: 10px;
+}
+#orologio .data {
+	letter-spacing: 0.1em;
+	font-size: 24px;
+	margin: 10px;
+}
