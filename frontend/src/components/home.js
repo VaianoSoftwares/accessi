@@ -9,6 +9,7 @@ import BadgeForm from "./badge-form.js";
 import BadgeTable from "./badge-table.js";
 import NomForm from "./nom-form.js";
 import ChiaveForm from "./chiave-form.js";
+import Clock from "./clock.js";
 
 const Home = props => {
   const initialBadgeFormState = {
@@ -379,53 +380,59 @@ const Home = props => {
   return (
     <div>
       <Navbar {...props} user={props.user} logout={props.logout} />
-      <button onClick={async () => await serialApi()} className="btn btn-outline-secondary">
-        Connetti Seriale
-      </button>
+      <br />
       <div className="btn-menu">
-        <button 
-          onClick={() => setTableContentType("in_struttura")} 
-          className="btn btn-outline-secondary d-inline-block"
-        >
-          in struttura
-        </button>
-        <button
-          onClick={() => setTableContentType("nominativo")}
-          className="btn btn-outline-secondary d-inline-block"
-        >
-          nominativi
-        </button>
-        <button
-          onClick={() => setTableContentType("chiave")}
-          className="btn btn-outline-secondary d-inline-block"
-        >
-          chiavi
-        </button>
-        <div className="input-group col-lg-4">
-          <div className="input-group-append">
+        <div className="row">
+          <div className="col-lg-5">
+            <button
+              onClick={() => setTableContentType("in_struttura")}
+              className="btn btn-outline-secondary d-inline-block"
+            >
+              in struttura
+            </button>
+            <button
+              onClick={() => setTableContentType("nominativo")}
+              className="btn btn-outline-secondary d-inline-block"
+            >
+              nominativi
+            </button>
+            <button
+              onClick={() => setTableContentType("chiave")}
+              className="btn btn-outline-secondary d-inline-block"
+            >
+              chiavi
+            </button>
             <button
               onClick={() => findArchivio()}
               className="btn btn-outline-secondary"
             >
               archivio
             </button>
+            <input
+              type="date"
+              className=""
+              placeholder="data inizio"
+              value={archivioForm.inizio}
+              name="inizio"
+              onChange={handleInputChangesArchivio}
+            />
+            <input
+              type="date"
+              className=""
+              placeholder="data fine"
+              value={archivioForm.fine}
+              name="fine"
+              onChange={handleInputChangesArchivio}
+            />
           </div>
-          <input
-            type="date"
-            className="form-control"
-            placeholder="data inizio"
-            value={archivioForm.inizio}
-            name="inizio"
-            onChange={handleInputChangesArchivio}
-          />
-          <input
-            type="date"
-            className="form-control"
-            placeholder="data fine"
-            value={archivioForm.fine}
-            name="fine"
-            onChange={handleInputChangesArchivio}
-          />
+          <div className="col-lg-2">
+            <button
+              onClick={async () => await serialApi()}
+              className="btn btn-outline-secondary"
+            >
+              Connetti Seriale
+            </button>
+          </div>
         </div>
       </div>
       <div className="submit-form">
@@ -448,26 +455,38 @@ const Home = props => {
             handleInputFileChanges={handleInputFileChanges}
           />
         )}
-        <button onClick={() => timbra()} className="btn btn-success">
-          Timbra
-        </button>
-        <button onClick={() => findBadges()} className="btn btn-success">
-          Cerca
-        </button>
-        <button onClick={() => insertBadge()} className="btn btn-success">
-          Inserisci
-        </button>
-        <button onClick={() => updateBadge()} className="btn btn-success">
-          Aggiorna
-        </button>
-        <button onClick={() => deleteBadge()} className="btn btn-success">
-          Elimina
-        </button><br/>
-        <button onClick={() => refreshPage()} className="btn btn-success">
-          Refresh
-        </button>
+        <div className="form-buttons row">
+          <div className="col-lg-3">
+            <button onClick={() => timbra()} className="btn btn-success">
+              Timbra
+            </button>
+            <button onClick={() => findBadges()} className="btn btn-success">
+              Cerca
+            </button>
+            <button onClick={() => insertBadge()} className="btn btn-success">
+              Inserisci
+            </button>
+            <button onClick={() => updateBadge()} className="btn btn-success">
+              Aggiorna
+            </button>
+            <button onClick={() => deleteBadge()} className="btn btn-success">
+              Elimina
+            </button>
+          </div>
+          <div className="col-lg-2">
+            <button onClick={() => refreshPage()} className="btn btn-success">
+              Refresh
+            </button>
+          </div>
+        </div>
       </div>
-      <BadgeTable {...props} badges={badges} tableContentType={tableContentType} />
+      <br />
+      <BadgeTable
+        {...props}
+        badges={badges}
+        tableContentType={tableContentType}
+      />
+      <Clock />
     </div>
   );
 }

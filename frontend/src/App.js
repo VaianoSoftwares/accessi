@@ -1,5 +1,5 @@
 //import logo from './logo.svg';
-//import './App.css';
+import './App.css';
 import React from "react";
 import { Switch, Route, Redirect, BrowserRouter as Router } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -24,7 +24,7 @@ function App() {
 
   return (
     <div className="App">
-      <div className="container mt-3">
+      <div className="container-fluid mt-3">
         <Router>
           <Switch>
             <Route exact path={["/", "/home"]}>
@@ -60,7 +60,13 @@ function App() {
               )}
             />
           </Switch>
+          <div style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}>
           <Alert alert={_alert} setAlert={setAlert} />
+          </div>
         </Router>
       </div>
     </div>

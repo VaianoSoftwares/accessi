@@ -11,21 +11,21 @@ const BadgeTable = props => {
   };
 
   return (
-    //<iframe title="badge-table">
+    <div style={{"overflowY":"auto", "height":"175px"}}>
     <table className="badge-table table table-striped">
-      <thead>
+      <thead style={{"position":"sticky", "top":"0", "zIndex":"1", "backgroundColor":"white"}}>
         <tr>
           {props.badges.length > 0 &&
             Object.entries(getLongestBadge())
               .filter((elem) => elem[1] !== undefined)
               .map((elem, index) => (
-                <th scope="col" key={index}>
+                <th scope="col" key={index} style={{"position":"sticky", "top":"0", "zIndex":"1"}}>
                   {elem[0]}
                 </th>
               ))}
         </tr>
       </thead>
-      <tbody>
+      <tbody className="badge-tbody" style={{"maxHeight":"200px","overflowY":"scroll", "height":"200px"}}>
         {props.badges.length > 0 &&
           props.badges.map((elem, index) => (
             <tr key={index}>
@@ -38,7 +38,7 @@ const BadgeTable = props => {
           ))}
       </tbody>
     </table>
-    //</iframe>
+    </div>
   );
 };
 
