@@ -32,7 +32,7 @@ const ChiaveForm = props => {
           <label htmlFor="indirizzo">indirizzo</label>
           <input
             type="text"
-            className="form-control"
+            className="form-control form-control-sm"
             id="indirizzo"
             value={props.badgeForm.indirizzo}
             onChange={props.handleInputChanges}
@@ -43,7 +43,7 @@ const ChiaveForm = props => {
           <label htmlFor="edificio">edificio</label>
           <input
             type="text"
-            className="form-control"
+            className="form-control form-control-sm"
             id="edificio"
             value={props.badgeForm.edificio}
             onChange={props.handleInputChanges}
@@ -56,7 +56,7 @@ const ChiaveForm = props => {
           <label htmlFor="citta">citta</label>
           <input
             type="text"
-            className="form-control"
+            className="form-control form-control-sm"
             id="citta"
             value={props.badgeForm.citta}
             onChange={props.handleInputChanges}
@@ -67,7 +67,7 @@ const ChiaveForm = props => {
           <label htmlFor="piano">piano</label>
           <input
             type="text"
-            className="form-control"
+            className="form-control form-control-sm"
             id="piano"
             value={props.badgeForm.piano}
             onChange={props.handleInputChanges}

@@ -46,29 +46,39 @@ dateFormat.i18n = {
   ],
 };
 
-const Clock = () => {
-    const clockInitialState = {
-        ora: "",
-        data: ""
+export default class Clock extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      ora: dateFormat(new Date(), "HH:MM:ss"), 
+      data: dateFormat(new Date(), "dddd dd mmmm yyyy") 
     };
-    const [clock, setClock] = React.useState(clockInitialState);
+  }
 
-    const updateTime = () => {
-        const now = new Date();
-        let newClockState = {};
-        newClockState.ora = dateFormat(now, "HH:MM:ss");
-        newClockState.data = dateFormat(now, "dddd dd mmmm yyyy");
-        setClock(newClockState);
-    };
+  tick() {
+    this.setState({
+      ora: dateFormat(new Date(), "HH:MM:ss"), 
+      data: dateFormat(new Date(), "dddd dd mmmm yyyy") 
+    });
+  }
 
-    setInterval(updateTime, 1000);
-
-    return (
-        <div id="orologio">
-            <p className="tempo">{clock.ora}</p>
-            <p className="data">{clock.data}</p>
-        </div>
+  componentDidMount() {
+    this.timerID = setInterval(
+      () => this.tick(),
+      1000
     );
-};
+  }
 
-export default Clock;
+  componentWillUnmount() {
+    clearInterval(this.timerID);
+  }
+
+  render() {
+    return (
+      <div id="orologio">
+        <p className="tempo">{this.state.ora}</p>
+        <p className="data">{this.state.data}</p>
+      </div>
+    );
+  }
+};

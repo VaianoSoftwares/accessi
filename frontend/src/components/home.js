@@ -285,7 +285,7 @@ const Home = props => {
       }
       if(elem.data) {
         elem["dataEntra"] = dateFormat(addHours(new Date(elem.data.entrata), -2), "dd-mm-yyyy HH:MM:ss");
-        elem["dataEsce"] = elem.data.uscita
+        elem["dataEsce"] = elem.data.uscita && tableContentType !== "in_struttura"
           ? dateFormat(
               addHours(new Date(elem.data.uscita), -2),
               "dd-mm-yyyy HH:MM:ss"
@@ -378,7 +378,7 @@ const Home = props => {
   };
 
   return (
-    <div>
+    <div id="home-wrapper">
       <Navbar {...props} user={props.user} logout={props.logout} />
       <br />
       <div className="btn-menu">
@@ -486,7 +486,7 @@ const Home = props => {
         badges={badges}
         tableContentType={tableContentType}
       />
-      <Clock />
+      <Clock/>
     </div>
   );
 }
