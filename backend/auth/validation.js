@@ -11,8 +11,7 @@ const validator = data => {
             .string()
             .min(6)
             .required(),
-        tipoUtente: Joi.any(),
-        nominativo: Joi.any()
+        tipoUtente: Joi.bool()
     });
 
     return schema.validate(data);

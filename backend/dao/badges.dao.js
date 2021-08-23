@@ -13,76 +13,40 @@ export default class BadgesDAO {
     }
   }
 
-  static async getBadges(filters = [], tipoBadge = "tutti") {
-    let exprList = filters
-      .filter((elem) => elem.value !== null)
-      .map((elem) => {
-        let fieldName;
-
-        switch (elem.key) {
-          case "nome":
-          case "cognome":
-          case "rag_soc":
-          case "num_tel":
-            fieldName = `nominativo.${elem.key}`;
-            break;
-          case "tipo_doc":
-            fieldName = "nominativo.documento.tipo";
-            break;
-          case "cod_doc":
-            fieldName = "nominativo.documento.codice";
-            break;
-          case "indirizzo":
-          case "citta":
-          case "edificio":
-          case "piano":
-            fieldName = `chiave.${elem.key}`;
-            break;
-          default:
-            fieldName = elem.key;
-        }
+  static async getBadges(filters = {}) {
+    let exprList = Object.entries(filters)
+      .filter(([key, value]) => value && !key.includes("targa"))
+      .map(([key, value]) => {
+        const fieldName = [
+          "nome",
+          "cognome",
+          "ditta",
+          "telefono",
+          "tipo_doc",
+          "ndoc",
+        ].includes(key)
+          ? `nominativo.${key}`
+          : key;
 
         let newElem = {};
-        newElem[fieldName] = { $regex: new RegExp(elem.value, "i") };
+        newElem[fieldName] = { $regex: new RegExp(value, "i") };
         return newElem;
       });
-    
-    switch(tipoBadge) {
-      case "nominativo":
-        exprList
-          .push({ "nominativo": { $ne: null } });
-        exprList
-          .push({ "chiave": { $eq: null } });
-        break;
-      case "chiave":
-        exprList
-          .push({ "nominativo": { $eq: null } });
-        exprList
-          .push({ "chiave": { $ne: null } });
-        break;
-      case "ospite":
-        exprList
-          .push({ "nominativo": { $eq: null } });
-        exprList
-          .push({ "chiave": { $eq: null } });
-        break;
-      case "nominativo-ospite":
-        exprList
-          .push({ "chiave": { $eq: null } });
-        break;
-      case "chiave-ospite":
-        exprList
-          .push({ "nominativo": { $eq: null }});
-        break;
-      default:
-    }
 
+    const targhe = Object.entries(filters)
+      .filter(([key, value]) => value && key.includes("targa"))
+      .map(([key, value]) => value);
+
+    if (targhe.length > 0) {
+      exprList.push({ "nominativo.targhe": { $all: targhe } });
+    }
+    
     const query = exprList.length > 0 ? { $and: exprList } : null;
     console.log(query);
 
     try {
       const cursor = await badges.find(query);
-      const displayCursor = cursor.limit(0).skip(0);
+      const displayCursor = cursor.limit(50).skip(0);
       const badgesList = await displayCursor.toArray();
       console.log(badgesList);
       return badgesList;
@@ -101,51 +65,59 @@ export default class BadgesDAO {
     }
   }
 
-  static async addBadge(data) {
+  static #getBadgeDoc(data) {
     let badgeDoc = {
       barcode: data.barcode,
       descrizione: data.descrizione,
-      reparto: data.reparto,
+      tipo: data.tipo || "badge",
+      assegnazione: data.reparto,
       ubicazione: data.ubicazione,
+      stato: data.stato || "valido",
       nominativo: {
         nome: data.nome,
         cognome: data.cognome,
-        rag_soc: data.rag_soc,
-        num_tel: data.num_tel,
-        documento: {
-          tipo: data.tipo_doc,
-          codice: data.cod_doc,
-        },
-        foto_profilo: data.foto_profilo,
-      },
-      chiave: {
-        indirizzo: data.indirizzo,
-        citta: data.citta,
-        edificio: data.edificio,
-        piano: data.piano,
-      },
+        ditta: data.ditta,
+        telefono: data.telefono,
+        tipo_doc: data.tipo_doc,
+        ndoc: data.ndoc,
+        scadenza: data.scadenza || new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+        targhe: {
+          1: data.targa1,
+          2: data.targa2,
+          3: data.targa3,
+          4: data.targa4
+        }
+      }
     };
 
-    const nomNonNullVals = Object.values(badgeDoc.nominativo)
+    const nomHasNonNullVals = Object.values(badgeDoc.nominativo)
         .filter(value => typeof value !== "object")
         .some(value => value);
-    const docNonNullVals = Object.values(badgeDoc.nominativo.documento).some(
+    const targheHasNonNullVals = badgeDoc.targhe && Object.values(badgeDoc.targhe).some(
         value => value
     );
-    const isNom = nomNonNullVals || docNonNullVals;
-    const isChiave = Object.values(badgeDoc.chiave).some(value => value);
+    const isNom = nomHasNonNullVals || targheHasNonNullVals;
     if(!isNom) {
         badgeDoc.nominativo = null;
     }
-    if(!isChiave) {
-        badgeDoc.chiave = null;
+
+    if(new Date() > badgeDoc.scadenza && badgeDoc.stato === "valido") {
+      badgeDoc.stato = "scaduto";
     }
 
+    console.log(badgeDoc);
+
+    return badgeDoc;
+  }
+
+  static async addBadge(data) {
     try {
       const badge = await this.findBadgeByBarcode(data.barcode);
       if (badge) {
         throw new Error(`Barcode ${data.barcode} già esistente.`);
       }
+
+      const badgeDoc = this.#getBadgeDoc(data);
 
       return await badges.insertOne(badgeDoc);
     } catch (err) {
@@ -167,37 +139,16 @@ export default class BadgesDAO {
       Object.entries(data)
         .filter(([key, value]) => value && key !== "barcode")
         .forEach(([key, value]) => {
-          switch (key) {
-            case "nome":
-            case "cognome":
-            case "rag_soc":
-            case "num_tel":
-            case "foto_profilo":
-              paramsToUpdate[`nominativo.${key}`] = value;
-              break;
-            case "tipo_doc":
-              paramsToUpdate[`nominativo.documento.tipo`] = value;
-              break;
-            case "cod_doc":
-              paramsToUpdate[`nominativo.documento.codice`] = value;
-              break;
-            case "indirizzo":
-            case "citta":
-            case "edificio":
-            case "piano":
-              paramsToUpdate[`chiave.${key}`] = value;
-              break;
-            default:
-              paramsToUpdate[key] = value;
+          if(["nome", "cognome", "ditta", "telefono", "tipo_doc", "ndoc"].includes(key)) {
+            paramsToUpdate[`nominativo.${key}`] = value;
+          }
+          else if(key.includes("targa")) {
+            paramsToUpdate[`nominativo.targhe.${key.charAt(key.length - 1)}`] = value;
+          }
+          else {
+            paramsToUpdate[key] = value;
           }
         });
-
-      if(badge.nominativo && !badge.chiave) {
-        paramsToUpdate.chiave = undefined;
-      }
-      else if(!badge.nominativo && badge.chiave) {
-        paramsToUpdate.nominativo = undefined;
-      }
 
       const badgeId = badge._id;
 
@@ -222,6 +173,7 @@ export default class BadgesDAO {
     }
   }
 
+  /*
   static async getReparti() {
     try {
       const reparti = await badges.distinct("reparto");
@@ -241,4 +193,5 @@ export default class BadgesDAO {
       return [];
     }
   }
+  */
 };

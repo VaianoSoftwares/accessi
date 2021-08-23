@@ -17,8 +17,7 @@ export default class UsersController {
             const userDoc = {
                 username: req.body.username,
                 password: hashPsw,
-                tipo_utente: req.body.tipoUtente === "admin" ? "admin" : "guest",
-                nominativo: req.body.nominativo
+                admin: req.body.admin || false
             };
 
             const response = await UsersDAO.addUser(userDoc);
@@ -61,22 +60,12 @@ export default class UsersController {
                 data: {
                     id: user._id,
                     name: user.username,
-                    tipo: user.tipo_utente
+                    admin: user.admin
                 }
               });
         } catch(err) {
             console.log(`apiLogin - ${err}`);
             res.status(400).json({ success: false, msg: err.message });
-        }
-    }
-
-    static async apiGetTipiUtenti(req, res) {
-        try {
-            const tipiUtenti = await UsersDAO.getTipiUtenti();
-            res.json({ success: true, tipiUtenti: tipiUtenti });
-        } catch(err) {
-            console.log(`apiGetTipiUtenti - ${err}`);
-            res.status(500).json({ success: false, tipiUtenti: [], error: err });
         }
     }
 };

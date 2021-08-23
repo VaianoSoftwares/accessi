@@ -3,7 +3,7 @@ import fs from "fs/promises";
 
 const __dirname = path.resolve("../backend");
 
-const validPfpExt = [".png", ".jpeg", ".jpg"];
+//const validPfpExt = [".png", ".jpeg", ".jpg"];
 
 const fileUplBadges = async (files, barcode) => {
     if(!files || Object.keys(files).length === 0) {
@@ -16,7 +16,7 @@ const fileUplBadges = async (files, barcode) => {
         console.log("file name: ", fotoProfilo.name);
 
         const fileExt = path.extname(fotoProfilo.name);
-        if(!fileExt in validPfpExt) {
+        if(fileExt === ".jpg") {
             throw new Error(`${fileExt} estensione file non valida.`);
         }
 
