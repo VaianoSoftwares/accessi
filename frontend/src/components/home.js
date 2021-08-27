@@ -1,14 +1,19 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import React from "react";
 import dateFormat from "dateformat";
+import _ from "underscore";
 
 import BadgeDataService from "../services/badge.js";
-import SerialApi from "../services/serial-api.js";
+//import SerialApi from "../services/serial-api.js";
 
 import Navbar from "./accessi-navbar";
-import BadgeForm from "./badge-form.js";
+import BadgeForm from "./badge-form";
 import BadgeTable from "./badge-table.js";
-import Clock from "./clock.js";
-import FormButtons from "./formButtons.js";
+import Clock from "./clock";
+import FormButtons from "./form-buttons.js";
+import { OspitiPopup } from "./ospiti-popup";
+import SerialComponent from "./serial-component.js";
 
 const Home = props => {
   const initialBadgeFormState = {
@@ -31,26 +36,54 @@ const Home = props => {
     targa3: "",
     targa4: ""
   };
-
+  /*
   const initialArchivioFormState = {
     inizio: dateFormat(new Date(new Date().setDate(new Date().getDate() - 1)), "yyyy-mm-dd"),
     fine: dateFormat(new Date(), "yyyy-mm-dd")
   };
+  */
+
+  const defaultTableContentElem = {
+    codice: "",
+    tipo: "",
+    assegnaz: "",
+    nome: "",
+    cognome: "",
+    ditta: "",
+  };
 
   const [badges, setBadges] = React.useState([]);
   const [badgeForm, setBadgeForm] = React.useState(initialBadgeFormState);
-  const [archivioForm, setArchivioForm] = React.useState(initialArchivioFormState);
-  //const [tableContentType, setTableContentType] = React.useState("in_struttura");
+  //const [archivioForm, setArchivioForm] = React.useState(initialArchivioFormState);
+  const [tipiDoc, setTipiDoc] = React.useState([]);
+  const [isShown, setIsShown] = React.useState(false);
+  const [readOnlyForm, setReadOnlyForm] = React.useState(true);
+  const [scannedValue, setScannedValue] = React.useState("");
   
   React.useEffect(() => {
     BadgeDataService.token = props.token;
-    console.log(`props.token: ${props.token} - BadgeDataService.token: ${BadgeDataService.token}`);
-    retriveInStrutt();
+    //console.log(`props.token: ${props.token} - BadgeDataService.token: ${BadgeDataService.token}`);
+    retriveTipiDoc();
   }, []);
   
   React.useEffect(() => {
     retriveInStrutt();
   }, [badgeForm.tipo]);
+
+  React.useEffect(() => {
+    toggleReadonlyInputs(readOnlyForm);
+    if(readOnlyForm === true) {
+      setBadgeForm({ ...initialBadgeFormState, tipo: badgeForm.tipo });
+    }
+    console.log(`readOnlyForm: ${readOnlyForm}`);
+  }, [readOnlyForm]);
+
+  React.useEffect(() => {
+    if(scannedValue) {
+      timbra({ barcode: scannedValue });
+      setScannedValue("");
+    }
+  }, [scannedValue])
 
   const handleInputChanges = e => {
     const { name, value } = e.target;
@@ -61,12 +94,12 @@ const Home = props => {
     const { name, files } = e.target;
     setBadgeForm({ ...badgeForm, [name]: files[0] });
   };
-
+  /*
   const handleInputChangesArchivio = e => {
     const { name, value } = e.target;
     setArchivioForm({ ...archivioForm, [name]: value });
   };
-
+  */
   const retriveInStrutt = () => {
     BadgeDataService.getInStrutt(badgeForm.tipo)
       .then(response => {
@@ -77,6 +110,18 @@ const Home = props => {
         console.log(err);
       });
   };
+
+  const retriveTipiDoc = () => {
+    BadgeDataService.getTipiDoc()
+      .then((response) => {
+        //console.log(response.data);
+        setTipiDoc(response.data.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   /*
   const retriveBadges = () => {
     BadgeDataService.getAll()
@@ -102,31 +147,41 @@ const Home = props => {
   };
   */
   const findBadges = () => {
-    BadgeDataService.find(badgeForm)
+    BadgeDataService.find(_.omit(badgeForm, "scadenza"))
       .then(response => {
         console.log(response.data);
-        const findResponse = mapToTableContent(response.data.data); 
-        setBadges(findResponse);
+
+        const findResponse = response.data.data; 
+
         if(findResponse.length === 1) {
-          autocompleteForm(findResponse[0]);
+          const mappedBadge = mapToAutoComplBadge(findResponse[0]);
+          setBadgeForm(mappedBadge);
+          setPfp(mappedBadge.barcode);
         }
+        
+        setBadges(mapToTableContent(findResponse));
       })
       .catch(err => {
         console.log(err);
       });
   };
 
-  const timbra = () => {
+  const timbra = (data = {}) => {
     retriveInStrutt();
-    BadgeDataService.timbra(badgeForm)
+    BadgeDataService.timbra(data)
       .then(response => {
         console.log(response.data);
 
         const rowTimbra = response.data.data;
+
+        console.log(`timbra - readOnlyForm: ${readOnlyForm}`);
+        if(readOnlyForm === true) {
+          setBadgeForm(mapToAutoComplBadge(rowTimbra));
+          setPfp(rowTimbra.barcode);
+        }                                    
+
         const filteredBadges = badges.filter(badge => badge.codice !== rowTimbra.barcode);
-        setBadges(mapToTableContent([ rowTimbra, ...filteredBadges ]));
-        console.log("badges");
-        console.log(badges);
+        setBadges(mapToTableContent([ rowTimbra, ...filteredBadges ]));                        
 
         const { msg } = response.data;
         const firstRow = document.querySelector("table.badge-table").tBodies[0].rows[0];
@@ -134,6 +189,9 @@ const Home = props => {
 
         setTimeout(() => {
           firstRow.style.backgroundColor = "white";
+          if(readOnlyForm === true) {
+            setBadgeForm(initialBadgeFormState);
+          }
           if(msg === "Timbra Esce") {
             setBadges(filteredBadges);
           }
@@ -244,19 +302,14 @@ const Home = props => {
         return elem;
       }
 
-      let mappedElem = {
-        codice: elem.barcode,
-        tipo: elem.tipo,
-        assegnaz: elem.assegnazione || null,
-      };
+      let mappedElem = _.object(
+        ["codice", "tipo", "assegnaz"],
+        _.values(_.pick(elem, "barcode", "tipo", "assegnazione"))
+      );
       
       if(elem.nominativo) {
-        mappedElem["nome"] = elem.nominativo.nome || null;
-        mappedElem["cognome"] = elem.nominativo.cognome || null;
-        mappedElem["ditta"] = elem.nominativo.ditta || null;
-      }
-      else {
-        mappedElem["nome"] = mappedElem["cognome"] = mappedElem["ditta"] = null;
+        const elemNom = _.pick(elem.nominativo, "nome", "cognome", "ditta");
+        mappedElem = _.extend(mappedElem, elemNom);
       }
 
       let dataEntra = null;
@@ -268,96 +321,67 @@ const Home = props => {
       const dataEntraKey = badgeForm.tipo.includes("chiave") ? "data ora consegna" : "data ora in";
       mappedElem[dataEntraKey] = dataEntra;
 
-      return mappedElem;
+      return _.defaults(mappedElem, defaultTableContentElem);
     });
   };
 
-  const autocompleteForm = badge => {
-    Object.entries(badge)
-      .filter(elem => elem[0] !== "foto_profilo")
-      .forEach(([key, value]) => {
-        const input = document.querySelector(
-          `div.submit-form input[name=${key}]`
+  const mapToAutoComplBadge = (badge) => {
+    let mappedBadge = _.omit(badge, "nominativo", "_id");
+
+    if(badge.nominativo) {
+      const badgeNom = _.omit(badge.nominativo, "targhe");
+      mappedBadge = _.extend(mappedBadge, badgeNom);
+      if(badge.nominativo.targhe) {
+        const badgeTarghe = _.object(
+          ["targa1", "targa2", "targa3", "targa4"],
+          _.values(badge.nominativo.targhe)
         );
-        if (input) {
-          input.value = value;
-        }
-      });
-    console.log(`autocompleteForm - ${badge.foto_profilo}`);
-    console.log(badge);
-    if(badge.foto_profilo) {
-      const pfp = document.querySelector("div.nom-form img");
-      pfp.src =`${window.env.API_URL}/public/foto-profilo/${badge.foto_profilo}`;
+        mappedBadge = _.extend(mappedBadge, badgeTarghe);
+      }
     }
+
+    return _.defaults(mappedBadge, initialBadgeFormState);
   };
 
-  const setDefaultPfp = () => {
-    const pfp = document.querySelector("div.nom-form img");
-    pfp.src = window.env.DEFAULT_IMG;
+  const setPfp = (barcode = null) => {
+    const pfp = document.querySelector("img.pfp");
+    if(!pfp) return;
+    pfp.src = barcode
+      ? `${window.env.API_URL}/public/foto-profilo/USER_${barcode}.jpg`
+      : window.env.DEFAULT_IMG;
   };
 
   const refreshPage = () => {
     setBadgeForm(initialBadgeFormState);
-    setArchivioForm(initialArchivioFormState);
+    //setArchivioForm(initialArchivioFormState);
     retriveInStrutt();
-    setDefaultPfp();
-  }
+    setPfp();
+  };
 
-  const serialApi = async () => {
-    let serialPort;
-    let readableStreamClosed;
-    let serialReader;
+  const toggleReadonlyInputs = (readOnly) => {
+    _.keys(badgeForm)
+      .map((key) => document.querySelector(`.badge-form input#${key}`))
+      .filter((input) => input)
+      .forEach((input) => (input.readOnly = readOnly));
 
-    try {
-      serialPort = await SerialApi.connect();
-
-      // eslint-disable-next-line no-undef
-      const textDecoder = new TextDecoderStream();
-      readableStreamClosed = serialPort.readable.pipeTo(textDecoder.writable);
-      serialReader = textDecoder.readable.getReader();
-      console.log(
-        "serialApi - Oggetto Reader creato. In ascolto sulla porta seriale."
-      );
-      
-      // Listen to data coming from the serial device.
-      while (true) {
-        const { value, done } = await serialReader.read();
-
-        if (done) {
-          // Allow the serial port to be closed later.
-          serialReader.releaseLock();
-          break;
-        }
-
-        if (value) {
-          console.log("serialApi - Lettura seriale terminata.");
-          console.log(`serialApi - value: ${value} - done: ${done}`);
-
-          const scannedValue = value
-            .replace(/[\n\r]+/g, "")
-            .replace(/\s{2,10}/g, " ")
-            .trim();
-
-          console.log(`serialApi - Value (trimmed): ${scannedValue}`);
-          badgeForm.barcode = scannedValue;
-
-          timbra();
-        }
-      }
-    } catch(err) {
-      console.log(err);
-    } finally {
-      await SerialApi.close(readableStreamClosed, serialReader, serialPort);
-    }
+    _.pairs(badgeForm)
+      .flatMap(([key, value]) => {
+        const options = document.querySelectorAll(
+          `.badge-form select#${key} option:not([value="${value}"])`
+        );
+        return Array.from(options);
+      })
+      .filter((option) => option)
+      .forEach((option) => (option.disabled = readOnly));
   };
 
   return (
     <div id="home-wrapper">
-      <Navbar {...props} user={props.user} logout={props.logout} />
+      <Navbar {...props} user={props.user} logout={props.logout} tipoBadge={badgeForm.tipo} />
       <br />
       <div className="btn-menu">
         <div className="row">
-          <div className="col-sm-6">
+          <div className="col-sm-3">
             <button
               onClick={() => setBadgeForm({ ...badgeForm, tipo: "badge" })}
               className="btn btn-outline-secondary d-inline-block"
@@ -376,36 +400,9 @@ const Home = props => {
             >
               chiavi
             </button>
-            <button
-              onClick={() => {}/*findArchivio()*/}
-              className="btn btn-outline-secondary"
-            >
-              archivio
-            </button>
-            <input
-              type="date"
-              className=""
-              placeholder="data inizio"
-              value={archivioForm.inizio}
-              name="inizio"
-              onChange={handleInputChangesArchivio}
-            />
-            <input
-              type="date"
-              className=""
-              placeholder="data fine"
-              value={archivioForm.fine}
-              name="fine"
-              onChange={handleInputChangesArchivio}
-            />
           </div>
-          <div className="col-lg-2">
-            <button
-              onClick={async () => await serialApi()}
-              className="btn btn-outline-secondary"
-            >
-              Connetti Seriale
-            </button>
+          <div className="col-sm-2">
+            <SerialComponent timbra={timbra} setScannedValue={setScannedValue} />
           </div>
         </div>
       </div>
@@ -415,20 +412,27 @@ const Home = props => {
           badgeForm={badgeForm}
           handleInputChanges={handleInputChanges}
           handleInputFileChanges={handleInputFileChanges}
+          tipiDoc={tipiDoc}
+          setPfp={setPfp}
         />
-        <FormButtons 
+        <FormButtons
           {...props}
-          timbra={timbra}
           findBadges={findBadges}
           refreshPage={refreshPage}
+          setIsShown={setIsShown}
+          setReadOnlyForm={setReadOnlyForm}
         />
       </div>
       <br />
-      <BadgeTable
-        {...props}
-        badges={badges}
-      />
+      <BadgeTable {...props} badges={badges} />
       <Clock />
+      <OspitiPopup
+        isShown={isShown}
+        setIsShown={setIsShown}
+        tipiDoc={tipiDoc}
+        timbra={timbra}
+        isVeicolo={badgeForm.tipo === "veicolo"}
+      />
     </div>
   );
 }

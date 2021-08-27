@@ -1,36 +1,36 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
-
-import BadgeDataService from "../services/badge.js";
+import "./index.css";
+import BadgeDataService from "../../services/badge.js";
+//import _ from "underscore";
 
 const BadgeForm = props => {
   const [tipi, setTipi] = React.useState([]);
   const [assegnazioni, setAssegnazioni] = React.useState([]);
   const [stati, setStati] = React.useState([]);
-  const [tipiDoc, setTipiDoc] = React.useState([]);
 
   React.useEffect(() => {
     BadgeDataService.token = props.token;
     retriveTipi();
     retriveAssegnazioni();
     retriveStati();
-    retriveTipiDoc();
   }, []);
-
+  
   const retriveTipi = () => {
     BadgeDataService.getTipiBadge()
       .then(response => {
-        console.log(response.data);
+        //console.log(response.data);
         setTipi(response.data.data);
       })
       .catch(err => {
         console.log(err);
       });
   };
-
+  
   const retriveAssegnazioni = () => {
     BadgeDataService.getAssegnazioni(props.badgeForm.tipo)
       .then(response => {
-        console.log(response.data);
+        //console.log(response.data);
         setAssegnazioni(response.data.data);
       })
       .catch(err => {
@@ -41,7 +41,7 @@ const BadgeForm = props => {
   const retriveStati = () => {
     BadgeDataService.getStati()
       .then(response => {
-        console.log(response.data);
+        //console.log(response.data);
         setStati(response.data.data);
       })
       .catch(err => {
@@ -49,20 +49,9 @@ const BadgeForm = props => {
       });
   };
 
-  const retriveTipiDoc = () => {
-    BadgeDataService.getTipiDoc()
-      .then((response) => {
-        console.log(response.data);
-        setTipiDoc(response.data.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
   const renderPfp = (event) => {
     props.handleInputFileChanges(event);
-    const pfp = document.querySelector("div.badge-form img");
+    const pfp = document.querySelector("img.pfp");
     const { files } = event.target;
     pfp.src = files[0]
       ? window.URL.createObjectURL(files[0])
@@ -82,6 +71,7 @@ const BadgeForm = props => {
             onChange={props.handleInputChanges}
             name="barcode"
             placeholder="barcode"
+            readOnly
           />
           <label htmlFor="barcode">barcode</label>
         </div>
@@ -94,6 +84,7 @@ const BadgeForm = props => {
             onChange={props.handleInputChanges}
             name="descrizione"
             placeholder="descrizione"
+            readOnly
           />
           <label htmlFor="descrizione">descrizione</label>
         </div>
@@ -107,10 +98,13 @@ const BadgeForm = props => {
             onChange={props.handleInputChanges}
             name="tipo"
             placeholder="tipo"
-            readOnly
           >
             {tipi.map((tipo, index) => (
-              <option value={tipo} key={index}>
+              <option
+                value={tipo}
+                key={index}
+                disabled={tipo !== props.badgeForm.tipo}
+              >
                 {tipo}
               </option>
             ))}
@@ -121,14 +115,19 @@ const BadgeForm = props => {
           <select
             className="form-select form-select-sm"
             id="assegnazione"
-            value={props.badgeForm.assegnazione}
+            value={props.badgeForm.assegnazione || ""}
             onChange={props.handleInputChanges}
             name="assegnazione"
             placeholder="assegnazione"
           >
-            {assegnazioni.map((assegnazione, index) => (
-              <option value={assegnazione} key={index}>
-                {assegnazione}
+            <option value="" key="-1"></option>
+            {assegnazioni.map((assegnaz, index) => (
+              <option
+                value={assegnaz}
+                key={index}
+                disabled
+              >
+                {assegnaz}
               </option>
             ))}
           </select>
@@ -140,13 +139,18 @@ const BadgeForm = props => {
           <select
             className="form-select form-select-sm"
             id="stato"
-            value={props.badgeForm.stato}
+            value={props.badgeForm.stato || ""}
             onChange={props.handleInputChanges}
             name="stato"
             placeholder="stato"
           >
+            <option value="" key="-1"></option>
             {stati.map((stato, index) => (
-              <option value={stato} key={index}>
+              <option
+                value={stato}
+                key={index}
+                disabled
+              >
                 {stato}
               </option>
             ))}
@@ -162,8 +166,9 @@ const BadgeForm = props => {
             onChange={props.handleInputChanges}
             name="ubicazione"
             placeholder="ubicazione"
+            readOnly
           />
-          <label htmlFor="stato">stato</label>
+          <label htmlFor="ubicazione">ubicazione</label>
         </div>
       </div>
       <br />
@@ -173,6 +178,7 @@ const BadgeForm = props => {
             alt="foto profilo"
             src={window.env.DEFAULT_IMG}
             className="pfp"
+            onError={props.setPfp()}
           />
         </div>
         <div className="col-8">
@@ -186,6 +192,7 @@ const BadgeForm = props => {
                 onChange={props.handleInputChanges}
                 name="nome"
                 placeholder="nome"
+                readOnly
               />
               <label htmlFor="nome">nome</label>
             </div>
@@ -198,6 +205,7 @@ const BadgeForm = props => {
                 onChange={props.handleInputChanges}
                 name="cognome"
                 placeholder="cognome"
+                readOnly
               />
               <label htmlFor="cognome">cognome</label>
             </div>
@@ -212,6 +220,7 @@ const BadgeForm = props => {
                 onChange={props.handleInputChanges}
                 name="ditta"
                 placeholder="ditta"
+                readOnly
               />
               <label htmlFor="ditta">ditta</label>
             </div>
@@ -224,6 +233,7 @@ const BadgeForm = props => {
                 onChange={props.handleInputChanges}
                 name="telefono"
                 placeholder="telefono"
+                readOnly
               />
               <label htmlFor="telefono">telefono</label>
             </div>
@@ -233,13 +243,18 @@ const BadgeForm = props => {
               <select
                 className="form-select form-select-sm"
                 id="tipo_doc"
-                value={props.badgeForm.tipo_doc}
+                value={props.badgeForm.tipo_doc || ""}
                 onChange={props.handleInputChanges}
                 name="tipo_doc"
                 placeholder="tipo documento"
               >
-                {tipiDoc.map((tipoDoc, index) => (
-                  <option value={tipoDoc} key={index}>
+                <option value="" key="-1"></option>
+                {props.tipiDoc.filter(tipoDoc => tipoDoc).map((tipoDoc, index) => (
+                  <option
+                    value={tipoDoc}
+                    key={index}
+                    disabled
+                  >
                     {tipoDoc}
                   </option>
                 ))}
@@ -255,6 +270,7 @@ const BadgeForm = props => {
                 onChange={props.handleInputChanges}
                 name="ndoc"
                 placeholder="num documento"
+                readOnly
               />
               <label htmlFor="ndoc">num documento</label>
             </div>
@@ -270,6 +286,7 @@ const BadgeForm = props => {
                   onChange={props.handleInputChanges}
                   name="scadenza"
                   placeholder="scadenza"
+                  readOnly
                 />
                 <label htmlFor="scadenza">scadenza</label>
               </div>
@@ -287,6 +304,7 @@ const BadgeForm = props => {
                       onChange={props.handleInputChanges}
                       name="targa1"
                       placeholder="targa1"
+                      readOnly
                     />
                     <label htmlFor="targa1">targa1</label>
                   </div>
@@ -299,6 +317,7 @@ const BadgeForm = props => {
                       onChange={props.handleInputChanges}
                       name="targa2"
                       placeholder="targa2"
+                      readOnly
                     />
                     <label htmlFor="targa2">targa2</label>
                   </div>
@@ -313,6 +332,7 @@ const BadgeForm = props => {
                       onChange={props.handleInputChanges}
                       name="targa3"
                       placeholder="targa3"
+                      readOnly
                     />
                     <label htmlFor="targa3">targa3</label>
                   </div>
@@ -325,6 +345,7 @@ const BadgeForm = props => {
                       onChange={props.handleInputChanges}
                       name="targa4"
                       placeholder="targa4"
+                      readOnly
                     />
                     <label htmlFor="targa4">targa4</label>
                   </div>
@@ -335,15 +356,16 @@ const BadgeForm = props => {
         </div>
       </div>
       <div className="row">
-        <div className="form-group col-sm-3">
+        <div className="input-group col-sm-3">
           <input
             type="file"
-            className="form-control-file form-control-file-sm"
+            className="custom-file-input"
             id="foto_profilo"
             value={props.badgeForm.fotoProfilo}
             onChange={renderPfp}
             name="foto_profilo"
             placeholder="foto profilo"
+            disabled
           />
         </div>
       </div>

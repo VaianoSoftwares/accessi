@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
 import UserDataService from "../services/user.js";
 import Navbar from "./accessi-navbar.js";

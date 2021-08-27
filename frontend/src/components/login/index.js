@@ -1,5 +1,6 @@
 import React from "react";
-import UserDataService from "../services/user.js";
+import UserDataService from "../../services/user.js";
+import "./index.css";
 
 const Login = props => {
   const initialLoginFormState = {
@@ -18,8 +19,9 @@ const Login = props => {
     const { username, password } = loginForm;
     UserDataService.login(username, password)
       .then(response => {
-        console.log(`login - response.data: ${response.data}`);
+        //console.log(`login - response.data: ${response.data}`);
         if(response.data.success === true) {
+          console.log(`Logged In. uname: ${response.data.data.name} - admin: ${response.data.data.admin}`)
           props.login(response.data.data);
           props.setToken(response.headers["auth-token"]);
           props.history.push("/home");
@@ -27,14 +29,16 @@ const Login = props => {
       })
       .catch(err => {
         console.log(err);
-        const { success, msg } = err.response.data;
-        props.setAlert({ success, msg });
+        if(err.response) {
+          const { success, msg } = err.response.data;
+          props.setAlert({ success, msg });
+        }
       });
   };
 
   return (
     <div
-      className="submit-form login-form center" align="center">
+      className="submit-form login-form login-center" align="center">
       <div className="form-group">
         <label htmlFor="username" className="col-sm-2 col-form-label">
           Username

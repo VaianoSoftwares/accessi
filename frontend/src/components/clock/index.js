@@ -1,5 +1,5 @@
 import React from "react";
-import "./clock.css";
+import "./index.css";
 import dateFormat from "dateformat";
 dateFormat.i18n = {
   dayNames: [
