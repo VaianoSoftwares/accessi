@@ -1,78 +1,89 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import React from "react";
 import dateFormat from "dateformat";
+import _ from "underscore";
 
 import BadgeDataService from "../services/badge.js";
-import SerialApi from "../services/serial-api.js";
+//import SerialApi from "../services/serial-api.js";
 
 import Navbar from "./accessi-navbar";
-import BadgeForm from "./badge-form.js";
+import BadgeForm from "./badge-form";
 import BadgeTable from "./badge-table.js";
-import NomForm from "./nom-form.js";
-import ChiaveForm from "./chiave-form.js";
-import Clock from "./clock.js";
+import Clock from "./clock";
+import FormButtons from "./form-buttons.js";
+import { OspitiPopup } from "./ospiti-popup";
+import SerialComponent from "./serial-component.js";
 
 const Home = props => {
   const initialBadgeFormState = {
     barcode: "",
     descrizione: "",
-    reparto: "",
+    tipo: "badge",
+    assegnazione: "",
+    stato: "",
     ubicazione: "",
     nome: "",
     cognome: "",
-    num_tel: "",
-    rag_soc: "",
+    telefono: "",
+    ditta: "",
     tipo_doc: "",
-    cod_doc: "",
+    ndoc: "",
     foto_profilo: null,
-    indirizzo: "",
-    edificio: "",
-    citta: "",
-    piano: ""
+    scadenza: dateFormat(new Date(new Date().setFullYear(new Date().getFullYear() + 1)), "yyyy-mm-dd"),
+    targa1: "",
+    targa2: "",
+    targa3: "",
+    targa4: ""
   };
-
-  const addHours = (date, h) => {
-    if(!date)
-      date = new Date();
-    date.setHours(date.getHours() + h);
-    return date;
-  };
-
-  const addDays = (date, d) => {
-    if(!date)
-      date = new Date();
-    date.setDate(date.getDate() + d);
-    return date;
-  };
-
+  /*
   const initialArchivioFormState = {
-    inizio: dateFormat(addDays(new Date(), -1), "yyyy-mm-dd"),
+    inizio: dateFormat(new Date(new Date().setDate(new Date().getDate() - 1)), "yyyy-mm-dd"),
     fine: dateFormat(new Date(), "yyyy-mm-dd")
+  };
+  */
+
+  const defaultTableContentElem = {
+    codice: "",
+    tipo: "",
+    assegnaz: "",
+    nome: "",
+    cognome: "",
+    ditta: "",
   };
 
   const [badges, setBadges] = React.useState([]);
   const [badgeForm, setBadgeForm] = React.useState(initialBadgeFormState);
-  const [archivioForm, setArchivioForm] = React.useState(initialArchivioFormState);
-  const [tableContentType, setTableContentType] = React.useState("in_struttura");
+  //const [archivioForm, setArchivioForm] = React.useState(initialArchivioFormState);
+  const [tipiDoc, setTipiDoc] = React.useState([]);
+  const [isShown, setIsShown] = React.useState(false);
+  const [readOnlyForm, setReadOnlyForm] = React.useState(true);
+  const [scannedValue, setScannedValue] = React.useState("");
   
   React.useEffect(() => {
     BadgeDataService.token = props.token;
-    console.log(`props.token: ${props.token} - BadgeDataService.token: ${BadgeDataService.token}`);
-    setTableContentType("in_struttura");
+    //console.log(`props.token: ${props.token} - BadgeDataService.token: ${BadgeDataService.token}`);
+    retriveTipiDoc();
   }, []);
   
   React.useEffect(() => {
-    switch(tableContentType) {
-      case "in_struttura":
-        retriveInStrutt();
-        break;
-      case "nominativo":
-      case "chiave":
-      case "ospite":
-        retriveBadges(tableContentType);
-        break;
-      default:
+    retriveInStrutt();
+  }, [badgeForm.tipo]);
+
+  React.useEffect(() => {
+    toggleReadonlyInputs(readOnlyForm);
+    if(readOnlyForm === true) {
+      setBadgeForm({ ...initialBadgeFormState, tipo: badgeForm.tipo });
     }
-  }, [tableContentType]);
+    console.log(`readOnlyForm: ${readOnlyForm}`);
+  }, [readOnlyForm]);
+
+  React.useEffect(() => {
+    if(scannedValue) {
+      timbra({ barcode: scannedValue });
+      setScannedValue("");
+    }
+  }, [scannedValue])
 
   const handleInputChanges = e => {
     const { name, value } = e.target;
@@ -83,14 +94,14 @@ const Home = props => {
     const { name, files } = e.target;
     setBadgeForm({ ...badgeForm, [name]: files[0] });
   };
-
+  /*
   const handleInputChangesArchivio = e => {
     const { name, value } = e.target;
     setArchivioForm({ ...archivioForm, [name]: value });
   };
-
+  */
   const retriveInStrutt = () => {
-    BadgeDataService.getInStrutt()
+    BadgeDataService.getInStrutt(badgeForm.tipo)
       .then(response => {
         console.log(response.data);
         setBadges(mapToTableContent(response.data.data));
@@ -100,9 +111,20 @@ const Home = props => {
       });
   };
 
-  const retriveBadges = (tipo = "tutti") => {
-    tipo = tableContentType === "chiave" ? "chiave-ospite" : "nominativo-ospite";
-    BadgeDataService.getAll(tipo)
+  const retriveTipiDoc = () => {
+    BadgeDataService.getTipiDoc()
+      .then((response) => {
+        //console.log(response.data);
+        setTipiDoc(response.data.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  /*
+  const retriveBadges = () => {
+    BadgeDataService.getAll()
       .then(response => {
         console.log(response.data);
         setBadges(mapToTableContent(response.data.data));
@@ -111,7 +133,7 @@ const Home = props => {
         console.log(err);
       });
   };
-
+  
   const findArchivio = () => {
     setTableContentType("archivio");
     BadgeDataService.getArchivio(archivioForm)
@@ -123,26 +145,68 @@ const Home = props => {
         console.log(err);
       });
   };
-
+  */
   const findBadges = () => {
-    const findParam = tableContentType === "chiave" ? "chiave-ospite" : "nominativo-ospite";
-    if(tableContentType !== "chiave") {
-      setTableContentType("_nominativo");
-    }
-    BadgeDataService.find(findParam, badgeForm)
+    BadgeDataService.find(_.omit(badgeForm, "scadenza"))
       .then(response => {
         console.log(response.data);
-        const findResponse = mapToTableContent(response.data.data); 
-        setBadges(findResponse);
+
+        const findResponse = response.data.data; 
+
         if(findResponse.length === 1) {
-          autocompleteForm(findResponse[0]);
+          const mappedBadge = mapToAutoComplBadge(findResponse[0]);
+          setBadgeForm(mappedBadge);
+          setPfp(mappedBadge.barcode);
         }
+        
+        setBadges(mapToTableContent(findResponse));
       })
       .catch(err => {
         console.log(err);
       });
   };
 
+  const timbra = (data = {}) => {
+    retriveInStrutt();
+    BadgeDataService.timbra(data)
+      .then(response => {
+        console.log(response.data);
+
+        const rowTimbra = response.data.data;
+
+        console.log(`timbra - readOnlyForm: ${readOnlyForm}`);
+        if(readOnlyForm === true) {
+          setBadgeForm(mapToAutoComplBadge(rowTimbra));
+          setPfp(rowTimbra.barcode);
+        }                                    
+
+        const filteredBadges = badges.filter(badge => badge.codice !== rowTimbra.barcode);
+        setBadges(mapToTableContent([ rowTimbra, ...filteredBadges ]));                        
+
+        const { msg } = response.data;
+        const firstRow = document.querySelector("table.badge-table").tBodies[0].rows[0];
+        firstRow.style.backgroundColor = msg === "Timbra Entra" ? "green" : "red";
+
+        setTimeout(() => {
+          firstRow.style.backgroundColor = "white";
+          if(readOnlyForm === true) {
+            setBadgeForm(initialBadgeFormState);
+          }
+          if(msg === "Timbra Esce") {
+            setBadges(filteredBadges);
+          }
+        }, 4000);
+      })
+      .catch(err => {
+        console.log(err);
+        if(err.response) {
+          const { success, msg } = err.response.data;
+          props.setAlert({ success, msg });
+        }
+      });
+  };
+
+/*
   const insertBadge = () => {
     if(tableContentType !== "chiave") {
       setTableContentType("_nominativo");
@@ -224,214 +288,121 @@ const Home = props => {
       });
   };
 
-  const timbra = () => {
-    setTableContentType("in_struttura");
-    BadgeDataService.timbra(badgeForm)
-      .then(response => {
-        console.log(response.data);
-
-        const { success, msg } = response.data;
-        props.setAlert({ success, msg });
-
-        const rowTimbra = response.data.data;
-        const filteredBadges = badges.filter(badge => badge.barcode !== rowTimbra.barcode);
-        setBadges(mapToTableContent([ rowTimbra, ...filteredBadges ]));
-
-        const firstRow = document.querySelector("table.badge-table").tBodies[0].rows[0];
-        firstRow.style.backgroundColor = msg === "Timbra Entra" ? "green" : "red";
-
-        setTimeout(() => {
-          firstRow.style.backgroundColor = "white";
-          if(msg === "Timbra Esce") {
-            setBadges(mapToTableContent(filteredBadges));
-          }
-        }, 4000);
-      })
-      .catch(err => {
-        console.log(err);
-        const { success, msg } = err.response.data;
-        props.setAlert({ success, msg });
-      });
-  };
-
   const createFormData = () => {
     const formData = new FormData();
-    Object.entries(badgeForm).forEach(elem => formData.append(elem[0], elem[1]));
-    /*
-    const pfp = document.querySelector("#foto_profilo");
-    formData.append("fotoProfilo", pfp);
-    */
+    Object.entries(badgeForm).forEach(([key, value]) => formData.append(key, value));
+    
     return formData;
   };
+  */
 
   const mapToTableContent = (data = []) => {
     return data.map(elem => {
+      if(elem.codice) {
+        return elem;
+      }
+
+      let mappedElem = _.object(
+        ["codice", "tipo", "assegnaz"],
+        _.values(_.pick(elem, "barcode", "tipo", "assegnazione"))
+      );
+      
       if(elem.nominativo) {
-        elem["nome"] = elem.nominativo.nome;
-        elem["cognome"] = elem.nominativo.cognome;
-        elem["rag_soc"] = elem.nominativo.rag_soc;
-        elem["num_tel"] = elem.nominativo.num_tel;
-        if(elem.nominativo.documento) {
-          elem["tipo_doc"] = elem.nominativo.documento.tipo;
-          elem["cod_doc"] = elem.nominativo.documento.codice;
-        }
-        elem["foto_profilo"] = elem.nominativo.foto_profilo;
+        const elemNom = _.pick(elem.nominativo, "nome", "cognome", "ditta");
+        mappedElem = _.extend(mappedElem, elemNom);
       }
-      if(elem.chiave) {
-        elem["indirizzo"] = elem.chiave.indirizzo;
-        elem["edificio"] = elem.chiave.edificio;
-        elem["citta"] = elem.chiave.citta;
-        elem["piano"] = elem.chiave.piano;
-      }
+
+      let dataEntra = null;
       if(elem.data) {
-        elem["dataEntra"] = dateFormat(addHours(new Date(elem.data.entrata), -2), "dd-mm-yyyy HH:MM:ss");
-        elem["dataEsce"] = elem.data.uscita && tableContentType !== "in_struttura"
-          ? dateFormat(
-              addHours(new Date(elem.data.uscita), -2),
-              "dd-mm-yyyy HH:MM:ss"
-            )
-          : undefined;
+        dataEntra = new Date(elem.data.entrata);
+        dataEntra = new Date(dataEntra.setHours(dataEntra.getHours() - 2));
+        dataEntra = dateFormat(dataEntra, "dd-mm-yyyy HH:MM:ss");
       }
-      elem.nominativo = elem.chiave = elem.data = elem._id = undefined;
-  
-      return elem;
+      const dataEntraKey = badgeForm.tipo.includes("chiave") ? "data ora consegna" : "data ora in";
+      mappedElem[dataEntraKey] = dataEntra;
+
+      return _.defaults(mappedElem, defaultTableContentElem);
     });
   };
 
-  const autocompleteForm = badge => {
-    Object.entries(badge)
-      .filter(elem => elem[0] !== "foto_profilo")
-      .forEach(elem => {
-        const input = document.querySelector(
-          `div.submit-form input[name=${elem[0]}]`
+  const mapToAutoComplBadge = (badge) => {
+    let mappedBadge = _.omit(badge, "nominativo", "_id");
+
+    if(badge.nominativo) {
+      const badgeNom = _.omit(badge.nominativo, "targhe");
+      mappedBadge = _.extend(mappedBadge, badgeNom);
+      if(badge.nominativo.targhe) {
+        const badgeTarghe = _.object(
+          ["targa1", "targa2", "targa3", "targa4"],
+          _.values(badge.nominativo.targhe)
         );
-        if (input) {
-          input.value = elem[1];
-        }
-      });
-    console.log(`autocompleteForm - ${badge.foto_profilo}`);
-    console.log(badge);
-    if(badge.foto_profilo) {
-      const pfp = document.querySelector("div.nom-form img");
-      pfp.src =`${window.env.API_URL}/public/foto-profilo/${badge.foto_profilo}`;
+        mappedBadge = _.extend(mappedBadge, badgeTarghe);
+      }
     }
+
+    return _.defaults(mappedBadge, initialBadgeFormState);
   };
 
-  const setDefaultPfp = () => {
-    const pfp = document.querySelector("div.nom-form img");
-    pfp.src = window.env.DEFAULT_IMG;
+  const setPfp = (barcode = null) => {
+    const pfp = document.querySelector("img.pfp");
+    if(!pfp) return;
+    pfp.src = barcode
+      ? `${window.env.API_URL}/public/foto-profilo/USER_${barcode}.jpg`
+      : window.env.DEFAULT_IMG;
   };
 
   const refreshPage = () => {
     setBadgeForm(initialBadgeFormState);
-    setArchivioForm(initialArchivioFormState);
-    setTableContentType("in_struttura");
-    setDefaultPfp();
-  }
+    //setArchivioForm(initialArchivioFormState);
+    retriveInStrutt();
+    setPfp();
+  };
 
-  const serialApi = async () => {
-    let serialPort;
-    let readableStreamClosed;
-    let serialReader;
+  const toggleReadonlyInputs = (readOnly) => {
+    _.keys(badgeForm)
+      .map((key) => document.querySelector(`.badge-form input#${key}`))
+      .filter((input) => input)
+      .forEach((input) => (input.readOnly = readOnly));
 
-    try {
-      serialPort = await SerialApi.connect();
-
-      // eslint-disable-next-line no-undef
-      const textDecoder = new TextDecoderStream();
-      readableStreamClosed = serialPort.readable.pipeTo(textDecoder.writable);
-      serialReader = textDecoder.readable.getReader();
-      console.log(
-        "serialApi - Oggetto Reader creato. In ascolto sulla porta seriale."
-      );
-      
-      // Listen to data coming from the serial device.
-      while (true) {
-        const { value, done } = await serialReader.read();
-
-        if (done) {
-          // Allow the serial port to be closed later.
-          serialReader.releaseLock();
-          break;
-        }
-
-        if (value) {
-          console.log("serialApi - Lettura seriale terminata.");
-          console.log(`serialApi - value: ${value} - done: ${done}`);
-
-          const scannedValue = value
-            .replace(/[\n\r]+/g, "")
-            .replace(/\s{2,10}/g, " ")
-            .trim();
-
-          console.log(`serialApi - Value (trimmed): ${scannedValue}`);
-          badgeForm.barcode = scannedValue;
-
-          timbra();
-        }
-      }
-    } catch(err) {
-      console.log(err);
-    } finally {
-      await SerialApi.close(readableStreamClosed, serialReader, serialPort);
-    }
+    _.pairs(badgeForm)
+      .flatMap(([key, value]) => {
+        const options = document.querySelectorAll(
+          `.badge-form select#${key} option:not([value="${value}"])`
+        );
+        return Array.from(options);
+      })
+      .filter((option) => option)
+      .forEach((option) => (option.disabled = readOnly));
   };
 
   return (
     <div id="home-wrapper">
-      <Navbar {...props} user={props.user} logout={props.logout} />
+      <Navbar {...props} user={props.user} logout={props.logout} tipoBadge={badgeForm.tipo} />
       <br />
       <div className="btn-menu">
         <div className="row">
-          <div className="col-lg-5">
+          <div className="col-sm-3">
             <button
-              onClick={() => setTableContentType("in_struttura")}
+              onClick={() => setBadgeForm({ ...badgeForm, tipo: "badge" })}
               className="btn btn-outline-secondary d-inline-block"
             >
-              in struttura
+              badge
             </button>
             <button
-              onClick={() => setTableContentType("nominativo")}
+              onClick={() => setBadgeForm({ ...badgeForm, tipo: "veicolo" })}
               className="btn btn-outline-secondary d-inline-block"
             >
-              nominativi
+              veicoli
             </button>
             <button
-              onClick={() => setTableContentType("chiave")}
+              onClick={() => setBadgeForm({ ...badgeForm, tipo: "chiave" })}
               className="btn btn-outline-secondary d-inline-block"
             >
               chiavi
             </button>
-            <button
-              onClick={() => findArchivio()}
-              className="btn btn-outline-secondary"
-            >
-              archivio
-            </button>
-            <input
-              type="date"
-              className=""
-              placeholder="data inizio"
-              value={archivioForm.inizio}
-              name="inizio"
-              onChange={handleInputChangesArchivio}
-            />
-            <input
-              type="date"
-              className=""
-              placeholder="data fine"
-              value={archivioForm.fine}
-              name="fine"
-              onChange={handleInputChangesArchivio}
-            />
           </div>
-          <div className="col-lg-2">
-            <button
-              onClick={async () => await serialApi()}
-              className="btn btn-outline-secondary"
-            >
-              Connetti Seriale
-            </button>
+          <div className="col-sm-2">
+            <SerialComponent timbra={timbra} setScannedValue={setScannedValue} />
           </div>
         </div>
       </div>
@@ -440,53 +411,28 @@ const Home = props => {
           {...props}
           badgeForm={badgeForm}
           handleInputChanges={handleInputChanges}
+          handleInputFileChanges={handleInputFileChanges}
+          tipiDoc={tipiDoc}
+          setPfp={setPfp}
         />
-        {tableContentType.includes("chiave") ? (
-          <ChiaveForm
-            {...props}
-            badgeForm={badgeForm}
-            handleInputChanges={handleInputChanges}
-          />
-        ) : (
-          <NomForm
-            {...props}
-            badgeForm={badgeForm}
-            handleInputChanges={handleInputChanges}
-            handleInputFileChanges={handleInputFileChanges}
-          />
-        )}
-        <div className="form-buttons row">
-          <div className="col-lg-3">
-            <button onClick={() => timbra()} className="btn btn-success">
-              Timbra
-            </button>
-            <button onClick={() => findBadges()} className="btn btn-success">
-              Cerca
-            </button>
-            <button onClick={() => insertBadge()} className="btn btn-success">
-              Inserisci
-            </button>
-            <button onClick={() => updateBadge()} className="btn btn-success">
-              Aggiorna
-            </button>
-            <button onClick={() => deleteBadge()} className="btn btn-success">
-              Elimina
-            </button>
-          </div>
-          <div className="col-lg-2">
-            <button onClick={() => refreshPage()} className="btn btn-success">
-              Refresh
-            </button>
-          </div>
-        </div>
+        <FormButtons
+          {...props}
+          findBadges={findBadges}
+          refreshPage={refreshPage}
+          setIsShown={setIsShown}
+          setReadOnlyForm={setReadOnlyForm}
+        />
       </div>
       <br />
-      <BadgeTable
-        {...props}
-        badges={badges}
-        tableContentType={tableContentType}
+      <BadgeTable {...props} badges={badges} />
+      <Clock />
+      <OspitiPopup
+        isShown={isShown}
+        setIsShown={setIsShown}
+        tipiDoc={tipiDoc}
+        timbra={timbra}
+        isVeicolo={badgeForm.tipo === "veicolo"}
       />
-      <Clock/>
     </div>
   );
 }

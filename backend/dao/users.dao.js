@@ -1,5 +1,3 @@
-import BadgesDAO from "./badges.dao.js";
-
 let users;
 
 export default class UsersDAO {
@@ -22,13 +20,7 @@ export default class UsersDAO {
                 throw new Error(`Username ${data.username} già utilizzato.`);
             }
 
-            const nom = await BadgesDAO.findBadgeByBarcode(data.nominativo);
-            if(data.tipo_utente !== "admin" || !nom) {
-                data.tipo_utente = "guest";
-            }
-
-            const response = await users.insertOne(data);
-            return response;
+            return await users.insertOne(data);
         } catch(err) {
             console.log(`addUser - ${err}`);
             return { error: err };
@@ -42,14 +34,4 @@ export default class UsersDAO {
             console.log(`login - ${err}`);
         }
     }
-
-    static async getTipiUtenti() {
-        try {
-          const tipiUtenti = await users.distinct("tipo_utente");
-          return tipiUtenti;
-        } catch (err) {
-          console.log(`getTipiUtenti - ${err}`);
-          return [];
-        }
-      }
 };

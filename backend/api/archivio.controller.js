@@ -22,7 +22,7 @@ export default class ArchivioController {
   }
 
   static async apiPostArchivio(req, res) {
-    const { barcode } = req.body;
+    const { barcode, tipo } = req.body;
     if (!barcode) {
       return res
         .status(400)
@@ -32,15 +32,21 @@ export default class ArchivioController {
     const nominativo = {
       nome: req.body.nome,
       cognome: req.body.cognome,
-      rag_soc: req.body.rag_soc,
-      num_tel: req.body.num_tel,
+      ditta: req.body.ditta,
+      telefono: req.body.telefono,
       tipo_doc: req.body.tipo_doc,
-      cod_doc: req.body.cod_doc,
-      foto_profilo: req.body.foto_profilo,
+      ndoc: req.body.ndoc,
+      scadenza: req.body.scadenza,
+      targhe: {
+        1: req.body.targa1,
+        2: req.body.targa2,
+        3: req.body.targa3,
+        4: req.body.targa4
+      }
     };
 
     try {
-      const archivioResponse = await ArchivioDAO.timbra(barcode, nominativo);
+      const archivioResponse = await ArchivioDAO.timbra(barcode, tipo, nominativo);
 
       const { error } = archivioResponse;
       if (error) {
@@ -57,27 +63,11 @@ export default class ArchivioController {
       res.status(500).json({ success: false, msg: err.message });
     }
   }
-  /*
-  static async apiPutArchivio(req, res) {
-    const { barcode } = req.body;
-
-    try {
-      const archivioResponse = await ArchivioDAO.timbraEsce(barcode);
-
-      if (archivioResponse.modifiedCount === 0) {
-        throw new Error("Non è stato possibile timbrare badge uscita");
-      }
-
-      res.json({ success: true, msg: "Timbra uscita", data: archivioResponse });
-    } catch (err) {
-      console.log(`apiPutArchivio - ${err}`);
-      res.status(500).json({ success: false, msg: err.message });
-    }
-  }*/
 
   static async apiGetInStruttura(req, res) {
+    const { tipo } = req.query;
     try {
-      const archivioList = await ArchivioDAO.getInStrutt();
+      const archivioList = await ArchivioDAO.getInStrutt(tipo);
       res.json({ success: true, data: archivioList });
     } catch (err) {
       console.log(`apiGetInStruttura - ${err}`);

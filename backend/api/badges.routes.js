@@ -11,16 +11,15 @@ Router
     .put(BadgesCtrl.apiPutBadges)                                               //modifica un badge
     .delete(BadgesCtrl.apiDeleteBadges);                                        //elimina un badge
 
-Router.route("/tipo/:tipo").get(BadgesCtrl.apiGetBadges);                       //ricerca badge tipo specifico
-
-Router.route("/reparti").get(BadgesCtrl.apiGetReparti);                         //ottieni reparti
+Router.route("/assegnazioni").get(BadgesCtrl.apiGetAssegnazioni);               //ottieni reparti
 Router.route("/tipi-doc").get(BadgesCtrl.apiGetTipiDoc);                        //ottieni tipi documento
+Router.route("/stati").get(BadgesCtrl.apiGetStati);                             //ottieni tipi stato badge
+Router.route("/tipi").get(BadgesCtrl.apiGetTipiBadge);                          //ottieni tipi badge
 
 Router
     .route("/archivio")
     .get(ArchivioCtrl.apiGetArchivio)                                           //ottieni archivio
     .post(ArchivioCtrl.apiPostArchivio);                                        //timbra entrata/uscita
-//  .put("/archivio", ArchivioCtrl.apiPutArchivio)                              //timbra uscita
 
 Router.route("/archivio/in-struttura").get(ArchivioCtrl.apiGetInStruttura);     //ottieni lista persone in struttura
 

@@ -9,28 +9,31 @@ const AccessiNavbar = props => {
   }
 
   return (
-    <nav className="navbar navbar-expand navbar-dark bg-primary">
-        <Link to={"/home"} className="navbar-brand">
-          <h3>Gestione Accessi</h3>
-        </Link>
-        <div className="navbar-nav mr-auto">
-          <li className="nav-item">
-            <Link to={"/home"} className="nav-link">
-              Homepage
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to={"/register"} className="nav-link">
-              Registra nuovo account
-            </Link>
-          </li>
-          <li className="nav-item">
-            <a href="" onClick={() => logout} className="nav-link" style={{cursor:"pointer"}}>
-                Logout {props.user.name}
-            </a>
-          </li>
-        </div> 
-      </nav>
+    <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div className="navbar-brand">
+        <b>
+          Gestione{" "}
+          {`${props.tipoBadge[0].toUpperCase()}${props.tipoBadge.slice(1)}`}
+        </b>
+      </div>
+      <div className="navbar-nav mr-auto">
+        <li className="nav-item">
+          <Link to={"/home"} className="nav-link">
+            Homepage
+          </Link>
+        </li>
+        <li className="nav-item">
+          <Link to={"/register"} className="nav-link">
+            Opzioni
+          </Link>
+        </li>
+        <li className="nav-item">
+          <button onClick={() => logout()} className="btn btn-primary">
+            Logout {props.user.name}
+          </button>
+        </li>
+      </div>
+    </nav>
   );
 }
 

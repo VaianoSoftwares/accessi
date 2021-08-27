@@ -5,7 +5,7 @@ import { Switch, Route, Redirect, BrowserRouter as Router } from "react-router-d
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import Home from "./components/home.js";
-import Login from "./components/login.js";
+import Login from "./components/login";
 import Register from "./components/register.js";
 import Alert from "./components/alert.js";
 
@@ -30,7 +30,13 @@ function App() {
             <Route exact path={["/", "/home"]}>
               {user ? (
                 (props) => (
-                  <Home {...props} user={user} logout={logout} token={token} setAlert={setAlert} />
+                  <Home
+                    {...props}
+                    user={user}
+                    logout={logout}
+                    token={token}
+                    setAlert={setAlert}
+                  />
                 )
               ) : (
                 <Redirect to="/login" />
@@ -56,16 +62,23 @@ function App() {
             <Route
               path="/login"
               render={(props) => (
-                <Login {...props} login={login} setToken={setToken} setAlert={setAlert} />
+                <Login
+                  {...props}
+                  login={login}
+                  setToken={setToken}
+                  setAlert={setAlert}
+                />
               )}
             />
           </Switch>
-          <div style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}>
-          <Alert alert={_alert} setAlert={setAlert} />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Alert alert={_alert} setAlert={setAlert} />
           </div>
         </Router>
       </div>

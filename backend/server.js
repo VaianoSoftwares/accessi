@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import fileUpload from "express-fileupload";
+
 import authRoutes from "./auth/auth.routes.js";
 import badgesRoutes from "./api/badges.routes.js";
 import verifyToken from "./auth/verifyToken.js";

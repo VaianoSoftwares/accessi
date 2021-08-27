@@ -37,6 +37,7 @@ export default class ArchivioDAO {
         try {
             let filter = {};
             filter[key] = key === "_id" ? { $eq: new ObjectId(value) } : { $eq: value };
+
             const response = await archivio.findOne(
                 { $and: [ filter, { "data.uscita": { $eq: null } } ] }
             );
@@ -57,39 +58,64 @@ export default class ArchivioDAO {
         }
     }
 
-    static async timbra(barcode, nominativo) {
+    static async timbra(barcode, tipo, nominativo) {
+        let timbraResp = { 
+          barcode: barcode, 
+          tipo: tipo, 
+          nominativo: nominativo, 
+          data: {}
+        };
+
+        const isUni = barcode && barcode.length === 7 && /^\d+$/.test(barcode);
+
         try {
+          if(isUni) {
+            timbraResp.tipo = "badge";
+            timbraResp.assegnazione = "utente";
+            timbraResp.nominativo = {
+              tipo_doc: "tessera studente",
+              ndoc: barcode
+            }
+          }
+          else {
+            const badgesArr = await BadgesDAO.getBadges({ barcode: barcode, tipo: tipo });
+            if (badgesArr.length === 0) {
+              throw new Error(`Badge ${barcode} invalido: non esistente`);
+            }
+            else if(badgesArr[0].stato !== "valido") {
+              throw new Error(`Badge ${barcode} non valido: ${badgesArr[0].stato}`);
+            }
+            timbraResp.tipo = badgesArr[0].tipo;
+            timbraResp.assegnazione = badgesArr[0].assegnazione;
+            if(badgesArr[0].nominativo) {
+              timbraResp.nominativo = badgesArr[0].nominativo;
+            }
+          }
+
           let inStrutt = await this.getInStruttBy("barcode", barcode);
           if (inStrutt) {
             const id = inStrutt._id;
-            const timbraResp = await this.#timbraEsce(id);
+            const { modifiedCount } = await this.#timbraEsce(id);
 
-            if (timbraResp.modifiedCount === 0) {
+            if (modifiedCount === 0) {
               throw new Error(
                 `Non è stato possibile timbrare badge ${barcode}.`
               );
             }
 
-            console.log(`timbra esce - ${inStrutt}`);
             const archResp = await this.getArchivioById(id);
-            return { response: archResp, msg: "Timbra Esce" };
+            timbraResp.data.entrata = archResp.data.entrata;
+            return { response: timbraResp, msg: "Timbra Esce" };
           } else {
-            const isUni =
-              barcode && barcode.length === 7 && /^\d+$/.test(barcode);
-            if (isUni) {
-              nominativo.tipo_doc = "tessera studente";
-              nominativo.cod_doc = barcode;
-            }
+            const { error, insertedId } = await this.#timbraEntra(barcode, timbraResp.nominativo);
 
-            const timbraResp = await this.#timbraEntra(barcode, nominativo, isUni);
-
-            const { error } = timbraResp;
             if (error) {
               throw new Error(error);
             }
 
-            inStrutt = await this.getInStruttBy("_id", timbraResp.insertedId);
-            return { response: inStrutt, msg: "Timbra Entra" };
+            inStrutt = await this.getInStruttBy("_id", insertedId);
+            timbraResp.data.entrata = inStrutt.data.entrata;
+            return { response: timbraResp, msg: "Timbra Entra" };
           }
         } catch (err) {
           console.log(`timbra - ${err}`);
@@ -97,7 +123,7 @@ export default class ArchivioDAO {
         }
     }
 
-    static async #timbraEntra(barcode, nominativo, isUni) {
+    static async #timbraEntra(barcode, nominativo) {
         try {
             let archivioDoc = {
                 barcode: barcode,
@@ -105,29 +131,8 @@ export default class ArchivioDAO {
                     entrata: new Date(),
                     uscita: null
                 },
-                nominativo: {
-                    nome: nominativo.nome,
-                    cognome: nominativo.cognome,
-                    rag_soc: nominativo.rag_soc,
-                    num_tel: nominativo.num_tel,
-                    documento: {
-                        tipo: nominativo.tipo_doc,
-                        codice: nominativo.cod_doc
-                    },
-                    foto_profilo: nominativo.foto_profilo
-                }
+                nominativo: nominativo
             };
-            
-            if (!isUni) {
-              const badge = await BadgesDAO.findBadgeByBarcode(barcode);
-              if (!badge) {
-                throw new Error(`Badge ${barcode} invalido: non esistente`);
-              } else if (badge.chiave) {
-                throw new Error(`Badge ${barcode} invalido: chiave`);
-              } else if (badge.nominativo) {
-                archivioDoc.nominativo = badge.nominativo;
-              }
-            }
 
             const response = await archivio.insertOne(archivioDoc);
             return response;
@@ -150,10 +155,38 @@ export default class ArchivioDAO {
         }
     }
 
-    static async getInStrutt() {
+    static async getInStrutt(tipoBadge = "") {
         try {
-            const cursor = await archivio.find({ "data.uscita": null });
-            const inStruttList = await cursor.toArray();
+            //const tipoExpr = tipoBadge ? { $eq: ["$tipo", tipoBadge] } : {};
+            const tipoExpr = tipoBadge ? { "tipo": { $eq: tipoBadge } } : {};
+            const cursor = await archivio.aggregate([
+              {
+                $lookup: {
+                  from: "badges",
+                  let: { arch_codice: "$barcode" },
+                  pipeline: [
+                    {
+                      $match: {
+                        $expr: {
+                          $and: [
+                            { $eq: ["$barcode", "$$arch_codice"] },
+                            {}//tipoExpr
+                          ],
+                        },
+                      },
+                    },
+                    { $project: { "_id": 0, "tipo": 1, "assegnazione": 1 } }
+                  ],
+                  as: "badge",
+                },
+              },
+              { $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ["$badge", 0] }, "$$ROOT"] } } },
+              { $match: { $and: [{ "data.uscita": { $eq: null } }, tipoExpr] } },
+              { $project: { "data.uscita": 0, "badge": 0 } },
+              { $limit: 100 },
+            ]);
+            const displayCursor = cursor.limit(100).skip(0);
+            const inStruttList = await displayCursor.toArray();
             return inStruttList;
         } catch(err) {
             console.log(`getInStrutt - ${err}`);

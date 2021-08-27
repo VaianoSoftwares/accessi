@@ -1,22 +1,17 @@
 import BadgesDAO from "../dao/badges.dao.js";
 import fileUpl from "./badges.fileupload.js";
+import EnumsDAO from "../dao/enums.dao.js";
 
 export default class BadgesController {
     static async apiGetBadges(req, res) {
-        let filters = [];
-        Object.entries(req.query).forEach(
-          item => filters.push({key: item[0], value: item[1]})
-        );
-        const tipoBadge = req.params.tipo || "tutti";
-
         let response;
 
         try {
-            const badgesList = await BadgesDAO.getBadges(filters, tipoBadge);
+            const badgesList = await BadgesDAO.getBadges(req.query);
             response = {
                 success: true,
                 data: badgesList,
-                filters: filters
+                filters: req.query
             }
             res.json(response);
         } catch(err) {
@@ -24,7 +19,7 @@ export default class BadgesController {
             response = {
                 success: false,
                 data: [],
-                filters: filters,
+                filters: req.query,
                 error: err
             };
             res.status(500).json(response);
@@ -120,10 +115,28 @@ export default class BadgesController {
         }
     }
 
-    static async apiGetReparti(req, res) {
+    static async apiGetEnums(req, res) {
         try {
-            const repartiList = await BadgesDAO.getReparti();
-            res.json({ success: true, data: repartiList });
+            const enums = await EnumsDAO.getEnums();
+            res.json({ success: true, data: enums });
+        } catch(err) {
+            console.log(`apiGetEnums - ${err}`);
+            res.status(500).json({ success: false, data: {}, error: err });
+        }
+    }
+
+    static async apiGetAssegnazioni(req, res) {
+        try {
+            const { tipo } = req.query;
+            if(tipo) {
+                const enumResp = await EnumsDAO.getEnums(`assegnazione.${tipo}`);
+                res.json({ success: true, data: enumResp.assegnazione[tipo] });
+            }
+            else {
+                const enumResp = await EnumsDAO.getEnums("assegnazione");
+                const assegnazList = Object.values(enumResp.assegnazione).flat();
+                res.json({ success: true, data: assegnazList });
+            }
         } catch(err) {
             console.log(`apiGetReparti - ${err}`);
             res.status(500).json({ success: false, data: [], error: err });
@@ -132,10 +145,30 @@ export default class BadgesController {
 
     static async apiGetTipiDoc(req, res) {
         try {
-            const tipiDocList = await BadgesDAO.getTipiDoc();
-            res.json({ success: true, data: tipiDocList });
+            const enumResp = await EnumsDAO.getEnums("documento");
+            res.json({ success: true, data: enumResp.documento });
         } catch(err) {
             console.log(`apiGetTipiDoc - ${err}`);
+            res.status(500).json({ success: false, data: [], error: err });
+        }
+    }
+
+    static async apiGetStati(req, res) {
+        try {
+            const enumResp = await EnumsDAO.getEnums("stato");
+            res.json({ success: true, data: enumResp.stato });
+        } catch(err) {
+            console.log(`apiGetStati - ${err}`);
+            res.status(500).json({ success: false, data: [], error: err });
+        }
+    }
+
+    static async apiGetTipiBadge(req, res) {
+        try {
+            const enumResp = await EnumsDAO.getEnums("badge");
+            res.json({ success: true, data: enumResp.badge });
+        } catch(err) {
+            console.log(`apiGetTipiBadge - ${err}`);
             res.status(500).json({ success: false, data: [], error: err });
         }
     }
