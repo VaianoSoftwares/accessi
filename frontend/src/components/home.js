@@ -377,7 +377,12 @@ const Home = props => {
 
   return (
     <div id="home-wrapper">
-      <Navbar {...props} user={props.user} logout={props.logout} tipoBadge={badgeForm.tipo} />
+      <Navbar
+        {...props}
+        user={props.user}
+        logout={props.logout}
+        tipoBadge={badgeForm.tipo}
+      />
       <br />
       <div className="btn-menu">
         <div className="row">
@@ -402,7 +407,10 @@ const Home = props => {
             </button>
           </div>
           <div className="col-sm-2">
-            <SerialComponent timbra={timbra} setScannedValue={setScannedValue} />
+            <SerialComponent
+              timbra={timbra}
+              setScannedValue={setScannedValue}
+            />
           </div>
         </div>
       </div>
@@ -422,6 +430,13 @@ const Home = props => {
           setIsShown={setIsShown}
           setReadOnlyForm={setReadOnlyForm}
         />
+      </div>
+      <div
+        className="in_strutt_count"
+        style={{ position: "absolute", left: "75%", top: "60%", fontSize: "20px" }}
+      >
+        <b># in struttura:</b>{" "}
+        {document.querySelectorAll(".badge-tbody tr").length}
       </div>
       <br />
       <BadgeTable {...props} badges={badges} />
