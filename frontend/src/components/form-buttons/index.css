@@ -1,0 +1,9 @@
+.form-buttons {
+    position: absolute;
+    left: 55%;
+    top: 20%;
+}
+
+.home-form-btn {
+    width: 100px
+}

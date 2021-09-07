@@ -1,13 +1,17 @@
 //import logo from './logo.svg';
-import './App.css';
+//import "./App.css";
 import React from "react";
-import { Switch, Route, Redirect, BrowserRouter as Router } from "react-router-dom";
+import {
+  Switch,
+  Route,
+  Redirect,
+  BrowserRouter as Router,
+} from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-import Home from "./components/home.js";
+import Home from "./components/home";
 import Login from "./components/login";
 import Register from "./components/register.js";
-import Alert from "./components/alert.js";
 
 function App() {
   const [user, setUser] = React.useState(null);
@@ -35,6 +39,7 @@ function App() {
                     user={user}
                     logout={logout}
                     token={token}
+                    alert={_alert}
                     setAlert={setAlert}
                   />
                 )
@@ -66,20 +71,12 @@ function App() {
                   {...props}
                   login={login}
                   setToken={setToken}
+                  alert={_alert}
                   setAlert={setAlert}
                 />
               )}
             />
           </Switch>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Alert alert={_alert} setAlert={setAlert} />
-          </div>
         </Router>
       </div>
     </div>

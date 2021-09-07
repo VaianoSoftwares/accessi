@@ -2,7 +2,6 @@
 import React from "react";
 import "./index.css";
 import BadgeDataService from "../../services/badge.js";
-//import _ from "underscore";
 
 const BadgeForm = props => {
   const [tipi, setTipi] = React.useState([]);
@@ -71,7 +70,7 @@ const BadgeForm = props => {
             onChange={props.handleInputChanges}
             name="barcode"
             placeholder="barcode"
-            readOnly
+            readOnly={Boolean(props.readOnlyForm)}
           />
           <label htmlFor="barcode">barcode</label>
         </div>
@@ -84,7 +83,7 @@ const BadgeForm = props => {
             onChange={props.handleInputChanges}
             name="descrizione"
             placeholder="descrizione"
-            readOnly
+            readOnly={Boolean(props.readOnlyForm)}
           />
           <label htmlFor="descrizione">descrizione</label>
         </div>
@@ -103,7 +102,9 @@ const BadgeForm = props => {
               <option
                 value={tipo}
                 key={index}
-                disabled={tipo !== props.badgeForm.tipo}
+                disabled={
+                  props.badgeForm.tipo !== tipo && props.readOnlyForm === true
+                }
               >
                 {tipo}
               </option>
@@ -122,11 +123,7 @@ const BadgeForm = props => {
           >
             <option value="" key="-1"></option>
             {assegnazioni.map((assegnaz, index) => (
-              <option
-                value={assegnaz}
-                key={index}
-                disabled
-              >
+              <option value={assegnaz} key={index} disabled={Boolean(props.readOnlyForm)}>
                 {assegnaz}
               </option>
             ))}
@@ -146,11 +143,7 @@ const BadgeForm = props => {
           >
             <option value="" key="-1"></option>
             {stati.map((stato, index) => (
-              <option
-                value={stato}
-                key={index}
-                disabled
-              >
+              <option value={stato} key={index} disabled={Boolean(props.readOnlyForm)}>
                 {stato}
               </option>
             ))}
@@ -166,7 +159,7 @@ const BadgeForm = props => {
             onChange={props.handleInputChanges}
             name="ubicazione"
             placeholder="ubicazione"
-            readOnly
+            readOnly={Boolean(props.readOnlyForm)}
           />
           <label htmlFor="ubicazione">ubicazione</label>
         </div>
@@ -192,7 +185,7 @@ const BadgeForm = props => {
                 onChange={props.handleInputChanges}
                 name="nome"
                 placeholder="nome"
-                readOnly
+                readOnly={Boolean(props.readOnlyForm)}
               />
               <label htmlFor="nome">nome</label>
             </div>
@@ -205,7 +198,7 @@ const BadgeForm = props => {
                 onChange={props.handleInputChanges}
                 name="cognome"
                 placeholder="cognome"
-                readOnly
+                readOnly={Boolean(props.readOnlyForm)}
               />
               <label htmlFor="cognome">cognome</label>
             </div>
@@ -220,7 +213,7 @@ const BadgeForm = props => {
                 onChange={props.handleInputChanges}
                 name="ditta"
                 placeholder="ditta"
-                readOnly
+                readOnly={Boolean(props.readOnlyForm)}
               />
               <label htmlFor="ditta">ditta</label>
             </div>
@@ -233,7 +226,7 @@ const BadgeForm = props => {
                 onChange={props.handleInputChanges}
                 name="telefono"
                 placeholder="telefono"
-                readOnly
+                readOnly={Boolean(props.readOnlyForm)}
               />
               <label htmlFor="telefono">telefono</label>
             </div>
@@ -249,15 +242,13 @@ const BadgeForm = props => {
                 placeholder="tipo documento"
               >
                 <option value="" key="-1"></option>
-                {props.tipiDoc.filter(tipoDoc => tipoDoc).map((tipoDoc, index) => (
-                  <option
-                    value={tipoDoc}
-                    key={index}
-                    disabled
-                  >
-                    {tipoDoc}
-                  </option>
-                ))}
+                {props.tipiDoc
+                  .filter((tipoDoc) => tipoDoc)
+                  .map((tipoDoc, index) => (
+                    <option value={tipoDoc} key={index} disabled={Boolean(props.readOnlyForm)}>
+                      {tipoDoc}
+                    </option>
+                  ))}
               </select>
               <label htmlFor="tipo_doc">tipo documento</label>
             </div>
@@ -270,7 +261,7 @@ const BadgeForm = props => {
                 onChange={props.handleInputChanges}
                 name="ndoc"
                 placeholder="num documento"
-                readOnly
+                readOnly={Boolean(props.readOnlyForm)}
               />
               <label htmlFor="ndoc">num documento</label>
             </div>
@@ -286,7 +277,7 @@ const BadgeForm = props => {
                   onChange={props.handleInputChanges}
                   name="scadenza"
                   placeholder="scadenza"
-                  readOnly
+                  readOnly={Boolean(props.readOnlyForm)}
                 />
                 <label htmlFor="scadenza">scadenza</label>
               </div>
@@ -304,7 +295,7 @@ const BadgeForm = props => {
                       onChange={props.handleInputChanges}
                       name="targa1"
                       placeholder="targa1"
-                      readOnly
+                      readOnly={Boolean(props.readOnlyForm)}
                     />
                     <label htmlFor="targa1">targa1</label>
                   </div>
@@ -317,7 +308,7 @@ const BadgeForm = props => {
                       onChange={props.handleInputChanges}
                       name="targa2"
                       placeholder="targa2"
-                      readOnly
+                      readOnly={Boolean(props.readOnlyForm)}
                     />
                     <label htmlFor="targa2">targa2</label>
                   </div>
@@ -332,7 +323,7 @@ const BadgeForm = props => {
                       onChange={props.handleInputChanges}
                       name="targa3"
                       placeholder="targa3"
-                      readOnly
+                      readOnly={Boolean(props.readOnlyForm)}
                     />
                     <label htmlFor="targa3">targa3</label>
                   </div>
@@ -345,7 +336,7 @@ const BadgeForm = props => {
                       onChange={props.handleInputChanges}
                       name="targa4"
                       placeholder="targa4"
-                      readOnly
+                      readOnly={Boolean(props.readOnlyForm)}
                     />
                     <label htmlFor="targa4">targa4</label>
                   </div>
