@@ -1,0 +1,12 @@
+.home-alert-wrapper {
+    position: absolute;
+    left: 67%;
+    top: 61%;
+}
+
+.in-strutt-count {
+    position: absolute;
+    left: 55%;
+    top: 63%;
+    font-size: 20px;
+}

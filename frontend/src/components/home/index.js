@@ -4,16 +4,18 @@ import React from "react";
 import dateFormat from "dateformat";
 import _ from "underscore";
 
-import BadgeDataService from "../services/badge.js";
-//import SerialApi from "../services/serial-api.js";
+import "./index.css";
 
-import Navbar from "./accessi-navbar";
-import BadgeForm from "./badge-form";
-import BadgeTable from "./badge-table.js";
-import Clock from "./clock";
-import FormButtons from "./form-buttons.js";
-import { OspitiPopup } from "./ospiti-popup";
-import SerialComponent from "./serial-component.js";
+import BadgeDataService from "../../services/badge.js";
+
+import Navbar from "../accessi-navbar";
+import BadgeForm from "../badge-form";
+import BadgeTable from "../badge-table.js";
+import Clock from "../clock";
+import FormButtons from "../form-buttons";
+import { OspitiPopup } from "../ospiti-popup";
+import SerialComponent from "../serial-component.js";
+import Alert from "../alert";
 
 const Home = props => {
   const initialBadgeFormState = {
@@ -50,6 +52,8 @@ const Home = props => {
     nome: "",
     cognome: "",
     ditta: "",
+    "data ora consegna": undefined,
+    "data ora in": undefined
   };
 
   const [badges, setBadges] = React.useState([]);
@@ -64,6 +68,7 @@ const Home = props => {
     BadgeDataService.token = props.token;
     //console.log(`props.token: ${props.token} - BadgeDataService.token: ${BadgeDataService.token}`);
     retriveTipiDoc();
+    props.setAlert(null);
   }, []);
   
   React.useEffect(() => {
@@ -71,7 +76,7 @@ const Home = props => {
   }, [badgeForm.tipo]);
 
   React.useEffect(() => {
-    toggleReadonlyInputs(readOnlyForm);
+    //toggleReadonlyInputs(readOnlyForm);
     if(readOnlyForm === true) {
       setBadgeForm({ ...initialBadgeFormState, tipo: badgeForm.tipo });
     }
@@ -357,7 +362,7 @@ const Home = props => {
     retriveInStrutt();
     setPfp();
   };
-
+  /*
   const toggleReadonlyInputs = (readOnly) => {
     _.keys(badgeForm)
       .map((key) => document.querySelector(`.badge-form input#${key}`))
@@ -374,6 +379,7 @@ const Home = props => {
       .filter((option) => option)
       .forEach((option) => (option.disabled = readOnly));
   };
+  */
 
   return (
     <div id="home-wrapper">
@@ -386,7 +392,7 @@ const Home = props => {
       <br />
       <div className="btn-menu">
         <div className="row">
-          <div className="col-sm-3">
+          <div className="col-sm-3 m-1">
             <button
               onClick={() => setBadgeForm({ ...badgeForm, tipo: "badge" })}
               className="btn btn-outline-secondary d-inline-block"
@@ -422,6 +428,7 @@ const Home = props => {
           handleInputFileChanges={handleInputFileChanges}
           tipiDoc={tipiDoc}
           setPfp={setPfp}
+          readOnlyForm={readOnlyForm}
         />
         <FormButtons
           {...props}
@@ -432,11 +439,9 @@ const Home = props => {
         />
       </div>
       <div
-        className="in_strutt_count"
-        style={{ position: "absolute", left: "75%", top: "60%", fontSize: "20px" }}
+        className="in-strutt-count"
       >
-        <b># in struttura:</b>{" "}
-        {document.querySelectorAll(".badge-tbody tr").length}
+        <b># in struttura:</b> {badges.length}
       </div>
       <br />
       <BadgeTable {...props} badges={badges} />
@@ -448,6 +453,9 @@ const Home = props => {
         timbra={timbra}
         isVeicolo={badgeForm.tipo === "veicolo"}
       />
+      <div className="home-alert-wrapper">
+        <Alert alert={props.alert} setAlert={props.setAlert} />
+      </div>
     </div>
   );
 }

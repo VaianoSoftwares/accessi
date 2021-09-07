@@ -58,11 +58,45 @@ export default class SerialComponent extends React.Component {
     }
 
     const port = event.target;
+
+    while(port.readable) {
+      const reader = port.readable.getReader();
+      
+      try {
+        while(true) {
+          const { value, done } = await reader.read();
+          console.log(`serialApi read - value: ${value} - done: ${done}`);
+
+          if(done) {
+            reader.releaseLock();
+            break;
+          }
+
+          const decodedVal = String(value)
+            .split(",")
+            .map((elem) => String.fromCharCode(Number(elem)))
+            .join("")
+            //.replace(/[\n\r]+/g, "")
+            //.replace(/\s{2,10}/g, " ")
+            .trim();
+          console.log(`serialApi read - decodedVal: ${decodedVal}`);
+          
+          if(decodedVal.length >= 3) {
+            this.props.setScannedValue(decodedVal);
+          }
+        }
+      } catch(err) {
+        console.log(`serialApi read - ${err}`);
+      }
+    }
+
+    /*
+    const port = event.target;
     // eslint-disable-next-line no-undef
     const textDecoder = new TextDecoderStream();
     let readableStreamClosed;
     let reader;
-
+    
     try {
       readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
       reader = textDecoder.readable.getReader();
@@ -97,27 +131,25 @@ export default class SerialComponent extends React.Component {
           detail: { reader, readableStreamClosed },
         })
       );
-    }
+    }*/
   }
 
   async close(event) {
-    if (!event || !event.detail) {
+    if (!event/* || !event.detail*/) {
       return;
     }
 
     try {
       const port = event.target;
-      const { reader, readableStreamClosed } = event.detail;
-      
+      /*const { reader, readableStreamClosed } = event.detail;
+
       if(readableStreamClosed) {
-        await readableStreamClosed.catch(() => {
-          /* Ignore the error */
-        }); //chiusura stream lettura
+        await readableStreamClosed.catch(() => {}); //chiusura stream lettura
       }
 
       if (reader && reader.locked === true) {
         await reader.cancel(); //chiusura lettore seriale
-      }
+      }*/
       
       if(port) {
         await port.close(); //disconessione da seriale

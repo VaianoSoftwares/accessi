@@ -18,3 +18,21 @@
   height: auto;
   width: auto;
 }
+
+.badge-form .form-control {
+  height: 40px;
+}
+
+.badge-form .form-select {
+  height: 40px;
+  padding: 0 0 1px 4px;
+}
+
+.badge-form .form-floating label {
+  font-size: 13px;
+}
+
+.badge-form .form-floating label {
+  top: -25%;
+}
+
