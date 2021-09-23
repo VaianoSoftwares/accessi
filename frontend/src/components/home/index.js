@@ -63,6 +63,7 @@ const Home = props => {
   const [isShown, setIsShown] = React.useState(false);
   const [readOnlyForm, setReadOnlyForm] = React.useState(true);
   const [scannedValue, setScannedValue] = React.useState("");
+  const [timeoutRunning, setTimeoutRunning] = React.useState(false);
   
   React.useEffect(() => {
     BadgeDataService.token = props.token;
@@ -176,10 +177,15 @@ const Home = props => {
     BadgeDataService.timbra(data)
       .then(response => {
         console.log(response.data);
+        console.log(`timbra - readOnlyForm: ${readOnlyForm}`);
+
+        if(timeoutRunning === true)
+          return;
+
+        setTimeoutRunning(true);
 
         const rowTimbra = response.data.data;
-
-        console.log(`timbra - readOnlyForm: ${readOnlyForm}`);
+        
         if(readOnlyForm === true) {
           setBadgeForm(mapToAutoComplBadge(rowTimbra));
           setPfp(rowTimbra.barcode);
@@ -200,6 +206,8 @@ const Home = props => {
           if(msg === "Timbra Esce") {
             setBadges(filteredBadges);
           }
+
+          setTimeoutRunning(false);
         }, 4000);
       })
       .catch(err => {
