@@ -173,7 +173,8 @@ const Home = props => {
   };
 
   const timbra = (data = {}) => {
-    retriveInStrutt();
+    if(timeoutRunning === false)
+      retriveInStrutt();
     BadgeDataService.timbra(data)
       .then(response => {
         console.log(response.data);
@@ -191,7 +192,8 @@ const Home = props => {
           setPfp(rowTimbra.barcode);
         }                                    
 
-        const filteredBadges = badges.filter(badge => badge.codice !== rowTimbra.barcode);
+        const filteredBadges = badges
+          .filter(badge => badge.codice !== rowTimbra.barcode);
         setBadges(mapToTableContent([ rowTimbra, ...filteredBadges ]));                        
 
         const { msg } = response.data;
@@ -203,12 +205,15 @@ const Home = props => {
           if(readOnlyForm === true) {
             setBadgeForm(initialBadgeFormState);
           }
+          /*
           if(msg === "Timbra Esce") {
             setBadges(filteredBadges);
           }
-
+          */
+          retriveInStrutt();
+          
           setTimeoutRunning(false);
-        }, 4000);
+        }, 1000);
       })
       .catch(err => {
         console.log(err);

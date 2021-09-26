@@ -39,8 +39,8 @@ export default class SerialComponent extends React.Component {
       if (!port) {
         throw new Error("port not found");
       }
-
-      await port.open({ baudRate: 9600 }); // Wait for the serial port to open.
+      
+      await port.open({ baudRate: 57600 }); // Wait for the serial port to open.
       console.log("serialApi init - Aperta porta seriale.");
       this.setState({ connected: true });
 
@@ -50,6 +50,17 @@ export default class SerialComponent extends React.Component {
     } catch (err) {
       console.log(`serialApi init - ${err}`);
     }
+  }
+
+  decodeSerialOut(value) {
+    const chCodeArr = String(value)
+        .split(",")
+        .map(elem => Number(elem));
+    
+    return String.fromCharCode(...chCodeArr)
+        //.replace(/[\n\r]+/g, "")
+        //.replace(/\s{2,10}/g, " ")
+        .trim();
   }
 
   async read(event) {
@@ -72,16 +83,9 @@ export default class SerialComponent extends React.Component {
             break;
           }
 
-          const decodedVal = String(value)
-            .split(",")
-            .map((elem) => String.fromCharCode(Number(elem)))
-            .join("")
-            //.replace(/[\n\r]+/g, "")
-            //.replace(/\s{2,10}/g, " ")
-            .trim();
+          const decodedVal = this.decodeSerialOut(value);
           console.log(`serialApi read - decodedVal: ${decodedVal}`);
-          
-          if(decodedVal.length >= 3) {
+          if(decodedVal.length >= 3 && decodedVal[0] !== '-') {
             this.props.setScannedValue(decodedVal);
           }
         }
@@ -173,7 +177,7 @@ export default class SerialComponent extends React.Component {
           <button
             className="btn btn-outline-secondary"
             id="serial-conn-btn"
-            onClick={async () => await this.init(true)}
+            onClick={async (e) => await this.init(true)}
           >
             Connetti Seriale
           </button>
