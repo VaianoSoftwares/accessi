@@ -39,17 +39,33 @@ export default class Validator {
     }
 
     static badgeDoc(data) {
+        console.log(data);
         const schema = Joi.object({
             barcode: Joi
                 .string()
                 .min(3)
                 .max(32)
                 .required(),
+            descrizione: Joi.string().allow(null, ''),
+            tipo: Joi.string().allow(null, ''),
+            assegnazione: Joi.string().allow(null, ''),
+            stato: Joi.string().allow(null, ''),
+            ubicazione: Joi.string().allow(null, ''),
+            nome: Joi.string().allow(null, ''),
+            cognome: Joi.string().allow(null, ''),
+            ditta: Joi.string().allow(null, ''),
+            telefono: Joi.string().allow(null, ''),
+            tipo_doc: Joi.string().allow(null, ''),
+            ndoc: Joi.string().allow(null, ''),
             scadenza: Joi
                 .number()
                 .min(0)
                 .max(24)
-                .required()
+                .required(),
+            targa1: Joi.string().allow(null, ''),
+            targa2: Joi.string().allow(null, ''),
+            targa3: Joi.string().allow(null, ''),
+            targa4: Joi.string().allow(null, '')
         });
 
         return schema.validate(data);
@@ -63,6 +79,29 @@ export default class Validator {
             assegnaz: Joi
                 .string()
                 .required()
+        });
+        return scheme.validate(data);
+    }
+
+    static timbra(data) {
+        const scheme = Joi.object({
+            barcode: Joi
+                .string()
+                .min(3)
+                .max(32)
+                .required(),
+            tipo: Joi
+                .string()
+                .required(),
+            postazione: Joi
+                .string()
+                .required(),
+            nome: Joi.string().allow(null, ''),
+            cognome: Joi.string().allow(null, ''),
+            ditta: Joi.string().allow(null, ''),
+            telefono: Joi.string().allow(null, ''),
+            tipo_doc: Joi.string().allow(null, ''),
+            ndoc: Joi.string().allow(null, '')
         });
         return scheme.validate(data);
     }

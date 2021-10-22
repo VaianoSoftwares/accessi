@@ -71,6 +71,7 @@ const BadgeForm = props => {
             name="barcode"
             placeholder="barcode"
             readOnly={Boolean(props.readOnlyForm)}
+            autoComplete="off"
           />
           <label htmlFor="barcode">barcode</label>
         </div>
@@ -84,6 +85,7 @@ const BadgeForm = props => {
             name="descrizione"
             placeholder="descrizione"
             readOnly={Boolean(props.readOnlyForm)}
+            autoComplete="off"
           />
           <label htmlFor="descrizione">descrizione</label>
         </div>
@@ -160,6 +162,7 @@ const BadgeForm = props => {
             name="ubicazione"
             placeholder="ubicazione"
             readOnly={Boolean(props.readOnlyForm)}
+            autoComplete="off"
           />
           <label htmlFor="ubicazione">ubicazione</label>
         </div>
@@ -171,7 +174,7 @@ const BadgeForm = props => {
             alt="foto profilo"
             src={window.env.DEFAULT_IMG}
             className="pfp"
-            onError={props.setPfp()}
+            /*onError={props.setPfp()}*/
           />
         </div>
         <div className="col-8">
@@ -186,6 +189,7 @@ const BadgeForm = props => {
                 name="nome"
                 placeholder="nome"
                 readOnly={Boolean(props.readOnlyForm)}
+                autoComplete="off"
               />
               <label htmlFor="nome">nome</label>
             </div>
@@ -199,6 +203,7 @@ const BadgeForm = props => {
                 name="cognome"
                 placeholder="cognome"
                 readOnly={Boolean(props.readOnlyForm)}
+                autoComplete="off"
               />
               <label htmlFor="cognome">cognome</label>
             </div>
@@ -214,6 +219,7 @@ const BadgeForm = props => {
                 name="ditta"
                 placeholder="ditta"
                 readOnly={Boolean(props.readOnlyForm)}
+                autoComplete="off"
               />
               <label htmlFor="ditta">ditta</label>
             </div>
@@ -227,6 +233,7 @@ const BadgeForm = props => {
                 name="telefono"
                 placeholder="telefono"
                 readOnly={Boolean(props.readOnlyForm)}
+                autoComplete="off"
               />
               <label htmlFor="telefono">telefono</label>
             </div>
@@ -262,6 +269,7 @@ const BadgeForm = props => {
                 name="ndoc"
                 placeholder="num documento"
                 readOnly={Boolean(props.readOnlyForm)}
+                autoComplete="off"
               />
               <label htmlFor="ndoc">num documento</label>
             </div>
@@ -280,6 +288,7 @@ const BadgeForm = props => {
                   name="scadenza"
                   placeholder="scadenza"
                   readOnly={Boolean(props.readOnlyForm)}
+                  autoComplete="off"
                 />
                 <label htmlFor="scadenza">scadenza (mesi)</label>
               </div>
@@ -298,6 +307,7 @@ const BadgeForm = props => {
                       name="targa1"
                       placeholder="targa1"
                       readOnly={Boolean(props.readOnlyForm)}
+                      autoComplete="off"
                     />
                     <label htmlFor="targa1">targa1</label>
                   </div>
@@ -326,6 +336,7 @@ const BadgeForm = props => {
                       name="targa3"
                       placeholder="targa3"
                       readOnly={Boolean(props.readOnlyForm)}
+                      autoComplete="off"
                     />
                     <label htmlFor="targa3">targa3</label>
                   </div>
@@ -339,6 +350,7 @@ const BadgeForm = props => {
                       name="targa4"
                       placeholder="targa4"
                       readOnly={Boolean(props.readOnlyForm)}
+                      autoComplete="off"
                     />
                     <label htmlFor="targa4">targa4</label>
                   </div>
@@ -359,6 +371,7 @@ const BadgeForm = props => {
             name="foto_profilo"
             placeholder="foto profilo"
             disabled={props.readOnlyForm === true || props.admin === false}
+            autoComplete="off"
           />
         </div>
       </div>

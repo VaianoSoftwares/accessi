@@ -22,17 +22,12 @@ export default class ArchivioController {
   }
 
   static async apiPostArchivio(req, res) {
-    const { barcode, tipo } = req.body;
-    if (!barcode) {
-      return res
-        .status(400)
-        .json({ success: false, msg: "Barcode non compilato" });
+    const valErr = Validator.badgeDoc(req.body).error;
+    if(valErr) {
+      return res.status(400).json({ success: false, msg: valErr.details[0].message });
     }
-    else if (barcode.length < 3) {
-      return res
-        .status(400)
-        .json({ success: false, msg: `Barcode ${barcode} invalido: formattazione errata` })
-    }
+
+    const { barcode, tipo, postazione } = req.body;
 
     const nominativo = {
       nome: req.body.nome,
@@ -51,7 +46,7 @@ export default class ArchivioController {
     };
 
     try {
-      const archivioResponse = await ArchivioDAO.timbra(barcode, tipo, nominativo);
+      const archivioResponse = await ArchivioDAO.timbra(barcode, tipo, postazione, nominativo);
 
       const { error } = archivioResponse;
       if (error) {

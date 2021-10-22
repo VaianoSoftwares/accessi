@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
 import UserDataService from "../services/user.js";
+import Alert from "./alert.js";
 
 const Register = props => {
   const initialRegisterFormState = {
@@ -35,6 +36,8 @@ const Register = props => {
     UserDataService.register(registerForm, props.token)
       .then((response) => {
         console.log(response.data);
+        const { success, msg } = response.data;
+        props.setAlert({ success, msg });
       })
       .catch((err) => {
         console.log(err);
@@ -57,6 +60,7 @@ const Register = props => {
           value={registerForm.username}
           onChange={handleInputChanges}
           name="username"
+          autoComplete="off"
         />
       </div>
       <div className="form-group col-sm-2">
@@ -69,6 +73,7 @@ const Register = props => {
           value={registerForm.password}
           onChange={handleInputChanges}
           name="password"
+          autoComplete="off"
         />
       </div>
       <div className="form-check col-sm-2">
@@ -83,11 +88,13 @@ const Register = props => {
           value={registerForm.admin}
           name="admin"
           id="admin"
+          autoComplete="off"
         />
       </div>
       <button onClick={() => register()} className="btn btn-success">
         Register
       </button>
+      <Alert alert={props.alert} setAlert={props.setAlert} />
     </div>
   );
 };

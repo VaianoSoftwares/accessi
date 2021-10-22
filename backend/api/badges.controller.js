@@ -28,9 +28,12 @@ export default class BadgesController {
     }
 
     static async apiPostBadges(req, res) {
-        const valErr = Validator.badgeDoc(data).error;
+        if(req.body.scadenza)
+            req.body.scadenza = Number(req.body.scadenza);
+        console.log(req.body);
+        const valErr = Validator.badgeDoc(req.body).error;
         if(valErr) {
-            return res.status(400).json({ success: false, msg: error.details[0].message });
+            return res.status(400).json({ success: false, msg: valErr.details[0].message });
         }
 
         try {
@@ -70,9 +73,9 @@ export default class BadgesController {
     }
 
     static async apiPutBadges(req, res) {
-        const valErr = Validator.badgeDoc(data).error;
+        const valErr = Validator.badgeDoc(req.body).error;
         if(valErr) {
-            return res.status(400).json({ success: false, msg: error.details[0].message });
+            return res.status(400).json({ success: false, msg: valErr.details[0].message });
         }
 
         try {
