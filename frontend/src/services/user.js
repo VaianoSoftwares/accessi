@@ -11,8 +11,8 @@ class UserDataService {
         });
     }
 
-    login(username, password) {
-        return http.post("/users/login", { username, password });
+    login(username, password, postazione) {
+        return http.post("/users/login", { username, password, postazione });
     }
 
     getTipiUtenti() {

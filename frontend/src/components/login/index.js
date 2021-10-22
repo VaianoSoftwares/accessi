@@ -18,8 +18,8 @@ const Login = (props) => {
   };
 
   const login = () => {
-    const { username, password } = loginForm;
-    UserDataService.login(username, password)
+    const { username, password, postazione } = loginForm;
+    UserDataService.login(username, password, postazione)
       .then((response) => {
         //console.log(`login - response.data: ${response.data}`);
         if (response.data.success === true) {

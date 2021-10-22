@@ -22,11 +22,13 @@ const AccessiNavbar = props => {
             Homepage
           </Link>
         </li>
-        <li className="nav-item">
-          <Link to={"/register"} className="nav-link">
-            Opzioni
-          </Link>
-        </li>
+        {props.user.admin === true && (
+          <li className="nav-item">
+            <Link to={"/admin"} className="nav-link">
+              Opzioni
+            </Link>
+          </li>
+        )}
         <li className="nav-item">
           <button onClick={() => logout()} className="btn btn-primary">
             Logout {props.user.name}

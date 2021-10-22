@@ -270,7 +270,9 @@ const BadgeForm = props => {
             <div className="row">
               <div className="form-floating col-sm-3">
                 <input
-                  type="date"
+                  type="number"
+                  min="0"
+                  max="24"
                   className="form-control form-control-sm"
                   id="scadenza"
                   value={props.badgeForm.scadenza}
@@ -279,7 +281,7 @@ const BadgeForm = props => {
                   placeholder="scadenza"
                   readOnly={Boolean(props.readOnlyForm)}
                 />
-                <label htmlFor="scadenza">scadenza</label>
+                <label htmlFor="scadenza">scadenza (mesi)</label>
               </div>
             </div>
           ) : (
@@ -356,7 +358,7 @@ const BadgeForm = props => {
             onChange={renderPfp}
             name="foto_profilo"
             placeholder="foto profilo"
-            disabled
+            disabled={props.readOnlyForm === true || props.admin === false}
           />
         </div>
       </div>

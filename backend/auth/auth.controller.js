@@ -1,11 +1,11 @@
 import UsersDAO from "../dao/users.dao.js";
-import validation from "./validation.js";
+import Validator from "./validation.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 export default class UsersController {
     static async apiRegister(req, res) {
-        const { error } = validation(req.body);
+        const { error } = Validator.register(req.body);
         if(error) {
             return res.status(400).json({ success: false, msg: error.details[0].message });
         }
@@ -32,7 +32,7 @@ export default class UsersController {
     }
 
     static async apiLogin(req, res) {
-        const { error } = validation(req.body);
+        const { error } = Validator.login(req.body);
         if(error) {
             return res.status(400).json({ success: false, msg: error.details[0].message });
         }

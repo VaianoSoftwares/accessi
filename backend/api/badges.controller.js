@@ -1,6 +1,7 @@
 import BadgesDAO from "../dao/badges.dao.js";
 import fileUpl from "./badges.fileupload.js";
 import EnumsDAO from "../dao/enums.dao.js";
+import Validator from "../auth/validation.js";
 
 export default class BadgesController {
     static async apiGetBadges(req, res) {
@@ -27,8 +28,9 @@ export default class BadgesController {
     }
 
     static async apiPostBadges(req, res) {
-        if(!req.body.barcode) {
-            return res.status(400).json({ success: false, msg: "Barcode non inserito" });
+        const valErr = Validator.badgeDoc(data).error;
+        if(valErr) {
+            return res.status(400).json({ success: false, msg: error.details[0].message });
         }
 
         try {
@@ -39,19 +41,26 @@ export default class BadgesController {
                 return res.status(400).json({ success: false, msg: error.message });
             }
 
-            const fileUplResp = await fileUpl(req.files, req.body.barcode);
-            if(fileUplResp.error) {
-                return res.status(400).json({ success: false, msg: fileUplResp.error.message });
-            }
-            else if(fileUplResp.fileName) {
-                const updPfpResp = await BadgesDAO.updateBadge({
-                  barcode: req.body.barcode,
-                  foto_profilo: fileUplResp.fileName,
-                });
-                if(updPfpResp.error) {
-                    return res.status(400).json({ success: false, msg: updPfpResp.error.message });
-                }
-            }
+            const fileUplResp = await fileUpl(
+              req.files,
+              req.body.barcode,
+              req.body.tipo
+            );
+            if (fileUplResp.error) {
+              return res
+                .status(400)
+                .json({ success: false, msg: fileUplResp.error.message });
+            }/* else if (fileUplResp.fileName) {
+              const updPfpResp = await BadgesDAO.updateBadge({
+                barcode: req.body.barcode,
+                foto_profilo: fileUplResp.fileName,
+              });
+              if (updPfpResp.error) {
+                return res
+                  .status(400)
+                  .json({ success: false, msg: updPfpResp.error.message });
+              }
+            }*/
 
             res.json({ success: true, msg: "Badge aggiunto con successo", data: badgesResponse });
         } catch(err) {
@@ -61,8 +70,9 @@ export default class BadgesController {
     }
 
     static async apiPutBadges(req, res) {
-        if(!req.body.barcode) {
-            return res.status(400).json({ success: false, msg: "Barcode non inserito" });
+        const valErr = Validator.badgeDoc(data).error;
+        if(valErr) {
+            return res.status(400).json({ success: false, msg: error.details[0].message });
         }
 
         try {
@@ -73,23 +83,30 @@ export default class BadgesController {
                 return res.status(400).json({ success: false, msg: error.message });
             }
 
-            const fileUplResp = await fileUpl(req.files, req.body.barcode);
-            if(fileUplResp.error) {
-                return res.status(400).json({ success: false, msg: fileUplResp.error.message });
-            }
-            else if(fileUplResp.fileName) {
-                const updPfpResp = await BadgesDAO.updateBadge({
-                  barcode: req.body.barcode,
-                  foto_profilo: fileUplResp.fileName,
-                });
-                if(updPfpResp.error) {
-                    return res.status(400).json({ success: false, msg: updPfpResp.error.message });
-                }
-            }
-            else if(badgesResponse.modifiedCount === 0) {
-                throw new Error(
-                    `Badge ${req.body.barcode} non aggiornato. Nessun campo inserito.`
-                );
+            const fileUplResp = await fileUpl(
+              req.files,
+              req.body.barcode,
+              req.body.tipo
+            );
+            if (fileUplResp.error) {
+              return res
+                .status(400)
+                .json({ success: false, msg: fileUplResp.error.message });
+            }/* else if (fileUplResp.fileName) {
+              const updPfpResp = await BadgesDAO.updateBadge({
+                barcode: req.body.barcode,
+                foto_profilo: fileUplResp.fileName,
+              });
+              if (updPfpResp.error) {
+                return res
+                  .status(400)
+                  .json({ success: false, msg: updPfpResp.error.message });
+              }
+            }*/
+            else if (badgesResponse.modifiedCount === 0 && !fileUplResp.fileName) {
+              throw new Error(
+                `Badge ${req.body.barcode} non aggiornato. Nessun campo inserito.`
+              );
             }
 
             res.json({ success: true, msg: "Badge aggiornato con successo.", data: badgesResponse });
@@ -138,8 +155,60 @@ export default class BadgesController {
                 res.json({ success: true, data: assegnazList });
             }
         } catch(err) {
-            console.log(`apiGetReparti - ${err}`);
+            console.log(`apiGetAssegnazioni - ${err}`);
             res.status(500).json({ success: false, data: [], error: err });
+        }
+    }
+
+    static async apiPostAssegnazioni(req, res) {
+        try {
+            const { tipo, assegnaz } = req.body;
+            const { error } = Validator.enumDoc({ tipo, assegnaz });
+            if(error) {
+                return res.status(400).json({ success: false, msg: error.details[0].message });
+            }
+
+            const enumResp = await EnumsDAO.pushEnum(tipo, [assegnaz]);
+            if(enumResp.error) {
+                return res.status(400).json({ success: false, msg: error.message });
+            }
+            else if(enumResp.modifiedCount === 0) {
+                throw new Error(`Non è stato possibile inserire ${assegnaz} in ${tipo}`);
+            }
+            return res.json({
+              success: true,
+              msg: `Assegnazione di tipo ${tipo} inserita con successo`,
+              data: enumResp,
+            });
+        } catch(err) {
+            console.log(`apiPostAssegnazioni - ${err}`);
+            res.status(500).json({ success: false, msg: err.message });
+        }
+    }
+
+    static async apiDeleteAssegnazioni(req, res) {
+        try {
+            const { tipo, assegnaz } = req.query;
+            const { error } = Validator.enumDoc({ tipo, assegnaz });
+            if(error) {
+                return res.status(400).json({ success: false, msg: error.details[0].message });
+            }
+
+            const enumResp = await EnumsDAO.pullEnum(tipo, [assegnaz]);
+            if(enumResp.error) {
+                return res.status(400).json({ success: false, msg: error.message });
+            }
+            else if(enumResp.deletedCount === 0) {
+                throw new Error(`Non è stato possibile eliminare ${assegnaz} in ${tipo}`);
+            }
+            return res.json({
+              success: true,
+              msg: `Assegnazione di tipo ${tipo} eliminata con successo`,
+              data: enumResp,
+            });
+        } catch(err) {
+            console.log(`apiDeleteAssegnazioni - ${err}`);
+            res.status(500).json({ success: false, msg: err.message });
         }
     }
 

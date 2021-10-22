@@ -70,7 +70,7 @@ export default class BadgesDAO {
       barcode: data.barcode,
       descrizione: data.descrizione,
       tipo: data.tipo || "badge",
-      assegnazione: data.reparto,
+      assegnazione: data.assegnazione,
       ubicazione: data.ubicazione,
       stato: data.stato || "valido",
       nominativo: {
@@ -80,7 +80,7 @@ export default class BadgesDAO {
         telefono: data.telefono,
         tipo_doc: data.tipo_doc,
         ndoc: data.ndoc,
-        scadenza: data.scadenza || new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+        scadenza: new Date(new Date().setMonth(new Date().getMonth() + data.scadenza)),
         targhe: {
           1: data.targa1,
           2: data.targa2,
@@ -93,16 +93,20 @@ export default class BadgesDAO {
     const nomHasNonNullVals = Object.values(badgeDoc.nominativo)
         .filter(value => typeof value !== "object")
         .some(value => value);
-    const targheHasNonNullVals = badgeDoc.targhe && Object.values(badgeDoc.targhe).some(
-        value => value
-    );
+    const targheHasNonNullVals =
+      badgeDoc.nominativo &&
+      badgeDoc.nominativo.targhe &&
+      Object.values(badgeDoc.nominativo.targhe).some((value) => value);
     const isNom = nomHasNonNullVals || targheHasNonNullVals;
     if(!isNom) {
         badgeDoc.nominativo = null;
     }
 
-    if(new Date() > badgeDoc.scadenza && badgeDoc.stato === "valido") {
+    if(new Date() >= badgeDoc.nominativo.scadenza && badgeDoc.stato === "valido") {
       badgeDoc.stato = "scaduto";
+    }
+    else if(new Date() < badgeDoc.nominativo.scadenza && badgeDoc.stato === "scaduto") {
+      badgeDoc.stato = "valido";
     }
 
     console.log(badgeDoc);
