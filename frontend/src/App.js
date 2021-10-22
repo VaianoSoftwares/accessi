@@ -55,6 +55,7 @@ function App() {
                     user={user}
                     logout={logout}
                     token={token}
+                    alert={_alert}
                     setAlert={setAlert}
                   />
                 )

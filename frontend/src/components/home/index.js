@@ -357,6 +357,7 @@ const Home = props => {
     pfp.src = barcode
       ? `${window.env.API_URL}/public/foto-profilo/USER_${barcode}.jpg`
       : window.env.DEFAULT_IMG;
+    console.log(`setPfp: ${pfp.src}`);
   };
 
   const refreshPage = () => {
@@ -429,8 +430,8 @@ const Home = props => {
           badgeForm={badgeForm}
           handleInputChanges={handleInputChanges}
           handleInputFileChanges={handleInputFileChanges}
+          //setPfp={setPfp}
           tipiDoc={tipiDoc}
-          setPfp={setPfp}
           readOnlyForm={readOnlyForm}
         />
         <FormButtons

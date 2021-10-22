@@ -48,6 +48,7 @@ const AdminMenu = props => {
                                     user={props.user}
                                     logout={props.logout}
                                     token={props.token}
+                                    alert={props.alert}
                                     setAlert={props.setAlert}
                                 />
                             ) : props.user ? (
@@ -64,6 +65,7 @@ const AdminMenu = props => {
                                     user={props.user}
                                     logout={props.logout}
                                     token={props.token}
+                                    alert={props.alert}
                                     setAlert={props.setAlert}
                                 />
                             ) : props.user ? (

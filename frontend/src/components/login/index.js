@@ -56,6 +56,7 @@ const Login = (props) => {
               value={loginForm.postazione}
               name="postazione"
               onChange={handleInputChanges}
+              autoComplete="off"
             />
           </div>
         </div>
@@ -72,6 +73,7 @@ const Login = (props) => {
               value={loginForm.username}
               name="username"
               onChange={handleInputChanges}
+              autoComplete="off"
             />
           </div>
         </div>
@@ -88,6 +90,7 @@ const Login = (props) => {
               value={loginForm.password}
               name="password"
               onChange={handleInputChanges}
+              autoComplete="off"
             />
           </div>
         </div>

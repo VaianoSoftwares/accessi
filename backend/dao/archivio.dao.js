@@ -61,7 +61,8 @@ export default class ArchivioDAO {
     static async timbra(barcode, tipo, nominativo) {
         let timbraResp = { 
           barcode: barcode, 
-          tipo: tipo, 
+          tipo: tipo,
+          postazione: postazione,
           nominativo: nominativo, 
           data: {}
         };
@@ -131,6 +132,7 @@ export default class ArchivioDAO {
                     entrata: new Date(),
                     uscita: null
                 },
+                postazione: postazione,
                 nominativo: nominativo
             };
 

@@ -144,6 +144,7 @@ const Assegnaz = props => {
                 onChange={handleInputChanges}
                 name="assegnazione"
                 placeholder="assegnazione"
+                autoComplete="off"
               />
               <label htmlFor="assegnazione">assegnazione</label>
             </div>
