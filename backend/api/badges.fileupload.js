@@ -5,9 +5,13 @@ const __dirname = path.resolve("../backend");
 
 //const validPfpExt = [".png", ".jpeg", ".jpg"];
 
-const fileUplBadges = async (files, barcode) => {
+const fileUplBadges = async (files, barcode, tipoBadge) => {
     if(!files || Object.keys(files).length === 0) {
         console.log("No file to upload.");
+        return {};
+    }
+    else if(tipoBadge !== "badge") {
+        console.log(`Can't upload pfp for badge type: ${tipoBadge}`);
         return {};
     }
 

@@ -56,11 +56,27 @@ class BadgesDataService {
     });
   }
 
-  getAssegnazioni(tipo) {
+  getAssegnazioni(tipo = "") {
     return http.get(`/badges/assegnazioni?tipo=${tipo}`, {
       headers: {
         "auth-token": this.token,
       },
+    });
+  }
+
+  insertAssegnazione(tipo, assegnaz) {
+    return http.post("/badges/assegnazioni", { tipo, assegnaz }, {
+      headers: {
+        "auth-token": this.token
+      }
+    });
+  }
+
+  deleteAssegnazione(tipo, assegnaz) {
+    return http.delete(`/badges/assegnazioni?tipo=${tipo}&assegnaz=${assegnaz}`, {
+      headers: {
+        "auth-token": this.token
+      }
     });
   }
 

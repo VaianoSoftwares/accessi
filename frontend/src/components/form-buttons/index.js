@@ -19,6 +19,25 @@ const FormButtons = props => {
             Trova
           </button>
         </div>
+        {props.admin === true && (
+          <div>
+            <div className="col-sm-3 mb-1">
+              <button onClick={() => props.insertBadge()} className="btn btn-success home-form-btn">
+                Aggiungi
+              </button>
+            </div>
+            <div className="col-sm-3 mb-1">
+              <button onClick={() => props.updateBadge()} className="btn btn-success home-form-btn">
+                Aggiorna
+              </button>
+            </div>
+            <div className="col-sm-3 mb-1">
+              <button onClick={() => props.deleteBadge()} className="btn btn-success home-form-btn">
+                Elimina
+              </button>
+            </div>
+          </div>
+        )}
         <div className="col-sm-3 mb-1">
           <button onClick={() => props.setReadOnlyForm(true)} className="btn btn-success home-form-btn">
             Annulla

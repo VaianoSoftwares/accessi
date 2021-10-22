@@ -32,7 +32,7 @@ const Home = props => {
     tipo_doc: "",
     ndoc: "",
     foto_profilo: null,
-    scadenza: dateFormat(new Date(new Date().setFullYear(new Date().getFullYear() + 1)), "yyyy-mm-dd"),
+    scadenza: 0/*dateFormat(new Date(new Date().setFullYear(new Date().getFullYear() + 1)), "yyyy-mm-dd")*/,
     targa1: "",
     targa2: "",
     targa3: "",
@@ -80,6 +80,7 @@ const Home = props => {
     //toggleReadonlyInputs(readOnlyForm);
     if(readOnlyForm === true) {
       setBadgeForm({ ...initialBadgeFormState, tipo: badgeForm.tipo });
+      retriveInStrutt();
     }
     console.log(`readOnlyForm: ${readOnlyForm}`);
   }, [readOnlyForm]);
@@ -89,7 +90,7 @@ const Home = props => {
       timbra({ barcode: scannedValue });
       setScannedValue("");
     }
-  }, [scannedValue])
+  }, [scannedValue]);
 
   const handleInputChanges = e => {
     const { name, value } = e.target;
@@ -127,7 +128,6 @@ const Home = props => {
         console.log(err);
       });
   };
-
   /*
   const retriveBadges = () => {
     BadgeDataService.getAll()
@@ -150,8 +150,8 @@ const Home = props => {
       .catch(err => {
         console.log(err);
       });
-  };
-  */
+  };*/
+  
   const findBadges = () => {
     BadgeDataService.find(_.omit(badgeForm, "scadenza"))
       .then(response => {
@@ -224,18 +224,14 @@ const Home = props => {
       });
   };
 
-/*
   const insertBadge = () => {
-    if(tableContentType !== "chiave") {
-      setTableContentType("_nominativo");
-    }
     const formData = createFormData();
     BadgeDataService.insertBadge(formData)
       .then(response => {
         console.log(response.data);
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
-        retriveBadges();
+        //retriveBadges();
       })
       .catch(err => {
         console.log(err);
@@ -244,7 +240,7 @@ const Home = props => {
       })
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
-        setDefaultPfp();
+        setPfp();
       });
   };
 
@@ -253,10 +249,6 @@ const Home = props => {
 		if (!confirmed) {
       return;
     }
-    
-    if(tableContentType !== "chiave") {
-      setTableContentType("_nominativo");
-    }
 
     const formData = createFormData();
     BadgeDataService.updateBadge(formData)
@@ -264,8 +256,7 @@ const Home = props => {
         console.log(response.data);
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
-        retriveBadges();
-        setBadgeForm(initialBadgeFormState);
+        //retriveBadges();
       })
       .catch(err => {
         console.log(err);
@@ -274,7 +265,7 @@ const Home = props => {
       })
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
-        setDefaultPfp();
+        setPfp();
       });
   };
 
@@ -283,17 +274,13 @@ const Home = props => {
 		if (!confirmed) {
       return;
     }
-    
-    if(tableContentType !== "chiave") {
-      setTableContentType("_nominativo");
-    }
 
     BadgeDataService.deleteBadge(badgeForm.barcode)
       .then(response => {
         console.log(response.data);
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
-        retriveBadges();
+        //retriveBadges();
       })
       .catch(err => {
         console.log(err);
@@ -302,17 +289,20 @@ const Home = props => {
       })
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
-        setDefaultPfp();
+        setPfp();
       });
   };
 
   const createFormData = () => {
     const formData = new FormData();
-    Object.entries(badgeForm).forEach(([key, value]) => formData.append(key, value));
+    Object.entries(badgeForm)
+      .forEach(([key, value]) => formData.append(key, value));
+    
+    if(formData.has("foto_profilo") && !badgeForm.foto_profilo)
+      formData.delete("foto_profilo");
     
     return formData;
   };
-  */
 
   const mapToTableContent = (data = []) => {
     return data.map(elem => {
@@ -446,9 +436,13 @@ const Home = props => {
         <FormButtons
           {...props}
           findBadges={findBadges}
+          insertBadge={insertBadge}
+          updateBadge={updateBadge}
+          deleteBadge={deleteBadge}
           refreshPage={refreshPage}
           setIsShown={setIsShown}
           setReadOnlyForm={setReadOnlyForm}
+          admin={props.user.admin}
         />
       </div>
       <div

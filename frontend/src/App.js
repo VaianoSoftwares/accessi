@@ -11,7 +11,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 import Home from "./components/home";
 import Login from "./components/login";
-import Register from "./components/register.js";
+import AdminMenu from "./components/admin-menu/admin-menu";
 
 function App() {
   const [user, setUser] = React.useState(null);
@@ -47,10 +47,10 @@ function App() {
                 <Redirect to="/login" />
               )}
             </Route>
-            <Route path="/register">
-              {user && user.tipo === "admin" ? (
+            <Route path="/admin">
+              {user && user.admin === true ? (
                 (props) => (
-                  <Register
+                  <AdminMenu
                     {...props}
                     user={user}
                     logout={logout}
