@@ -74,7 +74,7 @@ export default class ArchivioDAO {
             timbraResp.tipo = "badge";
             timbraResp.assegnazione = "utente";
             timbraResp.nominativo = {
-              tipo_doc: "tessera studente",
+              tdoc: "tessera studente",
               ndoc: barcode
             }
           }
@@ -177,7 +177,7 @@ export default class ArchivioDAO {
                         },
                       },
                     },
-                    { $project: { "_id": 0, "tipo": 1, "assegnazione": 1 } }
+                    { $project: { "_id": 0, "descrizione": 1, "tipo": 1, "assegnazione": 1, "stato": 1, "ubicazione": 1 } }
                   ],
                   as: "badge",
                 },

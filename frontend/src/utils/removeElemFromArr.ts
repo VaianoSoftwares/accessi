@@ -1,0 +1,1 @@
+export default <T extends unknown>(array: T[], elem: T) => array.filter((x) => x !== elem);

@@ -21,17 +21,18 @@ export default class BadgesController {
                 success: false,
                 data: [],
                 filters: req.query,
-                error: err
+                msg: err.msg
             };
             res.status(500).json(response);
         }
     }
 
     static async apiPostBadges(req, res) {
-        if(req.body.scadenza)
-            req.body.scadenza = Number(req.body.scadenza);
-        console.log(req.body);
-        const valErr = Validator.badgeDoc(req.body).error;
+        const dataToVerify = {
+            barcode: req.body.barcode,
+            scadenza: Number(req.body.scadenza)
+        };
+        const valErr = Validator.badgeDoc(dataToVerify).error;
         if(valErr) {
             return res.status(400).json({ success: false, msg: valErr.details[0].message });
         }
@@ -221,7 +222,7 @@ export default class BadgesController {
             res.json({ success: true, data: enumResp.documento });
         } catch(err) {
             console.log(`apiGetTipiDoc - ${err}`);
-            res.status(500).json({ success: false, data: [], error: err });
+            res.status(500).json({ success: false, data: [], msg: err.message });
         }
     }
 
@@ -231,7 +232,7 @@ export default class BadgesController {
             res.json({ success: true, data: enumResp.stato });
         } catch(err) {
             console.log(`apiGetStati - ${err}`);
-            res.status(500).json({ success: false, data: [], error: err });
+            res.status(500).json({ success: false, data: [], msg: err.message });
         }
     }
 
@@ -241,7 +242,7 @@ export default class BadgesController {
             res.json({ success: true, data: enumResp.badge });
         } catch(err) {
             console.log(`apiGetTipiBadge - ${err}`);
-            res.status(500).json({ success: false, data: [], error: err });
+            res.status(500).json({ success: false, data: [], msg: err.message });
         }
     }
 };

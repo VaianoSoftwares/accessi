@@ -37,7 +37,7 @@ export default class Validator {
     
         return schema.validate(data);
     }
-
+    
     static badgeDoc(data) {
         console.log(data);
         const schema = Joi.object({
@@ -53,12 +53,13 @@ export default class Validator {
             ubicazione: Joi.string().allow(null, ''),
             nome: Joi.string().allow(null, ''),
             cognome: Joi.string().allow(null, ''),
-            ditta: Joi.string().allow(null, ''),
             telefono: Joi.string().allow(null, ''),
+            ditta: Joi.string().allow(null, ''),
             tipo_doc: Joi.string().allow(null, ''),
             ndoc: Joi.string().allow(null, ''),
             scadenza: Joi
                 .number()
+                .integer()
                 .min(0)
                 .max(24)
                 .required(),
