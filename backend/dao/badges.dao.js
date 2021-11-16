@@ -22,7 +22,7 @@ export default class BadgesDAO {
           "cognome",
           "ditta",
           "telefono",
-          "tipo_doc",
+          "tdoc",
           "ndoc",
         ].includes(key)
           ? `nominativo.${key}`
@@ -78,9 +78,9 @@ export default class BadgesDAO {
         cognome: data.cognome,
         ditta: data.ditta,
         telefono: data.telefono,
-        tipo_doc: data.tipo_doc,
+        tdoc: data.tdoc,
         ndoc: data.ndoc,
-        scadenza: new Date(new Date().setMonth(new Date().getMonth() + data.scadenza)),
+        scadenza: new Date(new Date().setMonth(new Date().getMonth() + Number(data.scadenza))),
         targhe: {
           1: data.targa1,
           2: data.targa2,
@@ -99,14 +99,15 @@ export default class BadgesDAO {
       Object.values(badgeDoc.nominativo.targhe).some((value) => value);
     const isNom = nomHasNonNullVals || targheHasNonNullVals;
     if(!isNom) {
-        badgeDoc.nominativo = null;
+      badgeDoc.nominativo = null;
     }
-
-    if(new Date() >= badgeDoc.nominativo.scadenza && badgeDoc.stato === "valido") {
-      badgeDoc.stato = "scaduto";
-    }
-    else if(new Date() < badgeDoc.nominativo.scadenza && badgeDoc.stato === "scaduto") {
-      badgeDoc.stato = "valido";
+    else {
+      if(new Date() >= badgeDoc.nominativo.scadenza && badgeDoc.stato === "valido") {
+        badgeDoc.stato = "scaduto";
+      }
+      else if(new Date() < badgeDoc.nominativo.scadenza && badgeDoc.stato === "scaduto") {
+        badgeDoc.stato = "valido";
+      }
     }
 
     console.log(badgeDoc);
@@ -143,7 +144,7 @@ export default class BadgesDAO {
       Object.entries(data)
         .filter(([key, value]) => value && key !== "barcode")
         .forEach(([key, value]) => {
-          if(["nome", "cognome", "ditta", "telefono", "tipo_doc", "ndoc"].includes(key)) {
+          if(["nome", "cognome", "ditta", "telefono", "tdoc", "ndoc"].includes(key)) {
             paramsToUpdate[`nominativo.${key}`] = value;
           }
           else if(key.includes("targa")) {

@@ -24,7 +24,7 @@ export default class UsersController {
             if(response.error) {
                 return res.status(400).json({ success: false, msg: response.error.message });
             }
-            res.json({ success: true, msg: "Utente registrato con successo", response: response._id });
+            res.json({ success: true, msg: "Utente registrato con successo", data: response._id });
         } catch(err) {
             console.log(`apiRegister - ${err}`);
             res.status(500).json({ success: false, msg: err.message });
