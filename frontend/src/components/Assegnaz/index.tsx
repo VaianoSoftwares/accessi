@@ -51,7 +51,7 @@ const Assegnaz: React.FC<Props> = (props: Props) => {
     const retriveAssegnazioni = () => {
       BadgeDataService.getAssegnazioni()
         .then((response) => {
-          //console.log(response.data);
+          console.log(response.data);
           setAssegnazioni(response.data.data);
         })
         .catch((err) => {

@@ -9,7 +9,8 @@ import {
 // components
 import Assegnaz from "../Assegnaz";
 import Register from "../register";
-import PageNotFound from "../PageNotFound";
+// style
+import "./index.css";
 // types
 import { User } from "../../types/User";
 import { TAlert } from "../../types/TAlert";
@@ -26,33 +27,28 @@ type Props = {
 const AdminMenu: React.FC<Props> = (props: Props) => {
 
     return (
-        <div className="row">
-            <div className="col-sm-1 mb-1">
-                <div className="row">
-                    <button className="btn btn-success">
-                        <Link to="register">
+        <div className="row admin-menu-wrapper">
+            <div className="col-sm-1 m-3">
+                <div className="btn-group-vertical">
+                    <button className="btn btn-success btn-block">
+                        <Link className="link-white-text" to="register">
                             Registra Account
                         </Link>
                     </button>
-                </div>
-                <div className="row">
-                    <button className="btn btn-success">
-                        <Link to="assegnaz">
+                    <button className="btn btn-success btn-block">
+                        <Link className="link-white-text" to="assegnaz">
                             Modifica Assegnaz
                         </Link>
                     </button>
-                </div>
-                <div className="row">
-                    <button className="btn btn-success">
-                        <Link to="../home">
+                    <button className="btn btn-success btn-block">
+                        <Link className="link-white-text" to="../../home">
                             Torna ad Home
                         </Link>
                     </button>
                 </div>
             </div>
-            <div className="col">
+            <div className="col m-3">
                 <Routes>
-                    <Route path="*" element={<PageNotFound />} />
                     <Route
                         path="register"
                         element={props.user && props.user.admin === true ? (
@@ -64,9 +60,9 @@ const AdminMenu: React.FC<Props> = (props: Props) => {
                                 setAlert={props.setAlert}
                             />
                         ) : props.user ? (
-                            <Navigate replace to="../home" />
+                            <Navigate replace to="../../home" />
                         ) : (
-                            <Navigate replace to="../login" />
+                            <Navigate replace to="../../login" />
                         )}
                     />
                     <Route path="/" element={<Navigate replace to="register" />} />
@@ -81,12 +77,11 @@ const AdminMenu: React.FC<Props> = (props: Props) => {
                                 setAlert={props.setAlert}
                             />
                         ) : props.user ? (
-                            <Navigate replace to="../home" />
+                            <Navigate replace to="../../home" />
                         ) : (
-                            <Navigate replace to="../login" />
+                            <Navigate replace to="../../login" />
                         )}
                     />
-                    <Route element={<h1>page not found</h1>} />
                 </Routes>
             </div>
         </div>

@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 // Modules
 import React from "react";
-import env from "react-dotenv";
 // Style
 import "./index.css";
 // Components
@@ -10,6 +9,7 @@ import { BadgeFormState } from "../../types/BadgeFormState";
 // Types
 import { TipoBadge } from "../../enums/TipoBadge";
 import { StatoBadge } from "../../enums/StatoBadge";
+import globals from "../../global-vars";
 
 type Props = {
   badgeForm: BadgeFormState;
@@ -72,7 +72,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
     const { files } = event.target;
     pfp.src = files![0]
       ? window.URL.createObjectURL(files![0])
-      : env.DEFAULT_IMG as string;
+      : globals.DEFAULT_IMG as string;
   };
 
   return (
@@ -190,7 +190,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
         <div className="col-2 pfp-container" /*align="center"*/>
           <img
             alt="foto profilo"
-            src={env.DEFAULT_IMG as string}
+            src={globals.DEFAULT_IMG as string}
             className="pfp"
             /*onError={props.setPfp()}*/
           />

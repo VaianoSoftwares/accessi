@@ -55,7 +55,7 @@ export default class Validator {
             cognome: Joi.string().allow(null, ''),
             telefono: Joi.string().allow(null, ''),
             ditta: Joi.string().allow(null, ''),
-            tipo_doc: Joi.string().allow(null, ''),
+            tdoc: Joi.string().allow(null, ''),
             ndoc: Joi.string().allow(null, ''),
             scadenza: Joi
                 .number()
@@ -101,7 +101,7 @@ export default class Validator {
             cognome: Joi.string().allow(null, ''),
             ditta: Joi.string().allow(null, ''),
             telefono: Joi.string().allow(null, ''),
-            tipo_doc: Joi.string().allow(null, ''),
+            tdoc: Joi.string().allow(null, ''),
             ndoc: Joi.string().allow(null, '')
         });
         return scheme.validate(data);

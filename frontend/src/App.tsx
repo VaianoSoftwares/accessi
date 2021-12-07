@@ -47,13 +47,13 @@ const App: React.FC<{}> = () => {
                   setAlert={setAlert}
                 />
               ) : (
-                <Navigate replace to="/login" />
+                <Navigate replace to="../login" />
               )
             }
           />
           <Route path="/" element={<Navigate replace to="home" />} />
           <Route
-            path="admin"
+            path="admin/*"
             element={
               user && user.admin === true ? (
                 <AdminMenu
@@ -64,9 +64,9 @@ const App: React.FC<{}> = () => {
                   setAlert={setAlert}
                 />
               ) : user ? (
-                <Navigate replace to="home" />
+                <Navigate replace to="../home" />
               ) : (
-                <Navigate replace to="login" />
+                <Navigate replace to="../login" />
               )
             }
           />

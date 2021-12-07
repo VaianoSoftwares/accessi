@@ -1,0 +1,13 @@
+.link-white-text {
+    color: white;
+    text-decoration: none; 
+}
+
+.link-white-text:hover {
+    color: lightgrey;
+}
+
+.btn-group-vertical > button{
+    margin-bottom:10px;
+    border-radius:10px !important;
+}

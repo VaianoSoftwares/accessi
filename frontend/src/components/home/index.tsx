@@ -2,7 +2,7 @@
 // Modules
 import React from "react";
 import dateFormat from "dateformat";
-import env from "react-dotenv";
+import globals from "../../global-vars";
 // Style
 import "./index.css";
 // Services
@@ -14,7 +14,7 @@ import BadgeTable from "../badge-table";
 import Clock from "../Clock";
 import FormButtons from "../FormButtons";
 import OspitiPopup from "../OspitiPopup";
-import SerialComponent from "../SerialComponent";
+import SerialComponent from "../serial-component";
 import Alert from "../alert";
 // Types
 import { User } from "../../types/User";
@@ -423,8 +423,8 @@ const Home: React.FC<Props> = (props: Props) => {
   const setPfp = (barcode?: string) => {
     const pfp = document.querySelector("img.pfp") as HTMLImageElement;
     pfp.src = barcode
-      ? `${env.API_URL as string}/public/foto-profilo/USER_${barcode}.jpg`
-      : env.DEFAULT_IMG as string;
+      ? `${globals.API_URL as string}/public/foto-profilo/USER_${barcode}.jpg`
+      : globals.DEFAULT_IMG as string;
     console.log(`setPfp: ${pfp.src}`);
   };
 

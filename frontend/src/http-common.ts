@@ -1,8 +1,8 @@
 import axios from "axios";
-import env from "react-dotenv";
+import globals from "./global-vars";
 
 export default axios.create({
-    baseURL: env.API_URL,
+    baseURL: globals.API_URL,
     headers: {
         "Content-type": "application/json"
     }
