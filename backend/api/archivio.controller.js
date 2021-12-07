@@ -1,4 +1,5 @@
 import ArchivioDAO from "../dao/archivio.dao.js";
+import Validator from "../auth/validation.js";
 
 export default class ArchivioController {
   static async apiGetArchivio(req, res) {
@@ -34,7 +35,7 @@ export default class ArchivioController {
       cognome: req.body.cognome,
       ditta: req.body.ditta,
       telefono: req.body.telefono,
-      tipo_doc: req.body.tipo_doc,
+      tdoc: req.body.tdoc,
       ndoc: req.body.ndoc,
       scadenza: req.body.scadenza,
       targhe: {

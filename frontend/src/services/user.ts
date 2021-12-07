@@ -1,7 +1,7 @@
 import { AxiosResponse } from "axios";
-import http from "../http-common.js";
-import { LoginFormState } from "../types/LoginFormState.js";
-import { RegisterFormState } from "../types/RegisterFormState.js";
+import http from "../http-common";
+import { LoginFormState } from "../types/LoginFormState";
+import { RegisterFormState } from "../types/RegisterFormState";
 
 class UserDataService {
     token!: string;

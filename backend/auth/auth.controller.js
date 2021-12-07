@@ -33,6 +33,7 @@ export default class UsersController {
 
     static async apiLogin(req, res) {
         const { error } = Validator.login(req.body);
+
         if(error) {
             return res.status(400).json({ success: false, msg: error.details[0].message });
         }
@@ -51,6 +52,8 @@ export default class UsersController {
             }
 
             const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
+
+            console.log(`${username} logged in.`);
             
             res
               .header("auth-token", token)

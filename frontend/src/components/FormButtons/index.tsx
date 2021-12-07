@@ -1,8 +1,7 @@
 import React from "react";
-import { RouteComponentProps } from "react-router";
 import "./index.css";
 
-interface Props extends RouteComponentProps<any> {
+type Props = {
   findBadges: () => void;
   insertBadge: () => void;
   updateBadge: () => void;

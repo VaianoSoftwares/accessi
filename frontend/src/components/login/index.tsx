@@ -1,14 +1,14 @@
 import React from "react";
-import UserDataService from "../../services/user.js";
+import UserDataService from "../../services/user";
 import "./index.css";
-import Alert from "../alert.jsx";
-import { User } from "../../types/User.js";
-import { TAlert } from "../../types/TAlert.js";
-import { LoginFormState } from "../../types/LoginFormState.js";
-import { RouteComponentProps } from "react-router";
-import { Nullable } from "../../types/Nullable.js";
+import Alert from "../alert";
+import { User } from "../../types/User";
+import { TAlert } from "../../types/TAlert";
+import { LoginFormState } from "../../types/LoginFormState";
+import { useNavigate } from "react-router-dom";
+import { Nullable } from "../../types/Nullable";
 
-interface Props extends RouteComponentProps<any> {
+type Props = {
   login: (user?: User) => Promise<void>;
   setToken: React.Dispatch<React.SetStateAction<string>>;
   alert: Nullable<TAlert>;
@@ -29,6 +29,8 @@ const Login: React.FC<Props> = (props: Props) => {
     setLoginForm({ ...loginForm, [name]: value });
   };
 
+  const navigate = useNavigate();
+
   const login = () => {
     UserDataService.login(loginForm)
       .then((response) => {
@@ -39,7 +41,7 @@ const Login: React.FC<Props> = (props: Props) => {
           );
           props.login({ ...response.data.data, postazione: loginForm.postazione });
           props.setToken(response.headers["auth-token"]);
-          props.history.push("/home");
+          navigate("../home");
         }
       })
       .catch((err) => {
@@ -54,7 +56,7 @@ const Login: React.FC<Props> = (props: Props) => {
   return (
     <div className="login-wrapper">
       <div className="submit-form login-form login-center">
-      <div className="form-group">
+        <div className="form-group">
           <label htmlFor="postazione" className="col-sm-2 col-form-label">
             Postazione
           </label>
@@ -111,7 +113,7 @@ const Login: React.FC<Props> = (props: Props) => {
         </button>
       </div>
       <div className="login-alert-wrapper">
-        <Alert {...props} alert={props.alert} setAlert={props.setAlert} />
+        <Alert alert={props.alert} setAlert={props.setAlert} />
       </div>
     </div>
   );

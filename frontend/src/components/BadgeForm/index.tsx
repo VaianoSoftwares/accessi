@@ -1,18 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 // Modules
 import React from "react";
+import env from "react-dotenv";
 // Style
 import "./index.css";
 // Components
-import BadgeDataService from "../../services/badge.js";
+import BadgeDataService from "../../services/badge";
 import { BadgeFormState } from "../../types/BadgeFormState";
 // Types
 import { TipoBadge } from "../../enums/TipoBadge";
 import { StatoBadge } from "../../enums/StatoBadge";
-import { RouteComponentProps } from "react-router";
-import { Nullable } from "../../types/Nullable";
 
-interface Props extends RouteComponentProps<any> {
+type Props = {
   badgeForm: BadgeFormState;
   handleInputChanges: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   handleInputFileChanges: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -73,7 +72,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
     const { files } = event.target;
     pfp.src = files![0]
       ? window.URL.createObjectURL(files![0])
-      : (window as any).env.DEFAULT_IMG as string;
+      : env.DEFAULT_IMG as string;
   };
 
   return (
@@ -191,7 +190,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
         <div className="col-2 pfp-container" /*align="center"*/>
           <img
             alt="foto profilo"
-            src={(window as any).env.DEFAULT_IMG}
+            src={env.DEFAULT_IMG as string}
             className="pfp"
             /*onError={props.setPfp()}*/
           />

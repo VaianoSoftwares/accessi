@@ -1,20 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import React from "react";
-import { RouteComponentProps } from "react-router";
-import { TipoBadge } from "../../enums/TipoBadge.js";
+import { TipoBadge } from "../../enums/TipoBadge";
 
-import BadgeDataService from "../../services/badge.js";
-import { AssegnazFormState } from "../../types/AssegnazFormState.js";
-import { Assegnazioni } from "../../types/Assegnazioni.js";
-import { Nullable } from "../../types/Nullable.js";
-import { TAlert } from "../../types/TAlert.js";
-import { User } from "../../types/User.js";
-import removeElemFromArr from "../../utils/removeElemFromArr.js";
+import BadgeDataService from "../../services/badge";
+import { AssegnazFormState } from "../../types/AssegnazFormState";
+import { Assegnazioni } from "../../types/Assegnazioni";
+import { Nullable } from "../../types/Nullable";
+import { TAlert } from "../../types/TAlert";
+import { User } from "../../types/User";
+import removeElemFromArr from "../../utils/removeElemFromArr";
 
 import Alert from "../alert";
 
-interface Props extends RouteComponentProps<any> {
+type Props = {
   user: User;
   logout: () => Promise<void>;
   token: string;

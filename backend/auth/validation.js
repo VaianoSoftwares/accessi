@@ -3,6 +3,10 @@ import Joi from "joi";
 export default class Validator {
     static login(data) {
         const schema = Joi.object({
+            postazione: Joi
+                .string()
+                .min(3)
+                .required(),
             username: Joi
                 .string()
                 .min(6)
@@ -12,10 +16,6 @@ export default class Validator {
                 .string()
                 .min(6)
                 .required(),
-            postazione: Joi
-                .string()
-                .min(3)
-                .required()
         });
     
         return schema.validate(data);

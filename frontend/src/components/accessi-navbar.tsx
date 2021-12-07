@@ -1,19 +1,22 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from "react";
-import { Link, RouteComponentProps } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { TipoBadge } from "../enums/TipoBadge";
 import { User } from "../types/User";
 
-interface Props extends RouteComponentProps<any> {
+type Props = {
   user: User;
   logout: () => Promise<void>;
   tipoBadge: TipoBadge;
 };
 
 const AccessiNavbar: React.FC<Props> = (props: Props) => {
+
+  const navigate = useNavigate();
+
   const logout = async () => {
     await props.logout();
-    props.history.push("/login");
+    navigate("../login");
   }
 
   return (
@@ -26,13 +29,13 @@ const AccessiNavbar: React.FC<Props> = (props: Props) => {
       </div>
       <div className="navbar-nav mr-auto">
         <li className="nav-item">
-          <Link to={"/home"} className="nav-link">
+          <Link to="." className="nav-link">
             Homepage
           </Link>
         </li>
         {props.user.admin === true && (
           <li className="nav-item">
-            <Link to={"/admin"} className="nav-link">
+            <Link to="../admin" className="nav-link">
               Opzioni
             </Link>
           </li>

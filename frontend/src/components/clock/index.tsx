@@ -1,52 +1,53 @@
 import React from "react";
 import "./index.css";
 import dateFormat from "dateformat";
+import { i18n } from "dateformat";
 
-dateFormat.i18n = {
-  dayNames: [
-    "DOM",
-    "LUN",
-    "MAR",
-    "MER",
-    "GIO",
-    "VEN",
-    "SAB",
-    "DOMENICA",
-    "LUNEDI",
-    "MARTEDI",
-    "MERCOLEDI",
-    "GIOVEDI",
-    "VENERDI",
-    "SABATO",
-  ],
-  monthNames: [
-    "GEN",
-    "FEB",
-    "MAR",
-    "APR",
-    "MAG",
-    "GIU",
-    "LUG",
-    "AGO",
-    "SET",
-    "OTT",
-    "NOV",
-    "DIC",
-    "GENNAIO",
-    "FEBBRAIO",
-    "MARZO",
-    "APRILE",
-    "MAGGIO",
-    "GIUGNO",
-    "LUGLIO",
-    "AGOSTO",
-    "SETTEMBRE",
-    "OTTOBRE",
-    "NOVEMBRE",
-    "DICEMBRE",
-  ],
-  timeNames: []
-};
+i18n.dayNames = [
+  "DOM",
+  "LUN",
+  "MAR",
+  "MER",
+  "GIO",
+  "VEN",
+  "SAB",
+  "DOMENICA",
+  "LUNEDI",
+  "MARTEDI",
+  "MERCOLEDI",
+  "GIOVEDI",
+  "VENERDI",
+  "SABATO",
+];
+
+i18n.monthNames = [
+  "GEN",
+  "FEB",
+  "MAR",
+  "APR",
+  "MAG",
+  "GIU",
+  "LUG",
+  "AGO",
+  "SET",
+  "OTT",
+  "NOV",
+  "DIC",
+  "GENNAIO",
+  "FEBBRAIO",
+  "MARZO",
+  "APRILE",
+  "MAGGIO",
+  "GIUGNO",
+  "LUGLIO",
+  "AGOSTO",
+  "SETTEMBRE",
+  "OTTOBRE",
+  "NOVEMBRE",
+  "DICEMBRE",
+];
+
+i18n.timeNames = [];
 
 type ClockStates = {
   ora: string;

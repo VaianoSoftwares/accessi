@@ -1,8 +1,7 @@
 import React from "react";
-import { RouteComponentProps } from "react-router";
 import { OspFormState } from "../types/OspFormState";
 
-interface Props extends RouteComponentProps<any> {
+type Props = {
   ospForm: OspFormState;
   handleOspInputChanges: (event: React.ChangeEvent<HTMLInputElement>) => void;
   tipiDoc: string[];

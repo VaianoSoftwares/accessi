@@ -1,20 +1,20 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 // Modules
 import React from "react";
-import { RouteComponentProps } from "react-router-dom";
 import dateFormat from "dateformat";
+import env from "react-dotenv";
 // Style
 import "./index.css";
 // Services
-import BadgeDataService from "../../services/badge.js";
+import BadgeDataService from "../../services/badge";
 // Components
 import Navbar from "../accessi-navbar";
-import BadgeForm from "../badge-form";
-import BadgeTable from "../badge-table.js";
-import Clock from "../clock";
-import FormButtons from "../form-buttons";
-import OspitiPopup from "../ospiti-popup";
-import SerialComponent from "../serial-component.js";
+import BadgeForm from "../BadgeForm";
+import BadgeTable from "../badge-table";
+import Clock from "../Clock";
+import FormButtons from "../FormButtons";
+import OspitiPopup from "../OspitiPopup";
+import SerialComponent from "../SerialComponent";
 import Alert from "../alert";
 // Types
 import { User } from "../../types/User";
@@ -28,9 +28,9 @@ import { StatoBadge } from "../../enums/StatoBadge";
 import { Nullable } from "../../types/Nullable";
 import { TimbraDoc } from "../../types/TimbraDoc";
 import { FindBadgeDoc } from "../../types/FindBadgeDoc";
-import { ErrResponse, FetchOkResponse, OkResponse } from "../../types/Responses";
+import { ErrResponse, OkResponse } from "../../types/Responses";
 
-interface Props extends RouteComponentProps<any> {
+type Props = {
   user: User;
   logout: () => Promise<void>;
   token: string;
@@ -423,8 +423,8 @@ const Home: React.FC<Props> = (props: Props) => {
   const setPfp = (barcode?: string) => {
     const pfp = document.querySelector("img.pfp") as HTMLImageElement;
     pfp.src = barcode
-      ? `${(window as any).env.API_URL}/public/foto-profilo/USER_${barcode}.jpg`
-      : (window as any).env.DEFAULT_IMG as string;
+      ? `${env.API_URL as string}/public/foto-profilo/USER_${barcode}.jpg`
+      : env.DEFAULT_IMG as string;
     console.log(`setPfp: ${pfp.src}`);
   };
 
@@ -438,7 +438,6 @@ const Home: React.FC<Props> = (props: Props) => {
   return (
     <div id="home-wrapper">
       <Navbar
-        {...props}
         user={props.user}
         logout={props.logout}
         tipoBadge={badgeForm.tipo}
@@ -468,7 +467,6 @@ const Home: React.FC<Props> = (props: Props) => {
           </div>
           <div className="col-sm-2">
             <SerialComponent
-              {...props}
               setScannedValue={setScannedValue}
             />
           </div>
@@ -476,7 +474,6 @@ const Home: React.FC<Props> = (props: Props) => {
       </div>
       <div className="submit-form">
         <BadgeForm
-          {...props}
           badgeForm={badgeForm}
           handleInputChanges={handleInputChanges}
           handleInputFileChanges={handleInputFileChanges}
@@ -487,7 +484,6 @@ const Home: React.FC<Props> = (props: Props) => {
           token={props.token}
         />
         <FormButtons
-          {...props}
           findBadges={findBadges}
           insertBadge={insertBadge}
           updateBadge={updateBadge}
@@ -504,10 +500,9 @@ const Home: React.FC<Props> = (props: Props) => {
         <b># in struttura:</b> {badges.length}
       </div>
       <br />
-      <BadgeTable {...props} badges={badges} />
+      <BadgeTable badges={badges} />
       <Clock />
       <OspitiPopup
-        {...props}
         isShown={isShown}
         setIsShown={setIsShown}
         tipiDoc={tipiDoc}
@@ -516,7 +511,7 @@ const Home: React.FC<Props> = (props: Props) => {
         postazione={props.user.postazione}
       />
       <div className="home-alert-wrapper">
-        <Alert {...props} alert={props.alert} setAlert={props.setAlert} />
+        <Alert alert={props.alert} setAlert={props.setAlert} />
       </div>
     </div>
   );

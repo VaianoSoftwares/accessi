@@ -1,8 +1,7 @@
 import React from "react";
-import { RouteComponentProps } from "react-router";
 import utf8ArrayToStr from "../utils/utf8ArrayToStr";
 
-interface Props extends RouteComponentProps<any> {
+type Props = {
   setScannedValue: React.Dispatch<React.SetStateAction<string>>;
 };
 

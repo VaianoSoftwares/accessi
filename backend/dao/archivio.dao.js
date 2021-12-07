@@ -58,13 +58,16 @@ export default class ArchivioDAO {
         }
     }
 
-    static async timbra(barcode, tipo, nominativo) {
+    static async timbra(barcode, tipo, postazione, nominativo) {
         let timbraResp = { 
           barcode: barcode, 
           tipo: tipo,
+          assegnazione: undefined,
           postazione: postazione,
           nominativo: nominativo, 
-          data: {}
+          data: {
+            entrata: undefined
+          }
         };
 
         const isUni = barcode && barcode.length === 7 && /^\d+$/.test(barcode);
@@ -79,12 +82,15 @@ export default class ArchivioDAO {
             }
           }
           else {
-            const badgesArr = await BadgesDAO.getBadges({ barcode: barcode, tipo: tipo });
+            const badgesArr = await BadgesDAO.getBadges({ barcode: barcode });
             if (badgesArr.length === 0) {
               throw new Error(`Badge ${barcode} invalido: non esistente`);
             }
             else if(badgesArr[0].stato !== "valido") {
               throw new Error(`Badge ${barcode} non valido: ${badgesArr[0].stato}`);
+            }
+            else if(new Date() >= badgesArr[0].scadenza) {
+              throw new Error(`Badge ${barcode} non valido: scaduto`);
             }
             timbraResp.tipo = badgesArr[0].tipo;
             timbraResp.assegnazione = badgesArr[0].assegnazione;
@@ -108,7 +114,9 @@ export default class ArchivioDAO {
             timbraResp.data.entrata = archResp.data.entrata;
             return { response: timbraResp, msg: "Timbra Esce" };
           } else {
-            const { error, insertedId } = await this.#timbraEntra(barcode, timbraResp.nominativo);
+            const { error, insertedId } = await this.#timbraEntra(
+              barcode, postazione, timbraResp.nominativo
+            );
 
             if (error) {
               throw new Error(error);
@@ -124,7 +132,7 @@ export default class ArchivioDAO {
         }
     }
 
-    static async #timbraEntra(barcode, nominativo) {
+    static async #timbraEntra(barcode, postazione, nominativo) {
         try {
             let archivioDoc = {
                 barcode: barcode,

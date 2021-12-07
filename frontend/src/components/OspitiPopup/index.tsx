@@ -4,13 +4,12 @@ import Popup from "reactjs-popup";
 // Style
 import "./index.css";
 // Components
-import OspitiForm from "../ospiti-form.jsx";
+import OspitiForm from "../ospiti-form";
 // Types
 import { OspFormState } from "../../types/OspFormState";
-import { RouteComponentProps } from "react-router";
 import { TimbraDoc } from "../../types/TimbraDoc";
 
-interface Props extends RouteComponentProps<any> {
+type Props = {
   isShown: boolean;
   setIsShown: React.Dispatch<React.SetStateAction<boolean>>;
   tipiDoc: string[];

@@ -1,9 +1,8 @@
 import React from "react";
-import { RouteComponentProps } from "react-router";
 import { Nullable } from "../types/Nullable";
 import { TAlert } from "../types/TAlert";
 
-interface Props extends RouteComponentProps<any> {
+type Props = {
   alert: Nullable<TAlert>;
   setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
 };

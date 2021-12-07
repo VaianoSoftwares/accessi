@@ -1,20 +1,17 @@
 //Modules
 import React from "react";
 import {
-  Switch,
+  Routes,
   Route,
-  Redirect,
-  BrowserRouter as Router,
-  RouteComponentProps
+  Navigate,
 } from "react-router-dom";
 // Style
 import "bootstrap/dist/css/bootstrap.min.css";
-//import logo from './logo.svg';
-//import "./App.css";
 // Components
-import Home from "./components/home";
-import Login from "./components/login";
-import AdminMenu from "./components/admin-menu/admin-menu";
+import Home from "./components/Home";
+import Login from "./components/Login";
+import AdminMenu from "./components/AdminMenu";
+import PageNotFound from "./components/PageNotFound";
 //Types
 import { User } from "./types/User";
 import { TAlert } from "./types/TAlert";
@@ -36,12 +33,13 @@ const App: React.FC<{}> = () => {
   return (
     <div className="App">
       <div className="container-fluid mt-3">
-        <Router>
-          <Switch>
-            <Route exact path={["/", "/home"]}>
-              {(props: RouteComponentProps<any>) => (user ? (
+        <Routes>
+          <Route path="*" element={<PageNotFound />} />
+          <Route
+            path="home"
+            element={
+              user ? (
                 <Home
-                  {...props}
                   user={user}
                   logout={logout}
                   token={token}
@@ -49,13 +47,16 @@ const App: React.FC<{}> = () => {
                   setAlert={setAlert}
                 />
               ) : (
-                <Redirect to="/login" />
-              ))}
-            </Route>
-            <Route exact path="/admin">
-              {(props: RouteComponentProps<any>) => (user && user.admin === true ? (
+                <Navigate replace to="/login" />
+              )
+            }
+          />
+          <Route path="/" element={<Navigate replace to="home" />} />
+          <Route
+            path="admin"
+            element={
+              user && user.admin === true ? (
                 <AdminMenu
-                  {...props}
                   user={user}
                   logout={logout}
                   token={token}
@@ -63,25 +64,24 @@ const App: React.FC<{}> = () => {
                   setAlert={setAlert}
                 />
               ) : user ? (
-                <Redirect to="/home" />
+                <Navigate replace to="home" />
               ) : (
-                <Redirect to="/login" />
-              ))}
-            </Route>
-            <Route
-              path="/login"
-              render={(props: RouteComponentProps<any>) => (
-                <Login
-                  {...props}
-                  login={login}
-                  setToken={setToken}
-                  alert={_alert}
-                  setAlert={setAlert}
-                />
-              )}
-            />
-          </Switch>
-        </Router>
+                <Navigate replace to="login" />
+              )
+            }
+          />
+          <Route
+            path="login"
+            element={
+              <Login
+                login={login}
+                setToken={setToken}
+                alert={_alert}
+                setAlert={setAlert}
+              />
+            }
+          />
+        </Routes>
       </div>
     </div>
   );

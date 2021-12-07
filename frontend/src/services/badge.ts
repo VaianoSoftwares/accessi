@@ -1,9 +1,9 @@
 import { AxiosResponse } from "axios";
-import http from "../http-common.js";
-import { AssegnazFormState } from "../types/AssegnazFormState.js";
-import { FindBadgeDoc } from "../types/FindBadgeDoc.js";
-import { ErrResponse, FetchErrResponse, FetchOkResponse, OkResponse } from "../types/Responses.js";
-import { TimbraDoc } from "../types/TimbraDoc.js";
+import http from "../http-common";
+import { AssegnazFormState } from "../types/AssegnazFormState";
+import { FindBadgeDoc } from "../types/FindBadgeDoc";
+import { ErrResponse, FetchErrResponse, FetchOkResponse, OkResponse } from "../types/Responses";
+import { TimbraDoc } from "../types/TimbraDoc";
 
 class BadgesDataService {
   token!: string;

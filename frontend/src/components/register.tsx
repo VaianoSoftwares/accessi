@@ -1,14 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
-import { RouteComponentProps } from "react-router";
-import UserDataService from "../services/user.js";
-import { Nullable } from "../types/Nullable.js";
-import { RegisterFormState } from "../types/RegisterFormState.js";
-import { TAlert } from "../types/TAlert.js";
-import { User } from "../types/User.js";
-import Alert from "./alert.jsx";
+import UserDataService from "../services/user";
+import { Nullable } from "../types/Nullable";
+import { RegisterFormState } from "../types/RegisterFormState";
+import { TAlert } from "../types/TAlert";
+import { User } from "../types/User";
+import Alert from "./alert";
 
-interface Props extends RouteComponentProps<any> {
+type Props = {
   user: User;
   logout: () => Promise<void>;
   token: string;
@@ -107,7 +106,7 @@ const Register: React.FC<Props> = (props: Props) => {
       <button onClick={() => register()} className="btn btn-success">
         Register
       </button>
-      <Alert {...props} alert={props.alert} setAlert={props.setAlert} />
+      <Alert alert={props.alert} setAlert={props.setAlert} />
     </div>
   );
 };
