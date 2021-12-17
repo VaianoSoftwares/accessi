@@ -155,8 +155,8 @@ export default class BadgesController {
             }
             else {
                 const enumResp = await EnumsDAO.getEnums("assegnazione");
-                const assegnazList = Object.values(enumResp.assegnazione).flat();
-                res.json({ success: true, data: assegnazList });
+                /*const assegnazList = Object.values(enumResp.assegnazione).flat()*/;
+                res.json({ success: true, data: /*assegnazList*/enumResp });
             }
         } catch(err) {
             console.log(`apiGetAssegnazioni - ${err}`);

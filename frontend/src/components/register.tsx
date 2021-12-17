@@ -62,6 +62,7 @@ const Register: React.FC<Props> = (props: Props) => {
 
   return (
     <div className="submit-form">
+      <h2>Registra Nuovo Account</h2>
       <div className="form-group col-sm-2">
         <label htmlFor="username">Username</label>
         <input

@@ -1,9 +1,8 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-
 import React from "react";
-import { TipoBadge } from "../../enums/TipoBadge";
 
 import BadgeDataService from "../../services/badge";
+
+import { TipoBadge } from "../../enums/TipoBadge";
 import { AssegnazFormState } from "../../types/AssegnazFormState";
 import { Assegnazioni } from "../../types/Assegnazioni";
 import { Nullable } from "../../types/Nullable";
@@ -13,7 +12,7 @@ import removeElemFromArr from "../../utils/removeElemFromArr";
 
 import Alert from "../alert";
 
-type Props = {
+type AssegnazProps = {
   user: User;
   logout: () => Promise<void>;
   token: string;
@@ -21,60 +20,79 @@ type Props = {
   setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
 };
 
-const Assegnaz: React.FC<Props> = (props: Props) => {
-    const [tipiBadge, setTipiBadge] = React.useState<TipoBadge[]>([]);
-    const [assegnazioni, setAssegnazioni] = React.useState<Nullable<Assegnazioni>>(null);
+type AssegnazState = {
+  tipiBadge: TipoBadge[],
+  assegnazioni: Assegnazioni,
+  assegnazForm: AssegnazFormState
+};
 
-    const initialAssegnazFormState: AssegnazFormState = {
-        tipoBadge: tipiBadge[0],
-        assegnazione: "" 
+export default class Assegnaz extends React.Component<AssegnazProps, AssegnazState> {
+
+  static initialAssegnazioniState: Assegnazioni = {
+    badge: [],
+    veicolo: [],
+    chiave: []
+  };
+
+  static initialAssegnazFormState: AssegnazFormState = {
+    tipoBadge: TipoBadge.BADGE,
+    assegnazione: ""
+  };
+
+  constructor(props: AssegnazProps) {
+    super(props);
+    this.state = {
+      tipiBadge: [],
+      assegnazioni: Assegnaz.initialAssegnazioniState,
+      assegnazForm: Assegnaz.initialAssegnazFormState
     };
+    this.retriveTipi();
+    this.retriveAssegnazioni();
+  }
 
-    const [assegnazForm, setAssegnazForm] = React.useState<AssegnazFormState>(initialAssegnazFormState);
+  retriveTipi = () => {
+    BadgeDataService.getTipiBadge()
+      .then((response) => {
+        console.log(response.data);
+        this.setState({ tipiBadge: response.data.data });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
-    React.useEffect(() => {
-        retriveTipi();
-        retriveAssegnazioni();
-    }, []);
+  retriveAssegnazioni = () => {
+    BadgeDataService.getAssegnazioni()
+      .then((response) => {
+        console.log(response.data);
+        this.setState({ assegnazioni: response.data.data });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
-    const retriveTipi = () => {
-      BadgeDataService.getTipiBadge()
-        .then((response) => {
-          //console.log(response.data);
-          setTipiBadge(response.data.data);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    };
-      
-    const retriveAssegnazioni = () => {
-      BadgeDataService.getAssegnazioni()
-        .then((response) => {
-          console.log(response.data);
-          setAssegnazioni(response.data.data);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    };
-
+  render() {
     const handleInputChanges = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const { name, value } = event.target;
-      setAssegnazForm({ ...assegnazForm, [name]: value });
+      this.setState((prevState: AssegnazFormState) => {
+        let stateCopy: any = { ...prevState };
+        stateCopy[name] = value;
+        return stateCopy;
+      });
     };
 
     const addAssegnazione = () => {
-      BadgeDataService.insertAssegnazione(assegnazForm)
+      BadgeDataService.insertAssegnazione(this.state.assegnazForm)
         .then((response) => {
-          const { tipoBadge, assegnazione } = assegnazForm;
-          assegnazioni![tipoBadge].push(assegnazione);
+          const { tipoBadge, assegnazione } = this.state.assegnazForm;
+          this.state.assegnazioni[tipoBadge].push(assegnazione);
         })
         .catch((err) => {
           console.log(err);
-          if(err.response) {
+          if (err.response) {
             const { success, msg }: TAlert = err.response.data;
-            props.setAlert({ success, msg });
+            this.props.setAlert({ success, msg });
           }
         });
     };
@@ -88,16 +106,20 @@ const Assegnaz: React.FC<Props> = (props: Props) => {
     }
 
     const deleteAssegnazione = (assegnazToDel: string) => {
-      BadgeDataService.deleteAssegnazione(assegnazForm)
+      BadgeDataService.deleteAssegnazione(this.state.assegnazForm)
         .then((response) => {
-          const { tipoBadge } = assegnazForm;
-          assegnazioni![tipoBadge] = removeElemFromArr(assegnazioni![tipoBadge], assegnazToDel);
+          const { tipoBadge } = this.state.assegnazForm;
+          this.setState((prevState) => {
+            let stateCopy: any = { ...prevState };
+            stateCopy[tipoBadge] = removeElemFromArr(stateCopy[tipoBadge], assegnazToDel);
+            return stateCopy;
+          });
         })
         .catch((err) => {
           console.log(err);
-          if(err.response) {
+          if (err.response) {
             const { success, msg }: TAlert = err.response.data;
-            props.setAlert({ success, msg });
+            this.props.setAlert({ success, msg });
           }
         });
     };
@@ -110,16 +132,17 @@ const Assegnaz: React.FC<Props> = (props: Props) => {
     return (
       <div>
         <div className="row">
+          <h2>Menù Assegnazioni</h2>
           <div className="form-floating col-sm-2">
             <select
               className="form-select form-select-sm"
               id="tipo-badge"
-              value={assegnazForm.tipoBadge}
+              value={this.state.assegnazForm.tipoBadge}
               onChange={handleInputChanges}
               name="tipo-badge"
               placeholder="tipo badge"
             >
-              {tipiBadge.map((tipo, index) => (
+              {this.state.tipiBadge.map((tipo, index) => (
                 <option value={tipo} key={index}>
                   {tipo}
                 </option>
@@ -130,7 +153,7 @@ const Assegnaz: React.FC<Props> = (props: Props) => {
         </div>
         <div className="row">
           <div className="list-group list-assegnaz">
-            {assegnazioni![assegnazForm.tipoBadge].map((assegnazione, index) => (
+            {this.state.assegnazioni[this.state.assegnazForm.tipoBadge].map((assegnazione, index) => (
               <div id={`list-assegnaz-entry-${index}`} className="list-group-item row justify-content-between align-items-center">
                 <p>{assegnazione}</p>
                 <button
@@ -153,7 +176,7 @@ const Assegnaz: React.FC<Props> = (props: Props) => {
                 type="text"
                 className="form-control form-control-sm"
                 id="assegnazione"
-                value={assegnazForm.assegnazione}
+                value={this.state.assegnazForm.assegnazione}
                 onChange={handleInputChanges}
                 name="assegnazione"
                 placeholder="assegnazione"
@@ -168,9 +191,8 @@ const Assegnaz: React.FC<Props> = (props: Props) => {
             </button>
           </div>
         </div>
-        <Alert {...props} alert={props.alert} setAlert={props.setAlert} />
+        <Alert alert={this.props.alert} setAlert={this.props.setAlert} />
       </div>
     );
+  }
 };
-
-export default Assegnaz;
