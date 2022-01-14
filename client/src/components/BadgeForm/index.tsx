@@ -9,7 +9,6 @@ import { BadgeFormState } from "../../types/BadgeFormState";
 // Types
 import { TipoBadge } from "../../enums/TipoBadge";
 import { StatoBadge } from "../../enums/StatoBadge";
-import globals from "../../global-vars";
 
 type Props = {
   badgeForm: BadgeFormState;
@@ -19,6 +18,7 @@ type Props = {
   readOnlyForm: boolean;
   admin: boolean;
   token: string;
+  pfpUrl: string;
 };
 
 const BadgeForm: React.FC<Props> = (props: Props) => {
@@ -64,15 +64,6 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
       .catch(err => {
         console.log(err);
       });
-  };
-
-  const renderPfp = (event: React.ChangeEvent<HTMLInputElement>) => {
-    props.handleInputFileChanges(event);
-    const pfp = document.querySelector("img.pfp") as HTMLImageElement;
-    const { files } = event.target;
-    pfp.src = files![0]
-      ? window.URL.createObjectURL(files![0])
-      : globals.DEFAULT_IMG as string;
   };
 
   return (
@@ -189,10 +180,9 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
       <div className="row">
         <div className="col-2 pfp-container" /*align="center"*/>
           <img
-            alt="foto profilo"
-            src={globals.DEFAULT_IMG as string}
+            alt=""
+            src={props.pfpUrl}
             className="pfp"
-            /*onError={props.setPfp()}*/
           />
         </div>
         <div className="col-8">
@@ -381,13 +371,12 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
       <div className="row">
         <div className="input-group col-sm-3">
           <input
+            accept="image/*"
             type="file"
             className="custom-file-input"
-            id="foto_profilo"
-            value={props.badgeForm.pfp?.name}
-            onChange={renderPfp}
-            name="foto_profilo"
-            placeholder="foto profilo"
+            id="pfp"
+            onChange={props.handleInputFileChanges}
+            name="pfp"
             disabled={props.readOnlyForm === true || props.admin === false}
             autoComplete="off"
           />

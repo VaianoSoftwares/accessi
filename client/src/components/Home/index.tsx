@@ -2,7 +2,7 @@
 // Modules
 import React from "react";
 import dateFormat from "dateformat";
-import globals from "../../global-vars";
+//import globals from "../../global-vars";
 // Style
 import "./index.css";
 // Services
@@ -74,6 +74,7 @@ const Home: React.FC<Props> = (props: Props) => {
   const [readOnlyForm, setReadOnlyForm] = React.useState(true);
   const [scannedValue, setScannedValue] = React.useState("");
   const [timeoutRunning, setTimeoutRunning] = React.useState(false);
+  const [pfpUrl, setPfpUrl] = React.useState<string>("");
   
   React.useEffect(() => {
     BadgeDataService.token = props.token;
@@ -91,6 +92,7 @@ const Home: React.FC<Props> = (props: Props) => {
     if(readOnlyForm === true) {
       setBadgeForm({ ...initialBadgeFormState, tipo: badgeForm.tipo });
       retriveInStrutt();
+      setPfpUrl("");
     }
     console.log(`readOnlyForm: ${readOnlyForm}`);
   }, [readOnlyForm]);
@@ -103,6 +105,17 @@ const Home: React.FC<Props> = (props: Props) => {
       setScannedValue("");
     }
   }, [scannedValue]);
+
+  React.useEffect(() => {
+    if(badgeForm.pfp) {
+      const url = URL.createObjectURL(badgeForm.pfp);
+      setPfpUrl(url);
+    }
+    else {
+      setPfpUrl("");
+    }
+    console.log("pfpUrl: ", pfpUrl);
+  }, [badgeForm.pfp]);
 
   const handleInputChanges = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -174,7 +187,8 @@ const Home: React.FC<Props> = (props: Props) => {
         if(findResponse.length === 1) {
           const mappedBadge = mapToAutoComplBadge(findResponse[0]);
           setBadgeForm(mappedBadge);
-          setPfp(mappedBadge.barcode);
+          const url = getPfpUrlByBarcode(mappedBadge.barcode);
+          setPfpUrl(url);
         }
         
         setBadges(mapBadgesToTableContent(findResponse));
@@ -201,7 +215,8 @@ const Home: React.FC<Props> = (props: Props) => {
         
         if(readOnlyForm === true) {
           setBadgeForm(mapToAutoComplBadge(rowTimbra));
-          setPfp(rowTimbra.barcode);
+          const url = getPfpUrlByBarcode(rowTimbra.barcode);
+          setPfpUrl(url);
         }                                    
 
         const filteredBadges = badges
@@ -256,7 +271,7 @@ const Home: React.FC<Props> = (props: Props) => {
       })
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
-        setPfp();
+        setPfpUrl("");
       });
   };
 
@@ -283,7 +298,7 @@ const Home: React.FC<Props> = (props: Props) => {
       })
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
-        setPfp();
+        setPfpUrl("");
       });
   };
 
@@ -309,7 +324,7 @@ const Home: React.FC<Props> = (props: Props) => {
       })
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
-        setPfp();
+        setPfpUrl("");
       });
   };
 
@@ -420,19 +435,16 @@ const Home: React.FC<Props> = (props: Props) => {
     return mappedBadge;
   };
 
-  const setPfp = (barcode?: string) => {
-    const pfp = document.querySelector("img.pfp") as HTMLImageElement;
-    pfp.src = barcode
-      ? `${globals.API_URL as string}/public/foto-profilo/USER_${barcode}.jpg`
-      : globals.DEFAULT_IMG as string;
-    console.log(`setPfp: ${pfp.src}`);
-  };
+  const getPfpUrlByBarcode = (barcode?: string) =>
+    barcode
+      ? `/api/v1/public/foto-profilo/USER_${barcode}.jpg`
+      : "";
 
   const refreshPage = () => {
     setBadgeForm(initialBadgeFormState);
     //setArchivioForm(initialArchivioFormState);
     retriveInStrutt();
-    setPfp();
+    setPfpUrl("");
   };
 
   return (
@@ -477,11 +489,11 @@ const Home: React.FC<Props> = (props: Props) => {
           badgeForm={badgeForm}
           handleInputChanges={handleInputChanges}
           handleInputFileChanges={handleInputFileChanges}
-          //setPfp={setPfp}
           tipiDoc={tipiDoc}
           readOnlyForm={readOnlyForm}
           admin={props.user.admin}
           token={props.token}
+          pfpUrl={pfpUrl}
         />
         <FormButtons
           findBadges={findBadges}

@@ -45,9 +45,9 @@ const Login: React.FC<Props> = (props: Props) => {
         }
       })
       .catch((err) => {
-        console.log(err);
+        console.log(err.response);
         if (err.response) {
-          const { success, msg } = err.response.data;
+          const { success, msg } : TAlert = err.response.data;
           props.setAlert({ success, msg });
         }
       });

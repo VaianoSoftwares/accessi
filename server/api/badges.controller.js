@@ -57,7 +57,7 @@ export default class BadgesController {
             }/* else if (fileUplResp.fileName) {
               const updPfpResp = await BadgesDAO.updateBadge({
                 barcode: req.body.barcode,
-                foto_profilo: fileUplResp.fileName,
+                pfp: fileUplResp.fileName,
               });
               if (updPfpResp.error) {
                 return res
@@ -99,7 +99,7 @@ export default class BadgesController {
             }/* else if (fileUplResp.fileName) {
               const updPfpResp = await BadgesDAO.updateBadge({
                 barcode: req.body.barcode,
-                foto_profilo: fileUplResp.fileName,
+                pfp: fileUplResp.fileName,
               });
               if (updPfpResp.error) {
                 return res

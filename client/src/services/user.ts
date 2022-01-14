@@ -1,5 +1,5 @@
-import { AxiosResponse } from "axios";
-import http from "../http-common";
+import axios, { AxiosResponse } from "axios";
+//import http from "../http-common";
 import { LoginFormState } from "../types/LoginFormState";
 import { RegisterFormState } from "../types/RegisterFormState";
 
@@ -7,7 +7,7 @@ class UserDataService {
     token!: string;
 
     register(data: RegisterFormState): Promise<AxiosResponse<any>> {
-        return http.post("/users/register", data, {
+        return axios.post("/api/v1/users/register", data, {
             headers: {
                 "auth-token": this.token
             }
@@ -15,11 +15,11 @@ class UserDataService {
     }
 
     login(data: LoginFormState): Promise<AxiosResponse<any>> {
-        return http.post("/users/login", data);
+        return axios.post("/api/v1/users/login", data);
     }
 
     getTipiUtenti(): Promise<AxiosResponse<any>> {
-        return http.get("/users/tipi-utenti", {
+        return axios.get("/api/v1/users/tipi-utenti", {
             headers: {
                 "auth-token": this.token
             }

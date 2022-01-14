@@ -3,4 +3,5 @@
 /tmp
 
 # misc
+package-lock.json
 .env

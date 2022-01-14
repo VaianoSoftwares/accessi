@@ -1,5 +1,6 @@
 import { AxiosResponse } from "axios";
-import http from "../http-common";
+import axios from "axios";
+//import http from "../http-common";
 import { AssegnazFormState } from "../types/AssegnazFormState";
 import { FindBadgeDoc } from "../types/FindBadgeDoc";
 import { ErrResponse, FetchErrResponse, FetchOkResponse, OkResponse } from "../types/Responses";
@@ -9,7 +10,7 @@ class BadgesDataService {
   token!: string;
 
   getAll(): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
-    return http.get("/badges", {
+    return axios.get("/api/v1/badges", {
       headers: {
         "auth-token": this.token,
       },
@@ -28,7 +29,7 @@ class BadgesDataService {
       .map(([key, value]) => `${key}=${value}`)
       .join("&");
     console.log(params);
-    return http.get(`/badges?${params}`, {
+    return axios.get(`/api/v1/badges?${params}`, {
       headers: {
         "auth-token": this.token,
       },
@@ -36,7 +37,7 @@ class BadgesDataService {
   }
 
   insertBadge(data: FormData): Promise<AxiosResponse<OkResponse | ErrResponse>> {
-    return http.post("/badges", data, {
+    return axios.post("/api/v1/badges", data, {
       headers: {
         "auth-token": this.token,
         "Content-Type": "multipart/form-data",
@@ -45,7 +46,7 @@ class BadgesDataService {
   }
 
   updateBadge(data: FormData): Promise<AxiosResponse<OkResponse | ErrResponse>> {
-    return http.put("/badges", data, {
+    return axios.put("/api/v1/badges", data, {
       headers: {
         "auth-token": this.token,
         "Content-Type": "multipart/form-data",
@@ -54,7 +55,7 @@ class BadgesDataService {
   }
 
   deleteBadge(barcode: string): Promise<AxiosResponse<OkResponse | ErrResponse>> {
-    return http.delete(`/badges?barcode=${barcode}`, {
+    return axios.delete(`/api/v1/badges?barcode=${barcode}`, {
       headers: {
         "auth-token": this.token,
       },
@@ -62,7 +63,7 @@ class BadgesDataService {
   }
 
   getAssegnazioni(tipo: string = ""): Promise<AxiosResponse<FetchOkResponse | FetchOkResponse>> {
-    return http.get(`/badges/assegnazioni?tipo=${tipo}`, {
+    return axios.get(`/api/v1/badges/assegnazioni?tipo=${tipo}`, {
       headers: {
         "auth-token": this.token,
       },
@@ -70,7 +71,7 @@ class BadgesDataService {
   }
 
   insertAssegnazione(data: AssegnazFormState): Promise<AxiosResponse<OkResponse | ErrResponse>> {
-    return http.post("/badges/assegnazioni", data, {
+    return axios.post("/api/v1/badges/assegnazioni", data, {
       headers: {
         "auth-token": this.token
       }
@@ -78,7 +79,7 @@ class BadgesDataService {
   }
 
   deleteAssegnazione(data: AssegnazFormState): Promise<AxiosResponse<OkResponse | ErrResponse>> {
-    return http.delete(`/badges/assegnazioni?tipo=${data.tipoBadge}&assegnaz=${data.assegnazione}`, {
+    return axios.delete(`/api/v1/badges/assegnazioni?tipo=${data.tipoBadge}&assegnaz=${data.assegnazione}`, {
       headers: {
         "auth-token": this.token
       }
@@ -86,7 +87,7 @@ class BadgesDataService {
   }
 
   getTipiDoc(): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
-    return http.get("/badges/tipi-doc", {
+    return axios.get("/api/v1/badges/tipi-doc", {
       headers: {
         "auth-token": this.token,
       },
@@ -94,7 +95,7 @@ class BadgesDataService {
   }
 
   getStati(): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
-    return http.get("/badges/stati", {
+    return axios.get("/api/v1/badges/stati", {
       headers: {
         "auth-token": this.token,
       },
@@ -102,7 +103,7 @@ class BadgesDataService {
   }
 
   getTipiBadge(): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
-    return http.get("/badges/tipi", {
+    return axios.get("/api/v1/badges/tipi", {
       headers: {
         "auth-token": this.token,
       },
@@ -110,7 +111,7 @@ class BadgesDataService {
   }
 
   getArchivio({ inizio = "", fine = "" }): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
-    return http.get(`/badges/archivio?inizio=${inizio}&fine=${fine}`, {
+    return axios.get(`/api/v1/badges/archivio?inizio=${inizio}&fine=${fine}`, {
       headers: {
         "auth-token": this.token,
       },
@@ -118,7 +119,7 @@ class BadgesDataService {
   }
 
   getInStrutt(tipo: string = ""): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
-    return http.get(`/badges/archivio/in-struttura?tipo=${tipo}`, {
+    return axios.get(`/api/v1/badges/archivio/in-struttura?tipo=${tipo}`, {
       headers: {
         "auth-token": this.token,
       },
@@ -126,7 +127,7 @@ class BadgesDataService {
   }
 
   timbra(data: TimbraDoc): Promise<AxiosResponse<OkResponse | ErrResponse>> {
-    return http.post("/badges/archivio", data, {
+    return axios.post("/api/v1/badges/archivio", data, {
       headers: {
         "auth-token": this.token,
       },

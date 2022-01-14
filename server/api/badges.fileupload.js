@@ -16,11 +16,11 @@ const fileUplBadges = async (files, barcode, tipoBadge) => {
     }
 
     try {
-        const fotoProfilo = files.foto_profilo;
-        console.log("file name: ", fotoProfilo.name);
+        const { pfp } = files;
+        console.log("file name: ", pfp.name);
 
-        const fileExt = path.extname(fotoProfilo.name);
-        if(fileExt === ".jpg") {
+        const fileExt = path.extname(pfp.name);
+        if(fileExt !== ".jpg") {
             throw new Error(`${fileExt} estensione file non valida.`);
         }
 
@@ -28,7 +28,7 @@ const fileUplBadges = async (files, barcode, tipoBadge) => {
         const filePath = path.resolve(__dirname, "public", "foto-profilo", newName);
         console.log("file path: ", filePath);
 
-        await fotoProfilo.mv(filePath);
+        await pfp.mv(filePath);
         return { fileName: newName };
     } catch(err) {
         console.log(`fileUpload - ${err}`);

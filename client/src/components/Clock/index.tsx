@@ -57,13 +57,10 @@ type ClockStates = {
 export default class Clock extends React.Component<{}, ClockStates> {
   timerID!: NodeJS.Timer;
 
-  constructor() {
-    super({});
-    this.state = {
-      ora: dateFormat(new Date(), "HH:MM:ss"), 
-      data: dateFormat(new Date(), "dddd dd mmmm yyyy") 
-    };
-  }
+  state = {
+    ora: dateFormat(new Date(), "HH:MM:ss"), 
+    data: dateFormat(new Date(), "dddd dd mmmm yyyy") 
+  };
 
   tick() {
     this.setState({

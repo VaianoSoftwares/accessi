@@ -19,6 +19,10 @@
   width: auto;
 }
 
+/* .pfp:after {
+  content: none;
+}  */
+
 .badge-form .form-control {
   height: 40px;
 }

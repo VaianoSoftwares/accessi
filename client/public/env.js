@@ -1,0 +1,3 @@
+window.env = {
+  "HTTPS": "true"
+};
