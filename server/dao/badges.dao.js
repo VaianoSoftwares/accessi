@@ -150,7 +150,7 @@ export default class BadgesDAO {
     const provDoc = {
       barcode: data.barcode,
       descrizione: data.descrizione,
-      tipo: "chiave",
+      tipo: "badge",
       assegnazione: data.assegnazione,
       ubicazione: data.ubicazione,
       stato: data.stato || "valido",
@@ -191,7 +191,13 @@ export default class BadgesDAO {
         ? this.#getBadgeDoc(data)
         : data.tipo === "veicolo"
         ? this.#getVeicoloDoc(data)
-        : this.#getChiaveDoc(data);
+        : data.tipo === "chiave"
+        ? this.#getChiaveDoc(data)
+        : null;
+
+      if(!badgeDoc) {
+        throw new Error(`Tipo badge ${data.tipo} sconosciuto.`);
+      }
 
       return await badges.insertOne(badgeDoc);
     } catch (err) {
