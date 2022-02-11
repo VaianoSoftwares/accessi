@@ -62,7 +62,7 @@ export default class Validator {
                 .integer()
                 .min(0)
                 .max(24)
-                .required(),
+                /*.required()*/,
             targa1: Joi.string().allow(null, ''),
             targa2: Joi.string().allow(null, ''),
             targa3: Joi.string().allow(null, ''),
@@ -102,7 +102,11 @@ export default class Validator {
             ditta: Joi.string().allow(null, ''),
             telefono: Joi.string().allow(null, ''),
             tdoc: Joi.string().allow(null, ''),
-            ndoc: Joi.string().allow(null, '')
+            ndoc: Joi.string().allow(null, ''),
+            targa1: Joi.string().allow(null, ''),
+            targa2: Joi.string().allow(null, ''),
+            targa3: Joi.string().allow(null, ''),
+            targa4: Joi.string().allow(null, ''),
         });
         return scheme.validate(data);
     }

@@ -100,7 +100,8 @@ const Home: React.FC<Props> = (props: Props) => {
   React.useEffect(() => {
     if(scannedValue) {
       timbra({ barcode: scannedValue,
-        postazione: props.user.postazione
+        postazione: props.user.postazione,
+        tipo: badgeForm.tipo
       });
       setScannedValue("");
     }
@@ -245,6 +246,7 @@ const Home: React.FC<Props> = (props: Props) => {
         }, 1000);
       })
       .catch(err => {
+        console.log(data);
         console.log(err);
         if(err.response) {
           const { success, msg } = err.response.data as ErrResponse;
@@ -521,6 +523,7 @@ const Home: React.FC<Props> = (props: Props) => {
         timbra={timbra}
         isVeicolo={badgeForm.tipo === "veicolo"}
         postazione={props.user.postazione}
+        tipoBadge={badgeForm.tipo}
       />
       <div className="home-alert-wrapper">
         <Alert alert={props.alert} setAlert={props.setAlert} />

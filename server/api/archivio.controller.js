@@ -23,7 +23,7 @@ export default class ArchivioController {
   }
 
   static async apiPostArchivio(req, res) {
-    const valErr = Validator.badgeDoc(req.body).error;
+    const valErr = Validator.timbra(req.body).error;
     if(valErr) {
       return res.status(400).json({ success: false, msg: valErr.details[0].message });
     }
