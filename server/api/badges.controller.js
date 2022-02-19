@@ -1,5 +1,5 @@
 import BadgesDAO from "../dao/badges.dao.js";
-import fileUpl from "./badges.fileupload.js";
+import FileManager from "./badges.filemanager.js";
 import EnumsDAO from "../dao/enums.dao.js";
 import Validator from "../auth/validation.js";
 
@@ -45,7 +45,7 @@ export default class BadgesController {
                 return res.status(400).json({ success: false, msg: error.message });
             }
 
-            const fileUplResp = await fileUpl(
+            const fileUplResp = await FileManager.uploadPfp(
               req.files,
               req.body.barcode,
               req.body.tipo
@@ -87,7 +87,7 @@ export default class BadgesController {
                 return res.status(400).json({ success: false, msg: error.message });
             }
 
-            const fileUplResp = await fileUpl(
+            const fileUplResp = await FileManager.uploadPfp(
               req.files,
               req.body.barcode,
               req.body.tipo
@@ -129,6 +129,13 @@ export default class BadgesController {
             if(badgesResponse.deletedCount === 0) {
                 throw new Error(`Badge ${barcode} non eliminato - Barcode non esistente`);
             }
+
+            const { error } = await FileManager.deletePfp(barcode);
+
+            if(error) {
+                throw new Error(`Badge ${barcode} - Non e' stato possibile eliminare pfp`);
+            }
+
             res.json({ success: true, msg: "Badge eliminato con successo.", data: badgesResponse });
         } catch(err) {
             console.log(`apiDeleteBadges - ${err}`);

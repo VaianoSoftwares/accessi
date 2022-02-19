@@ -80,17 +80,17 @@ export default class BadgesDAO {
         telefono: data.telefono,
         tdoc: data.tdoc,
         ndoc: data.ndoc,
-        scadenza: new Date(new Date().setMonth(new Date().getMonth() + Number(data.scadenza))),
-        targhe: null
-      }
+        scadenza:
+          data.scadenza === 0
+            ? null
+            : new Date(
+                new Date().setMonth(
+                  new Date().getMonth() + Number(data.scadenza)
+                )
+              ),
+        targhe: null,
+      },
     };
-
-    if(new Date() >= badgeDoc.nominativo.scadenza && badgeDoc.stato === "valido") {
-      badgeDoc.stato = "scaduto";
-    }
-    else if(new Date() < badgeDoc.nominativo.scadenza && badgeDoc.stato === "scaduto") {
-      badgeDoc.stato = "valido";
-    }
 
     return badgeDoc;
   }

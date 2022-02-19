@@ -71,7 +71,7 @@ export default class ArchivioDAO {
         };
 
         const isUni = barcode && barcode.length === 7 && /^\d+$/.test(barcode);
-        let timbratura;
+        let timbratura = { error: null };
 
         try {
           if(isUni) {
@@ -87,16 +87,18 @@ export default class ArchivioDAO {
             );
           }
           else {
-            const [ fetchedBadge ] = await BadgesDAO.getBadges({ barcode: barcode });
-            if (fetchedBadge.length === 0) {
+            const baseBarcode = barcode.slice(0, barcode.length - 1);
+            const [ fetchedBadge ] = await BadgesDAO.getBadges({ barcode: baseBarcode });
+            if (!fetchedBadge) {
               throw new Error(`Badge ${barcode} invalido: non esistente`);
             }
             else if(fetchedBadge.stato !== "valido") {
               throw new Error(`Badge ${barcode} non valido: ${fetchedBadge.stato}`);
             }
-            else if(new Date() >= fetchedBadge.scadenza) {
+            else if(fetchedBadge.scadenza && new Date() >= fetchedBadge.scadenza) {
               throw new Error(`Badge ${barcode} non valido: scaduto`);
             }
+            timbraResp.barcode = baseBarcode;
             timbraResp.tipo = fetchedBadge.tipo;
             timbraResp.assegnazione = fetchedBadge.assegnazione;
             if(fetchedBadge.nominativo) {
@@ -109,10 +111,12 @@ export default class ArchivioDAO {
           }
 
           if(timbratura.error) {
-            throw new Error(error);
+            throw new Error(timbratura.error);
           }
 
           timbraResp.data.entrata = timbratura.dataEntra;
+
+          console.log(timbraResp);
 
           return { response: timbraResp, msg: timbratura.msg };
         } catch (err) {
@@ -123,13 +127,13 @@ export default class ArchivioDAO {
 
     static async #timbraFronteRetro(barcode, postazione, nominativo) {
       try {
-        const lastCh = barcode.charAt(barcode.lenght - 1);
+        const lastCh = barcode.charAt(barcode.length - 1);
         if(!"01".includes(lastCh)) {
           throw new Error("Codice invalido");
         }
-        const trimmedBarcode = barcode.slice(0, barcode.lenght - 1);
-        const fronteRetro = Boolean(lastCh);
-        const inStrutt = await this.getInStruttBy("barcode", barcode);
+        const trimmedBarcode = barcode.slice(0, barcode.length - 1);
+        const fronteRetro = Number(lastCh);
+        const inStrutt = await this.getInStruttBy("barcode", trimmedBarcode);
 
         if(!inStrutt && !fronteRetro) {
           const { error, insertedId } = await this.#timbraEntra(
@@ -145,7 +149,7 @@ export default class ArchivioDAO {
           return { 
             msg: "Timbra Entra",
             dataEntra: data.entrata,
-            error: undefined 
+            error: null 
           };
         }
         else if(inStrutt && fronteRetro) {
@@ -160,8 +164,8 @@ export default class ArchivioDAO {
 
           return {
             msg: "Timbra Esce",
-            dataEntrata: inStrutt.data.entrata,
-            error: undefined
+            dataEntra: inStrutt.data.entrata,
+            error: null
           };
         }
         else {
@@ -175,8 +179,8 @@ export default class ArchivioDAO {
           throw new Error(msg);
         }
       } catch(err) {
-        console.log("timbraFronteRetro - Error: ", err);
-        return { msg: undefined, dataEntrata: undefined, error: err };
+        console.log("timbraFronteRetro - ", err);
+        return { error: err };
       }
     }
 
@@ -195,8 +199,8 @@ export default class ArchivioDAO {
 
         return { 
           msg: "Timbra Esce",
-          dataEntrata: inStrutt.data.entrata,
-          error: undefined 
+          dataEntra: inStrutt.data.entrata,
+          error: null 
         };
       } else {
         const { error, insertedId } = await this.#timbraEntra(
@@ -210,13 +214,13 @@ export default class ArchivioDAO {
         const { data } = await this.getInStruttBy("_id", insertedId);
         return { 
           msg: "Timbra Entra",
-          dataEntrata: data.entrata,
-          error: undefined 
+          dataEntra: data.entrata,
+          error: null 
         };
       }
     } catch (err) {
-      console.log("timbraUnilaterale - Error: ", err);
-      return { msg: undefined, dataEntrata: undefined, error: err };
+      console.log("timbraUnilaterale - ", err);
+      return { error: err };
     }
   }
 
