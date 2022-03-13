@@ -30,7 +30,6 @@ export default class BadgesController {
     static async apiPostBadges(req, res) {
         const dataToVerify = {
             barcode: req.body.barcode,
-            scadenza: Number(req.body.scadenza)
         };
         const valErr = Validator.badgeDoc(dataToVerify).error;
         if(valErr) {

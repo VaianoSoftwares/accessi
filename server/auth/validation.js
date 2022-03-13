@@ -57,12 +57,7 @@ export default class Validator {
             ditta: Joi.string().allow(null, ''),
             tdoc: Joi.string().allow(null, ''),
             ndoc: Joi.string().allow(null, ''),
-            scadenza: Joi
-                .number()
-                .integer()
-                .min(0)
-                .max(24)
-                /*.required()*/,
+            scadenza: Joi.string().allow(null, ''),
             targa1: Joi.string().allow(null, ''),
             targa2: Joi.string().allow(null, ''),
             targa3: Joi.string().allow(null, ''),

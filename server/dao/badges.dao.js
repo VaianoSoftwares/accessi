@@ -23,7 +23,7 @@ export default class BadgesDAO {
           "ditta",
           "telefono",
           "tdoc",
-          "ndoc",
+          "ndoc"
         ].includes(key)
           ? `nominativo.${key}`
           : key;
@@ -80,14 +80,7 @@ export default class BadgesDAO {
         telefono: data.telefono,
         tdoc: data.tdoc,
         ndoc: data.ndoc,
-        scadenza:
-          data.scadenza === 0
-            ? null
-            : new Date(
-                new Date().setMonth(
-                  new Date().getMonth() + Number(data.scadenza)
-                )
-              ),
+        scadenza: data.scadenza === "" ? "" : new Date(data.scadenza),
         targhe: null,
       },
     };
@@ -110,7 +103,7 @@ export default class BadgesDAO {
         telefono: data.telefono,
         tdoc: data.tdoc,
         ndoc: data.ndoc,
-        scadenza: null,
+        scadenza: "",
         targhe: {
           1: data.targa1,
           2: data.targa2,
@@ -138,7 +131,7 @@ export default class BadgesDAO {
         telefono: data.telefono,
         tdoc: data.tdoc,
         ndoc: data.ndoc,
-        scadenza: null,
+        scadenza: "",
         targhe: null
       }
     };
@@ -225,9 +218,8 @@ export default class BadgesDAO {
           else if(key.includes("targa")) {
             paramsToUpdate[`nominativo.targhe.${key.charAt(key.length - 1)}`] = value;
           }
-          else if(key === "scadenza" && Number(value) > 0) {
-            paramsToUpdate[`nominativo.scadenza`] = 
-              new Date(new Date().setMonth(new Date().getMonth() + Number(value)));
+          else if(key === "scadenza") {
+            paramsToUpdate[`nominativo.scadenza`] = new Date(value);
           }
           else {
             paramsToUpdate[key] = value;

@@ -97,9 +97,16 @@ export default class SerialComponent extends React.Component<Props, SerialCompSt
           }
 
           const decodedVal = utf8ArrayToStr(value);
-          console.log(`serialApi read - decodedVal: ${decodedVal}`);
-          if(decodedVal.length >= 3 && decodedVal[0] !== '-') {
-            this.props.setScannedValue(decodedVal);
+          const trimmedVal = decodedVal
+            .replace(/[\n\r]+/g, "")
+            .replace(/\s+/g, "")
+            .trim();
+          console.log(`serialApi read - trimmedVal: ${trimmedVal}`);
+          if(trimmedVal.length >= 3 && trimmedVal[0] !== '-') {
+            this.props.setScannedValue(trimmedVal);
+          }
+          else {
+            console.log(`serialApi read - ${trimmedVal} codice non valido`);
           }
         }
       } catch(err) {

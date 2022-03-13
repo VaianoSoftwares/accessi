@@ -286,19 +286,17 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
             <div className="row">
               <div className="form-floating col-sm-3">
                 <input
-                  type="number"
-                  min="0"
-                  max="24"
+                  type="date"
+                  min={(new Date()).toString()}
                   className="form-control form-control-sm"
                   id="scadenza"
                   value={props.badgeForm.scadenza}
                   onChange={props.handleInputChanges}
                   name="scadenza"
-                  placeholder="scadenza"
                   readOnly={!!props.readOnlyForm}
                   autoComplete="off"
                 />
-                <label htmlFor="scadenza">scadenza (mesi)</label>
+                <label htmlFor="scadenza">scadenza</label>
               </div>
             </div>
           ) : (

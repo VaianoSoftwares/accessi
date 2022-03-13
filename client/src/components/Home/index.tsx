@@ -53,7 +53,7 @@ const Home: React.FC<Props> = (props: Props) => {
     tdoc: "",
     ndoc: "",
     pfp: null,
-    scadenza: 0,
+    scadenza: "",
     targa1: "",
     targa2: "",
     targa3: "",
@@ -80,15 +80,16 @@ const Home: React.FC<Props> = (props: Props) => {
     BadgeDataService.token = props.token;
     //console.log(`props.token: ${props.token} - BadgeDataService.token: ${BadgeDataService.token}`);
     retriveTipiDoc();
-    props.setAlert(null);
   }, []);
   
   React.useEffect(() => {
+    props.setAlert(null);
     retriveInStrutt();
   }, [badgeForm.tipo]);
 
   React.useEffect(() => {
     //toggleReadonlyInputs(readOnlyForm);
+    props.setAlert(null);
     if(readOnlyForm === true) {
       setBadgeForm({ ...initialBadgeFormState, tipo: badgeForm.tipo });
       retriveInStrutt();
@@ -196,7 +197,8 @@ const Home: React.FC<Props> = (props: Props) => {
       })
       .catch(err => {
         console.log(err);
-      });
+      })
+      .finally(() => props.setAlert(null));
   };
 
   const timbra = (data: TimbraDoc) => {
@@ -241,7 +243,8 @@ const Home: React.FC<Props> = (props: Props) => {
           }
           */
           retriveInStrutt();
-          
+          props.setAlert(null);
+
           setTimeoutRunning(false);
         }, 1000);
       })
@@ -251,6 +254,7 @@ const Home: React.FC<Props> = (props: Props) => {
         if(err.response) {
           const { success, msg } = err.response.data as ErrResponse;
           props.setAlert({ success, msg });
+
         }
       });
   };
@@ -263,6 +267,7 @@ const Home: React.FC<Props> = (props: Props) => {
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
         //retriveBadges();
+        props.setAlert(null);
       })
       .catch(err => {
         console.log(err);
@@ -290,6 +295,7 @@ const Home: React.FC<Props> = (props: Props) => {
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
         //retriveBadges();
+        props.setAlert(null);
       })
       .catch(err => {
         console.log(err);
@@ -316,6 +322,7 @@ const Home: React.FC<Props> = (props: Props) => {
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
         //retriveBadges();
+        props.setAlert(null);
       })
       .catch(err => {
         console.log(err);
@@ -404,7 +411,7 @@ const Home: React.FC<Props> = (props: Props) => {
       tdoc: badge.nominativo ? badge.nominativo.tdoc : "",
       ndoc: badge.nominativo ? badge.nominativo.ndoc : "",
       pfp: null,
-      scadenza: 0,
+      scadenza: badge.nominativo && badge.nominativo.scadenza ? badge.nominativo.scadenza.toString() : "",
       targa1: badge.nominativo && badge.nominativo.targhe ? badge.nominativo.targhe[1] : "",
       targa2: badge.nominativo && badge.nominativo.targhe ? badge.nominativo.targhe[2] : "",
       targa3: badge.nominativo && badge.nominativo.targhe ? badge.nominativo.targhe[3] : "",
@@ -447,6 +454,7 @@ const Home: React.FC<Props> = (props: Props) => {
     //setArchivioForm(initialArchivioFormState);
     retriveInStrutt();
     setPfpUrl("");
+    props.setAlert(null);
   };
 
   return (

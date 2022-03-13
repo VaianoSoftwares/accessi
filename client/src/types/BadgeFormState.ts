@@ -16,7 +16,7 @@ export type BadgeFormState = {
     tdoc: string;
     ndoc: string;
     pfp: Nullable<File>;
-    scadenza: number;
+    scadenza: string;
     targa1: string;
     targa2: string;
     targa3: string;
