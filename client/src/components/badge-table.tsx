@@ -10,7 +10,7 @@ const BadgeTable: React.FC<Props> = (props: Props) => {
     <div style={{"overflowY":"auto", "height":"300px"}}>
     <table className="badge-table table table-striped">
       <thead style={{"position":"sticky", "top":"0", "zIndex":1, "backgroundColor":"white"}}>
-        <tr>
+        <tr style={{"lineHeight": "10px"}}>
           {props.badges.length > 0 &&
             Object.entries(props.badges[0])
               .filter((elem) => elem[1] !== undefined)
@@ -24,7 +24,7 @@ const BadgeTable: React.FC<Props> = (props: Props) => {
       <tbody className="badge-tbody" style={{"maxHeight":"50px","overflowY":"scroll", "height":"50px"}}>
         {props.badges.length > 0 &&
           props.badges.map((elem, index) => (
-            <tr key={index}>
+            <tr key={index} style={{"lineHeight": "10px"}}>
               {Object.values(elem)
                 .filter((value) => value !== undefined)
                 .map((value, _index) => (

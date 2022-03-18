@@ -1,10 +1,10 @@
 .pfp-container {
   display: block;
   border: 2px solid green;
-  max-width: 250px;
-  max-height: 250px;
-  min-width: 250px;
-  min-height: 250px;
+  max-width: 200px;
+  max-height: 200px;
+  min-width: 200px;
+  min-height: 200px;
   height: auto;
   width: auto;
   float: left;

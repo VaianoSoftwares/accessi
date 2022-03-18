@@ -6,9 +6,13 @@
   "type": "module",
   "scripts": {
     "start": "NODE_ENV=production node -r dotenv/config server/index.js",
+    "win-start": "set NODE_ENV=production&&node -r dotenv/config server/index.js",
     "server": "NODE_ENV=development nodemon",
+    "win-server": "set NODE_ENV=development&&nodemon",
     "client": "cd client && npm start",
+    "win-client": "cd client && npm run win-start",
     "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
+    "win-dev": "concurrently --kill-others-on-fail \"npm run win-server\" \"npm run win-client\"",
     "client:build": "cd client && npm run build"
   },
   "keywords": [],

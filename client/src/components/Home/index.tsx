@@ -220,7 +220,7 @@ const Home: React.FC<Props> = (props: Props) => {
           setBadgeForm(mapToAutoComplBadge(rowTimbra));
           const url = getPfpUrlByBarcode(rowTimbra.barcode);
           setPfpUrl(url);
-        }                                    
+        }                           
 
         const filteredBadges = badges
           .filter(badge => badge.codice !== rowTimbra.barcode);
@@ -236,6 +236,7 @@ const Home: React.FC<Props> = (props: Props) => {
           firstRow.style.backgroundColor = "white";
           if(readOnlyForm === true) {
             setBadgeForm(initialBadgeFormState);
+            setPfpUrl("");
           }
           /*
           if(msg === "Timbra Esce") {

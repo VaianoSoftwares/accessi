@@ -46,6 +46,8 @@ export default class ArchivioController {
       }
     };
 
+    console.log("apiPostArchivio | nominativo: ", nominativo);
+
     try {
       const archivioResponse = await ArchivioDAO.timbra(barcode, tipo, postazione, nominativo);
 

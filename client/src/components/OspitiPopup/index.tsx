@@ -29,7 +29,7 @@ const OspitiPopup: React.FC<Props> = (props: Props) => {
     cognome: "",
     telefono: "",
     ditta: "",
-    tdoc: "",
+    tdoc: "carta identita",
     ndoc: "",
     targa1: "",
     targa2: "",
@@ -39,7 +39,7 @@ const OspitiPopup: React.FC<Props> = (props: Props) => {
 
   const [ospForm, setOspForm] = React.useState<OspFormState>(initialOspFormState);
 
-  const handleOspInputChanges = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOspInputChanges = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
     setOspForm({ ...ospForm, [name]: value });
   };
