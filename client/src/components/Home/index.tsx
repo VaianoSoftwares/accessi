@@ -396,53 +396,66 @@ const Home: React.FC<Props> = (props: Props) => {
     });
   };
 
-  const mapToAutoComplBadge = (badge: Badge | ArchivioElem) => {
-    const mappedBadge: BadgeFormState = {
-      barcode: badge.barcode,
-      descrizione: badge.descrizione,
-      tipo: badge.tipo,
-      assegnazione: badge.assegnazione,
-      stato: badge.stato,
-      ubicazione: badge.ubicazione,
-      nome: badge.nominativo ? badge.nominativo.nome : "",
-      cognome: badge.nominativo ? badge.nominativo.cognome : "",
-      telefono: badge.nominativo ? badge.nominativo.telefono : "",
-      ditta: badge.nominativo ? badge.nominativo.ditta : "",
-      tdoc: badge.nominativo ? badge.nominativo.tdoc : "",
-      ndoc: badge.nominativo ? badge.nominativo.ndoc : "",
-      pfp: null,
-      scadenza: badge.nominativo && badge.nominativo.scadenza ? badge.nominativo.scadenza.toString() : "",
-      targa1: badge.nominativo && badge.nominativo.targhe ? badge.nominativo.targhe[1] : "",
-      targa2: badge.nominativo && badge.nominativo.targhe ? badge.nominativo.targhe[2] : "",
-      targa3: badge.nominativo && badge.nominativo.targhe ? badge.nominativo.targhe[3] : "",
-      targa4: badge.nominativo && badge.nominativo.targhe ? badge.nominativo.targhe[4] : "",
-    };
+  const mapToAutoComplBadge = (
+    badge: Badge | ArchivioElem
+  ): BadgeFormState => ({
+    barcode: badge.barcode,
+    descrizione: badge.descrizione,
+    tipo: badge.tipo,
+    assegnazione: badge.assegnazione,
+    stato: badge.stato,
+    ubicazione: badge.ubicazione,
+    nome: (badge.nominativo && badge.nominativo.nome) || "",
+    cognome: (badge.nominativo && badge.nominativo.cognome) || "",
+    telefono: (badge.nominativo && badge.nominativo.telefono) || "",
+    ditta: (badge.nominativo && badge.nominativo.ditta) || "",
+    tdoc: (badge.nominativo && badge.nominativo.tdoc) || "",
+    ndoc: (badge.nominativo && badge.nominativo.ndoc) || "",
+    pfp: null,
+    scadenza:
+      badge.nominativo && badge.nominativo.scadenza
+        ? dateFormat(new Date(badge.nominativo.scadenza), "yyyy-mm-dd")
+        : "",
+    targa1:
+      (badge.nominativo &&
+        badge.nominativo.targhe &&
+        badge.nominativo.targhe[1]) ||
+      "",
+    targa2:
+      (badge.nominativo &&
+        badge.nominativo.targhe &&
+        badge.nominativo.targhe[2]) ||
+      "",
+    targa3:
+      (badge.nominativo &&
+        badge.nominativo.targhe &&
+        badge.nominativo.targhe[3]) ||
+      "",
+    targa4:
+      (badge.nominativo &&
+        badge.nominativo.targhe &&
+        badge.nominativo.targhe[4]) ||
+      "",
+  });
 
-    return mappedBadge;
-  };
-
-  const mapToFindBadgeDoc = (badgeForm: BadgeFormState) => {
-    const mappedBadge: FindBadgeDoc = {
-      barcode: badgeForm.barcode,
-      descrizione: badgeForm.descrizione,
-      tipo: badgeForm.tipo,
-      assegnazione: badgeForm.assegnazione,
-      stato: badgeForm.stato,
-      ubicazione: badgeForm.ubicazione,
-      nome: badgeForm.nome,
-      cognome: badgeForm.cognome,
-      telefono: badgeForm.telefono,
-      ditta: badgeForm.ditta,
-      tdoc: badgeForm.tdoc,
-      ndoc: badgeForm.ndoc,
-      targa1: badgeForm.targa1,
-      targa2: badgeForm.targa2,
-      targa3: badgeForm.targa3,
-      targa4: badgeForm.targa4,
-    };
-
-    return mappedBadge;
-  };
+  const mapToFindBadgeDoc = (badgeForm: BadgeFormState): FindBadgeDoc => ({
+    barcode: badgeForm.barcode,
+    descrizione: badgeForm.descrizione,
+    tipo: badgeForm.tipo,
+    assegnazione: badgeForm.assegnazione,
+    stato: badgeForm.stato,
+    ubicazione: badgeForm.ubicazione,
+    nome: badgeForm.nome,
+    cognome: badgeForm.cognome,
+    telefono: badgeForm.telefono,
+    ditta: badgeForm.ditta,
+    tdoc: badgeForm.tdoc,
+    ndoc: badgeForm.ndoc,
+    targa1: badgeForm.targa1,
+    targa2: badgeForm.targa2,
+    targa3: badgeForm.targa3,
+    targa4: badgeForm.targa4,
+  });
 
   const getPfpUrlByBarcode = (barcode?: string) =>
     barcode

@@ -1,3 +1,5 @@
+import dateFormat from "dateformat";
+
 let badges;
 
 export default class BadgesDAO {
@@ -80,7 +82,10 @@ export default class BadgesDAO {
         telefono: data.telefono,
         tdoc: data.tdoc,
         ndoc: data.ndoc,
-        scadenza: data.scadenza === "" ? "" : new Date(data.scadenza),
+        scadenza:
+          data.scadenza === ""
+            ? ""
+            : dateFormat(new Date(data.scadenza), "yyyy-mm-dd"),
         targhe: null,
       },
     };
@@ -212,17 +217,31 @@ export default class BadgesDAO {
       Object.entries(data)
         .filter(([key, value]) => value && key !== "barcode")
         .forEach(([key, value]) => {
-          if(["nome", "cognome", "ditta", "telefono", "tdoc", "ndoc"].includes(key)) {
-            paramsToUpdate[`nominativo.${key}`] = value;
-          }
-          else if(key.includes("targa")) {
-            paramsToUpdate[`nominativo.targhe.${key.charAt(key.length - 1)}`] = value;
-          }
-          else if(key === "scadenza") {
-            paramsToUpdate[`nominativo.scadenza`] = new Date(value);
-          }
-          else {
-            paramsToUpdate[key] = value;
+          switch (key) {
+            case "nome":
+            case "cognome":
+            case "ditta":
+            case "telefono":
+            case "tdoc":
+            case "ndoc":
+              paramsToUpdate[`nominativo.${key}`] = value;
+              break;
+            case "targa1":
+            case "targa2":
+            case "targa3":
+            case "targa4":
+              paramsToUpdate[
+                `nominativo.targhe.${key.charAt(key.length - 1)}`
+              ] = value;
+              break;
+            case "scadenza":
+              paramsToUpdate[`nominativo.${key}`] = dateFormat(
+                new Date(value),
+                "yyyy-mm-dd"
+              );
+              break;
+            default:
+              paramsToUpdate[key] = value;
           }
         });
 

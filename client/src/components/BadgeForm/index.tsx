@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 // Modules
 import React from "react";
+import dateFormat from "dateformat";
 // Style
 import "./index.css";
 // Components
@@ -287,7 +288,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
               <div className="form-floating col-sm-3">
                 <input
                   type="date"
-                  min={(new Date()).toString()}
+                  min={dateFormat(new Date(), "yyyy-mm-dd")}
                   className="form-control form-control-sm"
                   id="scadenza"
                   value={props.badgeForm.scadenza}

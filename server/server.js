@@ -12,8 +12,11 @@ const app = express();
 
 const __dirname = path.resolve();
 
+console.log(`App environment: ${process.env.NODE_ENV}`);
 // dotenv config
-dotenv.config();
+if(process.env.NODE_ENV === "development") {
+    dotenv.config();
+}
 
 // print out request endpoint url & method
 app.use((req, res, next) => {
@@ -38,7 +41,6 @@ app.use("/api/v1/public", express.static(path.resolve(__dirname, "server/public"
 app.use("/api/v1/users", authRoutes);
 app.use("/api/v1/badges", verifyToken, badgesRoutes);
 
-console.log(`App environment: ${process.env.NODE_ENV}`);
 // backend make public and get compiled react app
 if(process.env.NODE_ENV === "production" || process.env.NODE_ENV === "staging") {
     app.use(express.static(path.resolve(__dirname, "client/build")));

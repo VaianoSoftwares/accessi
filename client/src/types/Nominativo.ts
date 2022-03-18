@@ -5,7 +5,7 @@ export type Nominativo = {
     ditta: string;
     tdoc: string;
     ndoc: string;
-    scadenza?: Date;
+    scadenza?: string;
     targhe?: {
         1: string;
         2: string;
