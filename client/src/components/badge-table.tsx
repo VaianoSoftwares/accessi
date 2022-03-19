@@ -8,7 +8,7 @@ type Props = {
 const BadgeTable: React.FC<Props> = (props: Props) => {
   return (
     <div style={{"overflowY":"auto", "height":"300px"}}>
-    <table className="badge-table table table-striped">
+    <table className="badge-table table table-striped" id="badge-table">
       <thead style={{"position":"sticky", "top":"0", "zIndex":1, "backgroundColor":"white"}}>
         <tr style={{"lineHeight": "10px"}}>
           {props.badges.length > 0 &&

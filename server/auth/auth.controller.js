@@ -51,12 +51,16 @@ export default class UsersController {
                 throw new Error("Username/Password non validi.");
             }
 
-            const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
+            const guestToken = jwt.sign({ _id: user._id }, process.env.GUEST_TOKEN);
+            const adminToken = user.admin ? jwt.sign({ _id: user._id }, process.env.ADMIN_TOKEN) : null;
+            if(adminToken) {
+                res.setHeader("admin-token", adminToken);
+            }
 
             console.log(`${username} logged in.`);
             
             res
-              .header("auth-token", token)
+              .header("guest-token", guestToken)
               .json({
                 success: true,
                 msg: "Login effettuato",

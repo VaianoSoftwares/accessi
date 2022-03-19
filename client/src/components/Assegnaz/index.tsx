@@ -15,7 +15,6 @@ import Alert from "../alert";
 type AssegnazProps = {
   user: User;
   logout: () => Promise<void>;
-  token: string;
   alert: Nullable<TAlert>;
   setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
 };

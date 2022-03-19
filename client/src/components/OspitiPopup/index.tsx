@@ -1,6 +1,7 @@
 // Modules
 import React from "react";
 import Popup from "reactjs-popup";
+import Cf from "codice-fiscale-js";
 // Style
 import "./index.css";
 // Components
@@ -16,7 +17,6 @@ type Props = {
   tipiDoc: string[];
   timbra: (data: TimbraDoc) => void;
   isVeicolo: boolean;
-  postazione: string;
   tipoBadge: TipoBadge;
 };
 
@@ -47,11 +47,24 @@ const OspitiPopup: React.FC<Props> = (props: Props) => {
   const timbraBtnEvent : React.MouseEventHandler<HTMLButtonElement> = () => {
     props.timbra({ 
       ...ospForm,
-      postazione: props.postazione,
+      postazione: sessionStorage.getItem("postazione") as string,
       tipo: props.tipoBadge
     });
     setOspForm(initialOspFormState);
     closePopup();
+  };
+
+  const handleNdocInputChanges = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { value } = event.target;
+    if (Cf.check(value)) {
+      const { name, surname } = Cf.computeInverse(value);
+      setOspForm({ ...ospForm, ndoc: value, nome: name, cognome: surname });
+    }
+    else {
+      handleOspInputChanges(event);
+    }
   };
 
   return (
@@ -66,6 +79,7 @@ const OspitiPopup: React.FC<Props> = (props: Props) => {
             {...props}
             ospForm={ospForm}
             handleOspInputChanges={handleOspInputChanges}
+            handleNdocInputChanges={handleNdocInputChanges}
             tipiDoc={props.tipiDoc}
             isVeicolo={props.isVeicolo}
           />

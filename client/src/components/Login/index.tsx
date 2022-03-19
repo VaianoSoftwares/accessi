@@ -9,8 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { Nullable } from "../../types/Nullable";
 
 type Props = {
-  login: (user?: User) => Promise<void>;
-  setToken: React.Dispatch<React.SetStateAction<string>>;
+  login: (user: User, postazione: string, token: string[]) => Promise<void>;
   alert: Nullable<TAlert>;
   setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
 };
@@ -22,7 +21,9 @@ const Login: React.FC<Props> = (props: Props) => {
     postazione: "",
   };
 
-  const [loginForm, setLoginForm] = React.useState<LoginFormState>(initialLoginFormState);
+  const [loginForm, setLoginForm] = React.useState<LoginFormState>(
+    initialLoginFormState
+  );
 
   const handleInputChanges = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -39,15 +40,18 @@ const Login: React.FC<Props> = (props: Props) => {
           console.log(
             `Logged In. uname: ${response.data.data.name} - admin: ${response.data.data.admin} - postazione: ${loginForm.postazione}`
           );
-          props.login({ ...response.data.data, postazione: loginForm.postazione });
-          props.setToken(response.headers["auth-token"]);
+
+          props.login(response.data.data as User, loginForm.postazione, [
+            response.headers["guest-token"] as string,
+            response.headers["admin-token"] as string,
+          ]);
           navigate("../home");
         }
       })
       .catch((err) => {
         console.log(err.response);
         if (err.response) {
-          const { success, msg } : TAlert = err.response.data;
+          const { success, msg }: TAlert = err.response.data;
           props.setAlert({ success, msg });
         }
       });

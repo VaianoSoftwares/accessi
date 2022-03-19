@@ -18,15 +18,28 @@ import { TAlert } from "./types/TAlert";
 import { Nullable } from "./types/Nullable";
 
 const App: React.FC<{}> = () => {
-  const [user, setUser] = React.useState<Nullable<User>>(null);
-  const [token, setToken] = React.useState("");
+  const [user, setUser] = React.useState<Nullable<User>>(() => {
+    const name = sessionStorage.getItem("username");
+    const admin = sessionStorage.getItem("admin");
+    if(name || admin) return {
+      name,
+      admin: Boolean(admin)
+    } as User;
+    return null;
+  });
   const [_alert, setAlert] = React.useState<Nullable<TAlert>>(null);
 
-  const login = async (user: Nullable<User> = null) => {
+  const login = async (user: User, postazione: string, tokens: string[]) => {
+    sessionStorage.setItem("username", user.name);
+    sessionStorage.setItem("admin", user.admin.toString());
+    sessionStorage.setItem("postazione", postazione);
+    sessionStorage.setItem("guest-token", tokens[0]);
+    if(user.admin) sessionStorage.setItem("admin-token", tokens[1]);
     setUser(user);
   };
 
   const logout = async () => {
+    sessionStorage.clear();
     setUser(null);
   };
 
@@ -42,7 +55,6 @@ const App: React.FC<{}> = () => {
                 <Home
                   user={user}
                   logout={logout}
-                  token={token}
                   alert={_alert}
                   setAlert={setAlert}
                 />
@@ -59,7 +71,6 @@ const App: React.FC<{}> = () => {
                 <AdminMenu
                   user={user}
                   logout={logout}
-                  token={token}
                   alert={_alert}
                   setAlert={setAlert}
                 />
@@ -75,7 +86,6 @@ const App: React.FC<{}> = () => {
             element={
               <Login
                 login={login}
-                setToken={setToken}
                 alert={_alert}
                 setAlert={setAlert}
               />

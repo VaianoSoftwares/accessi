@@ -10,7 +10,6 @@ import Alert from "./alert";
 type Props = {
   user: User;
   logout: () => Promise<void>;
-  token: string;
   alert: Nullable<TAlert>;
   setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
 };
@@ -25,10 +24,6 @@ const Register: React.FC<Props> = (props: Props) => {
   const [registerForm, setRegisterForm] = React.useState<RegisterFormState>(
     initialRegisterFormState
   );
-
-  React.useEffect(() => {
-    UserDataService.token = props.token;
-  }, []);
 
   const handleInputChanges = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = event.target;

@@ -19,7 +19,6 @@ import { Nullable } from "../../types/Nullable";
 type Props = {
     user: User;
     logout: () => Promise<void>;
-    token: string;
     alert: Nullable<TAlert>;
     setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
 };
@@ -55,7 +54,6 @@ const AdminMenu: React.FC<Props> = (props: Props) => {
                             <Register
                                 user={props.user}
                                 logout={props.logout}
-                                token={props.token}
                                 alert={props.alert}
                                 setAlert={props.setAlert}
                             />
@@ -72,7 +70,6 @@ const AdminMenu: React.FC<Props> = (props: Props) => {
                             <Assegnaz
                                 user={props.user}
                                 logout={props.logout}
-                                token={props.token}
                                 alert={props.alert}
                                 setAlert={props.setAlert}
                             />

@@ -14,7 +14,6 @@ import BadgeTable from "../badge-table";
 import Clock from "../Clock";
 import FormButtons from "../FormButtons";
 import OspitiPopup from "../OspitiPopup";
-import SerialComponent from "../serial-component";
 import Alert from "../alert";
 // Types
 import { User } from "../../types/User";
@@ -33,7 +32,6 @@ import { ErrResponse, OkResponse } from "../../types/Responses";
 type Props = {
   user: User;
   logout: () => Promise<void>;
-  token: string;
   alert: Nullable<TAlert>;
   setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>
 };
@@ -77,8 +75,6 @@ const Home: React.FC<Props> = (props: Props) => {
   const [pfpUrl, setPfpUrl] = React.useState<string>("");
   
   React.useEffect(() => {
-    BadgeDataService.token = props.token;
-    //console.log(`props.token: ${props.token} - BadgeDataService.token: ${BadgeDataService.token}`);
     retriveTipiDoc();
   }, []);
   
@@ -101,7 +97,7 @@ const Home: React.FC<Props> = (props: Props) => {
   React.useEffect(() => {
     if(scannedValue) {
       timbra({ barcode: scannedValue,
-        postazione: props.user.postazione,
+        postazione: sessionStorage.getItem("postazione") as string,
         tipo: badgeForm.tipo
       });
       setScannedValue("");
@@ -255,7 +251,6 @@ const Home: React.FC<Props> = (props: Props) => {
         if(err.response) {
           const { success, msg } = err.response.data as ErrResponse;
           props.setAlert({ success, msg });
-
         }
       });
   };
@@ -375,23 +370,23 @@ const Home: React.FC<Props> = (props: Props) => {
       );
 
       const mappedArchivioElem: TableContentElem = elem.tipo === "chiave" ? {
-        codice: elem.barcode,
+        codice: props.user.admin ? elem.barcode : "XXXXX",
         tipo: elem.tipo,
         assegnaz: elem.assegnazione,
         nome: elem.nominativo.nome,
         cognome: elem.nominativo.cognome,
         ditta: elem.nominativo.ditta,
-        "data ora consegna": dataEntrata,
+        "data ora consegna": props.user.admin ? dataEntrata : "XXXXX",
         "data ora in": undefined
       } : {
-        codice: elem.barcode,
+        codice: props.user.admin ? elem.barcode : "XXXXX",
         tipo: elem.tipo,
         assegnaz: elem.assegnazione,
         nome: elem.nominativo.nome,
         cognome: elem.nominativo.cognome,
         ditta: elem.nominativo.ditta,
         "data ora consegna": undefined,
-        "data ora in": dataEntrata
+        "data ora in": props.user.admin ? dataEntrata : "XXXXX"
       };
       return mappedArchivioElem;
     });
@@ -476,38 +471,10 @@ const Home: React.FC<Props> = (props: Props) => {
       <Navbar
         user={props.user}
         logout={props.logout}
-        tipoBadge={badgeForm.tipo}
+        badgeForm={badgeForm}
+        setBadgeForm={setBadgeForm}
       />
       <br />
-      <div className="btn-menu">
-        <div className="row">
-          <div className="col-sm-3 m-1">
-            <button
-              onClick={() => setBadgeForm({ ...badgeForm, tipo: TipoBadge.BADGE })}
-              className="btn btn-outline-secondary d-inline-block"
-            >
-              badge
-            </button>
-            <button
-              onClick={() => setBadgeForm({ ...badgeForm, tipo: TipoBadge.VEICOLO })}
-              className="btn btn-outline-secondary d-inline-block"
-            >
-              veicoli
-            </button>
-            <button
-              onClick={() => setBadgeForm({ ...badgeForm, tipo: TipoBadge.CHIAVE })}
-              className="btn btn-outline-secondary d-inline-block"
-            >
-              chiavi
-            </button>
-          </div>
-          <div className="col-sm-2">
-            <SerialComponent
-              setScannedValue={setScannedValue}
-            />
-          </div>
-        </div>
-      </div>
       <div className="submit-form">
         <BadgeForm
           badgeForm={badgeForm}
@@ -516,7 +483,6 @@ const Home: React.FC<Props> = (props: Props) => {
           tipiDoc={tipiDoc}
           readOnlyForm={readOnlyForm}
           admin={props.user.admin}
-          token={props.token}
           pfpUrl={pfpUrl}
         />
         <FormButtons
@@ -526,8 +492,10 @@ const Home: React.FC<Props> = (props: Props) => {
           deleteBadge={deleteBadge}
           refreshPage={refreshPage}
           setIsShown={setIsShown}
+          readOnlyForm={readOnlyForm}
           setReadOnlyForm={setReadOnlyForm}
           admin={props.user.admin}
+          setScannedValue={setScannedValue}
         />
       </div>
       <div
@@ -544,7 +512,6 @@ const Home: React.FC<Props> = (props: Props) => {
         tipiDoc={tipiDoc}
         timbra={timbra}
         isVeicolo={badgeForm.tipo === "veicolo"}
-        postazione={props.user.postazione}
         tipoBadge={badgeForm.tipo}
       />
       <div className="home-alert-wrapper">

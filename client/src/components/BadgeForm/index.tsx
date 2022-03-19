@@ -18,7 +18,6 @@ type Props = {
   tipiDoc: string[];
   readOnlyForm: boolean;
   admin: boolean;
-  token: string;
   pfpUrl: string;
 };
 
@@ -28,7 +27,6 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
   const [stati, setStati] = React.useState<StatoBadge[]>([]);
 
   React.useEffect(() => {
-    BadgeDataService.token = props.token;
     retriveTipi();
     retriveAssegnazioni();
     retriveStati();

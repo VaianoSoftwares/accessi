@@ -7,12 +7,10 @@ import { ErrResponse, FetchErrResponse, FetchOkResponse, OkResponse } from "../t
 import { TimbraDoc } from "../types/TimbraDoc";
 
 class BadgesDataService {
-  token!: string;
-
   getAll(): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
     return axios.get("/api/v1/badges", {
       headers: {
-        "auth-token": this.token,
+        "guest-token": sessionStorage.getItem("guest-token"),
       },
     });
   }
@@ -31,7 +29,7 @@ class BadgesDataService {
     console.log(params);
     return axios.get(`/api/v1/badges?${params}`, {
       headers: {
-        "auth-token": this.token,
+        "guest-token": sessionStorage.getItem("guest-token"),
       },
     });
   }
@@ -39,7 +37,8 @@ class BadgesDataService {
   insertBadge(data: FormData): Promise<AxiosResponse<OkResponse | ErrResponse>> {
     return axios.post("/api/v1/badges", data, {
       headers: {
-        "auth-token": this.token,
+        "guest-token": sessionStorage.getItem("guest-token"),
+        "admin-token": sessionStorage.getItem("admin-token"),
         "Content-Type": "multipart/form-data",
       },
     });
@@ -48,7 +47,8 @@ class BadgesDataService {
   updateBadge(data: FormData): Promise<AxiosResponse<OkResponse | ErrResponse>> {
     return axios.put("/api/v1/badges", data, {
       headers: {
-        "auth-token": this.token,
+        "guest-token": sessionStorage.getItem("guest-token"),
+        "admin-token": sessionStorage.getItem("admin-token"),
         "Content-Type": "multipart/form-data",
       },
     });
@@ -57,7 +57,8 @@ class BadgesDataService {
   deleteBadge(barcode: string): Promise<AxiosResponse<OkResponse | ErrResponse>> {
     return axios.delete(`/api/v1/badges?barcode=${barcode}`, {
       headers: {
-        "auth-token": this.token,
+        "guest-token": sessionStorage.getItem("guest-token"),
+        "admin-token": sessionStorage.getItem("admin-token"),
       },
     });
   }
@@ -65,7 +66,7 @@ class BadgesDataService {
   getAssegnazioni(tipo: string = ""): Promise<AxiosResponse<FetchOkResponse | FetchOkResponse>> {
     return axios.get(`/api/v1/badges/assegnazioni?tipo=${tipo}`, {
       headers: {
-        "auth-token": this.token,
+        "guest-token": sessionStorage.getItem("guest-token"),
       },
     });
   }
@@ -73,7 +74,8 @@ class BadgesDataService {
   insertAssegnazione(data: AssegnazFormState): Promise<AxiosResponse<OkResponse | ErrResponse>> {
     return axios.post("/api/v1/badges/assegnazioni", data, {
       headers: {
-        "auth-token": this.token
+        "guest-token": sessionStorage.getItem("guest-token"),
+        "admin-token": sessionStorage.getItem("admin-token")
       }
     });
   }
@@ -81,7 +83,8 @@ class BadgesDataService {
   deleteAssegnazione(data: AssegnazFormState): Promise<AxiosResponse<OkResponse | ErrResponse>> {
     return axios.delete(`/api/v1/badges/assegnazioni?tipo=${data.tipoBadge}&assegnaz=${data.assegnazione}`, {
       headers: {
-        "auth-token": this.token
+        "guest-token": sessionStorage.getItem("guest-token"),
+        "admin-token": sessionStorage.getItem("admin-token")
       }
     });
   }
@@ -89,7 +92,7 @@ class BadgesDataService {
   getTipiDoc(): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
     return axios.get("/api/v1/badges/tipi-doc", {
       headers: {
-        "auth-token": this.token,
+        "guest-token": sessionStorage.getItem("guest-token"),
       },
     });
   }
@@ -97,7 +100,7 @@ class BadgesDataService {
   getStati(): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
     return axios.get("/api/v1/badges/stati", {
       headers: {
-        "auth-token": this.token,
+        "guest-token": sessionStorage.getItem("guest-token"),
       },
     });
   }
@@ -105,7 +108,7 @@ class BadgesDataService {
   getTipiBadge(): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
     return axios.get("/api/v1/badges/tipi", {
       headers: {
-        "auth-token": this.token,
+        "guest-token": sessionStorage.getItem("guest-token"),
       },
     });
   }
@@ -113,7 +116,7 @@ class BadgesDataService {
   getArchivio({ inizio = "", fine = "" }): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
     return axios.get(`/api/v1/badges/archivio?inizio=${inizio}&fine=${fine}`, {
       headers: {
-        "auth-token": this.token,
+        "guest-token": sessionStorage.getItem("guest-token"),
       },
     });
   }
@@ -121,7 +124,7 @@ class BadgesDataService {
   getInStrutt(tipo: string = ""): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
     return axios.get(`/api/v1/badges/archivio/in-struttura?tipo=${tipo}`, {
       headers: {
-        "auth-token": this.token,
+        "guest-token": sessionStorage.getItem("guest-token"),
       },
     });
   }
@@ -129,7 +132,7 @@ class BadgesDataService {
   timbra(data: TimbraDoc): Promise<AxiosResponse<OkResponse | ErrResponse>> {
     return axios.post("/api/v1/badges/archivio", data, {
       headers: {
-        "auth-token": this.token,
+        "guest-token": sessionStorage.getItem("guest-token"),
       },
     });
   }

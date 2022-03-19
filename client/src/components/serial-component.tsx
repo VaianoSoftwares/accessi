@@ -9,7 +9,10 @@ type SerialCompStates = {
   connected: boolean;
 };
 
-export default class SerialComponent extends React.Component<Props, SerialCompStates> {
+export default class SerialComponent extends React.Component<
+  Props,
+  SerialCompStates
+> {
   constructor(props: Props) {
     super(props);
     this.state = { connected: false };
@@ -48,7 +51,7 @@ export default class SerialComponent extends React.Component<Props, SerialCompSt
       if (!port) {
         throw new Error("port not found");
       }
-      
+
       await port.open({ baudRate: 57600 }); // Wait for the serial port to open.
       console.log("serialApi init - Aperta porta seriale.");
       this.setState({ connected: true });
@@ -83,15 +86,15 @@ export default class SerialComponent extends React.Component<Props, SerialCompSt
 
     const port = event.target as SerialPort;
 
-    while(port.readable) {
+    while (port.readable) {
       const reader = port.readable.getReader();
-      
+
       try {
-        while(true) {
+        while (true) {
           const { value, done } = await reader.read();
           console.log(`serialApi read - value: ${value} - done: ${done}`);
 
-          if(done) {
+          if (done) {
             reader.releaseLock();
             break;
           }
@@ -102,14 +105,13 @@ export default class SerialComponent extends React.Component<Props, SerialCompSt
             .replace(/\s+/g, "")
             .trim();
           console.log(`serialApi read - trimmedVal: ${trimmedVal}`);
-          if(trimmedVal.length >= 3 && trimmedVal[0] !== '-') {
+          if (trimmedVal.length >= 3 && trimmedVal[0] !== "-") {
             this.props.setScannedValue(trimmedVal);
-          }
-          else {
+          } else {
             console.log(`serialApi read - ${trimmedVal} codice non valido`);
           }
         }
-      } catch(err) {
+      } catch (err) {
         console.log(`serialApi read - ${err}`);
       }
     }
@@ -176,8 +178,8 @@ export default class SerialComponent extends React.Component<Props, SerialCompSt
       if (reader && reader.locked === true) {
         await reader.cancel(); //chiusura lettore seriale
       }*/
-      
-      if(port) {
+
+      if (port) {
         await port.close(); //disconessione da seriale
       }
       console.log("serialApi close - Disconnessione a porta seriale.");
@@ -205,7 +207,12 @@ export default class SerialComponent extends React.Component<Props, SerialCompSt
           </button>
         </div>
         <div className="col-sm-5">
-          <b style={this.state.connected ? {"color": "green"} : {"color": "red"}}>{!this.state.connected && "Non "}{"Connesso"}</b>
+          <b
+            style={this.state.connected ? { color: "green" } : { color: "red" }}
+          >
+            {!this.state.connected && "Non "}
+            {"Connesso"}
+          </b>
         </div>
       </div>
     );

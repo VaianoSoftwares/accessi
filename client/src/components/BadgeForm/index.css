@@ -24,23 +24,20 @@
 }  */
 
 .badge-form .form-control {
-  height: 40px;
+  height: 35px;
 }
 
 .badge-form .form-select {
-  height: 40px;
+  height: 38px;
   padding: 0 0 1px 4px;
 }
 
 .badge-form .form-floating label {
   font-size: 13px;
-}
-
-.badge-form .form-floating label {
   top: -25%;
 }
 
 .badge-form .form-floating input[type="date"] {
-  height: 50px;
+  height: 48px;
 }
 

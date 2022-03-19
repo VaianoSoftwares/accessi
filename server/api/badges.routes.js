@@ -1,21 +1,22 @@
 import express from "express";
 import BadgesCtrl from "./badges.controller.js";
 import ArchivioCtrl from "./archivio.controller.js";
+import AuthToken from "../auth/verifyToken.js";
 
 const Router = express.Router();
 
 Router
     .route("/")
     .get(BadgesCtrl.apiGetBadges)                                               // ricerca badge
-    .post(BadgesCtrl.apiPostBadges)                                             // aggiungi nuovo badge
-    .put(BadgesCtrl.apiPutBadges)                                               // modifica un badge
-    .delete(BadgesCtrl.apiDeleteBadges);                                        // elimina un badge
+    .post(AuthToken.verifyAdmin, BadgesCtrl.apiPostBadges)                      // aggiungi nuovo badge
+    .put(AuthToken.verifyAdmin, BadgesCtrl.apiPutBadges)                        // modifica un badge
+    .delete(AuthToken.verifyAdmin, BadgesCtrl.apiDeleteBadges);                 // elimina un badge
 
 Router
     .route("/assegnazioni")
     .get(BadgesCtrl.apiGetAssegnazioni)                                         // ottieni assegnazioni
-    .post(BadgesCtrl.apiPostAssegnazioni)                                       // aggiungi nuova assegnazione
-    .delete(BadgesCtrl.apiDeleteAssegnazioni);                                  // elimina una assegnazione
+    .post(AuthToken.verifyAdmin, BadgesCtrl.apiPostAssegnazioni)                // aggiungi nuova assegnazione
+    .delete(AuthToken.verifyAdmin, BadgesCtrl.apiDeleteAssegnazioni);           // elimina una assegnazione
 
 Router.route("/tipi-doc").get(BadgesCtrl.apiGetTipiDoc);                        // ottieni tipi documento
 Router.route("/stati").get(BadgesCtrl.apiGetStati);                             // ottieni tipi stato badge

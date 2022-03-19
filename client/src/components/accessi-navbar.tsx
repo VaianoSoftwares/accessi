@@ -2,12 +2,14 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { TipoBadge } from "../enums/TipoBadge";
+import { BadgeFormState } from "../types/BadgeFormState";
 import { User } from "../types/User";
 
 type Props = {
   user: User;
   logout: () => Promise<void>;
-  tipoBadge: TipoBadge;
+  badgeForm: BadgeFormState;
+  setBadgeForm: React.Dispatch<React.SetStateAction<BadgeFormState>>;
 };
 
 const AccessiNavbar: React.FC<Props> = (props: Props) => {
@@ -24,14 +26,24 @@ const AccessiNavbar: React.FC<Props> = (props: Props) => {
       <div className="navbar-brand">
         <b>
           Gestione{" "}
-          {`${props.tipoBadge[0].toUpperCase()}${props.tipoBadge.slice(1)}`}
+          {`${props.badgeForm.tipo[0].toUpperCase()}${props.badgeForm.tipo.slice(1)}`}
         </b>
       </div>
       <div className="navbar-nav mr-auto">
         <li className="nav-item">
-          <Link to="." className="nav-link">
-            Homepage
-          </Link>
+          <button onClick={() => props.setBadgeForm({ ...props.badgeForm, tipo: TipoBadge.BADGE })} className="btn btn-primary">
+            Badge
+          </button>
+        </li>
+        <li className="nav-item">
+          <button onClick={() => props.setBadgeForm({ ...props.badgeForm, tipo: TipoBadge.CHIAVE })} className="btn btn-primary">
+            Chiave
+          </button>
+        </li>
+        <li className="nav-item">
+          <button onClick={() => props.setBadgeForm({ ...props.badgeForm, tipo: TipoBadge.VEICOLO })} className="btn btn-primary">
+            Veicolo
+          </button>
         </li>
         {props.user.admin === true && (
           <li className="nav-item">

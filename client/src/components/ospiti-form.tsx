@@ -4,6 +4,7 @@ import { OspFormState } from "../types/OspFormState";
 type Props = {
   ospForm: OspFormState;
   handleOspInputChanges: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  handleNdocInputChanges: (event: React.ChangeEvent<HTMLInputElement>) => void;
   tipiDoc: string[];
   isVeicolo: boolean;
 };
@@ -99,7 +100,7 @@ const OspitiForm: React.FC<Props> = (props: Props) => {
             className="form-control form-control-sm"
             id="osp-ndoc"
             value={props.ospForm.ndoc}
-            onChange={props.handleOspInputChanges}
+            onChange={props.handleNdocInputChanges}
             name="ndoc"
             placeholder="num documento"
           />
