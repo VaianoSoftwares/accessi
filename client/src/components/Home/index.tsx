@@ -10,7 +10,7 @@ import BadgeDataService from "../../services/badge";
 // Components
 import Navbar from "../accessi-navbar";
 import BadgeForm from "../BadgeForm";
-import BadgeTable from "../badge-table";
+import BadgeTable from "../BadgeTable";
 import Clock from "../Clock";
 import FormButtons from "../FormButtons";
 import OspitiPopup from "../OspitiPopup";
@@ -27,13 +27,18 @@ import { StatoBadge } from "../../enums/StatoBadge";
 import { Nullable } from "../../types/Nullable";
 import { TimbraDoc } from "../../types/TimbraDoc";
 import { FindBadgeDoc } from "../../types/FindBadgeDoc";
-import { ErrResponse, OkResponse } from "../../types/Responses";
+import { GenericResponse } from "../../types/Responses";
+import { Assegnazione } from "../../types/Assegnazione";
 
 type Props = {
   user: User;
   logout: () => Promise<void>;
   alert: Nullable<TAlert>;
-  setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>
+  setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
+  tipiBadge: TipoBadge[],
+  assegnazioni: Assegnazione[],
+  tipiDoc: string[],
+  statiBadge: StatoBadge[]
 };
 
 const Home: React.FC<Props> = (props: Props) => {
@@ -67,16 +72,11 @@ const Home: React.FC<Props> = (props: Props) => {
   const [badges, setBadges] = React.useState<TableContentElem[]>([]);
   const [badgeForm, setBadgeForm] = React.useState<BadgeFormState>(initialBadgeFormState);
   //const [archivioForm, setArchivioForm] = React.useState(initialArchivioFormState);
-  const [tipiDoc, setTipiDoc] = React.useState<string[]>([]);
   const [isShown, setIsShown] = React.useState(false);
   const [readOnlyForm, setReadOnlyForm] = React.useState(true);
   const [scannedValue, setScannedValue] = React.useState("");
   const [timeoutRunning, setTimeoutRunning] = React.useState(false);
   const [pfpUrl, setPfpUrl] = React.useState<string>("");
-  
-  React.useEffect(() => {
-    retriveTipiDoc();
-  }, []);
   
   React.useEffect(() => {
     props.setAlert(null);
@@ -141,16 +141,6 @@ const Home: React.FC<Props> = (props: Props) => {
       });
   };
 
-  const retriveTipiDoc = () => {
-    BadgeDataService.getTipiDoc()
-      .then((response) => {
-        //console.log(response.data);
-        setTipiDoc(response.data.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
   /*
   const retriveBadges = () => {
     BadgeDataService.getAll()
@@ -210,7 +200,7 @@ const Home: React.FC<Props> = (props: Props) => {
 
         setTimeoutRunning(true);
 
-        const rowTimbra: ArchivioElem = (response.data as OkResponse).data;
+        const rowTimbra: ArchivioElem = (response.data as GenericResponse).data;
         
         if(readOnlyForm === true) {
           setBadgeForm(mapToAutoComplBadge(rowTimbra));
@@ -249,7 +239,7 @@ const Home: React.FC<Props> = (props: Props) => {
         console.log(data);
         console.log(err);
         if(err.response) {
-          const { success, msg } = err.response.data as ErrResponse;
+          const { success, msg } = err.response.data as GenericResponse;
           props.setAlert({ success, msg });
         }
       });
@@ -268,7 +258,7 @@ const Home: React.FC<Props> = (props: Props) => {
       .catch(err => {
         console.log(err);
         if(err.response) {
-          const { success, msg } = err.response.data as ErrResponse;
+          const { success, msg } = err.response.data as GenericResponse;
           props.setAlert({ success, msg });
         }
       })
@@ -296,7 +286,7 @@ const Home: React.FC<Props> = (props: Props) => {
       .catch(err => {
         console.log(err);
         if(err.response) {
-          const { success, msg } = err.response.data as ErrResponse;
+          const { success, msg } = err.response.data as GenericResponse;
           props.setAlert({ success, msg });
         }
       })
@@ -323,7 +313,7 @@ const Home: React.FC<Props> = (props: Props) => {
       .catch(err => {
         console.log(err);
         if(err.response) {
-          const { success, msg } = err.response.data as ErrResponse;
+          const { success, msg } = err.response.data as GenericResponse;
           props.setAlert({ success, msg });
         }
       })
@@ -480,7 +470,10 @@ const Home: React.FC<Props> = (props: Props) => {
           badgeForm={badgeForm}
           handleInputChanges={handleInputChanges}
           handleInputFileChanges={handleInputFileChanges}
-          tipiDoc={tipiDoc}
+          tipiBadge={props.tipiBadge}
+          assegnazioni={props.assegnazioni}
+          tipiDoc={props.tipiDoc}
+          statiBadge={props.statiBadge}
           readOnlyForm={readOnlyForm}
           admin={props.user.admin}
           pfpUrl={pfpUrl}
@@ -509,7 +502,7 @@ const Home: React.FC<Props> = (props: Props) => {
       <OspitiPopup
         isShown={isShown}
         setIsShown={setIsShown}
-        tipiDoc={tipiDoc}
+        tipiDoc={props.tipiDoc}
         timbra={timbra}
         isVeicolo={badgeForm.tipo === "veicolo"}
         tipoBadge={badgeForm.tipo}

@@ -15,11 +15,12 @@ export default class EnumsDAO {
 
     static async getEnums(tipoEnum) {
         try {
-            let projection = { _id: 0 };
-            if(tipoEnum) {
-                projection[tipoEnum] = 1;
-            }
-            return await enums.findOne({}, { projection });
+            // let projection = { _id: 0 };
+            // if(tipoEnum) {
+            //     projection[tipoEnum] = 1;
+            // }
+            // return await enums.findOne({}, { projection });
+            return await enums.findOne();
         } catch(err) {
             console.log(`getEnums - ${err}`);
         }

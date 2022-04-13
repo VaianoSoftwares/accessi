@@ -1,0 +1,27 @@
+.badge-table-wrapper {
+    overflow-y: auto;
+    height: 300px;
+}
+
+.badge-table-thead {
+    position: sticky;
+    top: 0;
+    z-index:1 ;
+    background-color: white;
+}
+
+.badge-table-tbody {
+    max-height: 50px;
+    overflow-y: scroll;
+    height: 50px;
+}
+
+.badge-table-th {
+    position: sticky;
+    top: 0;
+    z-index:1 ;
+}
+
+.badge-table-tr {
+    line-height: 10px;
+}

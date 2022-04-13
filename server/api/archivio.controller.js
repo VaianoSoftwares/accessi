@@ -3,20 +3,20 @@ import Validator from "../auth/validation.js";
 
 export default class ArchivioController {
   static async apiGetArchivio(req, res) {
-    const { inizio, fine } = req.query;
     try {
-      const archivioResponse = await ArchivioDAO.getArchivio(inizio, fine);
+      const archivioResponse = await ArchivioDAO.getArchivio(req.query);
       res.json({
         success: true,
         data: archivioResponse,
-        filters: { inizio, fine },
+        filters: req.query,
+        msg: "Archivio ottenuto con successo"
       });
     } catch (err) {
       console.log(`apiGetArchivio - ${err}`);
       res.status(500).json({
         success: false,
         data: [],
-        filters: { inizio, fine },
+        filters: req.query,
         msg: err.msg,
       });
     }
@@ -25,7 +25,7 @@ export default class ArchivioController {
   static async apiPostArchivio(req, res) {
     const valErr = Validator.timbra(req.body).error;
     if(valErr) {
-      return res.status(400).json({ success: false, msg: valErr.details[0].message });
+      return res.status(400).json({ success: false, msg: valErr.details[0].message, data: null });
     }
 
     const { barcode, tipo, postazione } = req.body;
@@ -53,7 +53,7 @@ export default class ArchivioController {
 
       const { error } = archivioResponse;
       if (error) {
-        return res.status(400).json({ success: false, msg: error.message });
+        return res.status(400).json({ success: false, msg: error.message, data: null });
       }
 
       res.json({
@@ -71,7 +71,7 @@ export default class ArchivioController {
     const { tipo } = req.query;
     try {
       const archivioList = await ArchivioDAO.getInStrutt(tipo);
-      res.json({ success: true, data: archivioList });
+      res.json({ success: true, data: archivioList, msg: "Lista dipendenti in struttura ottenuta con successo" });
     } catch (err) {
       console.log(`apiGetInStruttura - ${err}`);
       res

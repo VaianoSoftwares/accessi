@@ -4,34 +4,26 @@ import BadgeDataService from "../../services/badge";
 
 import { TipoBadge } from "../../enums/TipoBadge";
 import { AssegnazFormState } from "../../types/AssegnazFormState";
-import { Assegnazioni } from "../../types/Assegnazioni";
 import { Nullable } from "../../types/Nullable";
 import { TAlert } from "../../types/TAlert";
-import { User } from "../../types/User";
+import { Assegnazione } from "../../types/Assegnazione";
 import removeElemFromArr from "../../utils/removeElemFromArr";
 
 import Alert from "../alert";
 
 type AssegnazProps = {
-  user: User;
-  logout: () => Promise<void>;
   alert: Nullable<TAlert>;
   setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
+  tipiBadge: TipoBadge[];
+  assegnazioni: Assegnazione[];
+  setAssegnazioni: React.Dispatch<React.SetStateAction<Assegnazione[]>>;
 };
 
 type AssegnazState = {
-  tipiBadge: TipoBadge[],
-  assegnazioni: Assegnazioni,
   assegnazForm: AssegnazFormState
 };
 
 export default class Assegnaz extends React.Component<AssegnazProps, AssegnazState> {
-
-  static initialAssegnazioniState: Assegnazioni = {
-    badge: [],
-    veicolo: [],
-    chiave: []
-  };
 
   static initialAssegnazFormState: AssegnazFormState = {
     tipoBadge: TipoBadge.BADGE,
@@ -41,35 +33,9 @@ export default class Assegnaz extends React.Component<AssegnazProps, AssegnazSta
   constructor(props: AssegnazProps) {
     super(props);
     this.state = {
-      tipiBadge: [],
-      assegnazioni: Assegnaz.initialAssegnazioniState,
       assegnazForm: Assegnaz.initialAssegnazFormState
     };
-    this.retriveTipi();
-    this.retriveAssegnazioni();
   }
-
-  retriveTipi = () => {
-    BadgeDataService.getTipiBadge()
-      .then((response) => {
-        console.log(response.data);
-        this.setState({ tipiBadge: response.data.data });
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  retriveAssegnazioni = () => {
-    BadgeDataService.getAssegnazioni()
-      .then((response) => {
-        console.log(response.data);
-        this.setState({ assegnazioni: response.data.data });
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
 
   render() {
     const handleInputChanges = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -84,8 +50,14 @@ export default class Assegnaz extends React.Component<AssegnazProps, AssegnazSta
     const addAssegnazione = () => {
       BadgeDataService.insertAssegnazione(this.state.assegnazForm)
         .then((response) => {
-          const { tipoBadge, assegnazione } = this.state.assegnazForm;
-          this.state.assegnazioni[tipoBadge].push(assegnazione);
+          this.props.setAssegnazioni((prevState) => {
+            const assegnazione = {
+              badge: this.state.assegnazForm.tipoBadge,
+              name: this.state.assegnazForm.assegnazione,
+            };
+            const stateCopy = { ...prevState, assegnazione };
+            return stateCopy;
+          });
         })
         .catch((err) => {
           console.log(err);
@@ -104,13 +76,16 @@ export default class Assegnaz extends React.Component<AssegnazProps, AssegnazSta
       return entryName;
     }
 
-    const deleteAssegnazione = (assegnazToDel: string) => {
+    const deleteAssegnazione = () => {
       BadgeDataService.deleteAssegnazione(this.state.assegnazForm)
         .then((response) => {
-          const { tipoBadge } = this.state.assegnazForm;
-          this.setState((prevState) => {
-            let stateCopy: any = { ...prevState };
-            stateCopy[tipoBadge] = removeElemFromArr(stateCopy[tipoBadge], assegnazToDel);
+          this.props.setAssegnazioni((prevState) => {
+            const assegnazione = {
+              badge: this.state.assegnazForm.tipoBadge,
+              name: this.state.assegnazForm.assegnazione,
+            };
+            let stateCopy = { ...prevState };
+            stateCopy = removeElemFromArr(stateCopy, assegnazione);
             return stateCopy;
           });
         })
@@ -125,7 +100,12 @@ export default class Assegnaz extends React.Component<AssegnazProps, AssegnazSta
 
     const btnDeleteOnClickEvent = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
       const assegnazToDel = findListEntryToDel(event);
-      deleteAssegnazione(assegnazToDel);
+      this.setState((prevState) => {
+        let stateCopy = { ...prevState };
+        stateCopy.assegnazForm.assegnazione = assegnazToDel;
+        return stateCopy;
+      });
+      deleteAssegnazione();
     };
 
     return (
@@ -141,7 +121,7 @@ export default class Assegnaz extends React.Component<AssegnazProps, AssegnazSta
               name="tipo-badge"
               placeholder="tipo badge"
             >
-              {this.state.tipiBadge.map((tipo, index) => (
+              {this.props.tipiBadge.map((tipo, index) => (
                 <option value={tipo} key={index}>
                   {tipo}
                 </option>
@@ -152,20 +132,28 @@ export default class Assegnaz extends React.Component<AssegnazProps, AssegnazSta
         </div>
         <div className="row">
           <div className="list-group list-assegnaz">
-            {this.state.assegnazioni[this.state.assegnazForm.tipoBadge].map((assegnazione, index) => (
-              <div id={`list-assegnaz-entry-${index}`} className="list-group-item row justify-content-between align-items-center">
-                <p>{assegnazione}</p>
-                <button
-                  value={index}
-                  type="button"
-                  className="close"
-                  aria-label="Close"
-                  onClick={(event) => btnDeleteOnClickEvent(event)}
+            {this.props.assegnazioni
+              .filter(
+                (assegnazione) =>
+                  assegnazione.badge === this.state.assegnazForm.tipoBadge
+              )
+              .map((assegnazione, index) => (
+                <div
+                  id={`list-assegnaz-entry-${index}`}
+                  className="list-group-item row justify-content-between align-items-center"
                 >
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-            ))}
+                  <p>{assegnazione}</p>
+                  <button
+                    value={index}
+                    type="button"
+                    className="close"
+                    aria-label="Close"
+                    onClick={(event) => btnDeleteOnClickEvent(event)}
+                  >
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+              ))}
           </div>
         </div>
         <div className="row">
@@ -184,8 +172,13 @@ export default class Assegnaz extends React.Component<AssegnazProps, AssegnazSta
               <label htmlFor="assegnazione">assegnazione</label>
             </div>
           </div>
+        </div>
+        <div className="row">
           <div className="col-sm-3 mb-1">
-            <button onClick={() => addAssegnazione()} className="btn btn-success">
+            <button
+              onClick={() => addAssegnazione()}
+              className="btn btn-success"
+            >
               Aggiungi
             </button>
           </div>

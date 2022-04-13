@@ -5,66 +5,26 @@ import dateFormat from "dateformat";
 // Style
 import "./index.css";
 // Components
-import BadgeDataService from "../../services/badge";
 import { BadgeFormState } from "../../types/BadgeFormState";
 // Types
 import { TipoBadge } from "../../enums/TipoBadge";
 import { StatoBadge } from "../../enums/StatoBadge";
+import { Assegnazione } from "../../types/Assegnazione";
 
 type Props = {
   badgeForm: BadgeFormState;
   handleInputChanges: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   handleInputFileChanges: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  tipiBadge: TipoBadge[];
+  assegnazioni: Assegnazione[];
   tipiDoc: string[];
+  statiBadge: StatoBadge[];
   readOnlyForm: boolean;
   admin: boolean;
   pfpUrl: string;
 };
 
 const BadgeForm: React.FC<Props> = (props: Props) => {
-  const [tipi, setTipi] = React.useState<TipoBadge[]>([]);
-  const [assegnazioni, setAssegnazioni] = React.useState<string[]>([]);
-  const [stati, setStati] = React.useState<StatoBadge[]>([]);
-
-  React.useEffect(() => {
-    retriveTipi();
-    retriveAssegnazioni();
-    retriveStati();
-  }, []);
-  
-  const retriveTipi = () => {
-    BadgeDataService.getTipiBadge()
-      .then(response => {
-        //console.log(response.data);
-        setTipi(response.data.data);
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  };
-  
-  const retriveAssegnazioni = () => {
-    BadgeDataService.getAssegnazioni(props.badgeForm.tipo)
-      .then(response => {
-        //console.log(response.data);
-        setAssegnazioni(response.data.data);
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  };
-
-  const retriveStati = () => {
-    BadgeDataService.getStati()
-      .then(response => {
-        //console.log(response.data);
-        setStati(response.data.data);
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  };
-
   return (
     <div className="badge-form">
       <br />
@@ -108,7 +68,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
             name="tipo"
             placeholder="tipo"
           >
-            {tipi.map((tipo, index) => (
+            {props.tipiBadge.map((tipo, index) => (
               <option
                 value={tipo}
                 key={index}
@@ -132,11 +92,17 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
             placeholder="assegnazione"
           >
             <option value="" key="-1"></option>
-            {assegnazioni.map((assegnaz, index) => (
-              <option value={assegnaz} key={index} disabled={!!props.readOnlyForm}>
-                {assegnaz}
-              </option>
-            ))}
+            {props.assegnazioni
+              .filter((assegnaz) => assegnaz.badge === props.badgeForm.tipo && assegnaz.name)
+              .map((assegnaz, index) => (
+                <option
+                  value={assegnaz.name}
+                  key={index}
+                  disabled={!!props.readOnlyForm}
+                >
+                  {assegnaz.name}
+                </option>
+              ))}
           </select>
           <label htmlFor="assegnazione">assegnazione</label>
         </div>
@@ -152,7 +118,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
             placeholder="stato"
           >
             <option value="" key="-1"></option>
-            {stati.map((stato, index) => (
+            {props.statiBadge.map((stato, index) => (
               <option value={stato} key={index} disabled={!!props.readOnlyForm}>
                 {stato}
               </option>
@@ -178,11 +144,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
       <br />
       <div className="row">
         <div className="col-2 pfp-container" /*align="center"*/>
-          <img
-            alt=""
-            src={props.pfpUrl}
-            className="pfp"
-          />
+          <img alt="" src={props.pfpUrl} className="pfp" />
         </div>
         <div className="col-8">
           <div className="row">
@@ -259,7 +221,11 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                 {props.tipiDoc
                   .filter((tipoDoc) => tipoDoc)
                   .map((tipoDoc, index) => (
-                    <option value={tipoDoc} key={index} disabled={!!props.readOnlyForm}>
+                    <option
+                      value={tipoDoc}
+                      key={index}
+                      disabled={!!props.readOnlyForm}
+                    >
                       {tipoDoc}
                     </option>
                   ))}

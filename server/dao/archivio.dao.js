@@ -16,12 +16,32 @@ export default class ArchivioDAO {
     }
   }
 
-  static async getArchivio(inizio = "", fine = "") {
-    const dateFilter = [{ "data.uscita": { $ne: null } }];
-    if (inizio && fine)
-      dateFilter.push({ "data.entrata": { $gte: new Date(inizio), $lt: new Date(fine) } });
+  static async getArchivio(filters = {}) {
+    const archivioFilter = [{ "data.uscita": { $ne: null } }];
+    if(filters.dataInizio && filters.dataFine) {
+      const dateFilter = { "data.entrata": { $gte: new Date(filters.dataInizio), $lt: new Date(filters.dataFine) } };
+      archivioFilter.push(dateFilter);
+    }
+    Object.entries(filters)
+      .filter(([key, value]) => value && !key.includes("data"))
+      .forEach(([key, value]) => {
+        let filterName = "";
+        switch(key) {
+          case "assegnazione":
+            filterName = key;
+            break;
+          case "nome":
+          case "cognome":
+          case "ditta":
+            filterName = `nominativo.${key}`;
+            break;
+        }
+        let filter = {};
+        filter[filterName] = { $regex: new RegExp(value, i) };
+        archivioFilter.push(filter);
+      });
 
-    const query = { $and: dateFilter };
+    const query = { $and: archivioFilter };
 
     try {
       const cursor = await archivio.find(query);

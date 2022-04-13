@@ -4,12 +4,9 @@ import UserDataService from "../services/user";
 import { Nullable } from "../types/Nullable";
 import { RegisterFormState } from "../types/RegisterFormState";
 import { TAlert } from "../types/TAlert";
-import { User } from "../types/User";
 import Alert from "./alert";
 
 type Props = {
-  user: User;
-  logout: () => Promise<void>;
   alert: Nullable<TAlert>;
   setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
 };

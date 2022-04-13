@@ -1,5 +1,6 @@
 import React from "react";
-import { TableContentElem } from "../types/TableContentElem";
+import "./index.css";
+import { TableContentElem } from "../../types/TableContentElem";
 
 type Props = {
   badges: TableContentElem[];
@@ -7,24 +8,24 @@ type Props = {
 
 const BadgeTable: React.FC<Props> = (props: Props) => {
   return (
-    <div style={{"overflowY":"auto", "height":"300px"}}>
+    <div className="badge-table-wrapper">
     <table className="badge-table table table-striped" id="badge-table">
-      <thead style={{"position":"sticky", "top":"0", "zIndex":1, "backgroundColor":"white"}}>
-        <tr style={{"lineHeight": "10px"}}>
+      <thead className="badge-table-thead">
+        <tr className="badge-table-tr">
           {props.badges.length > 0 &&
             Object.entries(props.badges[0])
               .filter((elem) => elem[1] !== undefined)
               .map((elem, index) => (
-                <th scope="col" key={index} style={{"position":"sticky", "top":"0", "zIndex":1}}>
+                <th scope="col" key={index} className="badge-table-th">
                   {elem[0]}
                 </th>
               ))}
         </tr>
       </thead>
-      <tbody className="badge-tbody" style={{"maxHeight":"50px","overflowY":"scroll", "height":"50px"}}>
+      <tbody className="badge-table-tbody">
         {props.badges.length > 0 &&
           props.badges.map((elem, index) => (
-            <tr key={index} style={{"lineHeight": "10px"}}>
+            <tr key={index} className="badge-table-tr">
               {Object.values(elem)
                 .filter((value) => value !== undefined)
                 .map((value, _index) => (

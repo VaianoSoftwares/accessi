@@ -12,7 +12,8 @@ export default class BadgesController {
             response = {
                 success: true,
                 data: badgesList,
-                filters: req.query
+                filters: req.query,
+                msg: "Badge ottenuti con successo"
             }
             res.json(response);
         } catch(err) {
@@ -33,7 +34,7 @@ export default class BadgesController {
         };
         const valErr = Validator.badgeDoc(dataToVerify).error;
         if(valErr) {
-            return res.status(400).json({ success: false, msg: valErr.details[0].message });
+            return res.status(400).json({ success: false, msg: valErr.details[0].message, data: null });
         }
 
         try {
@@ -41,7 +42,7 @@ export default class BadgesController {
 
             const { error } = badgesResponse;
             if(error) {
-                return res.status(400).json({ success: false, msg: error.message });
+                return res.status(400).json({ success: false, msg: error.message, data: null });
             }
 
             const fileUplResp = await FileManager.uploadPfp(
@@ -52,7 +53,7 @@ export default class BadgesController {
             if (fileUplResp.error) {
               return res
                 .status(400)
-                .json({ success: false, msg: fileUplResp.error.message });
+                .json({ success: false, msg: fileUplResp.error.message, data: null });
             }/* else if (fileUplResp.fileName) {
               const updPfpResp = await BadgesDAO.updateBadge({
                 barcode: req.body.barcode,
@@ -68,14 +69,14 @@ export default class BadgesController {
             res.json({ success: true, msg: "Badge aggiunto con successo", data: badgesResponse });
         } catch(err) {
             console.log(err);
-            res.status(500).json({ success: false, msg: err.message });
+            res.status(500).json({ success: false, msg: err.message, data: null });
         }
     }
 
     static async apiPutBadges(req, res) {
         const valErr = Validator.badgeDoc(req.body).error;
         if(valErr) {
-            return res.status(400).json({ success: false, msg: valErr.details[0].message });
+            return res.status(400).json({ success: false, msg: valErr.details[0].message, data: null });
         }
 
         try {
@@ -83,7 +84,7 @@ export default class BadgesController {
 
             const { error } = badgesResponse;
             if(error) {
-                return res.status(400).json({ success: false, msg: error.message });
+                return res.status(400).json({ success: false, msg: error.message, data: null });
             }
 
             const fileUplResp = await FileManager.uploadPfp(
@@ -94,7 +95,7 @@ export default class BadgesController {
             if (fileUplResp.error) {
               return res
                 .status(400)
-                .json({ success: false, msg: fileUplResp.error.message });
+                .json({ success: false, msg: fileUplResp.error.message, data: null });
             }/* else if (fileUplResp.fileName) {
               const updPfpResp = await BadgesDAO.updateBadge({
                 barcode: req.body.barcode,
@@ -115,7 +116,7 @@ export default class BadgesController {
             res.json({ success: true, msg: "Badge aggiornato con successo.", data: badgesResponse });
         } catch(err) {
             console.log(err);
-            res.status(500).json({ success: false, msg: err.message });
+            res.status(500).json({ success: false, msg: err.message, data: null });
         }
     }
 
@@ -138,17 +139,17 @@ export default class BadgesController {
             res.json({ success: true, msg: "Badge eliminato con successo.", data: badgesResponse });
         } catch(err) {
             console.log(`apiDeleteBadges - ${err}`);
-            res.status(500).json({ success: false, msg: err.message });
+            res.status(500).json({ success: false, msg: err.message, data: null });
         }
     }
 
     static async apiGetEnums(req, res) {
         try {
             const enums = await EnumsDAO.getEnums();
-            res.json({ success: true, data: enums });
+            res.json({ success: true, data: enums, msg: "Enums ottenuti con successo" });
         } catch(err) {
             console.log(`apiGetEnums - ${err}`);
-            res.status(500).json({ success: false, data: {}, error: err });
+            res.status(500).json({ success: false, data: null, msg: err.msg });
         }
     }
 
@@ -157,16 +158,16 @@ export default class BadgesController {
             const { tipo } = req.query;
             if(tipo) {
                 const enumResp = await EnumsDAO.getEnums(`assegnazione.${tipo}`);
-                res.json({ success: true, data: enumResp.assegnazione[tipo] });
+                res.json({ success: true, data: enumResp.assegnazione[tipo], msg: "Assegnazioni ottenute con successo" });
             }
             else {
                 const enumResp = await EnumsDAO.getEnums("assegnazione");
                 /*const assegnazList = Object.values(enumResp.assegnazione).flat()*/;
-                res.json({ success: true, data: /*assegnazList*/enumResp });
+                res.json({ success: true, data: /*assegnazList*/enumResp, msg: "Assegnazioni ottenute con successo" });
             }
         } catch(err) {
             console.log(`apiGetAssegnazioni - ${err}`);
-            res.status(500).json({ success: false, data: [], error: err });
+            res.status(500).json({ success: false, data: {}, msg: String(err) });
         }
     }
 

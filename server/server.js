@@ -6,7 +6,6 @@ import fileUpload from "express-fileupload";
 
 import authRoutes from "./auth/auth.routes.js";
 import badgesRoutes from "./api/badges.routes.js";
-import AuthToken from "./auth/verifyToken.js";
 
 const app = express();
 
@@ -46,7 +45,7 @@ app.use(
 
 // routes
 app.use("/api/v1/users", authRoutes);
-app.use("/api/v1/badges", AuthToken.verifyGuest, badgesRoutes);
+app.use("/api/v1/badges", badgesRoutes);
 
 // backend make public and get compiled react app
 if (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "staging") {

@@ -1,13 +1,12 @@
 import { AxiosResponse } from "axios";
 import axios from "axios";
-//import http from "../http-common";
 import { AssegnazFormState } from "../types/AssegnazFormState";
 import { FindBadgeDoc } from "../types/FindBadgeDoc";
-import { ErrResponse, FetchErrResponse, FetchOkResponse, OkResponse } from "../types/Responses";
+import { GenericResponse, FetchResponse } from "../types/Responses";
 import { TimbraDoc } from "../types/TimbraDoc";
 
 class BadgesDataService {
-  getAll(): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
+  getAll(): Promise<AxiosResponse<FetchResponse>> {
     return axios.get("/api/v1/badges", {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -15,7 +14,7 @@ class BadgesDataService {
     });
   }
 
-  find(query: FindBadgeDoc): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
+  find(query: FindBadgeDoc): Promise<AxiosResponse<FetchResponse>> {
     if (
       Object.keys(query).length === 0 ||
       !Object.values(query).some((value) => value !== null)
@@ -34,7 +33,7 @@ class BadgesDataService {
     });
   }
 
-  insertBadge(data: FormData): Promise<AxiosResponse<OkResponse | ErrResponse>> {
+  insertBadge(data: FormData): Promise<AxiosResponse<GenericResponse>> {
     return axios.post("/api/v1/badges", data, {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -44,7 +43,7 @@ class BadgesDataService {
     });
   }
 
-  updateBadge(data: FormData): Promise<AxiosResponse<OkResponse | ErrResponse>> {
+  updateBadge(data: FormData): Promise<AxiosResponse<GenericResponse>> {
     return axios.put("/api/v1/badges", data, {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -54,7 +53,7 @@ class BadgesDataService {
     });
   }
 
-  deleteBadge(barcode: string): Promise<AxiosResponse<OkResponse | ErrResponse>> {
+  deleteBadge(barcode: string): Promise<AxiosResponse<GenericResponse>> {
     return axios.delete(`/api/v1/badges?barcode=${barcode}`, {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -63,7 +62,15 @@ class BadgesDataService {
     });
   }
 
-  getAssegnazioni(tipo: string = ""): Promise<AxiosResponse<FetchOkResponse | FetchOkResponse>> {
+  getEnums(): Promise<AxiosResponse<GenericResponse>> {
+    return axios.get(`/api/v1/badges/enums`, {
+      headers: {
+        "guest-token": sessionStorage.getItem("guest-token"),
+      },
+    });
+  }
+
+  getAssegnazioni(tipo: string = ""): Promise<AxiosResponse<FetchResponse>> {
     return axios.get(`/api/v1/badges/assegnazioni?tipo=${tipo}`, {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -71,7 +78,7 @@ class BadgesDataService {
     });
   }
 
-  insertAssegnazione(data: AssegnazFormState): Promise<AxiosResponse<OkResponse | ErrResponse>> {
+  insertAssegnazione(data: AssegnazFormState): Promise<AxiosResponse<GenericResponse>> {
     return axios.post("/api/v1/badges/assegnazioni", data, {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -80,7 +87,7 @@ class BadgesDataService {
     });
   }
 
-  deleteAssegnazione(data: AssegnazFormState): Promise<AxiosResponse<OkResponse | ErrResponse>> {
+  deleteAssegnazione(data: AssegnazFormState): Promise<AxiosResponse<GenericResponse>> {
     return axios.delete(`/api/v1/badges/assegnazioni?tipo=${data.tipoBadge}&assegnaz=${data.assegnazione}`, {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -89,7 +96,7 @@ class BadgesDataService {
     });
   }
 
-  getTipiDoc(): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
+  getTipiDoc(): Promise<AxiosResponse<FetchResponse>> {
     return axios.get("/api/v1/badges/tipi-doc", {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -97,7 +104,7 @@ class BadgesDataService {
     });
   }
 
-  getStati(): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
+  getStati(): Promise<AxiosResponse<FetchResponse>> {
     return axios.get("/api/v1/badges/stati", {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -105,7 +112,7 @@ class BadgesDataService {
     });
   }
 
-  getTipiBadge(): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
+  getTipiBadge(): Promise<AxiosResponse<FetchResponse>> {
     return axios.get("/api/v1/badges/tipi", {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -113,7 +120,7 @@ class BadgesDataService {
     });
   }
 
-  getArchivio({ inizio = "", fine = "" }): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
+  getArchivio({ inizio = "", fine = "" }): Promise<AxiosResponse<FetchResponse>> {
     return axios.get(`/api/v1/badges/archivio?inizio=${inizio}&fine=${fine}`, {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -121,7 +128,7 @@ class BadgesDataService {
     });
   }
 
-  getInStrutt(tipo: string = ""): Promise<AxiosResponse<FetchOkResponse | FetchErrResponse>> {
+  getInStrutt(tipo: string = ""): Promise<AxiosResponse<FetchResponse>> {
     return axios.get(`/api/v1/badges/archivio/in-struttura?tipo=${tipo}`, {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -129,7 +136,7 @@ class BadgesDataService {
     });
   }
 
-  timbra(data: TimbraDoc): Promise<AxiosResponse<OkResponse | ErrResponse>> {
+  timbra(data: TimbraDoc): Promise<AxiosResponse<GenericResponse>> {
     return axios.post("/api/v1/badges/archivio", data, {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),

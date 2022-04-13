@@ -15,12 +15,18 @@ import "./index.css";
 import { User } from "../../types/User";
 import { TAlert } from "../../types/TAlert";
 import { Nullable } from "../../types/Nullable";
+import Archivio from "../Archivio";
+import { TipoBadge } from "../../enums/TipoBadge";
+import { Assegnazione } from "../../types/Assegnazione";
 
 type Props = {
     user: User;
     logout: () => Promise<void>;
     alert: Nullable<TAlert>;
     setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
+    tipiBadge: TipoBadge[];
+    assegnazioni: Assegnazione[];
+    setAssegnazioni: React.Dispatch<React.SetStateAction<Assegnazione[]>>;
 };
 
 const AdminMenu: React.FC<Props> = (props: Props) => {
@@ -32,6 +38,11 @@ const AdminMenu: React.FC<Props> = (props: Props) => {
                     <button className="btn btn-success btn-block">
                         <Link className="link-white-text" to="register">
                             Registra Account
+                        </Link>
+                    </button>
+                    <button className="btn btn-success btn-block">
+                        <Link className="link-white-text" to="archivio">
+                            Resoconto Archivio
                         </Link>
                     </button>
                     <button className="btn btn-success btn-block">
@@ -52,8 +63,6 @@ const AdminMenu: React.FC<Props> = (props: Props) => {
                         path="register"
                         element={props.user && props.user.admin === true ? (
                             <Register
-                                user={props.user}
-                                logout={props.logout}
                                 alert={props.alert}
                                 setAlert={props.setAlert}
                             />
@@ -65,13 +74,28 @@ const AdminMenu: React.FC<Props> = (props: Props) => {
                     />
                     <Route path="/" element={<Navigate replace to="register" />} />
                     <Route
+                        path="archivio"
+                        element={props.user && props.user.admin === true ? (
+                            <Archivio
+                                alert={props.alert}
+                                setAlert={props.setAlert}
+                                assegnazioni={props.assegnazioni}
+                            />
+                        ) : props.user ? (
+                            <Navigate replace to="../../home" />
+                        ) : (
+                            <Navigate replace to="../../login" />
+                        )}
+                    />
+                    <Route
                         path="assegnaz"
                         element={props.user && props.user.admin === true ? (
                             <Assegnaz
-                                user={props.user}
-                                logout={props.logout}
                                 alert={props.alert}
                                 setAlert={props.setAlert}
+                                tipiBadge={props.tipiBadge}
+                                assegnazioni={props.assegnazioni}
+                                setAssegnazioni={props.setAssegnazioni}
                             />
                         ) : props.user ? (
                             <Navigate replace to="../../home" />

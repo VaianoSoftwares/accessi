@@ -20,7 +20,6 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "codice-fiscale-js": "^2.3.15",
     "cors": "^2.8.5",
     "dateformat": "^5.0.3",
     "dotenv": "^10.0.0",
@@ -28,7 +27,8 @@
     "express-fileupload": "^1.2.1",
     "joi": "^17.4.1",
     "jsonwebtoken": "^8.5.1",
-    "mongodb": "^4.0.0"
+    "mongodb": "^4.0.0",
+    "spdy": "^4.0.2"
   },
   "devDependencies": {
     "concurrently": "^6.5.1"

@@ -7,7 +7,7 @@ export default class UsersController {
     static async apiRegister(req, res) {
         const { error } = Validator.register(req.body);
         if(error) {
-            return res.status(400).json({ success: false, msg: error.details[0].message });
+            return res.status(400).json({ success: false, msg: error.details[0].message, data: null });
         }
 
         try {
@@ -22,7 +22,7 @@ export default class UsersController {
 
             const response = await UsersDAO.addUser(userDoc);
             if(response.error) {
-                return res.status(400).json({ success: false, msg: response.error.message });
+                return res.status(400).json({ success: false, msg: response.error.message, data: null });
             }
             res.json({ success: true, msg: "Utente registrato con successo", data: response._id });
         } catch(err) {
@@ -35,7 +35,7 @@ export default class UsersController {
         const { error } = Validator.login(req.body);
 
         if(error) {
-            return res.status(400).json({ success: false, msg: error.details[0].message });
+            return res.status(400).json({ success: false, msg: error.details[0].message, data: null });
         }
 
         const { username, password } = req.body;
@@ -72,7 +72,7 @@ export default class UsersController {
               });
         } catch(err) {
             console.log(`apiLogin - ${err}`);
-            res.status(400).json({ success: false, msg: err.message });
+            res.status(400).json({ success: false, msg: err.message, data: null });
         }
     }
 };

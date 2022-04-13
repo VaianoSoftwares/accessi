@@ -1,10 +1,10 @@
 import axios, { AxiosResponse } from "axios";
-//import http from "../http-common";
 import { LoginFormState } from "../types/LoginFormState";
 import { RegisterFormState } from "../types/RegisterFormState";
+import { GenericResponse } from "../types/Responses";
 
 class UserDataService {
-    register(data: RegisterFormState): Promise<AxiosResponse<any>> {
+    register(data: RegisterFormState): Promise<AxiosResponse<GenericResponse>> {
         return axios.post("/api/v1/users/register", data, {
             headers: {
                 "guest-token": sessionStorage.getItem("guest-token"),
@@ -13,11 +13,11 @@ class UserDataService {
         });
     }
 
-    login(data: LoginFormState): Promise<AxiosResponse<any>> {
+    login(data: LoginFormState): Promise<AxiosResponse<GenericResponse>> {
         return axios.post("/api/v1/users/login", data);
     }
 
-    getTipiUtenti(): Promise<AxiosResponse<any>> {
+    getTipiUtenti(): Promise<AxiosResponse<GenericResponse>> {
         return axios.get("/api/v1/users/tipi-utenti", {
             headers: {
                 "guest-token": sessionStorage.getItem("guest-token")
