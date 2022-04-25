@@ -1,6 +1,6 @@
 import app from "./server.js";
-import spdy from "spdy";
-// import https from "https";
+import https from "https";
+// import spdy from "spdy";
 import mongodb from "mongodb";
 import fs from "fs";
 import path from "path";
@@ -22,8 +22,8 @@ import EnumsDAO from "./dao/enums.dao.js";
 
 const MongoClient = mongodb.MongoClient;
 const port = process.env.PORT || 443;
-// const httpsServer = https.createServer(credentials, app);
-const http2Server = spdy.createServer(credentials, app);
+const httpsServer = https.createServer(credentials, app);
+// const http2Server = spdy.createServer(credentials, app);
 
 MongoClient.connect(process.env.ACCESSI_DB_URI)
   .then(async client => {
@@ -31,7 +31,8 @@ MongoClient.connect(process.env.ACCESSI_DB_URI)
     await ArchivioDAO.injectDB(client);
     await UsersDAO.injectDB(client);
     await EnumsDAO.injectDB(client);
-    /*httpsServer*/http2Server.listen(port, () => console.log(`HTTP/2 Server running on port ${port}.`));
+    httpsServer.listen(port, () => console.log(`HTTPS Server running on port ${port}.`));
+    // http2Server.listen(port, () => console.log(`HTTP/2 Server running on port ${port}.`));
   })
   .catch(err => {
     console.error(err.stack);

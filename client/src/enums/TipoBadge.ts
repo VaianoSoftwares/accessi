@@ -1,5 +1,5 @@
 export enum TipoBadge {
-    BADGE = "badge",
-    VEICOLO = "veicolo",
-    CHIAVE = "chiave"
+    BADGE = "BADGE",
+    VEICOLO = "VEICOLO",
+    CHIAVE = "CHIAVE"
 };

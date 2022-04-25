@@ -359,7 +359,7 @@ const Home: React.FC<Props> = (props: Props) => {
         "yyyy-mm-dd HH:MM:ss"
       );
 
-      const mappedArchivioElem: TableContentElem = elem.tipo === "chiave" ? {
+      const mappedArchivioElem: TableContentElem = elem.tipo === TipoBadge.CHIAVE ? {
         codice: props.user.admin ? elem.barcode : "XXXXX",
         tipo: elem.tipo,
         assegnaz: elem.assegnazione,
@@ -457,6 +457,7 @@ const Home: React.FC<Props> = (props: Props) => {
   };
 
   return (
+    <>
     <div id="home-wrapper">
       <Navbar
         user={props.user}
@@ -497,20 +498,21 @@ const Home: React.FC<Props> = (props: Props) => {
         <b># in struttura:</b> {badges.length}
       </div>
       <br />
-      <BadgeTable badges={badges} />
       <Clock />
       <OspitiPopup
         isShown={isShown}
         setIsShown={setIsShown}
         tipiDoc={props.tipiDoc}
         timbra={timbra}
-        isVeicolo={badgeForm.tipo === "veicolo"}
+        isVeicolo={badgeForm.tipo === TipoBadge.VEICOLO}
         tipoBadge={badgeForm.tipo}
       />
       <div className="home-alert-wrapper">
         <Alert alert={props.alert} setAlert={props.setAlert} />
       </div>
     </div>
+    <BadgeTable badges={badges} />
+    </>
   );
 }
 

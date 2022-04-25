@@ -173,13 +173,17 @@ export default class BadgesController {
 
     static async apiPostAssegnazioni(req, res) {
         try {
-            const { tipo, assegnaz } = req.body;
-            const { error } = Validator.enumDoc({ tipo, assegnaz });
+            const { error } = Validator.enumDoc(req.body);
             if(error) {
                 return res.status(400).json({ success: false, msg: error.details[0].message });
             }
 
-            const enumResp = await EnumsDAO.pushEnum(tipo, [assegnaz]);
+            const assegnazObj = {
+                badge: req.body.tipo.toUpperCase(),
+                name: req.body.assegnaz.toUpperCase()
+            };
+
+            const enumResp = await EnumsDAO.pushAssegnaz("assegnazione", [assegnazObj]);
             if(enumResp.error) {
                 return res.status(400).json({ success: false, msg: error.message });
             }
@@ -199,13 +203,17 @@ export default class BadgesController {
 
     static async apiDeleteAssegnazioni(req, res) {
         try {
-            const { tipo, assegnaz } = req.query;
-            const { error } = Validator.enumDoc({ tipo, assegnaz });
+            const { error } = Validator.enumDoc(req.query);
             if(error) {
                 return res.status(400).json({ success: false, msg: error.details[0].message });
             }
 
-            const enumResp = await EnumsDAO.pullEnum(tipo, [assegnaz]);
+            const assegnazObj = {
+                badge: req.body.tipo.toUpperCase(),
+                name: req.body.assegnaz.toUpperCase()
+            };
+
+            const enumResp = await EnumsDAO.pullAssegnaz("assegnazione", [assegnazObj]);
             if(enumResp.error) {
                 return res.status(400).json({ success: false, msg: error.message });
             }

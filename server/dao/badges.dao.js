@@ -69,19 +69,19 @@ export default class BadgesDAO {
 
   static #getBadgeDoc(data) {
     let badgeDoc = {
-      barcode: data.barcode,
-      descrizione: data.descrizione,
-      tipo: "badge",
-      assegnazione: data.assegnazione,
-      ubicazione: data.ubicazione,
-      stato: data.stato || "valido",
+      barcode: data.barcode.toUpperCase(),
+      descrizione: data.descrizione.toUpperCase(),
+      tipo: "BADGE",
+      assegnazione: data.assegnazione.toUpperCase(),
+      ubicazione: data.ubicazione.toUpperCase(),
+      stato: data.stato || "VALIDO",
       nominativo: {
-        nome: data.nome,
-        cognome: data.cognome,
-        ditta: data.ditta,
-        telefono: data.telefono,
-        tdoc: data.tdoc,
-        ndoc: data.ndoc,
+        nome: data.nome.toUpperCase(),
+        cognome: data.cognome.toUpperCase(),
+        ditta: data.ditta.toUpperCase(),
+        telefono: data.telefono.toUpperCase(),
+        tdoc: data.tdoc.toUpperCase(),
+        ndoc: data.ndoc.toUpperCase(),
         scadenza:
           data.scadenza === ""
             ? ""
@@ -95,25 +95,25 @@ export default class BadgesDAO {
 
   static #getVeicoloDoc(data) {
     const veicoloDoc = {
-      barcode: data.barcode,
-      descrizione: data.descrizione,
-      tipo: "veicolo",
-      assegnazione: data.assegnazione,
-      ubicazione: data.ubicazione,
-      stato: data.stato || "valido",
+      barcode: data.barcode.toUpperCase(),
+      descrizione: data.descrizione.toUpperCase(),
+      tipo: "VEICOLO",
+      assegnazione: data.assegnazione.toUpperCase(),
+      ubicazione: data.ubicazione.toUpperCase(),
+      stato: data.stato || "VALIDO",
       nominativo: {
-        nome: data.nome,
-        cognome: data.cognome,
-        ditta: data.ditta,
-        telefono: data.telefono,
-        tdoc: data.tdoc,
-        ndoc: data.ndoc,
+        nome: data.nome.toUpperCase(),
+        cognome: data.cognome.toUpperCase(),
+        ditta: data.ditta.toUpperCase(),
+        telefono: data.telefono.toUpperCase(),
+        tdoc: data.tdoc.toUpperCase(),
+        ndoc: data.ndoc.toUpperCase(),
         scadenza: "",
         targhe: {
-          1: data.targa1,
-          2: data.targa2,
-          3: data.targa3,
-          4: data.targa4
+          1: data.targa1.toUpperCase(),
+          2: data.targa2.toUpperCase(),
+          3: data.targa3.toUpperCase(),
+          4: data.targa4.toUpperCase()
         }
       }
     };
@@ -123,19 +123,19 @@ export default class BadgesDAO {
 
   static #getChiaveDoc(data) {
     const chiaveDoc = {
-      barcode: data.barcode,
-      descrizione: data.descrizione,
-      tipo: "chiave",
-      assegnazione: data.assegnazione,
-      ubicazione: data.ubicazione,
-      stato: data.stato || "valido",
+      barcode: data.barcode.toUpperCase(),
+      descrizione: data.descrizione.toUpperCase(),
+      tipo: "CHIAVE",
+      assegnazione: data.assegnazione.toUpperCase(),
+      ubicazione: data.ubicazione.toUpperCase(),
+      stato: data.stato || "VALIDO",
       nominativo: {
-        nome: data.nome,
-        cognome: data.cognome,
-        ditta: data.ditta,
-        telefono: data.telefono,
-        tdoc: data.tdoc,
-        ndoc: data.ndoc,
+        nome: data.nome.toUpperCase(),
+        cognome: data.cognome.toUpperCase(),
+        ditta: data.ditta.toUpperCase(),
+        telefono: data.telefono.toUpperCase(),
+        tdoc: data.tdoc.toUpperCase(),
+        ndoc: data.ndoc.toUpperCase(),
         scadenza: "",
         targhe: null
       }
@@ -146,12 +146,12 @@ export default class BadgesDAO {
 
   static #getProvvisorioDoc(data) {
     const provDoc = {
-      barcode: data.barcode,
-      descrizione: data.descrizione,
-      tipo: "badge",
-      assegnazione: data.assegnazione,
-      ubicazione: data.ubicazione,
-      stato: data.stato || "valido",
+      barcode: data.barcode.toUpperCase(),
+      descrizione: data.descrizione.toUpperCase(),
+      tipo: "BADGE",
+      assegnazione: data.assegnazione.toUpperCase(),
+      ubicazione: data.ubicazione.toUpperCase(),
+      stato: data.stato || "VALIDO",
       nominativo: null
     };
 
@@ -185,11 +185,11 @@ export default class BadgesDAO {
 
       const badgeDoc = !isNom
         ? this.#getProvvisorioDoc(data)
-        : !data.tipo || data.tipo === "badge"
+        : !data.tipo || data.tipo === "BADGE"
         ? this.#getBadgeDoc(data)
-        : data.tipo === "veicolo"
+        : data.tipo === "VEICOLO"
         ? this.#getVeicoloDoc(data)
-        : data.tipo === "chiave"
+        : data.tipo === "CHIAVE"
         ? this.#getChiaveDoc(data)
         : null;
 
@@ -224,7 +224,7 @@ export default class BadgesDAO {
             case "telefono":
             case "tdoc":
             case "ndoc":
-              paramsToUpdate[`nominativo.${key}`] = value;
+              paramsToUpdate[`nominativo.${key}`] = value.toUpperCase();
               break;
             case "targa1":
             case "targa2":
@@ -232,7 +232,7 @@ export default class BadgesDAO {
             case "targa4":
               paramsToUpdate[
                 `nominativo.targhe.${key.charAt(key.length - 1)}`
-              ] = value;
+              ] = value.toUpperCase();
               break;
             case "scadenza":
               paramsToUpdate[`nominativo.${key}`] = dateFormat(
@@ -241,7 +241,7 @@ export default class BadgesDAO {
               );
               break;
             default:
-              paramsToUpdate[key] = value;
+              paramsToUpdate[key] = value.toUpperCase();
           }
         });
 
@@ -260,7 +260,7 @@ export default class BadgesDAO {
 
   static async deleteBadge(barcode) {
     try {
-      const deleteResponse = await badges.deleteOne({ barcode: barcode });
+      const deleteResponse = await badges.deleteOne({ barcode: barcode.toUpperCase() });
       return deleteResponse;
     } catch (err) {
       console.log(`deleteBadge - ${err}`);

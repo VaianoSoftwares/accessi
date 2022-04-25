@@ -37,7 +37,7 @@ export default class ArchivioDAO {
             break;
         }
         let filter = {};
-        filter[filterName] = { $regex: new RegExp(value, i) };
+        filter[filterName] = { $regex: new RegExp(value, "i") };
         archivioFilter.push(filter);
       });
 
@@ -95,10 +95,10 @@ export default class ArchivioDAO {
 
     try {
       if (isUni) {
-        timbraResp.tipo = "badge";
-        timbraResp.assegnazione = "utente";
+        timbraResp.tipo = "BADGE";
+        timbraResp.assegnazione = "UTENTE";
         timbraResp.nominativo = {
-          tdoc: "tessera studente",
+          tdoc: "TESSERA STUDENTE",
           ndoc: barcode
         }
 
@@ -117,7 +117,7 @@ export default class ArchivioDAO {
         if (!fetchedBadge) {
           throw new Error(`Badge ${barcode} invalido: non esistente`);
         }
-        else if (fetchedBadge.stato !== "valido") {
+        else if (fetchedBadge.stato !== "VALIDO") {
           throw new Error(`Badge ${barcode} non valido: ${fetchedBadge.stato}`);
         }
         else if (fetchedBadge.scadenza && new Date() >= fetchedBadge.scadenza) {
@@ -293,7 +293,7 @@ export default class ArchivioDAO {
   static async getInStrutt(tipoBadge = "") {
     try {
       //const tipoExpr = tipoBadge ? { $eq: ["$tipo", tipoBadge] } : {};
-      const tipoExpr = tipoBadge ? { "tipo": { $eq: tipoBadge } } : {};
+      const tipoExpr = tipoBadge ? { "tipo": { $regex: new RegExp(tipoBadge, "i") } } : {};
       const cursor = await archivio.aggregate([
         {
           $lookup: {

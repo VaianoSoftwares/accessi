@@ -2,9 +2,7 @@ let enums;
 
 export default class EnumsDAO {
     static async injectDB(conn) {
-        if(enums) {
-            return;
-        }
+        if(enums) return;
 
         try {
             enums = await conn.db(process.env.DB_NAME).collection("enums");
@@ -13,35 +11,32 @@ export default class EnumsDAO {
         }
     }
 
-    static async getEnums(tipoEnum) {
+    static async getEnums() {
         try {
-            // let projection = { _id: 0 };
-            // if(tipoEnum) {
-            //     projection[tipoEnum] = 1;
-            // }
-            // return await enums.findOne({}, { projection });
             return await enums.findOne();
         } catch(err) {
             console.log(`getEnums - ${err}`);
         }
     }
 
-    static async pushEnum(fieldToUpd, dataToPush = []) {
+    static async pushAssegnaz(dataToPush = []) {
         try {
-            let expr = {};
-            expr[fieldToUpd] = { $each: dataToPush }; 
-            return await enums.updateOne({}, { $addToSet: expr });
+            return await enums.updateOne(
+              {},
+              { $addToSet: { assegnazione: { $each: dataToPush } } }
+            );
         } catch(err) {
             console.log(`updateEnum - ${err}`);
             return { error: err };
         }
     }
 
-    static async pullEnum(fieldToUpd, dataToPull = []) {
+    static async pullAssegnaz(dataToPull = []) {
         try {
-            let expr = {};
-            expr[fieldToUpd] = dataToPull;
-            return await enums.updateOne({}, { $pullAll: expr });
+            return await enums.updateOne(
+              {},
+              { $pullAll: { assegnazione: dataToPull } }
+            );
         } catch(err) {
             console.log(`updateEnum -${err}`);
             return { error: err };

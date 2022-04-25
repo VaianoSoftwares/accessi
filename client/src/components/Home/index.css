@@ -1,3 +1,7 @@
+.home-wrapper {
+    overflow: hidden;
+}
+
 .home-alert-wrapper {
     position: absolute;
     left: 67%;

@@ -11,7 +11,7 @@ export default class FileManager {
             console.log("No file to upload.");
             return {};
         }
-        else if(tipoBadge !== "badge") {
+        else if(tipoBadge !== "BADGE") {
             console.log(`Can't upload pfp for badge type: ${tipoBadge}`);
             return {};
         }
@@ -23,6 +23,12 @@ export default class FileManager {
             const fileExt = path.extname(pfp.name);
             if(fileExt !== ".jpg") {
                 throw new Error(`${fileExt} estensione file non valida.`);
+            }
+
+            const fileSize = pfp.data.length;
+            const maxFileSize = 50 * 1024;
+            if(fileSize > maxFileSize) {
+                throw new Error(`Dimensione file ${fileSize / 1024}KB superiore a 50KB.`);
             }
     
             const newName = `USER_${barcode}${fileExt}`;
