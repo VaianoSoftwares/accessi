@@ -1,9 +1,13 @@
 .form-buttons {
     position: absolute;
-    left: 55%;
-    top: 12%;
+    left: 45%;
+    /* top: 10%; */
 }
 
 .home-form-btn {
-    width: 100px
+    width: 95px
+}
+
+.home-form-b {
+    font-size: 14px;
 }

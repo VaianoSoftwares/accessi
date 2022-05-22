@@ -2,7 +2,6 @@
 // Modules
 import React from "react";
 import dateFormat from "dateformat";
-//import globals from "../../global-vars";
 // Style
 import "./index.css";
 // Services
@@ -18,7 +17,7 @@ import Alert from "../alert";
 // Types
 import { User } from "../../types/User";
 import { TAlert } from "../../types/TAlert";
-import { TableContentElem } from "../../types/TableContentElem";
+import { ArchivioTableContent, InStruttTableContent, TableContentElem } from "../../types/TableContentElem";
 import { BadgeFormState } from "../../types/BadgeFormState";
 import { ArchivioElem } from "../../types/ArchivioElem";
 import { Badge } from "../../types/Badge";
@@ -29,6 +28,9 @@ import { TimbraDoc } from "../../types/TimbraDoc";
 import { FindBadgeDoc } from "../../types/FindBadgeDoc";
 import { GenericResponse } from "../../types/Responses";
 import { Assegnazione } from "../../types/Assegnazione";
+import { ArchivioFormState } from "../../types/ArchivioFormState";
+import htmlTableToExcel from "../../utils/htmlTableToExcel";
+import { FindArchivioDoc } from "../../types/FindArchivioDoc";
 
 type Props = {
   user: User;
@@ -62,16 +64,20 @@ const Home: React.FC<Props> = (props: Props) => {
     targa3: "",
     targa4: ""
   };
-  /*
-  const initialArchivioFormState = {
-    inizio: dateFormat(new Date(new Date().setDate(new Date().getDate() - 1)), "yyyy-mm-dd"),
-    fine: dateFormat(new Date(), "yyyy-mm-dd")
+  
+  const initialArchivioFormState: ArchivioFormState = {
+    dataInizio: dateFormat(
+        new Date(new Date().setDate(new Date().getDate() - 1)),
+        "yyyy-mm-dd"
+    ),
+    dataFine: dateFormat(new Date(), "yyyy-mm-dd"),
   };
-  */
 
   const [badges, setBadges] = React.useState<TableContentElem[]>([]);
+  const [inStrutt, setInStrutt] = React.useState<InStruttTableContent[]>([]);
+  const [archivioList, setArchivioList] = React.useState<ArchivioTableContent[]>([]);
   const [badgeForm, setBadgeForm] = React.useState<BadgeFormState>(initialBadgeFormState);
-  //const [archivioForm, setArchivioForm] = React.useState(initialArchivioFormState);
+  const [archivioForm, setArchivioForm] = React.useState<ArchivioFormState>(initialArchivioFormState);
   const [isShown, setIsShown] = React.useState(false);
   const [readOnlyForm, setReadOnlyForm] = React.useState(true);
   const [scannedValue, setScannedValue] = React.useState("");
@@ -84,7 +90,6 @@ const Home: React.FC<Props> = (props: Props) => {
   }, [badgeForm.tipo]);
 
   React.useEffect(() => {
-    //toggleReadonlyInputs(readOnlyForm);
     props.setAlert(null);
     if(readOnlyForm === true) {
       setBadgeForm({ ...initialBadgeFormState, tipo: badgeForm.tipo });
@@ -124,29 +129,17 @@ const Home: React.FC<Props> = (props: Props) => {
     const { name, files } = e.target;
     setBadgeForm({ ...badgeForm, [name]: files![0] });
   };
-  /*
-  const handleInputChangesArchivio = e => {
+  
+  const handleInputChangesArchivio = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setArchivioForm({ ...archivioForm, [name]: value });
   };
-  */
+  
   const retriveInStrutt = () => {
     BadgeDataService.getInStrutt(badgeForm.tipo)
       .then(response => {
         console.log(response.data);
-        setBadges(mapArchivioToTableContent(response.data.data));
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  };
-
-  /*
-  const retriveBadges = () => {
-    BadgeDataService.getAll()
-      .then(response => {
-        console.log(response.data);
-        setBadges(mapToTableContent(response.data.data));
+        setInStrutt(mapArchivioToInStruttTableContent(response.data.data));
       })
       .catch(err => {
         console.log(err);
@@ -154,16 +147,21 @@ const Home: React.FC<Props> = (props: Props) => {
   };
   
   const findArchivio = () => {
-    setTableContentType("archivio");
-    BadgeDataService.getArchivio(archivioForm)
+    BadgeDataService.getArchivio(mapToFindArchivioDoc(badgeForm, archivioForm))
       .then(response => {
         console.log(response.data);
-        setBadges(mapToTableContent(response.data.data));
+        const mappedArchivio = mapArchivioToTableContent(response.data.data);
+        setArchivioList(mappedArchivio);
+        htmlTableToExcel("popup-table");
       })
       .catch(err => {
         console.log(err);
+        if(err.response) {
+          const { success, msg } = err.response.data as GenericResponse;
+          props.setAlert({ success, msg });
+        }
       });
-  };*/
+  };
   
   const findBadges = () => {
     BadgeDataService.find(mapToFindBadgeDoc(badgeForm))
@@ -208,10 +206,10 @@ const Home: React.FC<Props> = (props: Props) => {
           setPfpUrl(url);
         }                           
 
-        const filteredBadges = badges
+        const filteredInStrutt = inStrutt
           .filter(badge => badge.codice !== rowTimbra.barcode);
-        const mappedRowTimbra = mapArchivioToTableContent([rowTimbra])[0];
-        setBadges([mappedRowTimbra, ...filteredBadges]);                        
+        const mappedRowTimbra = mapArchivioToInStruttTableContent([rowTimbra])[0];
+        setInStrutt([mappedRowTimbra, ...filteredInStrutt]);                        
 
         const { msg } = response.data;
         const badgeTable: Nullable<HTMLTableElement> = document.querySelector("table.badge-table");
@@ -224,11 +222,11 @@ const Home: React.FC<Props> = (props: Props) => {
             setBadgeForm(initialBadgeFormState);
             setPfpUrl("");
           }
-          /*
-          if(msg === "Timbra Esce") {
-            setBadges(filteredBadges);
-          }
-          */
+          
+          // if(msg === "Timbra Esce") {
+          //   setBadges(filteredBadges);
+          // }
+          
           retriveInStrutt();
           props.setAlert(null);
 
@@ -252,7 +250,6 @@ const Home: React.FC<Props> = (props: Props) => {
         console.log(response.data);
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
-        //retriveBadges();
         props.setAlert(null);
       })
       .catch(err => {
@@ -270,9 +267,7 @@ const Home: React.FC<Props> = (props: Props) => {
 
   const updateBadge = () => {
     const confirmed = window.confirm("Procedere alla modifica del badge?");
-		if (!confirmed) {
-      return;
-    }
+		if (!confirmed) return;
 
     const formData = createFormData();
     BadgeDataService.updateBadge(formData)
@@ -280,7 +275,6 @@ const Home: React.FC<Props> = (props: Props) => {
         console.log(response.data);
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
-        //retriveBadges();
         props.setAlert(null);
       })
       .catch(err => {
@@ -298,16 +292,13 @@ const Home: React.FC<Props> = (props: Props) => {
 
   const deleteBadge = () => {
     const confirmed = window.confirm("Procedere alla rimozione del badge?");
-		if (!confirmed) {
-      return;
-    }
+		if (!confirmed) return;
 
     BadgeDataService.deleteBadge(badgeForm.barcode)
       .then(response => {
         console.log(response.data);
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
-        //retriveBadges();
         props.setAlert(null);
       })
       .catch(err => {
@@ -341,10 +332,33 @@ const Home: React.FC<Props> = (props: Props) => {
         nome: elem.nominativo ? elem.nominativo.nome : "",
         cognome: elem.nominativo ? elem.nominativo.cognome : "",
         ditta: elem.nominativo ? elem.nominativo.ditta : "",
-        "data ora consegna": undefined,
-        "data ora in": undefined
       };
       return mappedBadge;
+    });
+  };
+
+  const mapArchivioToInStruttTableContent = (data: ArchivioElem[]) => {
+    return data.map((elem: ArchivioElem) => {
+      const dataEntrata: string = dateFormat(
+        new Date(
+          new Date(elem.data.entrata).setHours(
+            new Date(elem.data.entrata).getHours() - 2
+          )
+        ),
+        "yyyy-mm-dd HH:MM:ss"
+      );
+
+      const mappedArchivioElem: InStruttTableContent = {
+        codice: props.user.admin ? elem.barcode : "XXXXX",
+        tipo: elem.tipo,
+        assegnaz: elem.assegnazione,
+        nome: elem.nominativo.nome,
+        cognome: elem.nominativo.cognome,
+        ditta: elem.nominativo.ditta,
+        entrata: props.user.admin ? dataEntrata : "XXXXX",
+      };
+
+      return mappedArchivioElem;
     });
   };
 
@@ -359,26 +373,26 @@ const Home: React.FC<Props> = (props: Props) => {
         "yyyy-mm-dd HH:MM:ss"
       );
 
-      const mappedArchivioElem: TableContentElem = elem.tipo === TipoBadge.CHIAVE ? {
-        codice: props.user.admin ? elem.barcode : "XXXXX",
+      const dataUscita: string = dateFormat(
+        new Date(
+          new Date(elem.data.uscita as string).setHours(
+            new Date(elem.data.uscita as string).getHours() - 2
+          )
+        ),
+        "yyyy-mm-dd HH:MM:ss"
+      );
+
+      const mappedBadge: ArchivioTableContent = {
+        codice: elem.barcode,
         tipo: elem.tipo,
         assegnaz: elem.assegnazione,
-        nome: elem.nominativo.nome,
-        cognome: elem.nominativo.cognome,
-        ditta: elem.nominativo.ditta,
-        "data ora consegna": props.user.admin ? dataEntrata : "XXXXX",
-        "data ora in": undefined
-      } : {
-        codice: props.user.admin ? elem.barcode : "XXXXX",
-        tipo: elem.tipo,
-        assegnaz: elem.assegnazione,
-        nome: elem.nominativo.nome,
-        cognome: elem.nominativo.cognome,
-        ditta: elem.nominativo.ditta,
-        "data ora consegna": undefined,
-        "data ora in": props.user.admin ? dataEntrata : "XXXXX"
+        nome: elem.nominativo ? elem.nominativo.nome : "",
+        cognome: elem.nominativo ? elem.nominativo.cognome : "",
+        ditta: elem.nominativo ? elem.nominativo.ditta : "",
+        entrata: dataEntrata,
+        uscita: dataUscita
       };
-      return mappedArchivioElem;
+      return mappedBadge;
     });
   };
 
@@ -443,6 +457,27 @@ const Home: React.FC<Props> = (props: Props) => {
     targa4: badgeForm.targa4,
   });
 
+  const mapToFindArchivioDoc = (badgeForm: BadgeFormState, archivioForm: ArchivioFormState): FindArchivioDoc => ({
+    dataInizio: archivioForm.dataInizio,
+    dataFine: archivioForm.dataFine,
+    barcode: badgeForm.barcode,
+    descrizione: badgeForm.descrizione,
+    tipo: badgeForm.tipo,
+    assegnazione: badgeForm.assegnazione,
+    stato: badgeForm.stato,
+    ubicazione: badgeForm.ubicazione,
+    nome: badgeForm.nome,
+    cognome: badgeForm.cognome,
+    telefono: badgeForm.telefono,
+    ditta: badgeForm.ditta,
+    tdoc: badgeForm.tdoc,
+    ndoc: badgeForm.ndoc,
+    targa1: badgeForm.targa1,
+    targa2: badgeForm.targa2,
+    targa3: badgeForm.targa3,
+    targa4: badgeForm.targa4,
+  });
+
   const getPfpUrlByBarcode = (barcode?: string) =>
     barcode
       ? `/api/v1/public/foto-profilo/USER_${barcode}.jpg`
@@ -457,7 +492,6 @@ const Home: React.FC<Props> = (props: Props) => {
   };
 
   return (
-    <>
     <div id="home-wrapper">
       <Navbar
         user={props.user}
@@ -465,40 +499,48 @@ const Home: React.FC<Props> = (props: Props) => {
         badgeForm={badgeForm}
         setBadgeForm={setBadgeForm}
       />
-      <br />
-      <div className="submit-form">
-        <BadgeForm
-          badgeForm={badgeForm}
-          handleInputChanges={handleInputChanges}
-          handleInputFileChanges={handleInputFileChanges}
-          tipiBadge={props.tipiBadge}
-          assegnazioni={props.assegnazioni}
-          tipiDoc={props.tipiDoc}
-          statiBadge={props.statiBadge}
-          readOnlyForm={readOnlyForm}
-          admin={props.user.admin}
-          pfpUrl={pfpUrl}
-        />
-        <FormButtons
-          findBadges={findBadges}
-          insertBadge={insertBadge}
-          updateBadge={updateBadge}
-          deleteBadge={deleteBadge}
-          refreshPage={refreshPage}
-          setIsShown={setIsShown}
-          readOnlyForm={readOnlyForm}
-          setReadOnlyForm={setReadOnlyForm}
-          admin={props.user.admin}
-          setScannedValue={setScannedValue}
-        />
+      <div className="container-fluid mb-1 home-container">
+        <div className="row mt-2 justify-content-start align-items-start submit-form">
+          <BadgeForm
+            badgeForm={badgeForm}
+            archivioForm={archivioForm}
+            handleInputChanges={handleInputChanges}
+            handleInputFileChanges={handleInputFileChanges}
+            handleInputChangesArchivio={handleInputChangesArchivio}
+            tipiBadge={props.tipiBadge}
+            assegnazioni={props.assegnazioni}
+            tipiDoc={props.tipiDoc}
+            statiBadge={props.statiBadge}
+            readOnlyForm={readOnlyForm}
+            admin={props.user.admin}
+            pfpUrl={pfpUrl}
+          />
+          <FormButtons
+            findBadges={findBadges}
+            findArchivio={findArchivio}
+            insertBadge={insertBadge}
+            updateBadge={updateBadge}
+            deleteBadge={deleteBadge}
+            refreshPage={refreshPage}
+            setIsShown={setIsShown}
+            readOnlyForm={readOnlyForm}
+            setReadOnlyForm={setReadOnlyForm}
+            admin={props.user.admin}
+            setScannedValue={setScannedValue}
+            badges={badges}
+            archivioList={archivioList}
+          />
+          <div className="col-3">
+            <Clock />
+          </div>
+          <div className="in-strutt-count">
+            <b># in struttura:</b> {inStrutt.length}
+          </div>
+        </div>
+        <div className="home-alert-wrapper">
+          <Alert alert={props.alert} setAlert={props.setAlert} />
+        </div>
       </div>
-      <div
-        className="in-strutt-count"
-      >
-        <b># in struttura:</b> {badges.length}
-      </div>
-      <br />
-      <Clock />
       <OspitiPopup
         isShown={isShown}
         setIsShown={setIsShown}
@@ -507,12 +549,10 @@ const Home: React.FC<Props> = (props: Props) => {
         isVeicolo={badgeForm.tipo === TipoBadge.VEICOLO}
         tipoBadge={badgeForm.tipo}
       />
-      <div className="home-alert-wrapper">
-        <Alert alert={props.alert} setAlert={props.setAlert} />
+      <div className="badge-table-wrapper" id="badge-table">
+        <BadgeTable content={inStrutt} />
       </div>
     </div>
-    <BadgeTable badges={badges} />
-    </>
   );
 }
 

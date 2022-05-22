@@ -2,9 +2,12 @@ import React from "react";
 import SerialComponent from "../serial-component";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import "./index.css";
+import BadgePopup from "../BadgePopup";
+import { ArchivioTableContent, TableContentElem } from "../../types/TableContentElem";
 
 type Props = {
   findBadges: () => void;
+  findArchivio: () => void;
   insertBadge: () => void;
   updateBadge: () => void;
   deleteBadge: () => void;
@@ -14,6 +17,8 @@ type Props = {
   setReadOnlyForm: React.Dispatch<React.SetStateAction<boolean>>;
   admin: boolean;
   setScannedValue: React.Dispatch<React.SetStateAction<string>>;
+  badges: TableContentElem[];
+  archivioList: ArchivioTableContent[];
 };
 
 const FormButtons: React.FC<Props> = (props: Props) => {
@@ -21,11 +26,10 @@ const FormButtons: React.FC<Props> = (props: Props) => {
 
   return (
     <div className="form-buttons">
-      <div className="col mb-1">
+      <div className="row align-items-center justify-content-start g-0">
         <SerialComponent setScannedValue={props.setScannedValue} />
-      </div>
-      <div className="row mb-1">
-        <div className="col-sm-5">
+        <div className="w-100 mt-1"></div>
+        <div className="col-auto">
           <button
             onClick={() => props.setReadOnlyForm(!props.readOnlyForm)}
             className="btn btn-success home-form-btn"
@@ -33,63 +37,78 @@ const FormButtons: React.FC<Props> = (props: Props) => {
             Form
           </button>
         </div>
-        <div className="col-sm-5">
+        <div className="col-auto mx-2 home-form-b">
           <b style={props.readOnlyForm ? { color: "red" } : { color: "green" }}>
             {props.readOnlyForm && "Non "}
             {"Attivo"}
           </b>
         </div>
-      </div>
-      <div className="col-sm-3 mb-1">
-        <button
-          onClick={() => props.findBadges()}
-          className="btn btn-success home-form-btn"
-        >
-          Trova
-        </button>
-      </div>
-      {props.admin === true && (
-        <div>
-          <div className="col-sm-3 mb-1">
-            <button
-              onClick={() => props.insertBadge()}
-              className="btn btn-success home-form-btn"
-            >
-              Aggiungi
-            </button>
-          </div>
-          <div className="col-sm-3 mb-1">
-            <button
-              onClick={() => props.updateBadge()}
-              className="btn btn-success home-form-btn"
-            >
-              Aggiorna
-            </button>
-          </div>
-          <div className="col-sm-3 mb-1">
-            <button
-              onClick={() => props.deleteBadge()}
-              className="btn btn-success home-form-btn"
-            >
-              Elimina
-            </button>
-          </div>
-          <div className="col-sm-3 mb-1">
-            <button
-              onClick={() => htmlTableToExcel("badge-table")}
-              className="btn btn-success home-form-btn"
-            >
-              Excel
-            </button>
-          </div>
+        <div className="w-100 mt-1"></div>
+        <div className="col">
+          <BadgePopup
+            content={props.badges}
+            trigger={
+              <button className="btn btn-success home-form-btn">Cerca</button>
+            }
+            onOpen={props.findBadges}
+            position="right top"
+          />
         </div>
-      )}
-      <div className="col-sm-3 mb-1">
-        <button onClick={openPopup} className="btn btn-success home-form-btn">
-          Accesso
-          <br />
-          Provvisori
-        </button>
+        <div className="w-100 mt-1"></div>
+        {props.admin === true && (
+          <>
+            <div className="col">
+              <button
+                onClick={() => props.insertBadge()}
+                className="btn btn-success home-form-btn"
+              >
+                Aggiungi
+              </button>
+            </div>
+            <div className="w-100 mt-1"></div>
+            <div className="col">
+              <button
+                onClick={() => props.updateBadge()}
+                className="btn btn-success home-form-btn"
+              >
+                Aggiorna
+              </button>
+            </div>
+            <div className="w-100 mt-1"></div>
+            <div className="col">
+              <button
+                onClick={() => props.deleteBadge()}
+                className="btn btn-success home-form-btn"
+              >
+                Elimina
+              </button>
+            </div>
+            <div className="w-100 mt-1"></div>
+            <div className="col">
+              <button
+                onClick={() => htmlTableToExcel("badge-table")}
+                className="btn btn-success home-form-btn"
+              >
+                Excel
+              </button>
+            </div>
+            <div className="w-100 mt-1"></div>
+            <div className="col">
+              <BadgePopup
+                content={props.archivioList}
+                trigger={<button className="btn btn-success home-form-btn">Resoconto</button>}
+                onOpen={props.findArchivio}
+                position="right bottom"
+              />
+            </div>
+            <div className="w-100 mt-1"></div>
+          </>
+        )}
+        <div className="col">
+          <button onClick={openPopup} className="btn btn-success home-form-btn">
+            Provvisori
+          </button>
+        </div>
       </div>
     </div>
   );

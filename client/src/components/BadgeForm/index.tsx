@@ -10,11 +10,16 @@ import { BadgeFormState } from "../../types/BadgeFormState";
 import { TipoBadge } from "../../enums/TipoBadge";
 import { StatoBadge } from "../../enums/StatoBadge";
 import { Assegnazione } from "../../types/Assegnazione";
+import { ArchivioFormState } from "../../types/ArchivioFormState";
 
 type Props = {
   badgeForm: BadgeFormState;
-  handleInputChanges: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  archivioForm: ArchivioFormState;
+  handleInputChanges: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => void;
   handleInputFileChanges: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleInputChangesArchivio: (e: React.ChangeEvent<HTMLInputElement>) => void;
   tipiBadge: TipoBadge[];
   assegnazioni: Assegnazione[];
   tipiDoc: string[];
@@ -26,9 +31,35 @@ type Props = {
 
 const BadgeForm: React.FC<Props> = (props: Props) => {
   return (
-    <div className="badge-form">
-      <br />
-      <div className="row">
+    <div className="col-9 badge-form">
+      <div className="row mb-2">
+        <div className="form-floating col-sm-2">
+          <input
+            type="date"
+            className="form-control form-control-sm"
+            id="dataInizio"
+            value={props.archivioForm.dataInizio}
+            onChange={props.handleInputChangesArchivio}
+            name="dataInizio"
+            readOnly={!!props.readOnlyForm}
+            autoComplete="off"
+          />
+          <label htmlFor="dataInizio">resoconto inizio</label>
+        </div>
+        <div className="form-floating col-sm-2">
+          <input
+            type="date"
+            className="form-control form-control-sm"
+            id="dataFine"
+            value={props.archivioForm.dataFine}
+            onChange={props.handleInputChangesArchivio}
+            name="dataFine"
+            readOnly={!!props.readOnlyForm}
+            autoComplete="off"
+          />
+          <label htmlFor="dataFine">resoconto fine</label>
+        </div>
+        <div className="w-100 mb-1"></div>
         <div className="form-floating col-sm-2">
           <input
             type="text"
@@ -43,7 +74,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
           />
           <label htmlFor="barcode">barcode</label>
         </div>
-        <div className="form-floating col-sm-4">
+        <div className="form-floating col-sm-5">
           <input
             type="text"
             className="form-control form-control-sm"
@@ -57,8 +88,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
           />
           <label htmlFor="descrizione">descrizione</label>
         </div>
-      </div>
-      <div className="row">
+        <div className="w-100"></div>
         <div className="form-floating col-sm-2">
           <select
             className="form-select form-select-sm"
@@ -93,7 +123,10 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
           >
             <option value="" key="-1"></option>
             {props.assegnazioni
-              .filter((assegnaz) => assegnaz.badge === props.badgeForm.tipo && assegnaz.name)
+              .filter(
+                (assegnaz) =>
+                  assegnaz.badge === props.badgeForm.tipo && assegnaz.name
+              )
               .map((assegnaz, index) => (
                 <option
                   value={assegnaz.name}
@@ -106,8 +139,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
           </select>
           <label htmlFor="assegnazione">assegnazione</label>
         </div>
-      </div>
-      <div className="row">
+        <div className="w-100"></div>
         <div className="form-floating col-sm-2">
           <select
             className="form-select form-select-sm"
@@ -126,7 +158,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
           </select>
           <label htmlFor="stato">stato</label>
         </div>
-        <div className="form-floating col-sm-4">
+        <div className="form-floating col-sm-5">
           <input
             type="text"
             className="form-control form-control-sm"
@@ -141,12 +173,26 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
           <label htmlFor="ubicazione">ubicazione</label>
         </div>
       </div>
-      <br />
-      <div className="row">
-        <div className="col-2 pfp-container" /*align="center"*/>
-          <img alt="" src={props.pfpUrl} className="pfp" />
+      <div className="row mt-2">
+        <div className="col-2">
+          <div
+            className="pfp-container"
+            style={{ backgroundImage: `url(${props.pfpUrl})` }}
+          />
+          <div className="input-group input-group-sm">
+            <input
+              accept="image/*"
+              type="file"
+              className="custom-file-input"
+              id="pfp"
+              onChange={props.handleInputFileChanges}
+              name="pfp"
+              disabled={props.readOnlyForm === true || props.admin === false}
+              autoComplete="off"
+            />
+          </div>
         </div>
-        <div className="col-8">
+        <div className="col-10">
           <div className="row">
             <div className="form-floating col-sm-3">
               <input
@@ -176,8 +222,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
               />
               <label htmlFor="cognome">cognome</label>
             </div>
-          </div>
-          <div className="row">
+            <div className="w-100"></div>
             <div className="form-floating col-sm-3">
               <input
                 type="text"
@@ -206,8 +251,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
               />
               <label htmlFor="telefono">telefono</label>
             </div>
-          </div>
-          <div className="row">
+            <div className="w-100"></div>
             <div className="form-floating col-sm-3">
               <select
                 className="form-select form-select-sm"
@@ -246,28 +290,28 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
               />
               <label htmlFor="ndoc">num documento</label>
             </div>
-          </div>
-          {props.badgeForm.tipo === TipoBadge.BADGE ? (
-            <div className="row">
-              <div className="form-floating col-sm-3">
-                <input
-                  type="date"
-                  min={dateFormat(new Date(), "yyyy-mm-dd")}
-                  className="form-control form-control-sm"
-                  id="scadenza"
-                  value={props.badgeForm.scadenza}
-                  onChange={props.handleInputChanges}
-                  name="scadenza"
-                  readOnly={!!props.readOnlyForm}
-                  autoComplete="off"
-                />
-                <label htmlFor="scadenza">scadenza</label>
-              </div>
-            </div>
-          ) : (
-            props.badgeForm.tipo === TipoBadge.VEICOLO && (
-              <div>
-                <div className="row">
+            <div className="w-100"></div>
+            {props.badgeForm.tipo === TipoBadge.BADGE ? (
+              <>
+                <div className="form-floating col-sm-3">
+                  <input
+                    type="date"
+                    min={dateFormat(new Date(), "yyyy-mm-dd")}
+                    className="form-control form-control-sm"
+                    id="scadenza"
+                    value={props.badgeForm.scadenza}
+                    onChange={props.handleInputChanges}
+                    name="scadenza"
+                    readOnly={!!props.readOnlyForm}
+                    autoComplete="off"
+                  />
+                  <label htmlFor="scadenza">scadenza</label>
+                </div>
+                <div className="w-100"></div>
+              </>
+            ) : (
+              props.badgeForm.tipo === TipoBadge.VEICOLO && (
+                <>
                   <div className="form-floating col-sm-3">
                     <input
                       type="text"
@@ -295,8 +339,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                     />
                     <label htmlFor="targa2">targa2</label>
                   </div>
-                </div>
-                <div className="row">
+                  <div className="w-100"></div>
                   <div className="form-floating col-sm-3">
                     <input
                       type="text"
@@ -325,27 +368,12 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                     />
                     <label htmlFor="targa4">targa4</label>
                   </div>
-                </div>
-              </div>
-            )
-          )}
+                </>
+              )
+            )}
+          </div>
         </div>
       </div>
-      <div className="row">
-        <div className="input-group col-sm-3">
-          <input
-            accept="image/*"
-            type="file"
-            className="custom-file-input"
-            id="pfp"
-            onChange={props.handleInputFileChanges}
-            name="pfp"
-            disabled={props.readOnlyForm === true || props.admin === false}
-            autoComplete="off"
-          />
-        </div>
-      </div>
-      <br />
     </div>
   );
 };

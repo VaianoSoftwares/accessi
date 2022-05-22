@@ -1,10 +1,6 @@
 //Modules
 import React from "react";
-import {
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 // Style
 import "bootstrap/dist/css/bootstrap.min.css";
 // Components
@@ -31,10 +27,11 @@ const App: React.FC<{}> = () => {
   const [user, setUser] = React.useState<Nullable<User>>(() => {
     const name = sessionStorage.getItem("username");
     const admin = sessionStorage.getItem("admin");
-    if(name || admin) return {
-      name,
-      admin: Boolean(admin)
-    } as User;
+    if (name || admin)
+      return {
+        name,
+        admin: Boolean(admin),
+      } as User;
     return null;
   });
   const [_alert, setAlert] = React.useState<Nullable<TAlert>>(null);
@@ -48,7 +45,7 @@ const App: React.FC<{}> = () => {
     sessionStorage.setItem("admin", user.admin.toString());
     sessionStorage.setItem("postazione", postazione);
     sessionStorage.setItem("guest-token", tokens[0]);
-    if(user.admin) sessionStorage.setItem("admin-token", tokens[1]);
+    if (user.admin) sessionStorage.setItem("admin-token", tokens[1]);
     setUser(user);
   };
 
@@ -59,77 +56,69 @@ const App: React.FC<{}> = () => {
 
   const retriveEnums = () => {
     BadgeDataService.getEnums()
-      .then(response => {
+      .then((response) => {
         const enums = response.data.data;
         setTipiBadge(enums.badge);
         setAssegnazioni(enums.assegnazione);
         setTipiDoc(enums.documento);
         setStatiBadge(enums.stato);
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
       });
   };
 
   return (
     <div className="App">
-      <div className="container-fluid mt-3">
-        <Routes>
-          <Route path="*" element={<PageNotFound />} />
-          <Route
-            path="home"
-            element={
-              user ? (
-                <Home
-                  user={user}
-                  logout={logout}
-                  alert={_alert}
-                  setAlert={setAlert}
-                  tipiBadge={tipiBadge}
-                  assegnazioni={assegnazioni}
-                  tipiDoc={tipiDoc}
-                  statiBadge={statiBadge}
-                />
-              ) : (
-                <Navigate replace to="../login" />
-              )
-            }
-          />
-          <Route path="/" element={<Navigate replace to="home" />} />
-          <Route
-            path="admin/*"
-            element={
-              user && user.admin === true ? (
-                <AdminMenu
-                  user={user}
-                  logout={logout}
-                  alert={_alert}
-                  setAlert={setAlert}
-                  tipiBadge={tipiBadge}
-                  assegnazioni={assegnazioni}
-                  setAssegnazioni={setAssegnazioni}
-                />
-              ) : user ? (
-                <Navigate replace to="../home" />
-              ) : (
-                <Navigate replace to="../login" />
-              )
-            }
-          />
-          <Route
-            path="login"
-            element={
-              <Login
-                login={login}
+      <Routes>
+        <Route path="*" element={<PageNotFound />} />
+        <Route
+          path="home"
+          element={
+            user ? (
+              <Home
+                user={user}
+                logout={logout}
                 alert={_alert}
                 setAlert={setAlert}
+                tipiBadge={tipiBadge}
+                assegnazioni={assegnazioni}
+                tipiDoc={tipiDoc}
+                statiBadge={statiBadge}
               />
-            }
-          />
-        </Routes>
-      </div>
+            ) : (
+              <Navigate replace to="../login" />
+            )
+          }
+        />
+        <Route path="/" element={<Navigate replace to="home" />} />
+        <Route
+          path="admin/*"
+          element={
+            user && user.admin === true ? (
+              <AdminMenu
+                user={user}
+                logout={logout}
+                alert={_alert}
+                setAlert={setAlert}
+                tipiBadge={tipiBadge}
+                assegnazioni={assegnazioni}
+                setAssegnazioni={setAssegnazioni}
+              />
+            ) : user ? (
+              <Navigate replace to="../home" />
+            ) : (
+              <Navigate replace to="../login" />
+            )
+          }
+        />
+        <Route
+          path="login"
+          element={<Login login={login} alert={_alert} setAlert={setAlert} />}
+        />
+      </Routes>
     </div>
   );
-}
+};
 
 export default App;

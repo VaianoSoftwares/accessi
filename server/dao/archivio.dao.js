@@ -25,27 +25,65 @@ export default class ArchivioDAO {
     Object.entries(filters)
       .filter(([key, value]) => value && !key.includes("data"))
       .forEach(([key, value]) => {
+        let isKeyValid = true;
         let filterName = "";
+
         switch(key) {
+          case "barcode":
+          case "descrizione":
+          case "tipo":
+          case "stato":
           case "assegnazione":
+          case "ubicazione":
             filterName = key;
             break;
           case "nome":
           case "cognome":
           case "ditta":
+          case "telefono":
+          case "tdoc":
+          case "ndoc":
             filterName = `nominativo.${key}`;
             break;
+          default:
+            isKeyValid = false;
         }
-        let filter = {};
-        filter[filterName] = { $regex: new RegExp(value, "i") };
-        archivioFilter.push(filter);
+
+        if(isKeyValid === true) {
+          let filter = {};
+          filter[filterName] = { $regex: new RegExp(value, "i") };
+          archivioFilter.push(filter);
+        }
       });
-
     const query = { $and: archivioFilter };
-
+    console.log("getArchivio | query: ", query);
     try {
-      const cursor = await archivio.find(query);
-      const archivioList = await cursor.toArray();
+      // const cursor = await archivio.find(query);
+      const cursor = await archivio.aggregate([
+        {
+          $lookup: {
+            from: "badges",
+            let: { arch_codice: "$barcode" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $eq: ["$barcode", "$$arch_codice"]
+                  },
+                },
+              },
+              { $project: { "_id": 0, "descrizione": 1, "tipo": 1, "assegnazione": 1, "stato": 1, "ubicazione": 1 } }
+            ],
+            as: "badge",
+          },
+        },
+        { $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ["$badge", 0] }, "$$ROOT"] } } },
+        { $match: query },
+        { $project: { "_id": 0, "badge": 0 } },
+        { $limit: 100 },
+      ]);
+      const displayCursor = cursor.limit(100).skip(0);
+      const archivioList = await displayCursor.toArray();
       return archivioList;
     } catch (err) {
       console.log(`getArchivio - ${err}`);

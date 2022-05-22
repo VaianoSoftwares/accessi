@@ -1,6 +1,6 @@
-/* html, body {
+html, body {
   overflow: hidden;
-} */
+}
 
 body {
   margin: 0;
@@ -21,9 +21,16 @@ code {
   border: 1px solid #464545;
   color: rgb(20, 13, 13);
   border-radius: 5px;
-  padding: .5rem;
 }
 
-.popup-overlay {
+.popup-overlay[data-popup="modal"] {
   background: rgba(0,0,0,.5);
+}
+
+.popup-overlay[data-popup="modal"] .popup-content {
+  padding: .5rem
+}
+
+.popup-arrow {
+  visibility: hidden;
 }

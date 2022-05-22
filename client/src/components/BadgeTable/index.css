@@ -1,6 +1,7 @@
 .badge-table-wrapper {
-    overflow-y: auto;
-    height: 300px;
+    overflow: scroll;
+    height: 450px;
+    background-color:lightcyan;
 }
 
 .badge-table-thead {
@@ -11,9 +12,9 @@
 }
 
 .badge-table-tbody {
-    max-height: 50px;
-    overflow-y: scroll;
-    height: 50px;
+    max-height: 28px;
+    overflow: scroll;
+    height: 28px;
 }
 
 .badge-table-th {

@@ -29,7 +29,7 @@ const OspitiPopup: React.FC<Props> = (props: Props) => {
     cognome: "",
     telefono: "",
     ditta: "",
-    tdoc: "carta identita",
+    tdoc: "CARTA IDENTITA",
     ndoc: "",
     targa1: "",
     targa2: "",

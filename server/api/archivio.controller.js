@@ -4,7 +4,9 @@ import Validator from "../auth/validation.js";
 export default class ArchivioController {
   static async apiGetArchivio(req, res) {
     try {
+      console.log("apiGetArchivio | req.query: ", req.query);
       const archivioResponse = await ArchivioDAO.getArchivio(req.query);
+      console.log("apiGetArchivio | archivioResponse: ", archivioResponse);
       res.json({
         success: true,
         data: archivioResponse,

@@ -4,6 +4,7 @@ import { AssegnazFormState } from "../types/AssegnazFormState";
 import { FindBadgeDoc } from "../types/FindBadgeDoc";
 import { GenericResponse, FetchResponse } from "../types/Responses";
 import { TimbraDoc } from "../types/TimbraDoc";
+import { FindArchivioDoc } from "../types/FindArchivioDoc";
 
 class BadgesDataService {
   getAll(): Promise<AxiosResponse<FetchResponse>> {
@@ -22,7 +23,7 @@ class BadgesDataService {
       return this.getAll();
 
     const params = Object.entries(query)
-      .filter((elem) => elem[1])
+      .filter(([key, value]) => value)
       .map(([key, value]) => `${key}=${value}`)
       .join("&");
     console.log(params);
@@ -120,8 +121,13 @@ class BadgesDataService {
     });
   }
 
-  getArchivio({ inizio = "", fine = "" }): Promise<AxiosResponse<FetchResponse>> {
-    return axios.get(`/api/v1/badges/archivio?inizio=${inizio}&fine=${fine}`, {
+  getArchivio(query: FindArchivioDoc): Promise<AxiosResponse<FetchResponse>> {
+    const params = Object.entries(query)
+      .filter(([key, value]) => value)
+      .map(([key, value]) => `${key}=${value}`)
+      .join("&");
+    
+    return axios.get(`/api/v1/badges/archivio?${params}`, {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
       },

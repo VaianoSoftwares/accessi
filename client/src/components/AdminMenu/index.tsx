@@ -15,7 +15,6 @@ import "./index.css";
 import { User } from "../../types/User";
 import { TAlert } from "../../types/TAlert";
 import { Nullable } from "../../types/Nullable";
-import Archivio from "../Archivio";
 import { TipoBadge } from "../../enums/TipoBadge";
 import { Assegnazione } from "../../types/Assegnazione";
 
@@ -73,20 +72,6 @@ const AdminMenu: React.FC<Props> = (props: Props) => {
                         )}
                     />
                     <Route path="/" element={<Navigate replace to="register" />} />
-                    <Route
-                        path="archivio"
-                        element={props.user && props.user.admin === true ? (
-                            <Archivio
-                                alert={props.alert}
-                                setAlert={props.setAlert}
-                                assegnazioni={props.assegnazioni}
-                            />
-                        ) : props.user ? (
-                            <Navigate replace to="../../home" />
-                        ) : (
-                            <Navigate replace to="../../login" />
-                        )}
-                    />
                     <Route
                         path="assegnaz"
                         element={props.user && props.user.admin === true ? (

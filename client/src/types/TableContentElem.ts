@@ -7,6 +7,15 @@ export type TableContentElem = {
     nome: string;
     cognome: string;
     ditta: string;
-    "data ora consegna": string | undefined;
-    "data ora in": string | undefined;
 };
+
+type InStruttPartialContent = {
+    entrata: string;
+};
+
+type ArchivioPartialContent = {
+    uscita: string;
+};
+
+export type InStruttTableContent = TableContentElem & InStruttPartialContent;
+export type ArchivioTableContent = InStruttTableContent & ArchivioPartialContent;

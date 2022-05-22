@@ -196,17 +196,17 @@ export default class SerialComponent extends React.Component<
   */
   render() {
     return (
-      <div className="row">
-        <div className="col-sm-5">
+      <>
+        <div className="col-auto">
           <button
-            className="btn btn-outline-secondary"
+            className="btn btn-outline-secondary home-form-btn"
             id="serial-conn-btn"
             onClick={async () => await this.init(true)}
           >
-            Connetti Seriale
+            Scanner
           </button>
         </div>
-        <div className="col-sm-5">
+        <div className="col-auto mx-2 home-form-b">
           <b
             style={this.state.connected ? { color: "green" } : { color: "red" }}
           >
@@ -214,7 +214,7 @@ export default class SerialComponent extends React.Component<
             {"Connesso"}
           </b>
         </div>
-      </div>
+      </>
     );
   }
 }
