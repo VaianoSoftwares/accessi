@@ -1,10 +1,10 @@
 import { AxiosResponse } from "axios";
 import axios from "axios";
-import { AssegnazFormState } from "../types/AssegnazFormState";
 import { FindBadgeDoc } from "../types/FindBadgeDoc";
 import { GenericResponse, FetchResponse } from "../types/Responses";
 import { TimbraDoc } from "../types/TimbraDoc";
 import { FindArchivioDoc } from "../types/FindArchivioDoc";
+import { Assegnazione } from "../types/Assegnazione";
 
 class BadgesDataService {
   getAll(): Promise<AxiosResponse<FetchResponse>> {
@@ -79,7 +79,7 @@ class BadgesDataService {
     });
   }
 
-  insertAssegnazione(data: AssegnazFormState): Promise<AxiosResponse<GenericResponse>> {
+  insertAssegnazione(data: Assegnazione): Promise<AxiosResponse<GenericResponse>> {
     return axios.post("/api/v1/badges/assegnazioni", data, {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -88,8 +88,8 @@ class BadgesDataService {
     });
   }
 
-  deleteAssegnazione(data: AssegnazFormState): Promise<AxiosResponse<GenericResponse>> {
-    return axios.delete(`/api/v1/badges/assegnazioni?tipo=${data.tipoBadge}&assegnaz=${data.assegnazione}`, {
+  deleteAssegnazione(data: Assegnazione): Promise<AxiosResponse<GenericResponse>> {
+    return axios.delete(`/api/v1/badges/assegnazioni?badge=${data.badge}&name=${data.name}`, {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
         "admin-token": sessionStorage.getItem("admin-token")

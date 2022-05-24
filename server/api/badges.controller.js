@@ -179,20 +179,22 @@ export default class BadgesController {
             }
 
             const assegnazObj = {
-                badge: req.body.tipo.toUpperCase(),
-                name: req.body.assegnaz.toUpperCase()
+                badge: req.body.badge.toUpperCase(),
+                name: req.body.name.toUpperCase()
             };
-
-            const enumResp = await EnumsDAO.pushAssegnaz("assegnazione", [assegnazObj]);
+            
+            const enumResp = await EnumsDAO.pushAssegnaz([assegnazObj]);
             if(enumResp.error) {
                 return res.status(400).json({ success: false, msg: error.message });
             }
             else if(enumResp.modifiedCount === 0) {
-                throw new Error(`Non è stato possibile inserire ${assegnaz} in ${tipo}`);
+                throw new Error(
+                  `Non è stato possibile inserire ${assegnazObj.name} in ${assegnazObj.badge}`
+                );
             }
             return res.json({
               success: true,
-              msg: `Assegnazione di tipo ${tipo} inserita con successo`,
+              msg: `Assegnazione di tipo ${assegnazObj.badge} inserita con successo`,
               data: enumResp,
             });
         } catch(err) {
@@ -209,20 +211,22 @@ export default class BadgesController {
             }
 
             const assegnazObj = {
-                badge: req.body.tipo.toUpperCase(),
-                name: req.body.assegnaz.toUpperCase()
+                badge: req.query.badge.toUpperCase(),
+                name: req.query.name.toUpperCase()
             };
 
-            const enumResp = await EnumsDAO.pullAssegnaz("assegnazione", [assegnazObj]);
+            const enumResp = await EnumsDAO.pullAssegnaz([assegnazObj]);
             if(enumResp.error) {
                 return res.status(400).json({ success: false, msg: error.message });
             }
             else if(enumResp.deletedCount === 0) {
-                throw new Error(`Non è stato possibile eliminare ${assegnaz} in ${tipo}`);
+                throw new Error(
+                  `Non è stato possibile eliminare ${assegnazObj.name} in ${assegnazObj.badge}`
+                );
             }
             return res.json({
               success: true,
-              msg: `Assegnazione di tipo ${tipo} eliminata con successo`,
+              msg: `Assegnazione di tipo ${assegnazObj.badge} eliminata con successo`,
               data: enumResp,
             });
         } catch(err) {

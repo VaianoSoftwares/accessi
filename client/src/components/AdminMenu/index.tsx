@@ -40,11 +40,6 @@ const AdminMenu: React.FC<Props> = (props: Props) => {
                         </Link>
                     </button>
                     <button className="btn btn-success btn-block">
-                        <Link className="link-white-text" to="archivio">
-                            Resoconto Archivio
-                        </Link>
-                    </button>
-                    <button className="btn btn-success btn-block">
                         <Link className="link-white-text" to="assegnaz">
                             Modifica Assegnaz
                         </Link>

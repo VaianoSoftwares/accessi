@@ -69,10 +69,10 @@ export default class Validator {
 
     static enumDoc(data) {
         const scheme = Joi.object({
-            tipo: Joi
+            badge: Joi
                 .string()
                 .required(),
-            assegnaz: Joi
+            name: Joi
                 .string()
                 .required()
         });
