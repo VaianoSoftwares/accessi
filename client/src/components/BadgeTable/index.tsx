@@ -23,7 +23,7 @@ const BadgeTable: React.FC<Props> = (props: Props) => {
             {props.content.map((elem, index) => (
               <tr key={index} className="badge-table-tr">
                 {Object.values(elem).map((value, _index) => (
-                  <td key={_index}>{value || ""}</td>
+                  <td className="badge-table-td" key={_index}>{value || ""}</td>
                 ))}
               </tr>
             ))}

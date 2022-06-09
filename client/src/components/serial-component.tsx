@@ -38,19 +38,8 @@ export default class SerialComponent extends React.Component<
         throw new Error("api not available");
       }
 
-      if (openPrompt) {
-        port = await window.navigator.serial.requestPort();
-      } else {
-        const ports = await window.navigator.serial.getPorts();
-        if (ports.length > 0) {
-          port = ports[0];
-        }
-        console.log(ports);
-      }
-
-      if (!port) {
-        throw new Error("port not found");
-      }
+      port = await window.navigator.serial.requestPort();
+      if (!port) throw new Error("port not found");
 
       await port.open({ baudRate: 57600 }); // Wait for the serial port to open.
       console.log("serialApi init - Aperta porta seriale.");
@@ -61,6 +50,9 @@ export default class SerialComponent extends React.Component<
       port.dispatchEvent(new Event("connect"));
     } catch (err) {
       console.log(`serialApi init - ${err}`);
+      const errMsg = "The port is already open";
+      if(err instanceof Error && err.message.includes(errMsg))
+        this.setState({ connected: true });
     }
   }
 

@@ -1,3 +1,7 @@
+.badge-table {
+    width:100%;
+}
+
 .badge-table-wrapper {
     overflow: scroll;
     height: 450px;
@@ -24,5 +28,9 @@
 }
 
 .badge-table-tr {
-    line-height: 10px;
+    line-height: 5px;
+}
+
+.badge-table-td {
+    white-space: nowrap;
 }

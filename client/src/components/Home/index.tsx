@@ -93,20 +93,22 @@ const Home: React.FC<Props> = (props: Props) => {
     props.setAlert(null);
     if(readOnlyForm === true) {
       setBadgeForm({ ...initialBadgeFormState, tipo: badgeForm.tipo });
-      retriveInStrutt();
+      // retriveInStrutt();
       setPfpUrl("");
     }
     console.log(`readOnlyForm: ${readOnlyForm}`);
   }, [readOnlyForm]);
 
   React.useEffect(() => {
-    if(scannedValue) {
-      timbra({ barcode: scannedValue,
-        postazione: sessionStorage.getItem("postazione") as string,
-        tipo: badgeForm.tipo
-      });
-      setScannedValue("");
-    }
+    if(!scannedValue) return;
+    
+    const timbraDoc: TimbraDoc = {
+      barcode: scannedValue,
+      postazione: sessionStorage.getItem("postazione") as string,
+      tipo: badgeForm.tipo
+    };  
+    timbra(timbraDoc);
+    setScannedValue("");
   }, [scannedValue]);
 
   React.useEffect(() => {
@@ -138,7 +140,7 @@ const Home: React.FC<Props> = (props: Props) => {
   const retriveInStrutt = () => {
     BadgeDataService.getInStrutt(badgeForm.tipo)
       .then(response => {
-        console.log(response.data);
+        console.log("retriveInStrutt: ", response.data);
         setInStrutt(mapArchivioToInStruttTableContent(response.data.data));
       })
       .catch(err => {
@@ -250,7 +252,7 @@ const Home: React.FC<Props> = (props: Props) => {
         console.log(response.data);
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
-        props.setAlert(null);
+        //props.setAlert(null);
       })
       .catch(err => {
         console.log(err);
@@ -275,7 +277,7 @@ const Home: React.FC<Props> = (props: Props) => {
         console.log(response.data);
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
-        props.setAlert(null);
+        //props.setAlert(null);
       })
       .catch(err => {
         console.log(err);
@@ -299,7 +301,7 @@ const Home: React.FC<Props> = (props: Props) => {
         console.log(response.data);
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
-        props.setAlert(null);
+        //props.setAlert(null);
       })
       .catch(err => {
         console.log(err);
@@ -530,7 +532,7 @@ const Home: React.FC<Props> = (props: Props) => {
             badges={badges}
             archivioList={archivioList}
           />
-          <div className="col-3">
+          <div className="col-4">
             <Clock />
           </div>
           <div className="in-strutt-count">

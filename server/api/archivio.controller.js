@@ -29,24 +29,24 @@ export default class ArchivioController {
     if(valErr) {
       return res.status(400).json({ success: false, msg: valErr.details[0].message, data: null });
     }
-
+    
     const barcode = req.body.barcode.toUpperCase();
     const tipo = req.body.tipo.toUpperCase();
     const { postazione } = req.body;
 
     const nominativo = {
-      nome: req.body.nome.toUpperCase(),
-      cognome: req.body.cognome.toUpperCase(),
-      ditta: req.body.ditta.toUpperCase(),
-      telefono: req.body.telefono.toUpperCase(),
-      tdoc: req.body.tdoc.toUpperCase(),
-      ndoc: req.body.ndoc.toUpperCase(),
-      scadenza: req.body.scadenza,
+      nome: req.body.nome.toUpperCase() || "",
+      cognome: req.body.cognome.toUpperCase() || "",
+      ditta: req.body.ditta.toUpperCase() || "",
+      telefono: req.body.telefono.toUpperCase() || "",
+      tdoc: req.body.tdoc.toUpperCase() || "",
+      ndoc: req.body.ndoc.toUpperCase() || "",
+      scadenza: req.body.scadenza || "",
       targhe: {
-        1: req.body.targa1.toUpperCase(),
-        2: req.body.targa2.toUpperCase(),
-        3: req.body.targa3.toUpperCase(),
-        4: req.body.targa4.toUpperCase()
+        1: req.body.targa1.toUpperCase() || "",
+        2: req.body.targa2.toUpperCase() || "",
+        3: req.body.targa3.toUpperCase() || "",
+        4: req.body.targa4.toUpperCase() || ""
       }
     };
 

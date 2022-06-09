@@ -30,7 +30,7 @@ const App: React.FC<{}> = () => {
     if (name || admin)
       return {
         name,
-        admin: Boolean(admin),
+        admin: (admin === "true"),
       } as User;
     return null;
   });

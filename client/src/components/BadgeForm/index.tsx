@@ -31,35 +31,37 @@ type Props = {
 
 const BadgeForm: React.FC<Props> = (props: Props) => {
   return (
-    <div className="col-9 badge-form">
+    <div className="col-8 badge-form">
       <div className="row mb-2">
-        <div className="form-floating col-sm-2">
-          <input
-            type="date"
-            className="form-control form-control-sm"
-            id="dataInizio"
-            value={props.archivioForm.dataInizio}
-            onChange={props.handleInputChangesArchivio}
-            name="dataInizio"
-            readOnly={!!props.readOnlyForm}
-            autoComplete="off"
-          />
-          <label htmlFor="dataInizio">resoconto inizio</label>
-        </div>
-        <div className="form-floating col-sm-2">
-          <input
-            type="date"
-            className="form-control form-control-sm"
-            id="dataFine"
-            value={props.archivioForm.dataFine}
-            onChange={props.handleInputChangesArchivio}
-            name="dataFine"
-            readOnly={!!props.readOnlyForm}
-            autoComplete="off"
-          />
-          <label htmlFor="dataFine">resoconto fine</label>
-        </div>
-        <div className="w-100 mb-1"></div>
+        {props.admin === true && <>
+          <div className="form-floating col-sm-2">
+            <input
+              type="date"
+              className="form-control form-control-sm"
+              id="dataInizio"
+              value={props.archivioForm.dataInizio}
+              onChange={props.handleInputChangesArchivio}
+              name="dataInizio"
+              readOnly={!!props.readOnlyForm}
+              autoComplete="off"
+            />
+            <label htmlFor="dataInizio">resoconto inizio</label>
+          </div>
+          <div className="form-floating col-sm-2">
+            <input
+              type="date"
+              className="form-control form-control-sm"
+              id="dataFine"
+              value={props.archivioForm.dataFine}
+              onChange={props.handleInputChangesArchivio}
+              name="dataFine"
+              readOnly={!!props.readOnlyForm}
+              autoComplete="off"
+            />
+            <label htmlFor="dataFine">resoconto fine</label>
+          </div>
+          <div className="w-100 mb-1"></div>
+        </>}
         <div className="form-floating col-sm-2">
           <input
             type="text"

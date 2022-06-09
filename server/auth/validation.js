@@ -17,7 +17,7 @@ export default class Validator {
                 .min(6)
                 .required(),
         });
-    
+        
         return schema.validate(data);
     }
 
