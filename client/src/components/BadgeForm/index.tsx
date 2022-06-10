@@ -304,7 +304,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                     value={props.badgeForm.scadenza}
                     onChange={props.handleInputChanges}
                     name="scadenza"
-                    readOnly={!!props.readOnlyForm}
+                    readOnly={props.readOnlyForm === true || props.admin === false}
                     autoComplete="off"
                   />
                   <label htmlFor="scadenza">scadenza</label>

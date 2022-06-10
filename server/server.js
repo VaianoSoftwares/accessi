@@ -19,7 +19,7 @@ if (process.env.NODE_ENV == "development") {
 
 // print out request endpoint url & method
 app.use((req, res, next) => {
-  console.log(`Request endpoint: ${req.method} ${req.url}`);
+  console.log(`Request endpoint: ${req.ip} ${req.method} ${req.url}`);
   next();
 });
 
