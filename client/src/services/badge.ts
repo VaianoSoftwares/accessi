@@ -1,13 +1,13 @@
 import { AxiosResponse } from "axios";
 import axios from "axios";
 import { FindBadgeDoc } from "../types/FindBadgeDoc";
-import { GenericResponse, FetchResponse } from "../types/Responses";
+import { GenericResponse } from "../types/Responses";
 import { TimbraDoc } from "../types/TimbraDoc";
 import { FindArchivioDoc } from "../types/FindArchivioDoc";
 import { Assegnazione } from "../types/Assegnazione";
 
 class BadgesDataService {
-  getAll(): Promise<AxiosResponse<FetchResponse>> {
+  getAll(): Promise<AxiosResponse<GenericResponse>> {
     return axios.get("/api/v1/badges", {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -15,7 +15,7 @@ class BadgesDataService {
     });
   }
 
-  find(query: FindBadgeDoc): Promise<AxiosResponse<FetchResponse>> {
+  find(query: FindBadgeDoc): Promise<AxiosResponse<GenericResponse>> {
     if (
       Object.keys(query).length === 0 ||
       !Object.values(query).some((value) => value !== null)
@@ -71,7 +71,7 @@ class BadgesDataService {
     });
   }
 
-  getAssegnazioni(tipo: string = ""): Promise<AxiosResponse<FetchResponse>> {
+  getAssegnazioni(tipo: string = ""): Promise<AxiosResponse<GenericResponse>> {
     return axios.get(`/api/v1/badges/assegnazioni?tipo=${tipo}`, {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -97,7 +97,7 @@ class BadgesDataService {
     });
   }
 
-  getTipiDoc(): Promise<AxiosResponse<FetchResponse>> {
+  getTipiDoc(): Promise<AxiosResponse<GenericResponse>> {
     return axios.get("/api/v1/badges/tipi-doc", {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -105,7 +105,7 @@ class BadgesDataService {
     });
   }
 
-  getStati(): Promise<AxiosResponse<FetchResponse>> {
+  getStati(): Promise<AxiosResponse<GenericResponse>> {
     return axios.get("/api/v1/badges/stati", {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -113,7 +113,7 @@ class BadgesDataService {
     });
   }
 
-  getTipiBadge(): Promise<AxiosResponse<FetchResponse>> {
+  getTipiBadge(): Promise<AxiosResponse<GenericResponse>> {
     return axios.get("/api/v1/badges/tipi", {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),
@@ -121,7 +121,7 @@ class BadgesDataService {
     });
   }
 
-  getArchivio(query: FindArchivioDoc): Promise<AxiosResponse<FetchResponse>> {
+  getArchivio(query: FindArchivioDoc): Promise<AxiosResponse<GenericResponse>> {
     const params = Object.entries(query)
       .filter(([key, value]) => value)
       .map(([key, value]) => `${key}=${value}`)
@@ -134,7 +134,7 @@ class BadgesDataService {
     });
   }
 
-  getInStrutt(tipo: string = ""): Promise<AxiosResponse<FetchResponse>> {
+  getInStrutt(tipo: string = ""): Promise<AxiosResponse<GenericResponse>> {
     return axios.get(`/api/v1/badges/archivio/in-struttura?tipo=${tipo}`, {
       headers: {
         "guest-token": sessionStorage.getItem("guest-token"),

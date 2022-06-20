@@ -1,2 +1,4 @@
-import { GenericResponse } from "./Responses";
-export type TAlert = Required<Omit<GenericResponse, "filters" | "data">>;
+export type TAlert = {
+    readonly success: boolean;
+    readonly msg: string;
+};

@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import fileUpload from "express-fileupload";
+import dateFormat from "dateformat";
 
 import authRoutes from "./auth/auth.routes.js";
 import badgesRoutes from "./api/badges.routes.js";
@@ -19,7 +20,11 @@ if (process.env.NODE_ENV == "development") {
 
 // print out request endpoint url & method
 app.use((req, res, next) => {
-  console.log(`Request endpoint: ${req.ip} ${req.method} ${req.url}`);
+  console.log(
+    `[${new Date().toLocaleString("it-IT", {
+      timeZone: "Europe/Rome",
+    })}] Request endpoint: ${req.ip} ${req.method} ${req.url}`
+  );
   next();
 });
 

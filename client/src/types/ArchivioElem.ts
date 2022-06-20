@@ -1,18 +1,12 @@
-import { StatoBadge } from "../enums/StatoBadge";
-import { TipoBadge } from "../enums/TipoBadge";
-import { Nominativo } from "./Nominativo";
+import { Badge } from "./Badge";
 
 export type ArchivioElem = {
+    badge: Badge;
+    cliente: string;
     postazione: string;
-    barcode: string;
-    descrizione: string;
-    tipo: TipoBadge;
-    assegnazione: string;
-    stato: StatoBadge;
-    ubicazione: string;
+    ip: string;
     data: {
         entrata: string;
         uscita?: string;
     };
-    nominativo: Nominativo;
 };

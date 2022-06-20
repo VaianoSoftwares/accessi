@@ -7,7 +7,6 @@ import "./index.css";
 // Services
 import BadgeDataService from "../../services/badge";
 // Components
-import Navbar from "../accessi-navbar";
 import BadgeForm from "../BadgeForm";
 import BadgeTable from "../BadgeTable";
 import Clock from "../Clock";
@@ -31,16 +30,17 @@ import { Assegnazione } from "../../types/Assegnazione";
 import { ArchivioFormState } from "../../types/ArchivioFormState";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import { FindArchivioDoc } from "../../types/FindArchivioDoc";
+import { axiosErrHandl } from "../../utils/axiosErrHandl";
 
 type Props = {
   user: User;
   logout: () => Promise<void>;
   alert: Nullable<TAlert>;
   setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
-  tipiBadge: TipoBadge[],
-  assegnazioni: Assegnazione[],
-  tipiDoc: string[],
-  statiBadge: StatoBadge[]
+  tipiBadge: TipoBadge[];
+  assegnazioni: Assegnazione[];
+  tipiDoc: string[];
+  statiBadge: StatoBadge[];
 };
 
 const Home: React.FC<Props> = (props: Props) => {
@@ -70,7 +70,10 @@ const Home: React.FC<Props> = (props: Props) => {
         new Date(new Date().setDate(new Date().getDate() - 1)),
         "yyyy-mm-dd"
     ),
-    dataFine: dateFormat(new Date(), "yyyy-mm-dd"),
+    dataFine: dateFormat(
+      new Date(new Date().setDate(new Date().getDate() + 1)),
+      "yyyy-mm-dd"
+  ),
   };
 
   const [badges, setBadges] = React.useState<TableContentElem[]>([]);
@@ -93,10 +96,9 @@ const Home: React.FC<Props> = (props: Props) => {
     props.setAlert(null);
     if(readOnlyForm === true) {
       setBadgeForm({ ...initialBadgeFormState, tipo: badgeForm.tipo });
-      // retriveInStrutt();
       setPfpUrl("");
     }
-    console.log(`readOnlyForm: ${readOnlyForm}`);
+    console.log("readOnlyForm: ", readOnlyForm);
   }, [readOnlyForm]);
 
   React.useEffect(() => {
@@ -104,6 +106,7 @@ const Home: React.FC<Props> = (props: Props) => {
     
     const timbraDoc: TimbraDoc = {
       barcode: scannedValue,
+      cliente: sessionStorage.getItem("cliente") as string,
       postazione: sessionStorage.getItem("postazione") as string,
       tipo: badgeForm.tipo
     };  
@@ -144,7 +147,7 @@ const Home: React.FC<Props> = (props: Props) => {
         setInStrutt(mapArchivioToInStruttTableContent(response.data.data));
       })
       .catch(err => {
-        console.log(err);
+        console.error("retriveInStrutt | error: ", err);
       });
   };
   
@@ -156,13 +159,7 @@ const Home: React.FC<Props> = (props: Props) => {
         setArchivioList(mappedArchivio);
         htmlTableToExcel("popup-table");
       })
-      .catch(err => {
-        console.log(err);
-        if(err.response) {
-          const { success, msg } = err.response.data as GenericResponse;
-          props.setAlert({ success, msg });
-        }
-      });
+      .catch(err => axiosErrHandl(err, props.setAlert, "findArchivio | "));
   };
   
   const findBadges = () => {
@@ -182,7 +179,7 @@ const Home: React.FC<Props> = (props: Props) => {
         setBadges(mapBadgesToTableContent(findResponse));
       })
       .catch(err => {
-        console.log(err);
+        console.error("findBadges | error: ", err);
       })
       .finally(() => props.setAlert(null));
   };
@@ -203,13 +200,13 @@ const Home: React.FC<Props> = (props: Props) => {
         const rowTimbra: ArchivioElem = (response.data as GenericResponse).data;
         
         if(readOnlyForm === true) {
-          setBadgeForm(mapToAutoComplBadge(rowTimbra));
-          const url = getPfpUrlByBarcode(rowTimbra.barcode);
+          setBadgeForm(mapToAutoComplBadge(rowTimbra.badge));
+          const url = getPfpUrlByBarcode(rowTimbra.badge.barcode);
           setPfpUrl(url);
         }                           
 
         const filteredInStrutt = inStrutt
-          .filter(badge => badge.codice !== rowTimbra.barcode);
+          .filter(badge => badge.codice !== rowTimbra.badge.barcode);
         const mappedRowTimbra = mapArchivioToInStruttTableContent([rowTimbra])[0];
         setInStrutt([mappedRowTimbra, ...filteredInStrutt]);                        
 
@@ -225,24 +222,13 @@ const Home: React.FC<Props> = (props: Props) => {
             setPfpUrl("");
           }
           
-          // if(msg === "Timbra Esce") {
-          //   setBadges(filteredBadges);
-          // }
-          
           retriveInStrutt();
           props.setAlert(null);
 
           setTimeoutRunning(false);
         }, 1000);
       })
-      .catch(err => {
-        console.log(data);
-        console.log(err);
-        if(err.response) {
-          const { success, msg } = err.response.data as GenericResponse;
-          props.setAlert({ success, msg });
-        }
-      });
+      .catch(err => axiosErrHandl(err, props.setAlert, "timbra | "));
   };
 
   const insertBadge = () => {
@@ -252,15 +238,8 @@ const Home: React.FC<Props> = (props: Props) => {
         console.log(response.data);
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
-        //props.setAlert(null);
       })
-      .catch(err => {
-        console.log(err);
-        if(err.response) {
-          const { success, msg } = err.response.data as GenericResponse;
-          props.setAlert({ success, msg });
-        }
-      })
+      .catch(err => axiosErrHandl(err, props.setAlert, "insertBadge | "))
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
         setPfpUrl("");
@@ -277,15 +256,8 @@ const Home: React.FC<Props> = (props: Props) => {
         console.log(response.data);
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
-        //props.setAlert(null);
       })
-      .catch(err => {
-        console.log(err);
-        if(err.response) {
-          const { success, msg } = err.response.data as GenericResponse;
-          props.setAlert({ success, msg });
-        }
-      })
+      .catch(err => axiosErrHandl(err, props.setAlert, "updateBadge | "))
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
         setPfpUrl("");
@@ -301,15 +273,8 @@ const Home: React.FC<Props> = (props: Props) => {
         console.log(response.data);
         const { success, msg } = response.data;
         props.setAlert({ success, msg });
-        //props.setAlert(null);
       })
-      .catch(err => {
-        console.log(err);
-        if(err.response) {
-          const { success, msg } = err.response.data as GenericResponse;
-          props.setAlert({ success, msg });
-        }
-      })
+      .catch(err => axiosErrHandl(err, props.setAlert, "deleteBadge | "))
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
         setPfpUrl("");
@@ -341,22 +306,17 @@ const Home: React.FC<Props> = (props: Props) => {
 
   const mapArchivioToInStruttTableContent = (data: ArchivioElem[]) => {
     return data.map((elem: ArchivioElem) => {
-      const dataEntrata: string = dateFormat(
-        new Date(
-          new Date(elem.data.entrata).setHours(
-            new Date(elem.data.entrata).getHours() - 2
-          )
-        ),
-        "yyyy-mm-dd HH:MM:ss"
-      );
+      const dataEntrata: string = new Date(elem.data.entrata).toLocaleString("it-IT", {
+        timeZone: "Europe/Rome",
+      });
 
       const mappedArchivioElem: InStruttTableContent = {
-        codice: props.user.admin ? elem.barcode : "XXXXX",
-        tipo: elem.tipo,
-        assegnaz: elem.assegnazione,
-        nome: elem.nominativo.nome,
-        cognome: elem.nominativo.cognome,
-        ditta: elem.nominativo.ditta,
+        codice: props.user.admin ? elem.badge.barcode : "XXXXX",
+        tipo: elem.badge.tipo,
+        assegnaz: elem.badge.assegnazione,
+        nome: elem.badge?.nominativo?.nome || "",
+        cognome: elem.badge?.nominativo?.cognome || "",
+        ditta: elem.badge?.nominativo?.ditta || "",
         entrata: props.user.admin ? dataEntrata : "XXXXX",
       };
 
@@ -366,31 +326,21 @@ const Home: React.FC<Props> = (props: Props) => {
 
   const mapArchivioToTableContent = (data: ArchivioElem[]) => {
     return data.map((elem: ArchivioElem) => {
-      const dataEntrata: string = dateFormat(
-        new Date(
-          new Date(elem.data.entrata).setHours(
-            new Date(elem.data.entrata).getHours() - 2
-          )
-        ),
-        "yyyy-mm-dd HH:MM:ss"
-      );
+      const dataEntrata: string = new Date(elem.data.entrata).toLocaleString("it-IT", {
+        timeZone: "Europe/Rome",
+      });
 
-      const dataUscita: string = dateFormat(
-        new Date(
-          new Date(elem.data.uscita as string).setHours(
-            new Date(elem.data.uscita as string).getHours() - 2
-          )
-        ),
-        "yyyy-mm-dd HH:MM:ss"
-      );
+      const dataUscita: string = new Date(elem.data.uscita as string).toLocaleString("it-IT", {
+        timeZone: "Europe/Rome",
+      });
 
       const mappedBadge: ArchivioTableContent = {
-        codice: elem.barcode,
-        tipo: elem.tipo,
-        assegnaz: elem.assegnazione,
-        nome: elem.nominativo ? elem.nominativo.nome : "",
-        cognome: elem.nominativo ? elem.nominativo.cognome : "",
-        ditta: elem.nominativo ? elem.nominativo.ditta : "",
+        codice: elem.badge.barcode,
+        tipo: elem.badge.tipo,
+        assegnaz: elem.badge.assegnazione,
+        nome: elem.badge?.nominativo?.nome || "",
+        cognome: elem.badge?.nominativo?.cognome || "",
+        ditta: elem.badge?.nominativo?.ditta || "",
         entrata: dataEntrata,
         uscita: dataUscita
       };
@@ -399,7 +349,7 @@ const Home: React.FC<Props> = (props: Props) => {
   };
 
   const mapToAutoComplBadge = (
-    badge: Badge | ArchivioElem
+    badge: Badge
   ): BadgeFormState => ({
     barcode: badge.barcode,
     descrizione: badge.descrizione,
@@ -407,37 +357,20 @@ const Home: React.FC<Props> = (props: Props) => {
     assegnazione: badge.assegnazione,
     stato: badge.stato,
     ubicazione: badge.ubicazione,
-    nome: (badge.nominativo && badge.nominativo.nome) || "",
-    cognome: (badge.nominativo && badge.nominativo.cognome) || "",
-    telefono: (badge.nominativo && badge.nominativo.telefono) || "",
-    ditta: (badge.nominativo && badge.nominativo.ditta) || "",
-    tdoc: (badge.nominativo && badge.nominativo.tdoc) || "",
-    ndoc: (badge.nominativo && badge.nominativo.ndoc) || "",
+    nome: badge?.nominativo?.nome || "",
+    cognome: badge?.nominativo?.cognome || "",
+    telefono: badge?.nominativo?.telefono || "",
+    ditta: badge?.nominativo?.ditta || "",
+    tdoc: badge?.nominativo?.tdoc || "",
+    ndoc: badge?.nominativo?.ndoc || "",
     pfp: null,
-    scadenza:
-      badge.nominativo && badge.nominativo.scadenza
-        ? dateFormat(new Date(badge.nominativo.scadenza), "yyyy-mm-dd")
-        : "",
-    targa1:
-      (badge.nominativo &&
-        badge.nominativo.targhe &&
-        badge.nominativo.targhe[1]) ||
-      "",
-    targa2:
-      (badge.nominativo &&
-        badge.nominativo.targhe &&
-        badge.nominativo.targhe[2]) ||
-      "",
-    targa3:
-      (badge.nominativo &&
-        badge.nominativo.targhe &&
-        badge.nominativo.targhe[3]) ||
-      "",
-    targa4:
-      (badge.nominativo &&
-        badge.nominativo.targhe &&
-        badge.nominativo.targhe[4]) ||
-      "",
+    scadenza: badge?.nominativo?.scadenza
+      ? dateFormat(new Date(badge.nominativo.scadenza), "yyyy-mm-dd")
+      : "",
+    targa1: badge?.nominativo?.targhe?.[1] || "",
+    targa2: badge?.nominativo?.targhe?.[2] || "",
+    targa3: badge?.nominativo?.targhe?.[3] || "",
+    targa4: badge?.nominativo?.targhe?.[4] || "",
   });
 
   const mapToFindBadgeDoc = (badgeForm: BadgeFormState): FindBadgeDoc => ({
@@ -487,7 +420,7 @@ const Home: React.FC<Props> = (props: Props) => {
 
   const refreshPage = () => {
     setBadgeForm(initialBadgeFormState);
-    //setArchivioForm(initialArchivioFormState);
+    setArchivioForm(initialArchivioFormState);
     retriveInStrutt();
     setPfpUrl("");
     props.setAlert(null);
@@ -495,12 +428,6 @@ const Home: React.FC<Props> = (props: Props) => {
 
   return (
     <div id="home-wrapper">
-      <Navbar
-        user={props.user}
-        logout={props.logout}
-        badgeForm={badgeForm}
-        setBadgeForm={setBadgeForm}
-      />
       <div className="container-fluid mb-1 home-container">
         <div className="row mt-2 justify-content-start align-items-start submit-form">
           <BadgeForm
@@ -531,6 +458,7 @@ const Home: React.FC<Props> = (props: Props) => {
             setScannedValue={setScannedValue}
             badges={badges}
             archivioList={archivioList}
+            setAlert={props.setAlert}
           />
           <div className="col-4">
             <Clock />

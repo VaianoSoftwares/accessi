@@ -74,7 +74,7 @@ export default class BadgesDAO {
       tipo: "BADGE",
       assegnazione: data.assegnazione.toUpperCase(),
       ubicazione: data.ubicazione.toUpperCase(),
-      stato: data.stato || "VALIDO",
+      stato: data.stato?.toUpperCase() || "VALIDO",
       nominativo: {
         nome: data.nome.toUpperCase(),
         cognome: data.cognome.toUpperCase(),
@@ -100,7 +100,7 @@ export default class BadgesDAO {
       tipo: "VEICOLO",
       assegnazione: data.assegnazione.toUpperCase(),
       ubicazione: data.ubicazione.toUpperCase(),
-      stato: data.stato || "VALIDO",
+      stato: data.stato?.toUpperCase() || "VALIDO",
       nominativo: {
         nome: data.nome.toUpperCase(),
         cognome: data.cognome.toUpperCase(),
@@ -128,7 +128,7 @@ export default class BadgesDAO {
       tipo: "CHIAVE",
       assegnazione: data.assegnazione.toUpperCase(),
       ubicazione: data.ubicazione.toUpperCase(),
-      stato: data.stato || "VALIDO",
+      stato: data.stato?.toUpperCase() || "VALIDO",
       nominativo: {
         nome: data.nome.toUpperCase(),
         cognome: data.cognome.toUpperCase(),
@@ -151,7 +151,7 @@ export default class BadgesDAO {
       tipo: "BADGE",
       assegnazione: data.assegnazione.toUpperCase(),
       ubicazione: data.ubicazione.toUpperCase(),
-      stato: data.stato || "VALIDO",
+      stato: data.stato?.toUpperCase() || "VALIDO",
       nominativo: null
     };
 

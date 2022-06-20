@@ -7,9 +7,10 @@ import { TAlert } from "../../types/TAlert";
 import { LoginFormState } from "../../types/LoginFormState";
 import { useNavigate } from "react-router-dom";
 import { Nullable } from "../../types/Nullable";
+import { axiosErrHandl } from "../../utils/axiosErrHandl";
 
 type Props = {
-  login: (user: User, postazione: string, token: string[]) => Promise<void>;
+  login: (user: User, cliente: string, postazione: string, token: string[]) => Promise<void>;
   alert: Nullable<TAlert>;
   setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
 };
@@ -18,6 +19,7 @@ const Login: React.FC<Props> = (props: Props) => {
   const initialLoginFormState: LoginFormState = {
     username: "",
     password: "",
+    cliente: "",
     postazione: "",
   };
 
@@ -35,86 +37,90 @@ const Login: React.FC<Props> = (props: Props) => {
   const login = () => {
     UserDataService.login(loginForm)
       .then((response) => {
-        //console.log(`login - response.data: ${response.data}`);
         if (response.data.success === true) {
           console.log(
             `Logged In. uname: ${response.data.data.name} - admin: ${response.data.data.admin} - postazione: ${loginForm.postazione}`
           );
 
-          props.login(response.data.data as User, loginForm.postazione, [
+          props.login(response.data.data as User, loginForm.cliente, loginForm.postazione, [
             response.headers["guest-token"] as string,
             response.headers["admin-token"] as string,
           ]);
           navigate("../home");
         }
       })
-      .catch((err) => {
-        console.log(err.response);
-        if (err.response) {
-          const { success, msg }: TAlert = err.response.data;
-          props.setAlert({ success, msg });
-        }
-      });
+      .catch(err => axiosErrHandl(err, props.setAlert, "login | "));
   };
 
   return (
     <div className="login-wrapper">
       <div className="submit-form login-form login-center">
-        <div className="form-group">
-          <label htmlFor="postazione" className="col-sm-2 col-form-label">
+      <div className="form-group col-sm-8 login-child">
+          <label htmlFor="cliente" className="col-form-label">
+            Cliente
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            id="cliente"
+            required
+            value={loginForm.cliente}
+            name="cliente"
+            onChange={handleInputChanges}
+            autoComplete="off"
+          />
+        </div>
+        <div className="form-group col-sm-8 login-child">
+          <label htmlFor="postazione" className="col-form-label">
             Postazione
           </label>
-          <div className="col-sm-7">
-            <input
-              type="text"
-              className="form-control"
-              id="postazione"
-              required
-              value={loginForm.postazione}
-              name="postazione"
-              onChange={handleInputChanges}
-              autoComplete="off"
-            />
-          </div>
+          <input
+            type="text"
+            className="form-control"
+            id="postazione"
+            required
+            value={loginForm.postazione}
+            name="postazione"
+            onChange={handleInputChanges}
+            autoComplete="off"
+          />
         </div>
-        <div className="form-group">
-          <label htmlFor="username" className="col-sm-2 col-form-label">
+        <div className="form-group col-sm-8 login-child">
+          <label htmlFor="username" className="col-form-label">
             Username
           </label>
-          <div className="col-sm-7">
-            <input
-              type="text"
-              className="form-control"
-              id="username"
-              required
-              value={loginForm.username}
-              name="username"
-              onChange={handleInputChanges}
-              autoComplete="off"
-            />
-          </div>
+          <input
+            type="text"
+            className="form-control"
+            id="username"
+            required
+            value={loginForm.username}
+            name="username"
+            onChange={handleInputChanges}
+            autoComplete="off"
+          />
         </div>
-        <div className="form-group">
-          <label htmlFor="password" className="col-sm-2 col-form-label">
+        <div className="form-group col-sm-8 login-child">
+          <label htmlFor="password" className="col-form-label">
             Password
           </label>
-          <div className="col-sm-7">
-            <input
-              type="password"
-              className="form-control"
-              id="password"
-              required
-              value={loginForm.password}
-              name="password"
-              onChange={handleInputChanges}
-              autoComplete="off"
-            />
-          </div>
+          <input
+            type="password"
+            className="form-control"
+            id="password"
+            required
+            value={loginForm.password}
+            name="password"
+            onChange={handleInputChanges}
+            autoComplete="off"
+          />
         </div>
         <br />
-        <button onClick={login} className="btn btn-success">
-          Login
-        </button>
+        <div className="form-group col-sm-2 login-child">
+          <button onClick={login} className="btn btn-success">
+            Login
+          </button>
+        </div>
       </div>
       <div className="login-alert-wrapper">
         <Alert alert={props.alert} setAlert={props.setAlert} />

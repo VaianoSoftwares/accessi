@@ -1,6 +1,6 @@
 export enum StatoBadge {
-    VALIDO = "valido",
-    SCADUTO = "scaduto",
-    REVOCATO = "revocato",
-    RICONSEGNATO = "riconsegnato"
+    VALIDO = "VALIDO",
+    SCADUTO = "SCADUTO",
+    REVOCATO = "REVOCATO",
+    RICONSEGNATO = "RICONSEGNATO"
 };

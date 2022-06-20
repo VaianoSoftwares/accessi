@@ -4,6 +4,8 @@ import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import "./index.css";
 import BadgePopup from "../BadgePopup";
 import { ArchivioTableContent, TableContentElem } from "../../types/TableContentElem";
+import { Nullable } from "../../types/Nullable";
+import { TAlert } from "../../types/TAlert";
 
 type Props = {
   findBadges: () => void;
@@ -19,6 +21,7 @@ type Props = {
   setScannedValue: React.Dispatch<React.SetStateAction<string>>;
   badges: TableContentElem[];
   archivioList: ArchivioTableContent[];
+  setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
 };
 
 const FormButtons: React.FC<Props> = (props: Props) => {
@@ -27,7 +30,7 @@ const FormButtons: React.FC<Props> = (props: Props) => {
   return (
     <div className="form-buttons">
       <div className="row align-items-center justify-content-start g-0">
-        <SerialComponent setScannedValue={props.setScannedValue} />
+        <SerialComponent setScannedValue={props.setScannedValue} setAlert={props.setAlert} />
         <div className="w-100 mt-1"></div>
         <div className="col-auto">
           <button

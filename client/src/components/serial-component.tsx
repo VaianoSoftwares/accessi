@@ -1,8 +1,11 @@
 import React from "react";
+import { Nullable } from "../types/Nullable";
+import { TAlert } from "../types/TAlert";
 import utf8ArrayToStr from "../utils/utf8ArrayToStr";
 
 type Props = {
   setScannedValue: React.Dispatch<React.SetStateAction<string>>;
+  setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
 };
 
 type SerialCompStates = {
@@ -18,7 +21,7 @@ export default class SerialComponent extends React.Component<
     this.state = { connected: false };
   }
 
-  async init(openPrompt: boolean = true) {
+  async init() {
     let port: SerialPort | undefined;
 
     try {
@@ -35,11 +38,11 @@ export default class SerialComponent extends React.Component<
         console.error(
           "edge://flags/#enable-experimental-web-platform-features"
         );
-        throw new Error("api not available");
+        throw new Error("Api non disponibile");
       }
 
       port = await window.navigator.serial.requestPort();
-      if (!port) throw new Error("port not found");
+      if(!port) throw new Error("Nessun dispositivo seriale selezionato");
 
       await port.open({ baudRate: 57600 }); // Wait for the serial port to open.
       console.log("serialApi init - Aperta porta seriale.");
@@ -49,32 +52,18 @@ export default class SerialComponent extends React.Component<
       port.ondisconnect = async (e: Event) => await this.close(e);
       port.dispatchEvent(new Event("connect"));
     } catch (err) {
-      console.log(`serialApi init - ${err}`);
-      const errMsg = "The port is already open";
-      if(err instanceof Error && err.message.includes(errMsg))
-        this.setState({ connected: true });
+      console.error(`serialApi init - ${err}`);
+      if (err instanceof Error) {
+        const errMsg = "The port is already open";
+        if (err.message.includes(errMsg)) this.setState({ connected: true });
+        else
+          this.props.setAlert({ success: false, msg: err.message });
+      }
     }
   }
-
-  /*
-  decodeSerialOut(value?: Uint8Array) {
-    if(!value) return "";
-
-    const chCodeArr = String(value)
-        .split(",")
-        .map(elem => Number(elem));
-    
-    return String.fromCharCode(...chCodeArr)
-        //.replace(/[\n\r]+/g, "")
-        //.replace(/\s{2,10}/g, " ")
-        .trim();
-  }
-  */
 
   async read(event: Event) {
-    if (!event.target) {
-      return;
-    }
+    if(!event.target) return;
 
     const port = event.target as SerialPort;
 
@@ -97,95 +86,32 @@ export default class SerialComponent extends React.Component<
             .replace(/\s+/g, "")
             .trim();
           console.log(`serialApi read - trimmedVal: ${trimmedVal}`);
-          if (trimmedVal.length >= 3 && trimmedVal[0] !== "-") {
-            this.props.setScannedValue(trimmedVal);
-          } else {
-            console.log(`serialApi read - ${trimmedVal} codice non valido`);
-          }
+          if (trimmedVal.length < 3 || trimmedVal[0] === "-")
+            throw new Error(`serialApi read - ${trimmedVal} codice non valido`);
+          this.props.setScannedValue(trimmedVal);
         }
       } catch (err) {
-        console.log(`serialApi read - ${err}`);
+        console.error(`serialApi read - ${err}`);
+        if(err instanceof Error)
+          this.props.setAlert({ success: false, msg: err.message });
       }
     }
-
-    /*
-    const port = event.target;
-    // eslint-disable-next-line no-undef
-    const textDecoder = new TextDecoderStream();
-    let readableStreamClosed;
-    let reader;
-    
-    try {
-      readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
-      reader = textDecoder.readable.getReader();
-      console.log(reader, readableStreamClosed);
-      console.log("serialApi read - In ascolto su porta seriale...");
-
-      while (true) {
-        const { value, done } = await reader.read();
-        console.log(`serialApi read - value: ${value} - done: ${done}`);
-
-        if (done) {
-          break;
-        }
-
-        const trimmedVal = value
-          .replace(/[\n\r]+/g, "")
-          .replace(/\s{2,10}/g, " ")
-          .trim();
-
-        console.log(`serialApi read - value (trimmed): ${trimmedVal}`);
-        this.props.setScannedValue(trimmedVal);
-      }
-    } catch (err) {
-      console.log(`serialApi read - ${err}`);
-    } finally {
-      if(reader && reader.locked === true) {
-        reader.releaseLock();
-      }
-      port.dispatchEvent(
-        new CustomEvent("disconnect", {
-          bubbles: true,
-          detail: { reader, readableStreamClosed },
-        })
-      );
-    }*/
   }
 
   async close(event: Event) {
-    /*
-    if (!event || !event.detail) {
-      return;
-    }
-    */
-
     try {
       const port = event.target as SerialPort;
-      /*const { reader, readableStreamClosed } = event.detail;
-
-      if(readableStreamClosed) {
-        await readableStreamClosed.catch(() => {}); //chiusura stream lettura
-      }
-
-      if (reader && reader.locked === true) {
-        await reader.cancel(); //chiusura lettore seriale
-      }*/
-
-      if (port) {
-        await port.close(); //disconessione da seriale
-      }
+      if(port) await port.close(); //disconessione da seriale
       console.log("serialApi close - Disconnessione a porta seriale.");
     } catch (err) {
-      console.log(`serialApi close - ${err}`);
+      console.error(`serialApi close - ${err}`);
+      if(err instanceof Error)
+        this.props.setAlert({ success: false, msg: err.message });
     } finally {
       this.setState({ connected: false });
     }
   }
-  /*
-  async componentDidMount() {
-    await this.init(false);
-  }
-  */
+  
   render() {
     return (
       <>
@@ -193,7 +119,7 @@ export default class SerialComponent extends React.Component<
           <button
             className="btn btn-outline-secondary home-form-btn"
             id="serial-conn-btn"
-            onClick={async () => await this.init(true)}
+            onClick={async () => await this.init()}
           >
             Scanner
           </button>

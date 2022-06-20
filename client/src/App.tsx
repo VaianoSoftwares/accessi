@@ -8,15 +8,17 @@ import Home from "./components/Home";
 import Login from "./components/Login";
 import AdminMenu from "./components/AdminMenu";
 import PageNotFound from "./components/PageNotFound";
+import Calendario from "./components/Calendario";
+import AccessiNavbar from "./components/AccessiNavbar";
 // Types
 import { User } from "./types/User";
 import { TAlert } from "./types/TAlert";
 import { Nullable } from "./types/Nullable";
 import { TipoBadge } from "./enums/TipoBadge";
 import { StatoBadge } from "./enums/StatoBadge";
+import { Assegnazione } from "./types/Assegnazione";
 // Services
 import BadgeDataService from "./services/badge";
-import { Assegnazione } from "./types/Assegnazione";
 
 const App: React.FC<{}> = () => {
   const [tipiBadge, setTipiBadge] = React.useState<TipoBadge[]>([]);
@@ -40,9 +42,10 @@ const App: React.FC<{}> = () => {
     retriveEnums();
   }, []);
 
-  const login = async (user: User, postazione: string, tokens: string[]) => {
+  const login = async (user: User, cliente: string, postazione: string, tokens: string[]) => {
     sessionStorage.setItem("username", user.name);
     sessionStorage.setItem("admin", user.admin.toString());
+    sessionStorage.setItem("cliente", cliente);
     sessionStorage.setItem("postazione", postazione);
     sessionStorage.setItem("guest-token", tokens[0]);
     if (user.admin) sessionStorage.setItem("admin-token", tokens[1]);
@@ -70,6 +73,12 @@ const App: React.FC<{}> = () => {
 
   return (
     <div className="App">
+      <AccessiNavbar
+        user={user}
+        logout={logout}
+        // badgeForm={badgeForm}
+        // setBadgeForm={setBadgeForm}
+      />
       <Routes>
         <Route path="*" element={<PageNotFound />} />
         <Route
@@ -87,11 +96,25 @@ const App: React.FC<{}> = () => {
                 statiBadge={statiBadge}
               />
             ) : (
-              <Navigate replace to="../login" />
+              <Navigate replace to="/login" />
             )
           }
         />
         <Route path="/" element={<Navigate replace to="home" />} />
+        <Route
+          path="calendario"
+          element={
+            user ? (
+              <Calendario
+                user={user}
+                alert={_alert}
+                setAlert={setAlert}
+              />
+            ) : (
+              <Navigate replace to="/login" />
+            )
+          }
+        />
         <Route
           path="admin/*"
           element={
@@ -106,9 +129,9 @@ const App: React.FC<{}> = () => {
                 setAssegnazioni={setAssegnazioni}
               />
             ) : user ? (
-              <Navigate replace to="../home" />
+              <Navigate replace to="/home" />
             ) : (
-              <Navigate replace to="../login" />
+              <Navigate replace to="/login" />
             )
           }
         />

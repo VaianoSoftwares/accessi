@@ -163,7 +163,7 @@ export default class Assegnaz extends React.Component<AssegnazProps, AssegnazSta
                       <button
                         value={assegnazione.name}
                         type="button"
-                        className="close"
+                        className="close btn-del-assegnaz"
                         aria-label="Close"
                         onClick={(event) => btnDeleteOnClickEvent(event)}
                       >

@@ -1,0 +1,38 @@
+.calendario, .calendario > div {
+    border: 1px solid;
+    text-align: center;
+}
+
+.calendario-month, .calendario-month > div {
+    text-align: center;
+}
+
+.month-btn {
+    width: 50px;
+}
+
+.days-div {
+    min-height: 74px;
+}
+
+.days-div > p {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.current-month {
+    white-space: nowrap;
+}
+
+div[data-not-available] {
+    background-color:lightgray;
+}
+
+div[data-prenotato] {
+    background-color:forestgreen;
+}
+
+.calendario-alert-wrapper {
+    margin-left: auto;
+    margin-right: auto;
+}

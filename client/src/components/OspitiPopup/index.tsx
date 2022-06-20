@@ -47,6 +47,7 @@ const OspitiPopup: React.FC<Props> = (props: Props) => {
   const timbraBtnEvent : React.MouseEventHandler<HTMLButtonElement> = () => {
     props.timbra({ 
       ...ospForm,
+      cliente: sessionStorage.getItem("cliente") as string,
       postazione: sessionStorage.getItem("postazione") as string,
       tipo: props.tipoBadge
     });
