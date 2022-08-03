@@ -334,9 +334,11 @@ const Home: React.FC<Props> = (props: Props) => {
         timeZone: "Europe/Rome",
       });
 
-      const mappedBadge: ArchivioTableContent = {
+      const mappedArchivioElem: ArchivioTableContent = {
         codice: elem.badge.barcode,
         tipo: elem.badge.tipo,
+        cliente: elem.cliente,
+        postazione: elem.postazione,
         assegnaz: elem.badge.assegnazione,
         nome: elem.badge?.nominativo?.nome || "",
         cognome: elem.badge?.nominativo?.cognome || "",
@@ -344,7 +346,7 @@ const Home: React.FC<Props> = (props: Props) => {
         entrata: dataEntrata,
         uscita: dataUscita
       };
-      return mappedBadge;
+      return mappedArchivioElem;
     });
   };
 

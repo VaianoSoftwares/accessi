@@ -14,6 +14,8 @@ type InStruttPartialContent = {
 };
 
 type ArchivioPartialContent = {
+    cliente: string;
+    postazione: string;
     uscita: string;
 };
 

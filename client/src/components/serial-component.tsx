@@ -87,7 +87,7 @@ export default class SerialComponent extends React.Component<
             .trim();
           console.log(`serialApi read - trimmedVal: ${trimmedVal}`);
           if (trimmedVal.length < 3 || trimmedVal[0] === "-")
-            throw new Error(`serialApi read - ${trimmedVal} codice non valido`);
+            continue;// throw new Error(`serialApi read - ${trimmedVal} codice non valido`);
           this.props.setScannedValue(trimmedVal);
         }
       } catch (err) {
