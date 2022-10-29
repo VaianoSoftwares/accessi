@@ -85,7 +85,7 @@ const Home: React.FC<Props> = (props: Props) => {
   const [readOnlyForm, setReadOnlyForm] = React.useState(true);
   const [scannedValue, setScannedValue] = React.useState("");
   const [timeoutRunning, setTimeoutRunning] = React.useState(false);
-  const [pfpUrl, setPfpUrl] = React.useState<string>("");
+  const [pfpUrl, setPfpUrl] = React.useState("");
   
   React.useEffect(() => {
     props.setAlert(null);

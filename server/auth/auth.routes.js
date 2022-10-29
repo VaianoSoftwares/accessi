@@ -1,4 +1,5 @@
 import express from "express";
+import { Route } from "express";
 import UsersCtrl from "./auth.controller.js";
 import PermessiCtrl from "./auth.permessi.js";
 import AuthToken from "./verifyToken.js";

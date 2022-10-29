@@ -3,10 +3,10 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import fileUpload from "express-fileupload";
-import dateFormat from "dateformat";
 
 import authRoutes from "./auth/auth.routes.js";
 import badgesRoutes from "./api/badges.routes.js";
+import documentiRoutes from "./api/documenti.routes.js";
 
 const app = express();
 
@@ -51,6 +51,7 @@ app.use(
 // routes
 app.use("/api/v1/users", authRoutes);
 app.use("/api/v1/badges", badgesRoutes);
+app.use("/api/v1/documenti", documentiRoutes);
 
 // backend make public and get compiled react app
 if (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "staging") {

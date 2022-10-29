@@ -120,6 +120,7 @@ export default class ArchivioDAO {
   }
 
   static async timbra(badgeDoc, cliente, postazione, ip) {
+    // this will the response, a "timbra" document
     let timbraResp = {
       badge: badgeDoc,
       cliente,
@@ -130,16 +131,18 @@ export default class ArchivioDAO {
       },
     }
 
+    // check if barcode is a "tessera universitario" document number
     const isUni = badgeDoc.barcode?.length === 7 && /^\d+$/.test(badgeDoc.barcode);
     let timbratura = { error: null };
 
     try {
+      // if isUni then create a new badge provvisorio
       if(isUni) {
         const uniDoc = {
           barcode: badgeDoc.barcode,
           descrizione: "UNIVERSITARIO",
           tipo: "BADGE",
-          assegnazione: "UTENTE",
+          assegnazione: "UNIVERSITARIO",
           stato: "VALIDO",
           ubicazione: "",
           nominativo: {
@@ -147,8 +150,9 @@ export default class ArchivioDAO {
             ndoc: badgeDoc.barcode
           }
         };
-        timbraResp.badgeDoc = uniDoc;
+        timbraResp.badge = uniDoc;
       }
+      // or else search for an existing badge in order to gather nominativo's data
       else {
         const [fetchedBadge] = await BadgesDAO.getBadges({ barcode: badgeDoc.barcode });
         if (!fetchedBadge) {
@@ -321,8 +325,10 @@ export default class ArchivioDAO {
   static async #timbraUnilaterale(badgeDoc, cliente, postazione, ip) {
     try {
       const inStrutt = await this.getInStruttBy("badge.barcode", badgeDoc.barcode);
+      // badge è in struttura, verrà timbrata la sua uscita
       if (inStrutt) {
         const id = inStrutt._id;
+        // aggiornamento oggetto archivio: viene settata data di uscita del badge nell'archivio
         const { modifiedCount } = await this.#timbraEsce(id);
 
         if (modifiedCount === 0)
@@ -333,13 +339,16 @@ export default class ArchivioDAO {
           dataEntra: inStrutt.data.entrata,
           error: null
         };
+      // badge NON è in struttura, verrà timbrata la sua entrata
       } else {
+        // creazione nuovo oggetto archivio
         const { error, insertedId } = await this.#timbraEntra(
           badgeDoc, cliente, postazione, ip
         );
 
         if (error) throw new Error(error);
-
+        
+        // viene prelevata la data di entrata di timbratura del badge
         const { data } = await this.getInStruttBy("_id", insertedId);
         return {
           msg: "Timbra Entra",

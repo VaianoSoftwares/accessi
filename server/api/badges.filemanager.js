@@ -6,6 +6,7 @@ const __dirname = path.resolve();
 //const validPfpExt = [".png", ".jpeg", ".jpg"];
 
 export default class FileManager {
+
     static async uploadPfp(files, barcode, tipoBadge) {
         if(!files || Object.keys(files).length === 0) {
             console.log("No file to upload.");
@@ -28,7 +29,9 @@ export default class FileManager {
             const fileSize = pfp.data.length;
             const maxFileSize = 50 * 1024;
             if(fileSize > maxFileSize) {
-                throw new Error(`Dimensione file ${fileSize / 1024}KB superiore a 50KB.`);
+                throw new Error(
+                    `Dimensione file ${fileSize/1024}KB superiore a ${maxFileSize/1024}KB.`
+                );
             }
     
             const newName = `USER_${barcode}${fileExt}`;
@@ -65,6 +68,63 @@ export default class FileManager {
         }
     }
 
+    static async uploadDocument(files, codice) {
+        try {
+            if(!files || Object.keys(files).length === 0)
+                throw new Error("Nessun file selezionato.");
+            
+            const [file] = files;
+
+            const fileExt = path.extname();
+            const expectedFileExt = ".jpg";
+            if(fileExt !== expectedFileExt) {
+                throw new Error(
+                    `Estensione file prevista: ${expectedFileExt}, invece è ${fileExt}.`
+                );
+            }
+            
+            const fileSize = file.data.size;
+            const maxFileSize = 1024 * 1024;
+            if(fileSize > maxFileSize) {
+                throw new Error(
+                    `Dimensione file ${fileSize/1024}KB maggiore di ${maxFileSize/1024}KB.`
+                );
+            }
+
+            const newName = `DOC_${codice}${fileExt}`;
+            const filePath = path.resolve(__dirname, "server", "public", "documenti", newName);
+            console.log("file path: ", filePath);
+    
+            await pfp.mv(filePath);
+            return { fileName: newName }; 
+
+        } catch(err) {
+            console.log(`fileUpload - ${err}`);
+            return { error: err };
+        }
+    }
+
+    static async deleteDocumento(codice) {
+        try {
+            const dirPath =  path.resolve(__dirname, "server", "public", "documenti");
+            const docs = await fs.readdir(dirPath);
+
+            const [ docToDel ] = docs.filter(doc => doc.includes(codice));
+
+            if(docToDel) {
+                await fs.unlink(path.resolve(dirPath, pfpToDel));
+                console.log(`deleteDocumento - Documento ${codice} eliminato`);
+            }
+            else
+                throw new Error(`Documento ${codice} non esistente.`);
+
+            return {};
+        } catch(err) {
+            console.log("deletePfp - ", err);
+            return { error: err };
+        }
+    }
+
     static async deleteTmpFiles() {
         try {
             const dirPath = path.resolve(__dirname, "server", "tmp");
@@ -76,4 +136,5 @@ export default class FileManager {
             return { error: err };
         }
     }
+
 };

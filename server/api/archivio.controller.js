@@ -25,14 +25,17 @@ export default class ArchivioController {
   }
 
   static async apiPostArchivio(req, res) {
+    // barcode, tipo, cliente, postazione are REQUIRED in order to execute a "timbratura"
     const valErr = Validator.timbra(req.body).error;
     if(valErr) {
       return res.status(400).json({ success: false, msg: valErr.details[0].message, data: null });
     }
     
     const { cliente, postazione } = req.body;
+    // get address of client machine requesting for "timbra"
     const { ip } = req;
 
+    // badge provvisorio data gathered from "timbra provvisori" input boxes for nominativo object
     const nominativo = {
       nome: req.body?.nome?.toUpperCase() || "",
       cognome: req.body?.cognome?.toUpperCase() || "",
@@ -49,6 +52,7 @@ export default class ArchivioController {
       }
     };
 
+    // default badge document setup
     const badgeDoc = {
       barcode: req.body.barcode.toUpperCase(),
       descrizione: "",

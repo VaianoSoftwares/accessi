@@ -5,3 +5,7 @@
 # misc
 package-lock.json
 .env
+
+# tmp upload files
+server/tmp/*
+!server/tmp/.gitkeep

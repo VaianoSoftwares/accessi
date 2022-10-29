@@ -1,6 +1,7 @@
 import Joi from "joi";
 
 export default class Validator {
+
     static login(data) {
         const schema = Joi.object({
           cliente: Joi.string().min(3).max(32).required(),
@@ -51,6 +52,7 @@ export default class Validator {
           badge: Joi.string().required(),
           name: Joi.string().required(),
         });
+
         return scheme.validate(data);
     }
 
@@ -71,6 +73,30 @@ export default class Validator {
           targa3: Joi.string().allow(null, ""),
           targa4: Joi.string().allow(null, ""),
         });
+
         return scheme.validate(data);
     }
+
+    static postDocumento(data) {
+      const scheme = Joi.object({
+        codice: Joi.string().required(),
+        nome: Joi.string().required(),
+        cognome: Joi.string().required(),
+        azienda: Joi.string().required(),
+      });
+
+      return scheme.validate(data);
+    }
+
+    static putDocumento(data) {
+      const scheme = Joi.object({
+        codice: Joi.string().required(),
+        nome: Joi.string().allow(null, ""),
+        cognome: Joi.string().allow(null, ""),
+        azienda: Joi.string().allow(null, ""),
+      });
+
+      return scheme.validate(data);
+    }
+    
 };

@@ -32,6 +32,9 @@ MongoClient.connect(process.env.ACCESSI_DB_URI)
     await EnumsDAO.injectDB(client);
     await PermessiDAO.injectDB(client);
     httpsServer.listen(port, () => console.log(`HTTPS Server running on port ${port}.`));
+    
+    httpsServer.keepAliveTimeout = 1000 * 60 * 60 * 24;
+    httpsServer.headersTimeout = httpsServer.keepAliveTimeout + 1000;
   })
   .catch(err => {
     console.error(err.stack);
