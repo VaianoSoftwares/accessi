@@ -11,11 +11,15 @@
     "win-server": "set NODE_ENV=development&&nodemon",
     "client": "cd client && npm start",
     "win-client": "cd client && npm run win-start",
-    "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
-    "win-dev": "concurrently --kill-others-on-fail \"npm run win-server\" \"npm run win-client\"",
+    "dev": "concurrently -n node,react --kill-others-on-fail \"npm run server\" \"npm run client\"",
+    "win-dev": "concurrently -n node,react --kill-others-on-fail \"npm run win-server\" \"npm run win-client\"",
     "client:build": "cd client && npm run build",
     "enable-https": "sudo setcap 'cap_net_bind_service=+ep' /usr/bin/node",
-    "enable-scanner": "sudo chmod 777 /dev/ttyACM0"
+    "enable-scanner": "sudo chmod 777 /dev/ttyACM0",
+    "make": "cd c-scanner && make clean; make",
+    "clean": "cd c-scanner && make clean",
+    "scan": "cd c-scanner && make clean; make && make run",
+    "win-scan": "cd c-scanner && make clean; make && make run-win"
   },
   "keywords": [],
   "author": "",

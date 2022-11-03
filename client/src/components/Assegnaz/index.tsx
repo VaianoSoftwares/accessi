@@ -9,11 +9,12 @@ import { Nullable } from "../../types/Nullable";
 import { TAlert } from "../../types/TAlert";
 import { Assegnazione } from "../../types/Assegnazione";
 
-import Alert from "../alert";
+import Alert from "../Alert";
 
 type AssegnazProps = {
   alert: Nullable<TAlert>;
-  setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
+  openAlert: (alert: TAlert) => void;
+  closeAlert: () => void;
   tipiBadge: TipoBadge[];
   assegnazioni: Assegnazione[];
   setAssegnazioni: React.Dispatch<React.SetStateAction<Assegnazione[]>>;
@@ -60,7 +61,7 @@ export default class Assegnaz extends React.Component<AssegnazProps, AssegnazSta
           console.log(err);
           if (err.response) {
             const { success, msg }: TAlert = err.response.data;
-            this.props.setAlert({ success, msg });
+            this.props.openAlert({ success, msg });
           }
         });
     };
@@ -83,7 +84,7 @@ export default class Assegnaz extends React.Component<AssegnazProps, AssegnazSta
           console.log(err);
           if (err.response) {
             const { success, msg }: TAlert = err.response.data;
-            this.props.setAlert({ success, msg });
+            this.props.openAlert({ success, msg });
           }
         });
     };
@@ -175,7 +176,7 @@ export default class Assegnaz extends React.Component<AssegnazProps, AssegnazSta
               ))}
           </div>
         </div>
-        <Alert alert={this.props.alert} setAlert={this.props.setAlert} />
+        <Alert alert={this.props.alert} closeAlert={this.props.closeAlert} />
       </>
     );
   }

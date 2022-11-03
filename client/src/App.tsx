@@ -1,8 +1,10 @@
 //Modules
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+
 // Style
 import "bootstrap/dist/css/bootstrap.min.css";
+
 // Components
 import Home from "./components/Home";
 import Login from "./components/Login";
@@ -10,6 +12,8 @@ import AdminMenu from "./components/AdminMenu";
 import PageNotFound from "./components/PageNotFound";
 import Calendario from "./components/Calendario";
 import AccessiNavbar from "./components/AccessiNavbar";
+import Documenti from "./components/Documenti";
+
 // Types
 import { User } from "./types/User";
 import { TAlert } from "./types/TAlert";
@@ -17,6 +21,7 @@ import { Nullable } from "./types/Nullable";
 import { TipoBadge } from "./enums/TipoBadge";
 import { StatoBadge } from "./enums/StatoBadge";
 import { Assegnazione } from "./types/Assegnazione";
+
 // Services
 import BadgeDataService from "./services/badge";
 
@@ -36,7 +41,10 @@ const App: React.FC<{}> = () => {
       } as User;
     return null;
   });
-  const [_alert, setAlert] = React.useState<Nullable<TAlert>>(null);
+
+  const [alert, setAlert] = React.useState<Nullable<TAlert>>(null);
+  const openAlert = (alert: TAlert) => setAlert(alert);
+  const closeAlert = () => setAlert(null);
 
   React.useEffect(() => {
     retriveEnums();
@@ -88,8 +96,9 @@ const App: React.FC<{}> = () => {
               <Home
                 user={user}
                 logout={logout}
-                alert={_alert}
-                setAlert={setAlert}
+                alert={alert}
+                openAlert={openAlert}
+                closeAlert={closeAlert}
                 tipiBadge={tipiBadge}
                 assegnazioni={assegnazioni}
                 tipiDoc={tipiDoc}
@@ -107,8 +116,24 @@ const App: React.FC<{}> = () => {
             user ? (
               <Calendario
                 user={user}
-                alert={_alert}
-                setAlert={setAlert}
+                alert={alert}
+                openAlert={openAlert}
+                closeAlert={closeAlert}
+              />
+            ) : (
+              <Navigate replace to="/login" />
+            )
+          }
+        />
+        <Route
+          path="documenti"
+          element={
+            user ? (
+              <Documenti
+                alert={alert}
+                openAlert={openAlert}
+                closeAlert={closeAlert}
+                admin={user.admin}
               />
             ) : (
               <Navigate replace to="/login" />
@@ -122,8 +147,9 @@ const App: React.FC<{}> = () => {
               <AdminMenu
                 user={user}
                 logout={logout}
-                alert={_alert}
-                setAlert={setAlert}
+                alert={alert}
+                openAlert={openAlert}
+                closeAlert={closeAlert}
                 tipiBadge={tipiBadge}
                 assegnazioni={assegnazioni}
                 setAssegnazioni={setAssegnazioni}
@@ -137,7 +163,14 @@ const App: React.FC<{}> = () => {
         />
         <Route
           path="login"
-          element={<Login login={login} alert={_alert} setAlert={setAlert} />}
+          element={
+            <Login
+              login={login}
+              alert={alert}
+              openAlert={openAlert}
+              closeAlert={closeAlert}
+            />
+          }
         />
       </Routes>
     </div>

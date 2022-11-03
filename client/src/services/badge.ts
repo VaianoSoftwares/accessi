@@ -5,150 +5,111 @@ import { GenericResponse } from "../types/Responses";
 import { TimbraDoc } from "../types/TimbraDoc";
 import { FindArchivioDoc } from "../types/FindArchivioDoc";
 import { Assegnazione } from "../types/Assegnazione";
+import { adminReqFileHeader, adminReqHeader, guestReqHeader } from "./dataServicesConfigs";
+import { isQueryEmpty, queryToString } from "./dataServicesUtilis";
+
+const baseUrl = "/api/v1/badges";
 
 class BadgesDataService {
+
   getAll(): Promise<AxiosResponse<GenericResponse>> {
-    return axios.get("/api/v1/badges", {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-      },
+    return axios.get(baseUrl, {
+      headers: guestReqHeader,
     });
   }
 
   find(query: FindBadgeDoc): Promise<AxiosResponse<GenericResponse>> {
-    if (
-      Object.keys(query).length === 0 ||
-      !Object.values(query).some((value) => value !== null)
-    )
+    if (isQueryEmpty(query))
       return this.getAll();
 
-    const params = Object.entries(query)
-      .filter(([key, value]) => value)
-      .map(([key, value]) => `${key}=${value}`)
-      .join("&");
-    console.log(params);
-    return axios.get(`/api/v1/badges?${params}`, {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-      },
+    const params = queryToString(query);
+    // console.log(params);
+
+    return axios.get(`${baseUrl}?${params}`, {
+      headers: guestReqHeader,
     });
   }
 
   insertBadge(data: FormData): Promise<AxiosResponse<GenericResponse>> {
-    return axios.post("/api/v1/badges", data, {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-        "admin-token": sessionStorage.getItem("admin-token"),
-        "Content-Type": "multipart/form-data",
-      },
+    return axios.post(baseUrl, data, {
+      headers: adminReqFileHeader,
     });
   }
 
   updateBadge(data: FormData): Promise<AxiosResponse<GenericResponse>> {
-    return axios.put("/api/v1/badges", data, {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-        "admin-token": sessionStorage.getItem("admin-token"),
-        "Content-Type": "multipart/form-data",
-      },
+    return axios.put(baseUrl, data, {
+      headers: adminReqFileHeader,
     });
   }
 
   deleteBadge(barcode: string): Promise<AxiosResponse<GenericResponse>> {
-    return axios.delete(`/api/v1/badges?barcode=${barcode}`, {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-        "admin-token": sessionStorage.getItem("admin-token"),
-      },
+    return axios.delete(`${baseUrl}?barcode=${barcode}`, {
+      headers: adminReqHeader,
     });
   }
 
   getEnums(): Promise<AxiosResponse<GenericResponse>> {
-    return axios.get(`/api/v1/badges/enums`, {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-      },
+    return axios.get(`${baseUrl}/enums`, {
+      headers: guestReqHeader,
     });
   }
 
   getAssegnazioni(tipo: string = ""): Promise<AxiosResponse<GenericResponse>> {
-    return axios.get(`/api/v1/badges/assegnazioni?tipo=${tipo}`, {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-      },
+    return axios.get(`${baseUrl}/assegnazioni?tipo=${tipo}`, {
+      headers: guestReqHeader,
     });
   }
 
   insertAssegnazione(data: Assegnazione): Promise<AxiosResponse<GenericResponse>> {
-    return axios.post("/api/v1/badges/assegnazioni", data, {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-        "admin-token": sessionStorage.getItem("admin-token")
-      }
+    return axios.post(`${baseUrl}/assegnazioni`, data, {
+      headers: adminReqHeader
     });
   }
 
   deleteAssegnazione(data: Assegnazione): Promise<AxiosResponse<GenericResponse>> {
-    return axios.delete(`/api/v1/badges/assegnazioni?badge=${data.badge}&name=${data.name}`, {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-        "admin-token": sessionStorage.getItem("admin-token")
-      }
+    return axios.delete(`${baseUrl}/assegnazioni?badge=${data.badge}&name=${data.name}`, {
+      headers: adminReqHeader
     });
   }
 
   getTipiDoc(): Promise<AxiosResponse<GenericResponse>> {
-    return axios.get("/api/v1/badges/tipi-doc", {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-      },
+    return axios.get(`${baseUrl}/tipi-doc`, {
+      headers: guestReqHeader,
     });
   }
 
   getStati(): Promise<AxiosResponse<GenericResponse>> {
-    return axios.get("/api/v1/badges/stati", {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-      },
+    return axios.get(`${baseUrl}/stati`, {
+      headers: guestReqHeader,
     });
   }
 
   getTipiBadge(): Promise<AxiosResponse<GenericResponse>> {
-    return axios.get("/api/v1/badges/tipi", {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-      },
+    return axios.get(`${baseUrl}/tipi`, {
+      headers: guestReqHeader,
     });
   }
 
   getArchivio(query: FindArchivioDoc): Promise<AxiosResponse<GenericResponse>> {
-    const params = Object.entries(query)
-      .filter(([key, value]) => value)
-      .map(([key, value]) => `${key}=${value}`)
-      .join("&");
+    const params = queryToString(query);
     
-    return axios.get(`/api/v1/badges/archivio?${params}`, {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-      },
+    return axios.get(`${baseUrl}/archivio?${params}`, {
+      headers: guestReqHeader,
     });
   }
 
   getInStrutt(tipo: string = ""): Promise<AxiosResponse<GenericResponse>> {
-    return axios.get(`/api/v1/badges/archivio/in-struttura?tipo=${tipo}`, {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-      },
+    return axios.get(`${baseUrl}/archivio/in-struttura?tipo=${tipo}`, {
+      headers: guestReqHeader,
     });
   }
 
   timbra(data: TimbraDoc): Promise<AxiosResponse<GenericResponse>> {
-    return axios.post("/api/v1/badges/archivio", data, {
-      headers: {
-        "guest-token": sessionStorage.getItem("guest-token"),
-      },
+    return axios.post(`${baseUrl}/archivio`, data, {
+      headers: guestReqHeader,
     });
   }
+  
 }
 
 export default new BadgesDataService();

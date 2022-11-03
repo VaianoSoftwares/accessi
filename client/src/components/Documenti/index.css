@@ -1,0 +1,29 @@
+.doc-img-container {
+    border: 2px solid green;
+    width: 180px;
+    height: 180px;
+    max-width: 180px;
+    max-height: 180px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+}
+
+.doc-form .form-control {
+    height: 35px;
+}
+
+.doc-form .form-floating label {
+    font-size: 13px;
+    top: -25%;
+}
+
+input[type="file"] {
+    font-size: 12px
+}
+
+.doc-alert-wrapper {
+    position: absolute;
+    left: 55%;
+    top: 20%;
+}

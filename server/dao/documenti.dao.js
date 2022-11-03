@@ -1,3 +1,5 @@
+import { ObjectId } from "mongodb";
+
 let docs;
 
 export default class DocumentiDAO {
@@ -21,10 +23,10 @@ export default class DocumentiDAO {
         docFilter.append(valueRegex);
       }));
 
-      const query = { $and: docFilter };
+      const query = docFilter.length > 0 ? { $and: docFilter } : null;
 
       try {
-        const cursor = await docs.find(query);
+        const cursor = await docs.find(query, { projection: { _id: 0 } });
         const displayCursor = cursor.limit(500).skip(0);
         const docsList = await displayCursor.toArray();
         return docsList;
@@ -56,11 +58,6 @@ export default class DocumentiDAO {
         .filter(([key, value]) => value && key !== "codice")
         .forEach(([key, value]) => paramsToUpdate[key] = value.toUpperCase());
       
-      if(Object.keys(paramsToUpdate).length === 0) {
-        console.log("updateDocumento - No parameters to update");
-        return {};
-      }
-      
       const { codice } = data;
 
       try {
@@ -68,12 +65,17 @@ export default class DocumentiDAO {
         if(!existsDoc)
           throw new Error(`Documento ${codice} non esistente.`);
 
-        const docId = existsDoc._id;
+        const docId = new ObjectId(existsDoc._id);
 
-        const updateResponse = await docs.insertOne(
+        const updateResponse = await docs.updateOne(
           { _id: docId },
           { $set: paramsToUpdate }
         );
+
+        if(updateResponse.modifiedCount === 0)
+          throw new Error("Nessun documento è stato modificato.");
+
+        updateResponse.updatedId = docId;
 
         return updateResponse;
       } catch(err) {
@@ -88,6 +90,19 @@ export default class DocumentiDAO {
         return deleteResponse;
       } catch(err) {
         console.error(`deleteDocumento - ${err}`);
+        return { error: err };
+      }
+    }
+
+    static async getDocById(id) {
+      try {
+        const doc = await docs.findOne(
+          { _id: { $eq: new ObjectId(id) } },
+          { _id: 0 }
+        );
+        return doc;
+      } catch(err) {
+        console.error("getDocById | ", err);
         return { error: err };
       }
     }

@@ -1,18 +1,20 @@
 import React from "react";
 import UserDataService from "../../services/user";
 import "./index.css";
-import Alert from "../alert";
+import Alert from "../Alert";
 import { User } from "../../types/User";
 import { TAlert } from "../../types/TAlert";
 import { LoginFormState } from "../../types/LoginFormState";
 import { useNavigate } from "react-router-dom";
 import { Nullable } from "../../types/Nullable";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
+import handleInputChanges from "../../utils/handleInputChanges";
 
 type Props = {
   login: (user: User, cliente: string, postazione: string, token: string[]) => Promise<void>;
   alert: Nullable<TAlert>;
-  setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
+  openAlert: (alert: TAlert) => void;
+  closeAlert: () => void;
 };
 
 const Login: React.FC<Props> = (props: Props) => {
@@ -26,11 +28,6 @@ const Login: React.FC<Props> = (props: Props) => {
   const [loginForm, setLoginForm] = React.useState<LoginFormState>(
     initialLoginFormState
   );
-
-  const handleInputChanges = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setLoginForm({ ...loginForm, [name]: value });
-  };
 
   const navigate = useNavigate();
 
@@ -49,13 +46,13 @@ const Login: React.FC<Props> = (props: Props) => {
           navigate("../home");
         }
       })
-      .catch(err => axiosErrHandl(err, props.setAlert, "login | "));
+      .catch(err => axiosErrHandl(err, props.openAlert, "login | "));
   };
 
   return (
     <div className="login-wrapper">
       <div className="submit-form login-form login-center">
-      <div className="form-group col-sm-8 login-child">
+        <div className="form-group col-sm-8 login-child">
           <label htmlFor="cliente" className="col-form-label">
             Cliente
           </label>
@@ -66,7 +63,7 @@ const Login: React.FC<Props> = (props: Props) => {
             required
             value={loginForm.cliente}
             name="cliente"
-            onChange={handleInputChanges}
+            onChange={(e) => handleInputChanges(e, loginForm, setLoginForm)}
             autoComplete="off"
           />
         </div>
@@ -81,7 +78,7 @@ const Login: React.FC<Props> = (props: Props) => {
             required
             value={loginForm.postazione}
             name="postazione"
-            onChange={handleInputChanges}
+            onChange={(e) => handleInputChanges(e, loginForm, setLoginForm)}
             autoComplete="off"
           />
         </div>
@@ -96,7 +93,7 @@ const Login: React.FC<Props> = (props: Props) => {
             required
             value={loginForm.username}
             name="username"
-            onChange={handleInputChanges}
+            onChange={(e) => handleInputChanges(e, loginForm, setLoginForm)}
             autoComplete="off"
           />
         </div>
@@ -111,7 +108,7 @@ const Login: React.FC<Props> = (props: Props) => {
             required
             value={loginForm.password}
             name="password"
-            onChange={handleInputChanges}
+            onChange={(e) => handleInputChanges(e, loginForm, setLoginForm)}
             autoComplete="off"
           />
         </div>
@@ -123,7 +120,7 @@ const Login: React.FC<Props> = (props: Props) => {
         </div>
       </div>
       <div className="login-alert-wrapper">
-        <Alert alert={props.alert} setAlert={props.setAlert} />
+        <Alert alert={props.alert} closeAlert={props.closeAlert} />
       </div>
     </div>
   );

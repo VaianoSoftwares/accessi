@@ -1,10 +1,11 @@
 import React from "react";
 import { OspFormState } from "../types/OspFormState";
+import { TEvent, TEventInput } from "../types/TEvent";
 
 type Props = {
   ospForm: OspFormState;
-  handleOspInputChanges: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
-  handleNdocInputChanges: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleOspInputChanges: (event: TEvent) => void;
+  handleNdocInputChanges: (event: TEventInput) => void;
   tipiDoc: string[];
   isVeicolo: boolean;
 };

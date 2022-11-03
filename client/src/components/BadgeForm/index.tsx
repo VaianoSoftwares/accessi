@@ -11,15 +11,13 @@ import { TipoBadge } from "../../enums/TipoBadge";
 import { StatoBadge } from "../../enums/StatoBadge";
 import { Assegnazione } from "../../types/Assegnazione";
 import { ArchivioFormState } from "../../types/ArchivioFormState";
+import { TEvent } from "../../types/TEvent";
 
 type Props = {
   badgeForm: BadgeFormState;
   archivioForm: ArchivioFormState;
-  handleInputChanges: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => void;
-  handleInputFileChanges: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleInputChangesArchivio: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleInputChangesBadge: (e: TEvent) => void;
+  handleInputChangesArchivio: (e: TEvent) => void;
   tipiBadge: TipoBadge[];
   assegnazioni: Assegnazione[];
   tipiDoc: string[];
@@ -68,7 +66,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
             className="form-control form-control-sm"
             id="barcode"
             value={props.badgeForm.barcode}
-            onChange={props.handleInputChanges}
+            onChange={props.handleInputChangesBadge}
             name="barcode"
             placeholder="barcode"
             readOnly={props.readOnlyForm}
@@ -82,7 +80,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
             className="form-control form-control-sm"
             id="descrizione"
             value={props.badgeForm.descrizione}
-            onChange={props.handleInputChanges}
+            onChange={props.handleInputChangesBadge}
             name="descrizione"
             placeholder="descrizione"
             readOnly={props.readOnlyForm}
@@ -96,7 +94,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
             className="form-select form-select-sm"
             id="tipo"
             value={props.badgeForm.tipo}
-            onChange={props.handleInputChanges}
+            onChange={props.handleInputChangesBadge}
             name="tipo"
             placeholder="tipo"
           >
@@ -119,7 +117,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
             className="form-select form-select-sm"
             id="assegnazione"
             value={props.badgeForm.assegnazione || ""}
-            onChange={props.handleInputChanges}
+            onChange={props.handleInputChangesBadge}
             name="assegnazione"
             placeholder="assegnazione"
           >
@@ -147,7 +145,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
             className="form-select form-select-sm"
             id="stato"
             value={props.badgeForm.stato || ""}
-            onChange={props.handleInputChanges}
+            onChange={props.handleInputChangesBadge}
             name="stato"
             placeholder="stato"
           >
@@ -166,7 +164,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
             className="form-control form-control-sm"
             id="ubicazione"
             value={props.badgeForm.ubicazione}
-            onChange={props.handleInputChanges}
+            onChange={props.handleInputChangesBadge}
             name="ubicazione"
             placeholder="ubicazione"
             readOnly={!!props.readOnlyForm}
@@ -187,7 +185,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
               type="file"
               className="custom-file-input"
               id="pfp"
-              onChange={props.handleInputFileChanges}
+              onChange={props.handleInputChangesBadge}
               name="pfp"
               disabled={props.readOnlyForm === true || props.admin === false}
               autoComplete="off"
@@ -202,7 +200,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                 className="form-control form-control-sm"
                 id="nome"
                 value={props.badgeForm.nome}
-                onChange={props.handleInputChanges}
+                onChange={props.handleInputChangesBadge}
                 name="nome"
                 placeholder="nome"
                 readOnly={!!props.readOnlyForm}
@@ -216,7 +214,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                 className="form-control form-control-sm"
                 id="cognome"
                 value={props.badgeForm.cognome}
-                onChange={props.handleInputChanges}
+                onChange={props.handleInputChangesBadge}
                 name="cognome"
                 placeholder="cognome"
                 readOnly={!!props.readOnlyForm}
@@ -231,7 +229,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                 className="form-control form-control-sm"
                 id="ditta"
                 value={props.badgeForm.ditta}
-                onChange={props.handleInputChanges}
+                onChange={props.handleInputChangesBadge}
                 name="ditta"
                 placeholder="ditta"
                 readOnly={!!props.readOnlyForm}
@@ -245,7 +243,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                 className="form-control form-control-sm"
                 id="telefono"
                 value={props.badgeForm.telefono}
-                onChange={props.handleInputChanges}
+                onChange={props.handleInputChangesBadge}
                 name="telefono"
                 placeholder="telefono"
                 readOnly={!!props.readOnlyForm}
@@ -259,7 +257,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                 className="form-select form-select-sm"
                 id="tdoc"
                 value={props.badgeForm.tdoc || ""}
-                onChange={props.handleInputChanges}
+                onChange={props.handleInputChangesBadge}
                 name="tdoc"
                 placeholder="tipo documento"
               >
@@ -284,7 +282,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                 className="form-control form-control-sm"
                 id="ndoc"
                 value={props.badgeForm.ndoc}
-                onChange={props.handleInputChanges}
+                onChange={props.handleInputChangesBadge}
                 name="ndoc"
                 placeholder="num documento"
                 readOnly={!!props.readOnlyForm}
@@ -302,7 +300,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                     className="form-control form-control-sm"
                     id="scadenza"
                     value={props.badgeForm.scadenza}
-                    onChange={props.handleInputChanges}
+                    onChange={props.handleInputChangesBadge}
                     name="scadenza"
                     readOnly={props.readOnlyForm === true || props.admin === false}
                     autoComplete="off"
@@ -320,7 +318,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                       className="form-control form-control-sm"
                       id="targa1"
                       value={props.badgeForm.targa1}
-                      onChange={props.handleInputChanges}
+                      onChange={props.handleInputChangesBadge}
                       name="targa1"
                       placeholder="targa1"
                       readOnly={!!props.readOnlyForm}
@@ -334,7 +332,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                       className="form-control form-control-sm"
                       id="targa2"
                       value={props.badgeForm.targa2}
-                      onChange={props.handleInputChanges}
+                      onChange={props.handleInputChangesBadge}
                       name="targa2"
                       placeholder="targa2"
                       readOnly={!!props.readOnlyForm}
@@ -348,7 +346,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                       className="form-control form-control-sm"
                       id="targa3"
                       value={props.badgeForm.targa3}
-                      onChange={props.handleInputChanges}
+                      onChange={props.handleInputChangesBadge}
                       name="targa3"
                       placeholder="targa3"
                       readOnly={!!props.readOnlyForm}
@@ -362,7 +360,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                       className="form-control form-control-sm"
                       id="targa4"
                       value={props.badgeForm.targa4}
-                      onChange={props.handleInputChanges}
+                      onChange={props.handleInputChangesBadge}
                       name="targa4"
                       placeholder="targa4"
                       readOnly={!!props.readOnlyForm}

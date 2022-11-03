@@ -22,7 +22,8 @@ type Props = {
     user: User;
     logout: () => Promise<void>;
     alert: Nullable<TAlert>;
-    setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
+    openAlert: (alert: TAlert) => void;
+    closeAlert: () => void;
     tipiBadge: TipoBadge[];
     assegnazioni: Assegnazione[];
     setAssegnazioni: React.Dispatch<React.SetStateAction<Assegnazione[]>>;
@@ -58,7 +59,8 @@ const AdminMenu: React.FC<Props> = (props: Props) => {
                         element={props.user && props.user.admin === true ? (
                             <Register
                                 alert={props.alert}
-                                setAlert={props.setAlert}
+                                openAlert={props.openAlert}
+                                closeAlert={props.closeAlert}
                             />
                         ) : props.user ? (
                             <Navigate replace to="../../home" />
@@ -72,7 +74,8 @@ const AdminMenu: React.FC<Props> = (props: Props) => {
                         element={props.user && props.user.admin === true ? (
                             <Assegnaz
                                 alert={props.alert}
-                                setAlert={props.setAlert}
+                                openAlert={props.openAlert}
+                                closeAlert={props.closeAlert}
                                 tipiBadge={props.tipiBadge}
                                 assegnazioni={props.assegnazioni}
                                 setAssegnazioni={props.setAssegnazioni}

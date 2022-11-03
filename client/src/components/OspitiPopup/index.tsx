@@ -10,6 +10,8 @@ import OspitiForm from "../ospiti-form";
 import { OspFormState } from "../../types/OspFormState";
 import { TimbraDoc } from "../../types/TimbraDoc";
 import { TipoBadge } from "../../enums/TipoBadge";
+import handleInputChanges from "../../utils/handleInputChanges";
+import { TEvent, TEventInput } from "../../types/TEvent";
 
 type Props = {
   isShown: boolean;
@@ -39,10 +41,10 @@ const OspitiPopup: React.FC<Props> = (props: Props) => {
 
   const [ospForm, setOspForm] = React.useState<OspFormState>(initialOspFormState);
 
-  const handleOspInputChanges = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = event.target;
-    setOspForm({ ...ospForm, [name]: value });
-  };
+  // const handleOspInputChanges = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  //   const { name, value } = event.target;
+  //   setOspForm({ ...ospForm, [name]: value });
+  // };
 
   const timbraBtnEvent : React.MouseEventHandler<HTMLButtonElement> = () => {
     props.timbra({ 
@@ -55,8 +57,11 @@ const OspitiPopup: React.FC<Props> = (props: Props) => {
     closePopup();
   };
 
+  const handleOspInputChanges = (event: TEvent) =>
+    handleInputChanges(event, ospForm, setOspForm);
+
   const handleNdocInputChanges = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: TEventInput
   ) => {
     const { value } = event.target;
     if (Cf.check(value)) {

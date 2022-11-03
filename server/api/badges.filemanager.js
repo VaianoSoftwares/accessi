@@ -3,7 +3,8 @@ import fs from "fs/promises";
 
 const __dirname = path.resolve();
 
-//const validPfpExt = [".png", ".jpeg", ".jpg"];
+// const validPfpExt = [".png", ".jpeg", ".jpg"];
+const validDocExt = [".png", ".jpeg", ".jpg"];
 
 export default class FileManager {
 
@@ -22,7 +23,8 @@ export default class FileManager {
             console.log("file name: ", pfp.name);
     
             const fileExt = path.extname(pfp.name);
-            if(fileExt !== ".jpg") {
+            const expectedFileExt = ".jpg";
+            if(fileExt !== expectedFileExt) {
                 throw new Error(`${fileExt} estensione file non valida.`);
             }
 
@@ -41,7 +43,7 @@ export default class FileManager {
             await pfp.mv(filePath);
             return { fileName: newName };
         } catch(err) {
-            console.log(`fileUpload - ${err}`);
+            console.log("fileUpload | ", err);
             return { error: err };
         }
     }
@@ -55,36 +57,35 @@ export default class FileManager {
 
             if(pfpToDel) {
                 await fs.unlink(path.resolve(dirPath, pfpToDel));
-                console.log(`deletePfp - Badge ${barcode}, foto profilo eliminata`);
+                console.log(`deletePfp | Badge ${barcode}, foto profilo eliminata`);
             }
             else {
-                console.log(`deletePfp - Badge ${barcode} e' sprovvisto di foto profilo`);
+                console.log(`deletePfp | Badge ${barcode} e' sprovvisto di foto profilo`);
             }
 
             return {};
         } catch(err) {
-            console.log("deletePfp - ", err);
+            console.log("deletePfp | ", err);
             return { error: err };
         }
     }
 
-    static async uploadDocument(files, codice) {
+    static async uploadDocumento(files, codice) {
         try {
             if(!files || Object.keys(files).length === 0)
                 throw new Error("Nessun file selezionato.");
             
-            const [file] = files;
+            const { docimg } = files;
 
-            const fileExt = path.extname();
-            const expectedFileExt = ".jpg";
-            if(fileExt !== expectedFileExt) {
+            const fileExt = path.extname(docimg.name);
+            if(!validDocExt.includes(fileExt)) {
                 throw new Error(
-                    `Estensione file prevista: ${expectedFileExt}, invece è ${fileExt}.`
+                    `Estensione file ${fileExt} non valida.`
                 );
             }
             
-            const fileSize = file.data.size;
-            const maxFileSize = 1024 * 1024;
+            const fileSize = docimg.data.size;
+            const maxFileSize = 10 * 1024 * 1024;
             if(fileSize > maxFileSize) {
                 throw new Error(
                     `Dimensione file ${fileSize/1024}KB maggiore di ${maxFileSize/1024}KB.`
@@ -95,11 +96,11 @@ export default class FileManager {
             const filePath = path.resolve(__dirname, "server", "public", "documenti", newName);
             console.log("file path: ", filePath);
     
-            await pfp.mv(filePath);
-            return { fileName: newName }; 
+            await docimg.mv(filePath);
+            return { filename: newName }; 
 
         } catch(err) {
-            console.log(`fileUpload - ${err}`);
+            console.log("uploadDocument | ", err);
             return { error: err };
         }
     }
@@ -112,15 +113,15 @@ export default class FileManager {
             const [ docToDel ] = docs.filter(doc => doc.includes(codice));
 
             if(docToDel) {
-                await fs.unlink(path.resolve(dirPath, pfpToDel));
-                console.log(`deleteDocumento - Documento ${codice} eliminato`);
+                await fs.unlink(path.resolve(dirPath, docToDel));
+                console.log(`deleteDocumento | Documento ${codice} eliminato`);
             }
             else
                 throw new Error(`Documento ${codice} non esistente.`);
 
             return {};
         } catch(err) {
-            console.log("deletePfp - ", err);
+            console.log("deleteDocumento | ", err);
             return { error: err };
         }
     }
@@ -132,7 +133,7 @@ export default class FileManager {
             files.forEach(async file => await fs.unlink(path.resolve(dirPath, file)));
             return {};
         } catch(err) {
-            console.log(`deleteTmpFiles - ${err}`);
+            console.log("deleteTmpFiles | ", err);
             return { error: err };
         }
     }

@@ -39,13 +39,28 @@ export default class DocumentiController {
         }
 
         const docToAdd = {
-            codice: codice.toUpperCase(),
-            nome: nome.toUpperCase(),
-            cognome: cognome.toUpperCase(),
-            azieda: azienda.toUpperCase()
+            codice: req.body.codice.toUpperCase(),
+            nome: req.body.nome.toUpperCase(),
+            cognome: req.body.cognome.toUpperCase(),
+            azieda: req.body.azienda.toUpperCase(),
         };
 
         try {
+            const fileUplResp = await FileManager.uploadDocumento(
+                req.files, docToAdd.codice
+            );
+
+            const fileUplErr = fileUplResp.error;
+            if(fileUplErr) {
+                return res.status(400).json({
+                    success: false,
+                    msg: fileUplErr.message,
+                    data: null 
+                });
+            }
+
+            docToAdd.filename = fileUplResp.filename;
+
             const docResponse = await DocumentiDAO.addDocumento(docToAdd);
 
             const respErr = docResponse.error;
@@ -57,25 +72,10 @@ export default class DocumentiController {
                 });
             }
 
-            const fileUplResp = await FileManager.uploadDocument(
-                docToAdd.codice
-            );
-
-            const fileUplErr = fileUplResp.error;
-            if(fileUplErr) {
-                await DocumentiDAO.deleteDocumento(docToAdd.codice);
-
-                return res.status(400).json({
-                    success: false,
-                    msg: fileUplErr.message,
-                    data: null 
-                });
-            }
-
             res.json({
                 success: true,
                 msg: "Documento caricato con successo.",
-                data: docResponse,
+                data: docToAdd,
             });
         } catch(err) {
             console.error(err);
@@ -98,14 +98,33 @@ export default class DocumentiController {
         }
 
         const docToUpd = {
-            codice: codice.toUpperCase(),
-            nome: nome?.toUpperCase(),
-            cognome: cognome?.toUpperCase(),
-            azieda: azienda?.toUpperCase()
+            codice: req.body.codice.toUpperCase(),
+            nome: req.body?.nome?.toUpperCase(),
+            cognome: req.body?.cognome?.toUpperCase(),
+            azieda: req.body?.azienda?.toUpperCase()
         };
 
         try {
+            const fileUplResp = await FileManager.uploadDocumento(
+                req.files, docToUpd.codice
+            );
+
+            const fileUplErr = fileUplResp.error;
+            if(
+              fileUplErr &&
+              !fileUplErr.message.includes("Nessun file selezionato")
+            ) {
+              return res.status(400).json({
+                success: false,
+                msg: fileUplErr.message,
+                data: null,
+              });
+            }
+
+            docToUpd.filename = fileUplResp?.filename;
+
             const docResponse = await DocumentiDAO.updateDocumento(docToUpd);
+            console.log(docResponse);
 
             const respErr = docResponse.error;
             if(respErr) {
@@ -116,23 +135,14 @@ export default class DocumentiController {
                 });
             }
 
-            const fileUplResp = await FileManager.uploadDocument(
-                docToAdd.codice
+            const updatedDoc = await DocumentiDAO.getDocById(
+              docResponse.updatedId
             );
-
-            const fileUplErr = fileUplResp.error;
-            if(fileUplErr) {
-                return res.status(400).json({
-                    success: false,
-                    msg: fileUplErr.message,
-                    data: null 
-                });
-            }
 
             res.json({
                 success: true,
                 msg: "Documento aggiornato con successo.",
-                data: docResponse,
+                data: updatedDoc,
             });
         } catch(err) {
             console.error(err);
@@ -145,7 +155,14 @@ export default class DocumentiController {
     }
 
     static async apiDeleteDocumenti(req, res) {
-        const { codice } = req.query;
+        const codice = req.query.codice.toUpperCase();
+        if(!codice) {
+            return res.status(400).json({
+                success: false,
+                msg: "Codice documento non specificato.",
+                data: null
+            });
+        }
         
         try {
             const docResponse = await DocumentiDAO.deleteDocumento(codice);
@@ -159,6 +176,8 @@ export default class DocumentiController {
                     `Documento ${codice} (file) non è stato eliminato.`
                 );
             }
+
+            docResponse.codice = codice;
 
             res.json({
                 success: true,

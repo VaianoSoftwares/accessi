@@ -1,11 +1,10 @@
 import React from "react";
-import { Nullable } from "../types/Nullable";
 import { TAlert } from "../types/TAlert";
 import utf8ArrayToStr from "../utils/utf8ArrayToStr";
 
 type Props = {
   setScannedValue: React.Dispatch<React.SetStateAction<string>>;
-  setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
+  openAlert: (alert: TAlert) => void;
 };
 
 type SerialCompStates = {
@@ -57,7 +56,7 @@ export default class SerialComponent extends React.Component<
         const errMsg = "The port is already open";
         if (err.message.includes(errMsg)) this.setState({ connected: true });
         else
-          this.props.setAlert({ success: false, msg: err.message });
+          this.props.openAlert({ success: false, msg: err.message });
       }
     }
   }
@@ -93,7 +92,7 @@ export default class SerialComponent extends React.Component<
       } catch (err) {
         console.error(`serialApi read - ${err}`);
         if(err instanceof Error)
-          this.props.setAlert({ success: false, msg: err.message });
+          this.props.openAlert({ success: false, msg: err.message });
       }
     }
   }
@@ -106,7 +105,7 @@ export default class SerialComponent extends React.Component<
     } catch (err) {
       console.error(`serialApi close - ${err}`);
       if(err instanceof Error)
-        this.props.setAlert({ success: false, msg: err.message });
+        this.props.openAlert({ success: false, msg: err.message });
     } finally {
       this.setState({ connected: false });
     }

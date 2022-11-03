@@ -5,14 +5,15 @@ import "./index.css";
 import { Permesso } from "../../types/Permesso";
 import { Nullable } from "../../types/Nullable";
 import { TAlert } from "../../types/TAlert";
-import Alert from "../alert";
+import Alert from "../Alert";
 import dateFormat from "dateformat";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 
 type Props = {
     user: User;
     alert: Nullable<TAlert>;
-    setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
+    openAlert: (alert: TAlert) => void;
+    closeAlert: () => void;
 }
 
 const MONTHS = [
@@ -112,18 +113,18 @@ const Calendario: React.FC<Props> = (props) => {
   const insertPermesso = async (permToAdd: Permesso) => {
     try {
       const response = await UserDataService.postPermesso(permToAdd);
-      console.log("insertPermessi | response.data: ", response.data);
+      console.log("insertPermesso | response.data: ", response.data);
 
       setPermessi((prevState) => [...prevState, permToAdd]);
     } catch (err) {
-      axiosErrHandl(err, props.setAlert, "insertPermessi | ");
+      axiosErrHandl(err, props.openAlert, "insertPermessi | ");
     }
   };
 
   const deletePermesso = async (permToDel: Permesso) => {
     try {
       const response = await UserDataService.deletePermesso(permToDel);
-      console.log("deletePermessi | response.data: ", response.data);
+      console.log("deletePermesso | response.data: ", response.data);
 
       setPermessi((prevState) =>
         prevState.filter(
@@ -132,7 +133,7 @@ const Calendario: React.FC<Props> = (props) => {
         )
       );
     } catch (err) {
-      axiosErrHandl(err, props.setAlert, "deletePermesso | ");
+      axiosErrHandl(err, props.openAlert, "deletePermesso | ");
     }
   };
   
@@ -308,7 +309,7 @@ const Calendario: React.FC<Props> = (props) => {
         {createCalendar(currDate)}
       </div>
       <div className="calendario-alert-wrapper">
-        <Alert alert={props.alert} setAlert={props.setAlert} />
+        <Alert alert={props.alert} closeAlert={props.closeAlert} />
       </div>
     </div>
   );

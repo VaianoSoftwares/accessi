@@ -4,11 +4,13 @@ import UserDataService from "../services/user";
 import { Nullable } from "../types/Nullable";
 import { RegisterFormState } from "../types/RegisterFormState";
 import { TAlert } from "../types/TAlert";
-import Alert from "./alert";
+import handleInputChanges from "../utils/handleInputChanges";
+import Alert from "./Alert";
 
 type Props = {
   alert: Nullable<TAlert>;
-  setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
+  openAlert: (alert: TAlert) => void;
+  closeAlert: () => void;
 };
 
 const Register: React.FC<Props> = (props: Props) => {
@@ -22,12 +24,12 @@ const Register: React.FC<Props> = (props: Props) => {
     initialRegisterFormState
   );
 
-  const handleInputChanges = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = event.target;
-    if(type === "checkbox")
-      return;
-    setRegisterForm({ ...registerForm, [name]: value });
-  };
+  // const handleInputChanges = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const { name, value, type } = event.target;
+  //   if(type === "checkbox")
+  //     return;
+  //   setRegisterForm({ ...registerForm, [name]: value });
+  // };
 
   const handleCheckboxChanges = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked, type } = event.target;
@@ -41,13 +43,13 @@ const Register: React.FC<Props> = (props: Props) => {
       .then((response) => {
         console.log(response.data);
         const { success, msg } = response.data;
-        props.setAlert({ success, msg });
+        props.openAlert({ success, msg });
       })
       .catch((err) => {
         console.log(err);
         if(err.response) {
           const { success, msg } = err.response.data;
-          props.setAlert({ success, msg });
+          props.openAlert({ success, msg });
         }
       });
   };
@@ -63,7 +65,7 @@ const Register: React.FC<Props> = (props: Props) => {
           id="username"
           required
           value={registerForm.username}
-          onChange={handleInputChanges}
+          onChange={e => handleInputChanges(e, registerForm, setRegisterForm)}
           name="username"
           autoComplete="off"
         />
@@ -76,7 +78,7 @@ const Register: React.FC<Props> = (props: Props) => {
           id="password"
           required
           value={registerForm.password}
-          onChange={handleInputChanges}
+          onChange={e => handleInputChanges(e, registerForm, setRegisterForm)}
           name="password"
           autoComplete="off"
         />
@@ -99,7 +101,7 @@ const Register: React.FC<Props> = (props: Props) => {
       <button onClick={() => register()} className="btn btn-success">
         Register
       </button>
-      <Alert alert={props.alert} setAlert={props.setAlert} />
+      <Alert alert={props.alert} closeAlert={props.closeAlert} />
     </div>
   );
 };

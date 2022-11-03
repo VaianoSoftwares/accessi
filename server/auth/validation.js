@@ -94,6 +94,7 @@ export default class Validator {
         nome: Joi.string().allow(null, ""),
         cognome: Joi.string().allow(null, ""),
         azienda: Joi.string().allow(null, ""),
+        docimg: Joi.any(),
       });
 
       return scheme.validate(data);

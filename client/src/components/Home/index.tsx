@@ -1,18 +1,23 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+
 // Modules
 import React from "react";
 import dateFormat from "dateformat";
+
 // Style
 import "./index.css";
+
 // Services
 import BadgeDataService from "../../services/badge";
+
 // Components
 import BadgeForm from "../BadgeForm";
 import BadgeTable from "../BadgeTable";
 import Clock from "../Clock";
 import FormButtons from "../FormButtons";
 import OspitiPopup from "../OspitiPopup";
-import Alert from "../alert";
+import Alert from "../Alert";
+
 // Types
 import { User } from "../../types/User";
 import { TAlert } from "../../types/TAlert";
@@ -28,15 +33,21 @@ import { FindBadgeDoc } from "../../types/FindBadgeDoc";
 import { GenericResponse } from "../../types/Responses";
 import { Assegnazione } from "../../types/Assegnazione";
 import { ArchivioFormState } from "../../types/ArchivioFormState";
-import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import { FindArchivioDoc } from "../../types/FindArchivioDoc";
+import { TEvent } from "../../types/TEvent";
+
+// Utils
+import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
+import { createFormData } from "../../utils/createFormData";
+import handleInputChanges from "../../utils/handleInputChanges";
 
 type Props = {
   user: User;
   logout: () => Promise<void>;
   alert: Nullable<TAlert>;
-  setAlert: React.Dispatch<React.SetStateAction<Nullable<TAlert>>>;
+  openAlert: (alert: TAlert) => void;
+  closeAlert: () => void;
   tipiBadge: TipoBadge[];
   assegnazioni: Assegnazione[];
   tipiDoc: string[];
@@ -88,12 +99,12 @@ const Home: React.FC<Props> = (props: Props) => {
   const [pfpUrl, setPfpUrl] = React.useState("");
   
   React.useEffect(() => {
-    props.setAlert(null);
+    props.closeAlert();
     retriveInStrutt();
   }, [badgeForm.tipo]);
 
   React.useEffect(() => {
-    props.setAlert(null);
+    props.closeAlert();
     if(readOnlyForm === true) {
       setBadgeForm({ ...initialBadgeFormState, tipo: badgeForm.tipo });
       setPfpUrl("");
@@ -116,29 +127,20 @@ const Home: React.FC<Props> = (props: Props) => {
 
   React.useEffect(() => {
     if(badgeForm.pfp) {
-      const url = URL.createObjectURL(badgeForm.pfp);
-      setPfpUrl(url);
+      const reader = new FileReader();
+      reader.readAsDataURL(badgeForm.pfp);
+      reader.onload = () => setPfpUrl(reader.result as string);
     }
     else {
       setPfpUrl("");
     }
-    console.log("pfpUrl: ", pfpUrl);
   }, [badgeForm.pfp]);
 
-  const handleInputChanges = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setBadgeForm({ ...badgeForm, [name]: value });
-  };
+  const handleInputChangesBadge = (e: TEvent) =>
+    handleInputChanges(e, badgeForm, setBadgeForm);
 
-  const handleInputFileChanges = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, files } = e.target;
-    setBadgeForm({ ...badgeForm, [name]: files![0] });
-  };
-  
-  const handleInputChangesArchivio = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setArchivioForm({ ...archivioForm, [name]: value });
-  };
+  const handleInputChangesArchivio = (e: TEvent) =>
+    handleInputChanges(e, badgeForm, setBadgeForm);
   
   const retriveInStrutt = () => {
     BadgeDataService.getInStrutt(badgeForm.tipo)
@@ -159,7 +161,7 @@ const Home: React.FC<Props> = (props: Props) => {
         setArchivioList(mappedArchivio);
         htmlTableToExcel("popup-table");
       })
-      .catch(err => axiosErrHandl(err, props.setAlert, "findArchivio | "));
+      .catch(err => axiosErrHandl(err, props.openAlert, "findArchivio | "));
   };
   
   const findBadges = () => {
@@ -181,7 +183,7 @@ const Home: React.FC<Props> = (props: Props) => {
       .catch(err => {
         console.error("findBadges | error: ", err);
       })
-      .finally(() => props.setAlert(null));
+      .finally(() => props.closeAlert());
   };
 
   const timbra = (data: TimbraDoc) => {
@@ -223,23 +225,23 @@ const Home: React.FC<Props> = (props: Props) => {
           }
           
           retriveInStrutt();
-          props.setAlert(null);
+          props.closeAlert();
 
           setTimeoutRunning(false);
         }, 1000);
       })
-      .catch(err => axiosErrHandl(err, props.setAlert, "timbra | "));
+      .catch(err => axiosErrHandl(err, props.closeAlert, "timbra | "));
   };
 
   const insertBadge = () => {
-    const formData = createFormData();
+    const formData = createFormData(badgeForm);
     BadgeDataService.insertBadge(formData)
       .then(response => {
         console.log(response.data);
         const { success, msg } = response.data;
-        props.setAlert({ success, msg });
+        props.openAlert({ success, msg });
       })
-      .catch(err => axiosErrHandl(err, props.setAlert, "insertBadge | "))
+      .catch(err => axiosErrHandl(err, props.openAlert, "insertBadge | "))
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
         setPfpUrl("");
@@ -250,14 +252,14 @@ const Home: React.FC<Props> = (props: Props) => {
     const confirmed = window.confirm("Procedere alla modifica del badge?");
 		if (!confirmed) return;
 
-    const formData = createFormData();
+    const formData = createFormData(badgeForm);
     BadgeDataService.updateBadge(formData)
       .then(response => {
         console.log(response.data);
         const { success, msg } = response.data;
-        props.setAlert({ success, msg });
+        props.openAlert({ success, msg });
       })
-      .catch(err => axiosErrHandl(err, props.setAlert, "updateBadge | "))
+      .catch(err => axiosErrHandl(err, props.openAlert, "updateBadge | "))
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
         setPfpUrl("");
@@ -272,22 +274,13 @@ const Home: React.FC<Props> = (props: Props) => {
       .then(response => {
         console.log(response.data);
         const { success, msg } = response.data;
-        props.setAlert({ success, msg });
+        props.openAlert({ success, msg });
       })
-      .catch(err => axiosErrHandl(err, props.setAlert, "deleteBadge | "))
+      .catch(err => axiosErrHandl(err, props.openAlert, "deleteBadge | "))
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
         setPfpUrl("");
       });
-  };
-
-  const createFormData = () => {
-    const formData = new FormData();
-    Object.entries(badgeForm)
-      .filter(([key, value]) => value != null)
-      .map(([key, value]) => value instanceof File ? [key, value as Blob] : [key, value as string])
-      .forEach(([key, value]) => formData.append(key as string, value));
-    return formData;
   };
 
   const mapBadgesToTableContent = (data: Badge[]) => {
@@ -425,7 +418,7 @@ const Home: React.FC<Props> = (props: Props) => {
     setArchivioForm(initialArchivioFormState);
     retriveInStrutt();
     setPfpUrl("");
-    props.setAlert(null);
+    props.closeAlert();
   };
 
   return (
@@ -435,8 +428,7 @@ const Home: React.FC<Props> = (props: Props) => {
           <BadgeForm
             badgeForm={badgeForm}
             archivioForm={archivioForm}
-            handleInputChanges={handleInputChanges}
-            handleInputFileChanges={handleInputFileChanges}
+            handleInputChangesBadge={handleInputChangesBadge}
             handleInputChangesArchivio={handleInputChangesArchivio}
             tipiBadge={props.tipiBadge}
             assegnazioni={props.assegnazioni}
@@ -460,7 +452,7 @@ const Home: React.FC<Props> = (props: Props) => {
             setScannedValue={setScannedValue}
             badges={badges}
             archivioList={archivioList}
-            setAlert={props.setAlert}
+            openAlert={props.openAlert}
           />
           <div className="col-4">
             <Clock />
@@ -470,7 +462,7 @@ const Home: React.FC<Props> = (props: Props) => {
           </div>
         </div>
         <div className="home-alert-wrapper">
-          <Alert alert={props.alert} setAlert={props.setAlert} />
+          <Alert alert={props.alert} closeAlert={props.closeAlert} />
         </div>
       </div>
       <OspitiPopup
