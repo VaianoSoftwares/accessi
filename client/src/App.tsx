@@ -10,9 +10,10 @@ import Home from "./components/Home";
 import Login from "./components/Login";
 import AdminMenu from "./components/AdminMenu";
 import PageNotFound from "./components/PageNotFound";
-import Calendario from "./components/Calendario";
+import Permessi from "./components/Permessi";
 import AccessiNavbar from "./components/AccessiNavbar";
 import Documenti from "./components/Documenti";
+import Calendario from "./components/Calendario";
 
 // Types
 import { User } from "./types/User";
@@ -84,8 +85,6 @@ const App: React.FC<{}> = () => {
       <AccessiNavbar
         user={user}
         logout={logout}
-        // badgeForm={badgeForm}
-        // setBadgeForm={setBadgeForm}
       />
       <Routes>
         <Route path="*" element={<PageNotFound />} />
@@ -114,7 +113,17 @@ const App: React.FC<{}> = () => {
           path="calendario"
           element={
             user ? (
-              <Calendario
+              <Calendario />
+            ) : (
+              <Navigate replace to="/login" />
+            )
+          }
+        />
+        <Route
+          path="permessi"
+          element={
+            user ? (
+              <Permessi
                 user={user}
                 alert={alert}
                 openAlert={openAlert}

@@ -25,7 +25,7 @@ const MongoClient = mongodb.MongoClient;
 const port = process.env.PORT || 443;
 const httpsServer = https.createServer(credentials, app);
 
-MongoClient.connect(process.env.ACCESSI_DB_URI)
+MongoClient.connect(process.env.ACCESSI_DB_URI || "")
   .then(async client => {
     await BadgesDAO.injectDB(client);
     await ArchivioDAO.injectDB(client);
@@ -33,6 +33,7 @@ MongoClient.connect(process.env.ACCESSI_DB_URI)
     await EnumsDAO.injectDB(client);
     await PermessiDAO.injectDB(client);
     await DocumentiDAO.injectDB(client);
+    
     httpsServer.listen(port, () => console.log(`HTTPS Server running on port ${port}.`));
     
     httpsServer.keepAliveTimeout = 1000 * 60 * 60 * 24;

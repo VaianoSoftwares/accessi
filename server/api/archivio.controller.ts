@@ -1,8 +1,12 @@
 import ArchivioDAO from "../dao/archivio.dao.js";
 import Validator from "../auth/validation.js";
+import { Request, Response } from "express";
+import errCheck from "../middlewares/errCheck.js";
+import Badge, { TGenericBadge, TGenericNom } from "../types/badges.js";
 
 export default class ArchivioController {
-  static async apiGetArchivio(req, res) {
+
+  static async apiGetArchivio(req: Request, res: Response) {
     try {
       console.log("apiGetArchivio | req.query: ", req.query);
       const archivioResponse = await ArchivioDAO.getArchivio(req.query);
@@ -14,21 +18,23 @@ export default class ArchivioController {
         msg: "Archivio ottenuto con successo"
       });
     } catch (err) {
-      console.log(`apiGetArchivio - ${err}`);
+      const { error } = errCheck(err, "apiGetArchivio |");
       res.status(500).json({
         success: false,
         data: [],
         filters: req.query,
-        msg: err.msg,
+        msg: error,
       });
     }
   }
 
-  static async apiPostArchivio(req, res) {
+  static async apiPostArchivio(req: Request, res: Response) {
     // barcode, tipo, cliente, postazione are REQUIRED in order to execute a "timbratura"
     const valErr = Validator.timbra(req.body).error;
-    if(valErr) {
-      return res.status(400).json({ success: false, msg: valErr.details[0].message, data: null });
+    if (valErr) {
+      return res
+        .status(400)
+        .json({ success: false, msg: valErr.details[0].message, data: null });
     }
     
     const { cliente, postazione } = req.body;
@@ -36,7 +42,7 @@ export default class ArchivioController {
     const { ip } = req;
 
     // badge provvisorio data gathered from "timbra provvisori" input boxes for nominativo object
-    const nominativo = {
+    const nominativo: TGenericNom = {
       nome: req.body?.nome?.toUpperCase() || "",
       cognome: req.body?.cognome?.toUpperCase() || "",
       ditta: req.body?.ditta?.toUpperCase() || "",
@@ -53,7 +59,7 @@ export default class ArchivioController {
     };
 
     // default badge document setup
-    const badgeDoc = {
+    const badgeDoc: TGenericBadge = {
       barcode: req.body.barcode.toUpperCase(),
       descrizione: "",
       tipo: req.body.tipo.toUpperCase(),
@@ -68,9 +74,10 @@ export default class ArchivioController {
     try {
       const archivioResponse = await ArchivioDAO.timbra(badgeDoc, cliente, postazione, ip);
 
-      const { error } = archivioResponse;
-      if (error) {
-        return res.status(400).json({ success: false, msg: error.message, data: null });
+      if ("error" in archivioResponse) {
+        return res
+          .status(400)
+          .json({ success: false, msg: archivioResponse.error, data: null });
       }
 
       res.json({
@@ -79,21 +86,22 @@ export default class ArchivioController {
         data: archivioResponse.response,
       });
     } catch (err) {
-      console.log(`apiPostArchivio - ${err}`);
-      res.status(500).json({ success: false, msg: err.message });
+      const { error } = errCheck(err, "apiPostArchivio |");
+      res.status(500).json({ success: false, msg: error });
     }
   }
 
-  static async apiGetInStruttura(req, res) {
-    const tipo = req.query.tipo.toUpperCase();
+  static async apiGetInStruttura(req: Request, res: Response) {
+    const tipo = Badge.toBadgeTipo(req.query.tipo);
     try {
       const archivioList = await ArchivioDAO.getInStrutt(tipo);
       res.json({ success: true, data: archivioList, msg: "Lista dipendenti in struttura ottenuta con successo" });
     } catch (err) {
-      console.log(`apiGetInStruttura - ${err}`);
+      const { error } = errCheck(err, "apiGetInStruttura |");
       res
         .status(500)
-        .json({ success: false, msg: err.message, data: [] });
+        .json({ success: false, msg: error, data: [] });
     }
   }
+  
 }

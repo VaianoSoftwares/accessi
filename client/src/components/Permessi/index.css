@@ -15,6 +15,11 @@
     min-height: 74px;
 }
 
+.date-div > p {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
 .current-month {
     white-space: nowrap;
 }
@@ -23,6 +28,11 @@ div[data-not-available] {
     background-color:lightgray;
 }
 
-div[data-selected-date] {
+div[data-prenotato] {
     background-color:forestgreen;
+}
+
+.calendario-alert-wrapper {
+    margin-left: auto;
+    margin-right: auto;
 }

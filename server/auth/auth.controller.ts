@@ -2,9 +2,12 @@ import UsersDAO from "../dao/users.dao.js";
 import Validator from "./validation.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { Request, Response } from "express";
+import errCheck from "../middlewares/errCheck.js";
+import { TUser } from "../types/users.js";
 
 export default class UsersController {
-  static async apiRegister(req, res) {
+  static async apiRegister(req: Request, res: Response) {
     const { error } = Validator.register(req.body);
     if (error) {
       return res
@@ -14,32 +17,33 @@ export default class UsersController {
 
     try {
       const salt = await bcrypt.genSalt(10);
-      const hashPsw = await bcrypt.hash(req.body.password, salt);
+      const hashPsw = await bcrypt.hash(req.body.password as string, salt);
 
-      const userDoc = {
-        username: req.body.username,
+      const userDoc: TUser = {
+        username: req.body.username as string,
         password: hashPsw,
-        admin: req.body.admin || false,
+        admin: req.body.admin as boolean || false,
       };
 
       const response = await UsersDAO.addUser(userDoc);
-      if (response.error) {
+      if ("error" in response) {
         return res
           .status(400)
-          .json({ success: false, msg: response.error.message, data: null });
+          .json({ success: false, msg: response.error, data: null });
       }
+
       res.json({
         success: true,
         msg: "Utente registrato con successo",
-        data: response._id,
+        data: response.insertedId,
       });
     } catch (err) {
-      console.log(`apiRegister - ${err}`);
-      res.status(500).json({ success: false, msg: err.message });
+      const { error } = errCheck(err, "apiRegister |");
+      res.status(500).json({ success: false, msg: error });
     }
   }
 
-  static async apiLogin(req, res) {
+  static async apiLogin(req: Request, res: Response) {
     const { error } = Validator.login(req.body);
 
     if (error) {
@@ -62,11 +66,17 @@ export default class UsersController {
         throw new Error("Username/Password non validi.");
       }
 
-      const guestToken = jwt.sign({ _id: user._id }, process.env.GUEST_TOKEN);
-      const adminToken = user.admin
-        ? jwt.sign({ _id: user._id }, process.env.ADMIN_TOKEN)
-        : null;
-      if (adminToken) {
+      const { GUEST_TOKEN, ADMIN_TOKEN } = process.env;
+      if(!GUEST_TOKEN) {
+        throw new Error("Guest token is missing.");
+      }
+      if(!ADMIN_TOKEN) {
+        throw new Error("Admin token is missing.");
+      }
+
+      const guestToken = jwt.sign({ _id: user._id }, GUEST_TOKEN);
+      if(user.admin) {
+        const adminToken = jwt.sign({ _id: user._id }, ADMIN_TOKEN);
         res.setHeader("admin-token", adminToken);
       }
 
@@ -82,8 +92,8 @@ export default class UsersController {
         },
       });
     } catch (err) {
-      console.log(`apiLogin - ${err}`);
-      res.status(400).json({ success: false, msg: err.message, data: null });
+      const { error } = errCheck(err, "apiLogin |");
+      res.status(400).json({ success: false, msg: error, data: null });
     }
   }
-};
+}

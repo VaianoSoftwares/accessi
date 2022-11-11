@@ -18,13 +18,13 @@ Router
 
 Router
     .route("/assegnazioni")
-    .get(AuthToken.verifyGuest, BadgesCtrl.apiGetAssegnazioni)                  // ottieni assegnazioni
+    // .get(AuthToken.verifyGuest, BadgesCtrl.apiGetAssegnazioni)                  // ottieni assegnazioni
     .post(AuthToken.verifyAdmin, BadgesCtrl.apiPostAssegnazioni)                // aggiungi nuova assegnazione
     .delete(AuthToken.verifyAdmin, BadgesCtrl.apiDeleteAssegnazioni);           // elimina una assegnazione
 
-Router.route("/tipi-doc").get(BadgesCtrl.apiGetTipiDoc);                        // ottieni tipi documento
-Router.route("/stati").get(BadgesCtrl.apiGetStati);                             // ottieni tipi stato badge
-Router.route("/tipi").get(BadgesCtrl.apiGetTipiBadge);                          // ottieni tipi badge
+// Router.route("/tipi-doc").get(BadgesCtrl.apiGetTipiDoc);                        // ottieni tipi documento
+// Router.route("/stati").get(BadgesCtrl.apiGetStati);                             // ottieni tipi stato badge
+// Router.route("/tipi").get(BadgesCtrl.apiGetTipiBadge);                          // ottieni tipi badge
 
 Router
     .route("/archivio")

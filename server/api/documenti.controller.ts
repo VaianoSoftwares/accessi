@@ -1,14 +1,20 @@
 import DocumentiDAO from "../dao/documenti.dao.js";
 import Validator from "../auth/validation.js";
 import FileManager from "./badges.filemanager.js";
+import { Request, Response } from "express";
+import { GenericResponse } from "../types/responses.js";
+import errCheck from "../middlewares/errCheck.js";
+import { TDocumento, TDocumentoReq, TDocUpdReq } from "../types/documenti.js";
 
 export default class DocumentiController {
 
-    static async apiGetDocumenti(req, res) {
-        let response;
+    static async apiGetDocumenti(req: Request, res: Response) {
+        let response: GenericResponse;
 
         try {
-            const docsList = await DocumentiDAO.getDocumenti(req.query);
+            const docsList = await DocumentiDAO.getDocumenti(
+              req.query as TDocumentoReq
+            );
             response = {
                 success: true,
                 data: docsList,
@@ -17,18 +23,18 @@ export default class DocumentiController {
             }
             res.json(response);
         } catch(err) {
-            console.error(`apiGetDocumenti - ${err}`);
+            const { error } = errCheck(err, "apiGetDocumenti |");
             response = {
                 success: false,
                 data: [],
                 filters: req.query,
-                msg: err.msg
+                msg: error
             };
             res.status(500).json(response);
         }
     }
 
-    static async apiPostDocumenti(req, res) {
+    static async apiPostDocumenti(req: Request, res: Response) {
         const valErr = Validator.postDocumento(req.body).error;
         if(valErr) {
             return res.status(400).json({ 
@@ -38,11 +44,12 @@ export default class DocumentiController {
             });
         }
 
-        const docToAdd = {
+        const docToAdd: TDocumento = {
             codice: req.body.codice.toUpperCase(),
             nome: req.body.nome.toUpperCase(),
             cognome: req.body.cognome.toUpperCase(),
             azieda: req.body.azienda.toUpperCase(),
+            filename: ""
         };
 
         try {
@@ -50,11 +57,10 @@ export default class DocumentiController {
                 req.files, docToAdd.codice
             );
 
-            const fileUplErr = fileUplResp.error;
-            if(fileUplErr) {
+            if("error" in fileUplResp) {
                 return res.status(400).json({
                     success: false,
-                    msg: fileUplErr.message,
+                    msg: fileUplResp.error,
                     data: null 
                 });
             }
@@ -63,11 +69,10 @@ export default class DocumentiController {
 
             const docResponse = await DocumentiDAO.addDocumento(docToAdd);
 
-            const respErr = docResponse.error;
-            if(respErr) {
+            if("error" in docResponse) {
                 return res.status(400).json({
                     success: false,
-                    msg: respErr.message,
+                    msg: docResponse.error,
                     data: null 
                 });
             }
@@ -78,16 +83,16 @@ export default class DocumentiController {
                 data: docToAdd,
             });
         } catch(err) {
-            console.error(err);
+            const { error } = errCheck(err, "apiPostDocumenti |");
             res.status(500).json({ 
                 success: false,
-                msg: err.message,
+                msg: error,
                 data: null 
             });
         }
     }
 
-    static async apiPutDocumenti(req, res) {
+    static async apiPutDocumenti(req: Request, res: Response) {
         const valErr = Validator.putDocumento(req.body).error;
         if(valErr) {
             return res.status(400).json({ 
@@ -97,11 +102,11 @@ export default class DocumentiController {
             });
         }
 
-        const docToUpd = {
+        const docToUpd: TDocUpdReq = {
             codice: req.body.codice.toUpperCase(),
             nome: req.body?.nome?.toUpperCase(),
             cognome: req.body?.cognome?.toUpperCase(),
-            azieda: req.body?.azienda?.toUpperCase()
+            azieda: req.body?.azienda?.toUpperCase(),
         };
 
         try {
@@ -109,28 +114,27 @@ export default class DocumentiController {
                 req.files, docToUpd.codice
             );
 
-            const fileUplErr = fileUplResp.error;
             if(
-              fileUplErr &&
-              !fileUplErr.message.includes("Nessun file selezionato")
+              "error" in fileUplResp &&
+              !fileUplResp.error.includes("Nessun file selezionato")
             ) {
               return res.status(400).json({
                 success: false,
-                msg: fileUplErr.message,
+                msg: fileUplResp.error,
                 data: null,
               });
             }
 
-            docToUpd.filename = fileUplResp?.filename;
+            if("filename" in fileUplResp)
+                docToUpd.filename = fileUplResp.filename;
 
             const docResponse = await DocumentiDAO.updateDocumento(docToUpd);
             console.log(docResponse);
 
-            const respErr = docResponse.error;
-            if(respErr) {
+            if("error" in docResponse) {
                 return res.status(400).json({
                     success: false,
-                    msg: respErr.message,
+                    msg: docResponse.error,
                     data: null 
                 });
             }
@@ -145,50 +149,52 @@ export default class DocumentiController {
                 data: updatedDoc,
             });
         } catch(err) {
-            console.error(err);
+            const { error } = errCheck(err, "apiPutDocumenti |");
             res.status(500).json({ 
                 success: false,
-                msg: err.message,
+                msg: error,
                 data: null 
             });
         }
     }
 
-    static async apiDeleteDocumenti(req, res) {
-        const codice = req.query.codice.toUpperCase();
-        if(!codice) {
+    static async apiDeleteDocumenti(req: Request, res: Response) {
+        if(typeof req.query.codice !== "string") {
             return res.status(400).json({
                 success: false,
                 msg: "Codice documento non specificato.",
                 data: null
             });
         }
+
+        const codice = req.query.codice.toUpperCase();
         
         try {
             const docResponse = await DocumentiDAO.deleteDocumento(codice);
+            if("error" in docResponse) {
+                throw new Error(docResponse.error);
+            }
             if(docResponse.deletedCount === 0) {
                 throw new Error(`Documento ${codice} non è stato eliminato.`);
             }
 
-            const { error } = await FileManager.deleteDocumento(codice);
-            if(error) {
+            const fileDelResp = await FileManager.deleteDocumento(codice);
+            if(fileDelResp?.error) {
                 throw new Error(
                     `Documento ${codice} (file) non è stato eliminato.`
                 );
             }
 
-            docResponse.codice = codice;
-
             res.json({
                 success: true,
                 msg: `Documento ${codice} eliminato con successo.`,
-                data: docResponse
+                data: { deletedCodice: codice }
             });
         } catch(err) {
-            console.error(err);
+            const { error } = errCheck(err, "apiDeleteDocumenti |");
             res.status(500).json({ 
                 success: false,
-                msg: err.message,
+                msg: error,
                 data: null 
             });
         }

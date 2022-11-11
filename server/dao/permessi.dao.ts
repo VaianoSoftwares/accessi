@@ -1,29 +1,38 @@
-let permessi;
+import { Collection, MongoClient } from "mongodb";
+import errCheck from "../middlewares/errCheck.js";
+import { TPermesso, TPermessoReq } from "../types/users.js";
+
+const COLLECTION_NAME = "permessi";
+
+let permessi: Collection<TPermesso>;
 
 export default class PermessiDAO {
-    static async injectDB(conn) {
+
+    static async injectDB(conn: MongoClient) {
         if(permessi) return;
 
         try {
-          permessi = await conn.db(process.env.DB_NAME).collection("permessi");
+          permessi = conn.db(process.env.DB_NAME).collection(COLLECTION_NAME);
         } catch (err) {
-          console.log(`Failed to inject DB. ${err}`);
+          errCheck(err, `Failed to inject DB ${COLLECTION_NAME}.`);
         }
     }
 
-    static async getPermessi(filters = {}) {
-        let query = {};
+    static async getPermessi(filters: TPermessoReq = {}) {
+        const query: Record<string, unknown> = {};
         Object.entries(filters)
-          .filter(([key, value]) => value)
+          .filter(([, value]) => value)
           .forEach(([key, value]) => {
+            value = value as string;
             switch (key) {
               case "username":
                 query[key] = value;
                 break;
-              case "date":
+              case "date": {
                 const monthAndYear = value.substring(value.indexOf("-"));
                 query[key] = { $regex: new RegExp(monthAndYear) };
                 break;
+              }
               default:
             }
           });
@@ -40,29 +49,28 @@ export default class PermessiDAO {
             const permessiList = await displayCursor.toArray();
             return permessiList;
         } catch(err) {
-            console.log("getPermessi | ", err);
+            errCheck(err, "getPermessi |");
             return [];
         }
     }
 
-    static async addPermesso(data) {
+    static async addPermesso(data: TPermesso) {
         try {
             const permesso = await permessi.findOne(data);
             if(permesso) throw Error("Permesso già esistente");
 
             return await permessi.insertOne(data);
         } catch(err) {
-            console.log("addPermessi | ", err);
-            return { error: err };
+          return errCheck(err, "addPermesso |");
         }
     }
 
-    static async deletePermesso(data) {
+    static async deletePermesso(data: TPermesso) {
         try {
             return await permessi.deleteOne(data);
         } catch(err) {
-            console.log("deletePermessi | ", err);
-            return { error: err };
+          return errCheck(err, "removePermesso |");
         }
     }
-};
+    
+}

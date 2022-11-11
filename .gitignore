@@ -9,3 +9,6 @@ package-lock.json
 # tmp upload files
 server/tmp/*
 !server/tmp/.gitkeep
+
+# tsc build
+build

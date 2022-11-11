@@ -2,22 +2,18 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "server/index.js",
+  "main": "build/index.js",
   "type": "module",
   "scripts": {
-    "start": "NODE_ENV=production node -r dotenv/config server/index.js",
-    "win-start": "set NODE_ENV=production&&node -r dotenv/config server/index.js",
-    "server": "NODE_ENV=development nodemon",
-    "win-server": "set NODE_ENV=development&&nodemon",
+    "start": "npm run build && NODE_ENV=production node -r dotenv/config ./build/index.js",
+    "server": "nodemon",
+    "build": "rm -rf ./build && tsc",
     "client": "cd client && npm start",
-    "win-client": "cd client && npm run win-start",
     "dev": "concurrently -n node,react --kill-others-on-fail \"npm run server\" \"npm run client\"",
-    "win-dev": "concurrently -n node,react --kill-others-on-fail \"npm run win-server\" \"npm run win-client\"",
     "client:build": "cd client && npm run build",
     "enable-https": "sudo setcap 'cap_net_bind_service=+ep' /usr/bin/node",
     "enable-scanner": "sudo chmod 777 /dev/ttyACM0",
     "make": "cd c-scanner && make clean; make",
-    "clean": "cd c-scanner && make clean",
     "scan": "cd c-scanner && make clean; make && make run",
     "win-scan": "cd c-scanner && make clean; make && make run-win"
   },
@@ -36,6 +32,15 @@
     "mongodb": "^4.0.0"
   },
   "devDependencies": {
-    "concurrently": "^6.5.1"
+    "@types/bcryptjs": "^2.4.2",
+    "@types/cors": "^2.8.12",
+    "@types/dateformat": "^5.0.0",
+    "@types/express": "^4.17.14",
+    "@types/express-fileupload": "^1.4.1",
+    "@types/jsonwebtoken": "^8.5.9",
+    "@types/node": "^18.11.9",
+    "concurrently": "^6.5.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.4"
   }
 }
