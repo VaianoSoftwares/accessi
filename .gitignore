@@ -11,4 +11,7 @@ server/tmp/*
 !server/tmp/.gitkeep
 
 # tsc build
-build
+/build
+
+# vscode configs
+/.vscode
