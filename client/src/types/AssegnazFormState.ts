@@ -1,6 +1,6 @@
-import { TipoBadge } from "../enums/TipoBadge";
+import { TBadgeTipo } from "./Badge";
 
 export type AssegnazFormState = {
-    tipoBadge: TipoBadge;
+    tipoBadge: TBadgeTipo;
     assegnazione: string;
 };

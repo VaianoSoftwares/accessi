@@ -1,10 +1,10 @@
+import axios from "./axiosSetup";
 import { AxiosResponse } from "axios";
-import axios from "axios";
 import { FindBadgeDoc } from "../types/FindBadgeDoc";
 import { GenericResponse } from "../types/Responses";
 import { TimbraDoc } from "../types/TimbraDoc";
 import { FindArchivioDoc } from "../types/FindArchivioDoc";
-import { Assegnazione } from "../types/Assegnazione";
+import { TAssegnaz } from "../types/TAssegnaz";
 import { adminReqFileHeader, adminReqHeader, guestReqHeader } from "./dataServicesConfigs";
 import { isQueryEmpty, queryToString } from "./dataServicesUtilis";
 
@@ -60,13 +60,13 @@ class BadgesDataService {
     });
   }
 
-  insertAssegnazione(data: Assegnazione): Promise<AxiosResponse<GenericResponse>> {
+  insertAssegnazione(data: TAssegnaz): Promise<AxiosResponse<GenericResponse>> {
     return axios.post(`${baseUrl}/assegnazioni`, data, {
       headers: adminReqHeader
     });
   }
 
-  deleteAssegnazione(data: Assegnazione): Promise<AxiosResponse<GenericResponse>> {
+  deleteAssegnazione(data: TAssegnaz): Promise<AxiosResponse<GenericResponse>> {
     return axios.delete(`${baseUrl}/assegnazioni?badge=${data.badge}&name=${data.name}`, {
       headers: adminReqHeader
     });

@@ -1,10 +1,18 @@
 import { GenericForm } from "../types/GenericForm";
 
-export function createFormData(form: GenericForm) {
-    const formData = new FormData();
+export default (() => {
+  const formData = new FormData();
+  return (form: GenericForm) => {
     Object.entries(form)
-      .filter(([key, value]) => value != null)
-      .map(([key, value]) => value instanceof File ? [key, value as Blob] : [key, value as string])
-      .forEach(([key, value]) => formData.append(key as string, value));
+      .filter(
+        ([, value]) => value !== "" && value !== null && value !== undefined
+      )
+      .forEach(([key, value]) => {
+        if (value instanceof FileList) {
+          Array.from(value).forEach((file) => formData.append(key, file));
+        } else if (value instanceof Blob) formData.append(key, value);
+        else formData.append(key, value as string);
+      });
     return formData;
-}
+  };
+})();

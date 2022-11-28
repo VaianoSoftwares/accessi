@@ -6,5 +6,8 @@ const Router = express.Router();
 
 Router
     .route("/")
+    .get(AuthToken.verifyGuest, CalendarioCtrl.apiGetCalendario)
     .post(AuthToken.verifyAdmin, CalendarioCtrl.apiPostCalendario)                       
     .delete(AuthToken.verifyAdmin, CalendarioCtrl.apiDeleteCalendario);
+
+export default Router;

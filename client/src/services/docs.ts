@@ -1,7 +1,7 @@
 import { AxiosResponse } from "axios";
-import axios from "axios";
+import axios from "./axiosSetup";
 import { GenericResponse } from "../types/Responses";
-import { DocFormState } from "../types/DocFormState";
+import { DocFormState } from "../types/Documento";
 import { adminReqFileHeader, adminReqHeader, guestReqHeader } from "./dataServicesConfigs";
 import { isQueryEmpty, queryToString } from "./dataServicesUtilis";
 

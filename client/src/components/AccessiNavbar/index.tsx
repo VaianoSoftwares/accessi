@@ -1,11 +1,11 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Nullable } from "../../types/Nullable";
-import { User } from "../../types/User";
+import { TUser } from "../../types/TUser";
 import "./index.css";
 
 type Props = {
-  user: Nullable<User>;
+  user: Nullable<TUser>;
   logout: () => Promise<void>;
 };
 

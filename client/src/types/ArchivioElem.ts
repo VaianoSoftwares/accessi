@@ -1,7 +1,7 @@
-import { Badge } from "./Badge";
+import { TBadge } from "./Badge";
 
 export type ArchivioElem = {
-    badge: Badge;
+    badge: TBadge;
     cliente: string;
     postazione: string;
     ip: string;

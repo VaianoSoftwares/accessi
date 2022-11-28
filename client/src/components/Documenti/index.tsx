@@ -1,11 +1,10 @@
 import React from "react";
-import { DocFormState } from "../../types/DocFormState";
 import DocumentsDataService from "../../services/docs";
 import { Nullable } from "../../types/Nullable";
 import { TAlert } from "../../types/TAlert";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
-import { createFormData } from "../../utils/createFormData";
-import { Documento } from "../../types/Documento";
+import createFormData from "../../utils/createFormData";
+import { TDocumento, DocFormState } from "../../types/Documento";
 import BadgeTable from "../BadgeTable";
 import handleInputChanges from "../../utils/handleInputChanges";
 import "./index.css";
@@ -27,8 +26,8 @@ const Documenti: React.FC<Props> = (props: Props) => {
     docimg: null,
   };
 
-  const [documenti, setDocumenti] = React.useState<Documento[]>([]);
-  const [docFindView, setDocFindView] = React.useState<Documento[]>([]);
+  const [documenti, setDocumenti] = React.useState<TDocumento[]>([]);
+  const [docFindView, setDocFindView] = React.useState<TDocumento[]>([]);
   const [docForm, setDocForm] = React.useState<DocFormState>(initialDocFormState);
   const [docImgUrl, setDocImgUrl] = React.useState("");
 
@@ -49,7 +48,7 @@ const Documenti: React.FC<Props> = (props: Props) => {
     DocumentsDataService.getAll()
       .then(response => {
         console.log("retriveDocumenti | response: ", response.data);
-        setDocumenti(response.data.data);
+        setDocumenti(response.data.data as TDocumento[]);
       })
       .catch(err => {
         console.error("retriveDocumenti | error: ", err);
@@ -79,7 +78,7 @@ const Documenti: React.FC<Props> = (props: Props) => {
       .then(response => {
         console.log("insertDocumento | response: ", response.data);
 
-        const addedDoc: Documento = response.data.data;
+        const addedDoc = response.data.data as TDocumento;
         setDocumenti(prevState => [...prevState, addedDoc]);
 
         const { success, msg } = response.data;
@@ -98,7 +97,7 @@ const Documenti: React.FC<Props> = (props: Props) => {
       .then(response => {
         console.log("updateDocumento | response: ", response.data);
 
-        const updatedDoc: Documento = response.data.data;
+        const updatedDoc = response.data.data as TDocumento;
         setDocumenti((prevState) =>
           prevState.map((doc) =>
             doc.codice === updatedDoc.codice ? updatedDoc : doc
@@ -120,7 +119,7 @@ const Documenti: React.FC<Props> = (props: Props) => {
       .then(response => {
         console.log("deleteDocumento | response: ", response.data);
 
-        const deletedDoc: Documento = response.data.data;
+        const deletedDoc = response.data.data as TDocumento;
         setDocumenti((prevState) =>
           prevState.filter((doc) => doc.codice !== deletedDoc.codice)
         );
@@ -151,7 +150,7 @@ const Documenti: React.FC<Props> = (props: Props) => {
   const getDocImgUrlByCodice = (filename = "") =>
     filename ? `/api/v1/public/documenti/${filename}` : "";
 
-  const mapToDocFormState = (doc: Documento): DocFormState => ({
+  const mapToDocFormState = (doc: TDocumento): DocFormState => ({
     codice: doc.codice,
     azienda: doc.azienda,
     nome: doc.nome,

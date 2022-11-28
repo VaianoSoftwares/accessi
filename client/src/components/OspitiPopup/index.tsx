@@ -9,17 +9,17 @@ import OspitiForm from "../ospiti-form";
 // Types
 import { OspFormState } from "../../types/OspFormState";
 import { TimbraDoc } from "../../types/TimbraDoc";
-import { TipoBadge } from "../../enums/TipoBadge";
 import handleInputChanges from "../../utils/handleInputChanges";
 import { TEvent, TEventInput } from "../../types/TEvent";
+import { TBadgeTipo, TTDoc } from "../../types/Badge";
 
 type Props = {
   isShown: boolean;
   setIsShown: React.Dispatch<React.SetStateAction<boolean>>;
-  tipiDoc: string[];
+  tipiDoc: TTDoc[];
   timbra: (data: TimbraDoc) => void;
   isVeicolo: boolean;
-  tipoBadge: TipoBadge;
+  tipoBadge: TBadgeTipo;
 };
 
 const OspitiPopup: React.FC<Props> = (props: Props) => {

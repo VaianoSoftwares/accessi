@@ -7,21 +7,20 @@ import "./index.css";
 // Components
 import { BadgeFormState } from "../../types/BadgeFormState";
 // Types
-import { TipoBadge } from "../../enums/TipoBadge";
-import { StatoBadge } from "../../enums/StatoBadge";
-import { Assegnazione } from "../../types/Assegnazione";
+import { TAssegnaz } from "../../types/TAssegnaz";
 import { ArchivioFormState } from "../../types/ArchivioFormState";
 import { TEvent } from "../../types/TEvent";
+import { TBadgeTipo, TBadgeStato, TTDoc } from "../../types/Badge";
 
 type Props = {
   badgeForm: BadgeFormState;
   archivioForm: ArchivioFormState;
   handleInputChangesBadge: (e: TEvent) => void;
   handleInputChangesArchivio: (e: TEvent) => void;
-  tipiBadge: TipoBadge[];
-  assegnazioni: Assegnazione[];
-  tipiDoc: string[];
-  statiBadge: StatoBadge[];
+  tipiBadge: TBadgeTipo[];
+  assegnazioni: TAssegnaz[];
+  tipiDoc: TTDoc[];
+  statiBadge: TBadgeStato[];
   readOnlyForm: boolean;
   admin: boolean;
   pfpUrl: string;
@@ -291,7 +290,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
               <label htmlFor="ndoc">num documento</label>
             </div>
             <div className="w-100"></div>
-            {props.badgeForm.tipo === TipoBadge.BADGE ? (
+            {props.badgeForm.tipo === "BADGE" ? (
               <>
                 <div className="form-floating col-sm-3">
                   <input
@@ -310,7 +309,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                 <div className="w-100"></div>
               </>
             ) : (
-              props.badgeForm.tipo === TipoBadge.VEICOLO && (
+              props.badgeForm.tipo === "VEICOLO" && (
                 <>
                   <div className="form-floating col-sm-3">
                     <input

@@ -13,6 +13,7 @@
 
 .date-div {
     min-height: 74px;
+    cursor: pointer;
 }
 
 .current-month {
@@ -21,8 +22,34 @@
 
 div[data-not-available] {
     background-color:lightgray;
+    cursor: default;
 }
 
-div[data-selected-date] {
+div[data-selected-date="true"] {
     background-color:forestgreen;
+}
+
+.calendar-form {
+    max-height: 200px;
+}
+
+#calendar-file-input {
+    min-height: 200px;
+}
+
+.calendar-file-list {
+    overflow: auto;
+    max-height: 200px;
+}
+
+.file-list-link {
+    text-decoration: none;
+    color: black;
+    cursor: pointer;
+}
+
+.btn-del-file {
+    background-color: red;
+    color: white;
+    border: 1px solid;
 }

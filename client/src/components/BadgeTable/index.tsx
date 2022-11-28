@@ -2,7 +2,7 @@ import React from "react";
 import "./index.css";
 
 type Props = {
-  content: Array<object>
+  content: Array<object>;
 };
 
 const BadgeTable: React.FC<Props> = (props: Props) => {

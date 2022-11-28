@@ -130,27 +130,42 @@ export default class FileManager {
         }
     }
 
+    static async getFilenamesByDate(date: string) {
+        const dirPath = path.resolve(PUBLIC_DIR, "calendario", date);
+        
+        try {
+            if(!this.#isDir(dirPath))
+                throw new Error(`${dirPath} not a directory`);
+            
+            return await fs.readdir(dirPath);
+        } catch(err) {
+            errCheck(err, "getFilenamesByDate |");
+            return [] as string[];
+        }
+    }
+
     static async uploadCalendarioFiles(files: NullOrUndefOr<FileArray>, date: string) {
         try {
             if(!files || Object.keys(files).length === 0)
                 throw new Error("Nessun file selezionato.");
 
-            if(!Array.isArray(files.calendario))
-                throw new TypeError("Expected files.calendario to be an array");
-
-            const filesToUpl = files.calendario
+            const filesToUpl = Array.isArray(files.files)
+              ? files.files
+              : [files.files];
 
             const dirPath = path.resolve(PUBLIC_DIR, "calendario", date);
-            if(!this.#isDir(dirPath)) 
+            if(!(await this.#isDir(dirPath))) {
+                console.log("Created directory", date);
                 await fs.mkdir(dirPath);
+            }
 
-            const filenames: string[] = new Array(filesToUpl.length);
-            
-            Object.values(filesToUpl).forEach(async (file) => {
+            const filenames = await Promise.all(
+              Object.values(filesToUpl).map(async (file) => {
                 const filePath = path.resolve(dirPath, file.name);
                 await file.mv(filePath);
-                filenames.push(file.name);
-            });
+                return file.name;
+              })
+            );
 
             return { filenames };
         } catch(err) {
@@ -170,6 +185,13 @@ export default class FileManager {
             
             await fs.unlink(path.resolve(dirPath, fileToDel));
             console.log(`deleteCalendarioFile | File ${fileToDel} eliminato con successo.`);
+
+            if(dir.length === 1) {
+              await fs.rmdir(dirPath);
+              console.log(
+                `deleteCalendarioFile | Directory ${dirPath} eliminata con successo.`
+              );
+            }
 
             return { filename: fileToDel };
         } catch(err) {

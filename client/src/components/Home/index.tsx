@@ -19,19 +19,20 @@ import OspitiPopup from "../OspitiPopup";
 import Alert from "../Alert";
 
 // Types
-import { User } from "../../types/User";
+import { TUser } from "../../types/TUser";
 import { TAlert } from "../../types/TAlert";
-import { ArchivioTableContent, InStruttTableContent, TableContentElem } from "../../types/TableContentElem";
+import {
+  ArchivioTableContent,
+  InStruttTableContent,
+  TableContentElem,
+} from "../../types/TableContentElem";
 import { BadgeFormState } from "../../types/BadgeFormState";
 import { ArchivioElem } from "../../types/ArchivioElem";
-import { Badge } from "../../types/Badge";
-import { TipoBadge } from "../../enums/TipoBadge";
-import { StatoBadge } from "../../enums/StatoBadge";
+import { TBadge, TBadgeStato, TBadgeTipo, TTDoc } from "../../types/Badge";
 import { Nullable } from "../../types/Nullable";
 import { TimbraDoc } from "../../types/TimbraDoc";
 import { FindBadgeDoc } from "../../types/FindBadgeDoc";
-import { GenericResponse } from "../../types/Responses";
-import { Assegnazione } from "../../types/Assegnazione";
+import { TAssegnaz } from "../../types/TAssegnaz";
 import { ArchivioFormState } from "../../types/ArchivioFormState";
 import { FindArchivioDoc } from "../../types/FindArchivioDoc";
 import { TEvent } from "../../types/TEvent";
@@ -39,28 +40,28 @@ import { TEvent } from "../../types/TEvent";
 // Utils
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
-import { createFormData } from "../../utils/createFormData";
+import createFormData from "../../utils/createFormData";
 import handleInputChanges from "../../utils/handleInputChanges";
 
 type Props = {
-  user: User;
+  user: TUser;
   logout: () => Promise<void>;
   alert: Nullable<TAlert>;
   openAlert: (alert: TAlert) => void;
   closeAlert: () => void;
-  tipiBadge: TipoBadge[];
-  assegnazioni: Assegnazione[];
-  tipiDoc: string[];
-  statiBadge: StatoBadge[];
+  tipiBadge: TBadgeTipo[];
+  assegnazioni: TAssegnaz[];
+  tipiDoc: TTDoc[];
+  statiBadge: TBadgeStato[];
 };
 
 const Home: React.FC<Props> = (props: Props) => {
   const initialBadgeFormState: BadgeFormState = {
     barcode: "",
     descrizione: "",
-    tipo: TipoBadge.BADGE,
+    tipo: "BADGE",
     assegnazione: "",
-    stato: StatoBadge.VALIDO,
+    stato: "VALIDO",
     ubicazione: "",
     nome: "",
     cognome: "",
@@ -146,7 +147,11 @@ const Home: React.FC<Props> = (props: Props) => {
     BadgeDataService.getInStrutt(badgeForm.tipo)
       .then(response => {
         console.log("retriveInStrutt: ", response.data);
-        setInStrutt(mapArchivioToInStruttTableContent(response.data.data));
+        setInStrutt(
+          mapArchivioToInStruttTableContent(
+            response.data.data as ArchivioElem[]
+          )
+        );
       })
       .catch(err => {
         console.error("retriveInStrutt | error: ", err);
@@ -157,7 +162,9 @@ const Home: React.FC<Props> = (props: Props) => {
     BadgeDataService.getArchivio(mapToFindArchivioDoc(badgeForm, archivioForm))
       .then(response => {
         console.log(response.data);
-        const mappedArchivio = mapArchivioToTableContent(response.data.data);
+        const mappedArchivio = mapArchivioToTableContent(
+          response.data.data as ArchivioElem[]
+        );
         setArchivioList(mappedArchivio);
         htmlTableToExcel("popup-table");
       })
@@ -169,7 +176,7 @@ const Home: React.FC<Props> = (props: Props) => {
       .then(response => {
         console.log(response.data);
 
-        const findResponse: Badge[] = response.data.data; 
+        const findResponse = response.data.data as TBadge[]; 
 
         if(findResponse.length === 1) {
           const mappedBadge = mapToAutoComplBadge(findResponse[0]);
@@ -192,14 +199,14 @@ const Home: React.FC<Props> = (props: Props) => {
     BadgeDataService.timbra(data)
       .then(response => {
         console.log(response.data);
-        console.log(`timbra - readOnlyForm: ${readOnlyForm}`);
+        console.log(`timbra | readOnlyForm: ${readOnlyForm}`);
 
         if(timeoutRunning === true)
           return;
 
         setTimeoutRunning(true);
 
-        const rowTimbra: ArchivioElem = (response.data as GenericResponse).data;
+        const rowTimbra = response.data.data as ArchivioElem;
         
         if(readOnlyForm === true) {
           setBadgeForm(mapToAutoComplBadge(rowTimbra.badge));
@@ -209,7 +216,9 @@ const Home: React.FC<Props> = (props: Props) => {
 
         const filteredInStrutt = inStrutt
           .filter(badge => badge.codice !== rowTimbra.badge.barcode);
-        const mappedRowTimbra = mapArchivioToInStruttTableContent([rowTimbra])[0];
+        const mappedRowTimbra = mapArchivioToInStruttTableContent([
+          rowTimbra,
+        ])[0];
         setInStrutt([mappedRowTimbra, ...filteredInStrutt]);                        
 
         const { msg } = response.data;
@@ -283,8 +292,8 @@ const Home: React.FC<Props> = (props: Props) => {
       });
   };
 
-  const mapBadgesToTableContent = (data: Badge[]) => {
-    return data.map((elem: Badge) => {
+  const mapBadgesToTableContent = (data: TBadge[]) => {
+    return data.map((elem: TBadge) => {
       const mappedBadge: TableContentElem = {
         codice: elem.barcode,
         tipo: elem.tipo,
@@ -344,7 +353,7 @@ const Home: React.FC<Props> = (props: Props) => {
   };
 
   const mapToAutoComplBadge = (
-    badge: Badge
+    badge: TBadge
   ): BadgeFormState => ({
     barcode: badge.barcode,
     descrizione: badge.descrizione,
@@ -470,7 +479,7 @@ const Home: React.FC<Props> = (props: Props) => {
         setIsShown={setIsShown}
         tipiDoc={props.tipiDoc}
         timbra={timbra}
-        isVeicolo={badgeForm.tipo === TipoBadge.VEICOLO}
+        isVeicolo={badgeForm.tipo === "VEICOLO"}
         tipoBadge={badgeForm.tipo}
       />
       <div className="badge-table-wrapper" id="badge-table">

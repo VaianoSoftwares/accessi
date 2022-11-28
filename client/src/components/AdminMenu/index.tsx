@@ -12,21 +12,21 @@ import Register from "../register";
 // style
 import "./index.css";
 // types
-import { User } from "../../types/User";
+import { TUser } from "../../types/TUser";
 import { TAlert } from "../../types/TAlert";
 import { Nullable } from "../../types/Nullable";
-import { TipoBadge } from "../../enums/TipoBadge";
-import { Assegnazione } from "../../types/Assegnazione";
+import { TAssegnaz } from "../../types/TAssegnaz";
+import { TBadgeTipo } from "../../types/Badge";
 
 type Props = {
-    user: User;
+    user: TUser;
     logout: () => Promise<void>;
     alert: Nullable<TAlert>;
     openAlert: (alert: TAlert) => void;
     closeAlert: () => void;
-    tipiBadge: TipoBadge[];
-    assegnazioni: Assegnazione[];
-    setAssegnazioni: React.Dispatch<React.SetStateAction<Assegnazione[]>>;
+    tipiBadge: TBadgeTipo[];
+    assegnazioni: TAssegnaz[];
+    setAssegnazioni: React.Dispatch<React.SetStateAction<TAssegnaz[]>>;
 };
 
 const AdminMenu: React.FC<Props> = (props: Props) => {

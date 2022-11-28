@@ -1,4 +1,5 @@
 import React from "react";
+import { TTDoc } from "../types/Badge";
 import { OspFormState } from "../types/OspFormState";
 import { TEvent, TEventInput } from "../types/TEvent";
 
@@ -6,7 +7,7 @@ type Props = {
   ospForm: OspFormState;
   handleOspInputChanges: (event: TEvent) => void;
   handleNdocInputChanges: (event: TEventInput) => void;
-  tipiDoc: string[];
+  tipiDoc: TTDoc[];
   isVeicolo: boolean;
 };
 

@@ -16,30 +16,30 @@ import Documenti from "./components/Documenti";
 import Calendario from "./components/Calendario";
 
 // Types
-import { User } from "./types/User";
+import { TUser } from "./types/TUser";
 import { TAlert } from "./types/TAlert";
 import { Nullable } from "./types/Nullable";
-import { TipoBadge } from "./enums/TipoBadge";
-import { StatoBadge } from "./enums/StatoBadge";
-import { Assegnazione } from "./types/Assegnazione";
+import { TAssegnaz } from "./types/TAssegnaz";
+import { TEnums } from "./types/TEnums";
+import { TBadgeStato, TBadgeTipo, TTDoc } from "./types/Badge";
 
 // Services
 import BadgeDataService from "./services/badge";
 
 const App: React.FC<{}> = () => {
-  const [tipiBadge, setTipiBadge] = React.useState<TipoBadge[]>([]);
-  const [assegnazioni, setAssegnazioni] = React.useState<Assegnazione[]>([]);
-  const [tipiDoc, setTipiDoc] = React.useState<string[]>([]);
-  const [statiBadge, setStatiBadge] = React.useState<StatoBadge[]>([]);
+  const [tipiBadge, setTipiBadge] = React.useState<TBadgeTipo[]>([]);
+  const [assegnazioni, setAssegnazioni] = React.useState<TAssegnaz[]>([]);
+  const [tipiDoc, setTipiDoc] = React.useState<TTDoc[]>([]);
+  const [statiBadge, setStatiBadge] = React.useState<TBadgeStato[]>([]);
 
-  const [user, setUser] = React.useState<Nullable<User>>(() => {
+  const [user, setUser] = React.useState<Nullable<TUser>>(() => {
     const name = sessionStorage.getItem("username");
     const admin = sessionStorage.getItem("admin");
-    if (name || admin)
+    if (name && admin)
       return {
         name,
         admin: (admin === "true"),
-      } as User;
+      } as TUser;
     return null;
   });
 
@@ -51,7 +51,7 @@ const App: React.FC<{}> = () => {
     retriveEnums();
   }, []);
 
-  const login = async (user: User, cliente: string, postazione: string, tokens: string[]) => {
+  const login = async (user: TUser, cliente: string, postazione: string, tokens: string[]) => {
     sessionStorage.setItem("username", user.name);
     sessionStorage.setItem("admin", user.admin.toString());
     sessionStorage.setItem("cliente", cliente);
@@ -69,7 +69,7 @@ const App: React.FC<{}> = () => {
   const retriveEnums = () => {
     BadgeDataService.getEnums()
       .then((response) => {
-        const enums = response.data.data;
+        const enums = response.data.data as TEnums;
         setTipiBadge(enums.badge);
         setAssegnazioni(enums.assegnazione);
         setTipiDoc(enums.documento);
@@ -113,7 +113,7 @@ const App: React.FC<{}> = () => {
           path="calendario"
           element={
             user ? (
-              <Calendario />
+              <Calendario admin={user.admin} />
             ) : (
               <Navigate replace to="/login" />
             )

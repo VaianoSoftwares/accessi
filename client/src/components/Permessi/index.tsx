@@ -1,46 +1,27 @@
 import React from "react";
-import { User } from "../../types/User";
+import { TUser } from "../../types/TUser";
 import UserDataService from "../../services/user";
 import "./index.css";
-import { Permesso } from "../../types/Permesso";
+import { TPermesso } from "../../types/TPermesso";
 import { Nullable } from "../../types/Nullable";
 import { TAlert } from "../../types/TAlert";
 import Alert from "../Alert";
 import dateFormat from "dateformat";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
+import { MONTHS, N_CALENDAR_COLS, N_DATE_DIVS, W100_POS } from "../../utils/calendario";
 
 type Props = {
-    user: User;
+    user: TUser;
     alert: Nullable<TAlert>;
     openAlert: (alert: TAlert) => void;
     closeAlert: () => void;
 }
 
-const MONTHS: ReadonlyArray<string> = [
-  "Gennaio",
-  "Febbraio",
-  "Marzo",
-  "Aprile",
-  "Maggio",
-  "Giugno",
-  "Luglio",
-  "Agosto",
-  "Settembre",
-  "Ottobre",
-  "Novembre",
-  "Dicembre",
-];
-
-const N_CALENDAR_ROWS = 6;
-const N_CALENDAR_COLS = 8;
-const W100_POS = N_CALENDAR_COLS - 1;
-const N_DATE_DIVS = (N_CALENDAR_ROWS * N_CALENDAR_COLS) - 1;
-
 const MAX_PERMESSI = 3;
 
 const Calendario: React.FC<Props> = (props) => {
   const [currDate, setCurrDate] = React.useState(new Date());
-  const [permessi, setPermessi] = React.useState<Permesso[]>([]);
+  const [permessi, setPermessi] = React.useState<TPermesso[]>([]);
 
   React.useEffect(() => {
     retrivePermessi();
@@ -107,18 +88,18 @@ const Calendario: React.FC<Props> = (props) => {
     return new Date(firstDate.setDate(firstDate.getDate() - firstDay));
   };
 
-  const retrivePermessi = async (permesso?: Permesso) => {
+  const retrivePermessi = async (permesso?: TPermesso) => {
     try {
       const response = await UserDataService.getPermessi(permesso);
       console.log("retrivePermessi | response.data: ", response.data);
-      setPermessi(response.data.data);
+      setPermessi(response.data.data as TPermesso[]);
       return response.data.data;
     } catch(err) {
       console.error("retrivePermessi | ", err);
     }
   };
 
-  const insertPermesso = async (permToAdd: Permesso) => {
+  const insertPermesso = async (permToAdd: TPermesso) => {
     try {
       const response = await UserDataService.postPermesso(permToAdd);
       console.log("insertPermesso | response.data: ", response.data);
@@ -129,7 +110,7 @@ const Calendario: React.FC<Props> = (props) => {
     }
   };
 
-  const deletePermesso = async (permToDel: Permesso) => {
+  const deletePermesso = async (permToDel: TPermesso) => {
     try {
       const response = await UserDataService.deletePermesso(permToDel);
       console.log("deletePermesso | response.data: ", response.data);
@@ -147,7 +128,7 @@ const Calendario: React.FC<Props> = (props) => {
   
   const checkboxEventHandl = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value/*, parentElement*/ } = e.target;
-    const tmpPerm: Permesso = { username: props.user.name, date: value };
+    const tmpPerm: TPermesso = { username: props.user.name, date: value };
     insertPermesso(tmpPerm)/*.then(() =>
       setDateDivToPrenotato(parentElement as HTMLDivElement)
     )*/;
@@ -164,7 +145,7 @@ const Calendario: React.FC<Props> = (props) => {
 
   const checkBoxAdminEventHandl = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, /*parentElement,*/ dataset } = e.target;
-    const tmpPerm: Permesso = { username: dataset?.username || "", date: value};
+    const tmpPerm: TPermesso = { username: dataset?.username || "", date: value};
     deletePermesso(tmpPerm)/*.then(() =>
       updateAdminDayDiv(parentElement as HTMLDivElement, tmpPerm.username)
     )*/;
@@ -199,7 +180,7 @@ const Calendario: React.FC<Props> = (props) => {
     return MAX_PERMESSI - permessi.filter((p) => p.date === date).length;
   };
 
-  const isPrenotato = (permesso: Permesso) =>
+  const isPrenotato = (permesso: TPermesso) =>
     permessi.find(
       (p) => p.date === permesso.date && p.username === permesso.username
     );
@@ -228,7 +209,7 @@ const Calendario: React.FC<Props> = (props) => {
       if (props.user.admin)
         return adminDateDiv(i, tmpDate);
 
-      const tmpPerm: Permesso = {
+      const tmpPerm: TPermesso = {
         username: props.user.name,
         date: dateFormat(tmpDate, "dd-mm-yyyy"),
       };

@@ -1,6 +1,7 @@
-import axios, { AxiosResponse } from "axios";
+import axios from "./axiosSetup";
+import { AxiosResponse } from "axios";
 import { LoginFormState } from "../types/LoginFormState";
-import { Permesso } from "../types/Permesso";
+import { TPermesso } from "../types/TPermesso";
 import { RegisterFormState } from "../types/RegisterFormState";
 import { GenericResponse } from "../types/Responses";
 import { adminReqHeader, guestReqHeader } from "./dataServicesConfigs";
@@ -26,7 +27,7 @@ class UserDataService {
         });
     }
 
-    getPermessi(data?: Permesso): Promise<AxiosResponse<GenericResponse>> {
+    getPermessi(data?: TPermesso): Promise<AxiosResponse<GenericResponse>> {
         const params = queryToString(data);
         
         return axios.get(`${baseUrl}/permessi?${params}`, {
@@ -34,13 +35,13 @@ class UserDataService {
         });
     }
 
-    postPermesso(data: Permesso): Promise<AxiosResponse<GenericResponse>> {
+    postPermesso(data: TPermesso): Promise<AxiosResponse<GenericResponse>> {
         return axios.post(`${baseUrl}/permessi`, data, {
             headers: guestReqHeader
         });
     }
 
-    deletePermesso(data: Permesso): Promise<AxiosResponse<GenericResponse>> {
+    deletePermesso(data: TPermesso): Promise<AxiosResponse<GenericResponse>> {
         const params = queryToString(data);
         
         return axios.delete(`${baseUrl}/permessi?${params}`, {

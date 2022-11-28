@@ -1,8 +1,8 @@
-import { TipoBadge } from "../enums/TipoBadge";
+import { TBadgeTipo } from "../types/Badge";
 
 export type TableContentElem = {
     codice: string;
-    tipo: TipoBadge;
+    tipo: TBadgeTipo;
     assegnaz: string;
     nome: string;
     cognome: string;

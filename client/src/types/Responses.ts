@@ -1,13 +1,15 @@
 export type GenericResponse = {
     readonly success: boolean;
     readonly msg: string;
-    readonly data: any;
-    readonly filter?: any[];
+    readonly data: unknown;
+    readonly filter?: unknown[];
 };
 
-export type ErrResponse = {
+export type OkResponse = GenericResponse & {
+    readonly success: true;
+}
+
+export type ErrResponse = GenericResponse & {
     readonly success: false;
-    readonly msg: string;
-    readonly data: null;
-    readonly filters?: any[];
+    readonly data?: null;
 };

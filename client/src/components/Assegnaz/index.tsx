@@ -4,10 +4,10 @@ import "./index.css";
 
 import BadgeDataService from "../../services/badge";
 
-import { TipoBadge } from "../../enums/TipoBadge";
 import { Nullable } from "../../types/Nullable";
 import { TAlert } from "../../types/TAlert";
-import { Assegnazione } from "../../types/Assegnazione";
+import { TAssegnaz } from "../../types/TAssegnaz";
+import { TBadgeTipo } from "../../types/Badge";
 
 import Alert from "../Alert";
 
@@ -15,19 +15,19 @@ type AssegnazProps = {
   alert: Nullable<TAlert>;
   openAlert: (alert: TAlert) => void;
   closeAlert: () => void;
-  tipiBadge: TipoBadge[];
-  assegnazioni: Assegnazione[];
-  setAssegnazioni: React.Dispatch<React.SetStateAction<Assegnazione[]>>;
+  tipiBadge: TBadgeTipo[];
+  assegnazioni: TAssegnaz[];
+  setAssegnazioni: React.Dispatch<React.SetStateAction<TAssegnaz[]>>;
 };
 
 type AssegnazState = {
-  assegnazForm: Assegnazione
+  assegnazForm: TAssegnaz
 };
 
 export default class Assegnaz extends React.Component<AssegnazProps, AssegnazState> {
 
-  static initialAssegnazFormState: Assegnazione = {
-    badge: TipoBadge.BADGE,
+  static initialAssegnazFormState: TAssegnaz = {
+    badge: "BADGE",
     name: ""
   };
 
@@ -48,7 +48,7 @@ export default class Assegnaz extends React.Component<AssegnazProps, AssegnazSta
       BadgeDataService.insertAssegnazione(this.state.assegnazForm)
         .then((response) => {
           this.props.setAssegnazioni((prevState) => {
-            const assegnazione: Assegnazione = {
+            const assegnazione: TAssegnaz = {
               badge: this.state.assegnazForm.badge,
               name: this.state.assegnazForm.name.toUpperCase(),
             };
@@ -67,12 +67,12 @@ export default class Assegnaz extends React.Component<AssegnazProps, AssegnazSta
     };
 
     const deleteAssegnazFromArr = (
-      arr: Assegnazione[],
-      elem: Assegnazione
-    ): Assegnazione[] =>
+      arr: TAssegnaz[],
+      elem: TAssegnaz
+    ): TAssegnaz[] =>
       arr.filter((x) => x.badge !== elem.badge || x.name !== elem.name);
 
-    const deleteAssegnazione = (assegnazToDel: Assegnazione) => {
+    const deleteAssegnazione = (assegnazToDel: TAssegnaz) => {
       console.log(assegnazToDel);
       BadgeDataService.deleteAssegnazione(assegnazToDel)
         .then((response) => {
@@ -92,7 +92,7 @@ export default class Assegnaz extends React.Component<AssegnazProps, AssegnazSta
     const btnDeleteOnClickEvent = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
       const { value } = event.currentTarget as HTMLButtonElement;
       
-      const assegnazToDel: Assegnazione = {
+      const assegnazToDel: TAssegnaz = {
         badge: this.state.assegnazForm.badge,
         name: value
       };

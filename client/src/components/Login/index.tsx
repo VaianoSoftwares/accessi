@@ -2,7 +2,7 @@ import React from "react";
 import UserDataService from "../../services/user";
 import "./index.css";
 import Alert from "../Alert";
-import { User } from "../../types/User";
+import { TUser } from "../../types/TUser";
 import { TAlert } from "../../types/TAlert";
 import { LoginFormState } from "../../types/LoginFormState";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +11,7 @@ import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import handleInputChanges from "../../utils/handleInputChanges";
 
 type Props = {
-  login: (user: User, cliente: string, postazione: string, token: string[]) => Promise<void>;
+  login: (user: TUser, cliente: string, postazione: string, token: string[]) => Promise<void>;
   alert: Nullable<TAlert>;
   openAlert: (alert: TAlert) => void;
   closeAlert: () => void;
@@ -34,17 +34,27 @@ const Login: React.FC<Props> = (props: Props) => {
   const login = () => {
     UserDataService.login(loginForm)
       .then((response) => {
-        if (response.data.success === true) {
-          console.log(
-            `Logged In. uname: ${response.data.data.name} - admin: ${response.data.data.admin} - postazione: ${loginForm.postazione}`
-          );
-
-          props.login(response.data.data as User, loginForm.cliente, loginForm.postazione, [
-            response.headers["guest-token"] as string,
-            response.headers["admin-token"] as string,
-          ]);
-          navigate("../home");
+        if (response.data.success === false) {
+          console.error("Login failed.");
+          return;
         }
+
+        const dataResp = response.data.data as TUser;
+        console.log(
+          "Logged In. uname:",
+          dataResp.name,
+          "admin:",
+          dataResp.admin,
+          "postazione:",
+          loginForm.postazione
+        );
+
+        props.login(dataResp, loginForm.cliente, loginForm.postazione, [
+          response.headers["guest-token"] as string,
+          response.headers["admin-token"] as string,
+        ]);
+
+        navigate("../home");
       })
       .catch(err => axiosErrHandl(err, props.openAlert, "login | "));
   };

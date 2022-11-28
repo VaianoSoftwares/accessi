@@ -1,13 +1,31 @@
-import { StatoBadge } from "../enums/StatoBadge";
-import { TipoBadge } from "../enums/TipoBadge";
-import { Nominativo } from "./Nominativo";
+export type TBadgeTipo = "BADGE" | "CHIAVE" | "VEICOLO";
+export type TBadgeStato = "VALIDO" | "SCADUTO" | "REVOCATO" | "RICONSEGNATO";
+export type TTDoc = "CARTA IDENTITA" | "PATENTE" | "TESSERA STUDENTE" | "";
 
-export type Badge = {
+export type TTarghe = {
+    1: string,
+    2: string,
+    3: string,
+    4: string,
+};
+
+export type TNominativo = {
+    nome: string;
+    cognome: string;
+    telefono: string;
+    ditta: string;
+    tdoc: TTDoc;
+    ndoc: string;
+    scadenza?: string;
+    targhe?: TTarghe;
+};
+
+export type TBadge = {
     barcode: string;
     descrizione: string;
-    tipo: TipoBadge;
+    tipo: TBadgeTipo;
     assegnazione: string;
-    stato: StatoBadge;
+    stato: TBadgeStato;
     ubicazione: string;
-    nominativo?: Nominativo;
+    nominativo?: TNominativo;
 };

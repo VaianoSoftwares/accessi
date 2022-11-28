@@ -7,6 +7,7 @@ import fileUpload from "express-fileupload";
 import authRoutes from "./auth/auth.routes.js";
 import badgesRoutes from "./api/badges.routes.js";
 import documentiRoutes from "./api/documenti.routes.js";
+import calendarioRoutes from "./api/calendario.routes.js";
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use(
 app.use("/api/v1/users", authRoutes);
 app.use("/api/v1/badges", badgesRoutes);
 app.use("/api/v1/documenti", documentiRoutes);
+app.use("/api/v1/calendario", calendarioRoutes);
 
 // backend make public and get compiled react app
 if (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "staging") {
