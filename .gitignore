@@ -1,3 +1,6 @@
+# anything .gitkeep must not been ignored
+!*.gitkeep
+
 # dependencies
 /node_modules
 /tmp
@@ -8,10 +11,13 @@ package-lock.json
 
 # tmp upload files
 server/tmp/*
-!server/tmp/.gitkeep
 
-# tsc build
+# tsc server build files
 /build
 
 # vscode configs
 /.vscode
+
+# documenti & calendario files
+# server/public/documenti/*
+# server/public/calendario/*
