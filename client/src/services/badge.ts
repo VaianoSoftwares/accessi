@@ -1,26 +1,23 @@
 import axios from "./axiosSetup";
 import { AxiosResponse } from "axios";
-import { FindBadgeDoc } from "../types/FindBadgeDoc";
 import { GenericResponse } from "../types/Responses";
 import { TimbraDoc } from "../types/TimbraDoc";
-import { FindArchivioDoc } from "../types/FindArchivioDoc";
 import { TAssegnaz } from "../types/TAssegnaz";
 import { adminReqFileHeader, adminReqHeader, guestReqHeader } from "./dataServicesConfigs";
 import { isQueryEmpty, queryToString } from "./dataServicesUtilis";
+import { TPrestitoDataReq } from "../types/PrestitoChiavi";
 
 const baseUrl = "/api/v1/badges";
 
 class BadgesDataService {
-
   getAll(): Promise<AxiosResponse<GenericResponse>> {
     return axios.get(baseUrl, {
       headers: guestReqHeader,
     });
   }
 
-  find(query: FindBadgeDoc): Promise<AxiosResponse<GenericResponse>> {
-    if (isQueryEmpty(query))
-      return this.getAll();
+  find(query: Record<string, string>): Promise<AxiosResponse<GenericResponse>> {
+    if (isQueryEmpty(query)) return this.getAll();
 
     const params = queryToString(query);
     // console.log(params);
@@ -62,14 +59,17 @@ class BadgesDataService {
 
   insertAssegnazione(data: TAssegnaz): Promise<AxiosResponse<GenericResponse>> {
     return axios.post(`${baseUrl}/assegnazioni`, data, {
-      headers: adminReqHeader
+      headers: adminReqHeader,
     });
   }
 
   deleteAssegnazione(data: TAssegnaz): Promise<AxiosResponse<GenericResponse>> {
-    return axios.delete(`${baseUrl}/assegnazioni?badge=${data.badge}&name=${data.name}`, {
-      headers: adminReqHeader
-    });
+    return axios.delete(
+      `${baseUrl}/assegnazioni?badge=${data.badge}&name=${data.name}`,
+      {
+        headers: adminReqHeader,
+      }
+    );
   }
 
   getTipiDoc(): Promise<AxiosResponse<GenericResponse>> {
@@ -90,17 +90,17 @@ class BadgesDataService {
     });
   }
 
-  getArchivio(query: FindArchivioDoc): Promise<AxiosResponse<GenericResponse>> {
+  getArchivio(query: Record<string, string>): Promise<AxiosResponse<GenericResponse>> {
     const params = queryToString(query);
-    
+
     return axios.get(`${baseUrl}/archivio?${params}`, {
-      headers: guestReqHeader,
+      headers: adminReqHeader,
     });
   }
 
   getInStrutt(tipo: string = ""): Promise<AxiosResponse<GenericResponse>> {
     return axios.get(`${baseUrl}/archivio/in-struttura?tipo=${tipo}`, {
-      headers: guestReqHeader,
+      headers: adminReqHeader,
     });
   }
 
@@ -109,7 +109,26 @@ class BadgesDataService {
       headers: guestReqHeader,
     });
   }
-  
+
+  getArchivioChiavi(query: Record<string, string>): Promise<AxiosResponse<GenericResponse>> {
+    const params = queryToString(query);
+
+    return axios.get(`${baseUrl}/archivio-chiavi?${params}`, {
+      headers: adminReqHeader,
+    });
+  }
+
+  getInPrestito(): Promise<AxiosResponse<GenericResponse>> {
+    return axios.get(`${baseUrl}/archivio-chiavi/in-prestito`, {
+      headers: guestReqHeader,
+    });
+  }
+
+  prestaChiavi(data: TPrestitoDataReq): Promise<AxiosResponse<GenericResponse>> {
+    return axios.post(`${baseUrl}/archivio-chiavi`, data, {
+      headers: guestReqHeader,
+    });
+  }
 }
 
 export default new BadgesDataService();

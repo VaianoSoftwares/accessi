@@ -6,7 +6,7 @@ import path from "path";
 
 const privateKey = fs.readFileSync(path.join("server", "certs", "server.key"));
 const certificate = fs.readFileSync(
-  path.join("server", "certs", "server.cert")
+  path.join("server", "certs", "server.crt")
 );
 
 const credentials = {
@@ -20,6 +20,7 @@ import UsersDAO from "./dao/users.dao.js";
 import EnumsDAO from "./dao/enums.dao.js";
 import PermessiDAO from "./dao/permessi.dao.js";
 import DocumentiDAO from "./dao/documenti.dao.js";
+import PrestitiDAO from "./dao/prestiti.dao.js";
 
 const MongoClient = mongodb.MongoClient;
 const port = process.env.PORT || 443;
@@ -33,6 +34,7 @@ MongoClient.connect(process.env.ACCESSI_DB_URI || "")
     await EnumsDAO.injectDB(client);
     await PermessiDAO.injectDB(client);
     await DocumentiDAO.injectDB(client);
+    await PrestitiDAO.injectDB(client);
     
     httpsServer.listen(port, () => console.log(`HTTPS Server running on port ${port}.`));
     

@@ -1,6 +1,6 @@
 import { TBadgeTipo } from "../types/Badge";
 
-export type TableContentElem = {
+export type TTableContent = {
     codice: string;
     tipo: TBadgeTipo;
     assegnaz: string;
@@ -9,15 +9,16 @@ export type TableContentElem = {
     ditta: string;
 };
 
-type InStruttPartialContent = {
+type TInStruttPartialContent = {
     entrata: string;
 };
 
-type ArchivioPartialContent = {
+type TArchPartialContent = {
     cliente: string;
     postazione: string;
+    ip: string;
     uscita: string;
 };
 
-export type InStruttTableContent = TableContentElem & InStruttPartialContent;
-export type ArchivioTableContent = InStruttTableContent & ArchivioPartialContent;
+export type TInStruttTableContent = TTableContent & TInStruttPartialContent;
+export type TArchTableContent = TInStruttTableContent & TArchPartialContent;

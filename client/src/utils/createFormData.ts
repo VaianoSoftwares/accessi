@@ -1,8 +1,8 @@
 import { GenericForm } from "../types/GenericForm";
 
 export default (() => {
-  const formData = new FormData();
   return (form: GenericForm) => {
+    const formData = new FormData();
     Object.entries(form)
       .filter(
         ([, value]) => value !== "" && value !== null && value !== undefined

@@ -8,15 +8,12 @@ import "./index.css";
 import { BadgeFormState } from "../../types/BadgeFormState";
 // Types
 import { TAssegnaz } from "../../types/TAssegnaz";
-import { ArchivioFormState } from "../../types/ArchivioFormState";
 import { TEvent } from "../../types/TEvent";
 import { TBadgeTipo, TBadgeStato, TTDoc } from "../../types/Badge";
 
 type Props = {
   badgeForm: BadgeFormState;
-  archivioForm: ArchivioFormState;
   handleInputChangesBadge: (e: TEvent) => void;
-  handleInputChangesArchivio: (e: TEvent) => void;
   tipiBadge: TBadgeTipo[];
   assegnazioni: TAssegnaz[];
   tipiDoc: TTDoc[];
@@ -30,35 +27,6 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
   return (
     <div className="col-8 badge-form">
       <div className="row mb-2">
-        {props.admin === true && <>
-          <div className="form-floating col-sm-2">
-            <input
-              type="date"
-              className="form-control form-control-sm"
-              id="dataInizio"
-              value={props.archivioForm.dataInizio}
-              onChange={props.handleInputChangesArchivio}
-              name="dataInizio"
-              readOnly={!!props.readOnlyForm}
-              autoComplete="off"
-            />
-            <label htmlFor="dataInizio">resoconto inizio</label>
-          </div>
-          <div className="form-floating col-sm-2">
-            <input
-              type="date"
-              className="form-control form-control-sm"
-              id="dataFine"
-              value={props.archivioForm.dataFine}
-              onChange={props.handleInputChangesArchivio}
-              name="dataFine"
-              readOnly={!!props.readOnlyForm}
-              autoComplete="off"
-            />
-            <label htmlFor="dataFine">resoconto fine</label>
-          </div>
-          <div className="w-100 mb-1"></div>
-        </>}
         <div className="form-floating col-sm-2">
           <input
             type="text"

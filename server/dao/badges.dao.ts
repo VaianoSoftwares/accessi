@@ -57,7 +57,28 @@ export default class BadgesDAO {
     console.log(query);
 
     try {
-      const cursor = badges.find(query);
+      const cursor = badges.find(query, {
+        projection: {
+          _id: 0,
+          barcode: 1,
+          descrizione: 1,
+          tipo: 1,
+          assegnazione: 1,
+          ubicazione: 1,
+          stato: 1,
+          nome: { $ifNull: ["$nominativo.nome", ""] },
+          cognome: { $ifNull: ["$nominativo.cognome", ""] },
+          ditta: { $ifNull: ["$nominativo.ditta", ""] },
+          telefono: { $ifNull: ["$nominativo.telefono", ""] },
+          ndoc: { $ifNull: ["$nominativo.ndoc", ""] },
+          tdoc: { $ifNull: ["$nominativo.tdoc", ""] },
+          scadenza: { $ifNull: ["$nominativo.scadenza", ""] },
+          targa1: { $ifNull: ["$nominativo.targhe.1", ""] },
+          targa2: { $ifNull: ["$nominativo.targhe.2", ""] },
+          targa3: { $ifNull: ["$nominativo.targhe.3", ""] },
+          targa4: { $ifNull: ["$nominativo.targhe.4", ""] },
+        },
+      });
       const displayCursor = cursor.limit(50).skip(0);
       const badgesList = await displayCursor.toArray();
       console.log(badgesList);
@@ -79,7 +100,7 @@ export default class BadgesDAO {
 
   static #getBadgeDoc(data: TBadgeAddReq) {
     const badgeDoc: TBadge = {
-      barcode: data?.barcode?.toUpperCase() || "",
+      barcode: data.barcode.toUpperCase(),
       descrizione: data?.descrizione?.toUpperCase() || "",
       tipo: "BADGE",
       assegnazione: data?.assegnazione?.toUpperCase() || "",
@@ -138,16 +159,7 @@ export default class BadgesDAO {
       assegnazione: data?.assegnazione?.toUpperCase() || "",
       ubicazione: data?.ubicazione?.toUpperCase() || "",
       stato: Badge.toBadgeStato(data?.stato?.toUpperCase()),
-      nominativo: {
-        nome: data?.nome?.toUpperCase() || "",
-        cognome: data?.cognome?.toUpperCase() || "",
-        ditta: data?.ditta?.toUpperCase() || "",
-        telefono: data?.telefono?.toUpperCase() || "",
-        tdoc: Badge.toTDoc(data?.tdoc?.toUpperCase()),
-        ndoc: data?.ndoc?.toUpperCase() || "",
-        scadenza: "",
-        targhe: null
-      }
+      nominativo: null
     };
 
     return chiaveDoc;
@@ -157,22 +169,46 @@ export default class BadgesDAO {
     const provDoc: TProvvisorio = {
       barcode: data.barcode.toUpperCase(),
       descrizione: data?.descrizione?.toUpperCase() || "",
-      tipo: "BADGE",
+      tipo: "PROVVISORIO",
       assegnazione: data?.assegnazione?.toUpperCase() || "",
       ubicazione: data?.ubicazione?.toUpperCase() || "",
       stato: Badge.toBadgeStato(data?.stato?.toUpperCase()),
-      nominativo: null
+      nominativo: {
+        nome: data?.nome?.toUpperCase() || "",
+        cognome: data?.cognome?.toUpperCase() || "",
+        ditta: data?.ditta?.toUpperCase() || "",
+        telefono: data?.telefono?.toUpperCase() || "",
+        tdoc: Badge.toTDoc(data?.tdoc?.toUpperCase()),
+        ndoc: data?.ndoc?.toUpperCase() || "",
+        scadenza: "",
+        targhe: null,
+      },
     };
 
     return provDoc;
   }
 
-  static #isBadgeNom(data: TBadgeAddReq) {
-    return (
-      Object.entries(data).filter(
-        ([key, value]) => value && Badge.isNomKey(key)
-      ).length > 0
-    );
+  // static #isBadgeNom(data: TBadgeAddReq) {
+  //   return (
+  //     Object.entries(data).filter(
+  //       ([key, value]) => value && Badge.isNomKey(key)
+  //     ).length > 0
+  //   );
+  // }
+
+  static #createBadgeDoc(data: TBadgeAddReq) {
+    const tipo = data.tipo || "PROVVISORIO";
+
+      switch(tipo) {
+        case "PROVVISORIO":
+          return this.#getProvvisorioDoc(data);
+        case "BADGE":
+          return this.#getBadgeDoc(data);
+        case "CHIAVE":
+          return this.#getChiaveDoc(data);
+        case "VEICOLO":
+          return this.#getVeicoloDoc(data);
+      }
   }
 
   static async addBadge(data: TBadgeAddReq) {
@@ -182,21 +218,22 @@ export default class BadgesDAO {
         throw new Error(`Barcode ${data.barcode} già esistente.`);
       }
 
-      const isNom = this.#isBadgeNom(data);
+      // const isNom = this.#isBadgeNom(data);
 
-      const badgeDoc = !isNom
-        ? this.#getProvvisorioDoc(data)
-        : !data.tipo || data.tipo === "BADGE"
-        ? this.#getBadgeDoc(data)
-        : data.tipo === "VEICOLO"
-        ? this.#getVeicoloDoc(data)
-        : data.tipo === "CHIAVE"
-        ? this.#getChiaveDoc(data)
-        : null;
+      // const badgeDoc = !isNom
+      //   ? this.#getProvvisorioDoc(data)
+      //   : !data.tipo || data.tipo === "BADGE"
+      //   ? this.#getBadgeDoc(data)
+      //   : data.tipo === "VEICOLO"
+      //   ? this.#getVeicoloDoc(data)
+      //   : data.tipo === "CHIAVE"
+      //   ? this.#getChiaveDoc(data)
+      //   : null;
 
-      if(!badgeDoc) {
-        throw new Error(`Tipo badge ${data.tipo} sconosciuto.`);
-      }
+      // if(!badgeDoc) {
+      //   throw new Error(`Tipo badge ${data.tipo} sconosciuto.`);
+      // }
+      const badgeDoc = this.#createBadgeDoc(data);
 
       return await badges.insertOne(badgeDoc);
     } catch (err) {
@@ -254,25 +291,20 @@ export default class BadgesDAO {
     }
   }
 
-  /*
-  static async getReparti() {
+  static async nullifyNominativo(barcode: string) {
     try {
-      const reparti = await badges.distinct("reparto");
-      return reparti;
-    } catch (err) {
-      console.log(`getReparti - ${err}`);
-      return [];
+      const badge = await badges.findOne({ barcode });
+      if(!badge) {
+        throw new Error(`Barcode ${barcode} non esistente`);
+      }
+
+      return await badges.updateOne(
+        { _id: badge._id },
+        { $set: { nominativo: null } }
+      );
+    } catch(err) {
+      return errCheck(err, "nullifyNominativo |");
     }
   }
 
-  static async getTipiDoc() {
-    try {
-      const tipiDoc = await badges.distinct("nominativo.documento.tipo");
-      return tipiDoc;
-    } catch (err) {
-      console.log(`getTipiDoc - ${err}`);
-      return [];
-    }
-  }
-  */
 }

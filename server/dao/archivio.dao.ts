@@ -1,8 +1,8 @@
 import BadgesDAO from "./badges.dao.js";
-import { MongoClient, ObjectId, Collection, Filter } from "mongodb";
+import { MongoClient, ObjectId, Collection, Filter, WithId } from "mongodb";
 import errCheck from "../middlewares/errCheck.js";
 import { TBadgeTipo, TGenericBadge, TGenericNom } from "../types/badges.js";
-import { TArchivio, TInStrutt } from "../types/archivio.js";
+import { TArchivio } from "../types/archivio.js";
 
 const COLLECTION_NAME = "archivio1";
 
@@ -35,7 +35,6 @@ export default class ArchivioDAO {
     Object.entries(filters)
       .filter(([key, value]) => value && !key.includes("data"))
       .forEach(([key, value]) => {
-        let isKeyValid = true;
         let filterName = "";
 
         switch(key) {
@@ -56,44 +55,34 @@ export default class ArchivioDAO {
             filterName = `badge.nominativo.${key}`;
             break;
           default:
-            isKeyValid = false;
+            return;
         }
 
-        if(isKeyValid === true) {
-          const filter: Record<string, unknown> = {};
-          filter[filterName] = { $regex: new RegExp(value as string, "i") };
-          archivioFilter.push(filter);
-        }
+        const filter: Record<string, unknown> = {};
+        filter[filterName] = { $regex: new RegExp(value as string, "i") };
+        archivioFilter.push(filter);
       });
 
     const query = { $and: archivioFilter };
     console.log("getArchivio | query: ", query);
 
     try {
-      // const cursor = await archivio.aggregate([
-      //   {
-      //     $lookup: {
-      //       from: "badges",
-      //       let: { arch_codice: "$barcode" },
-      //       pipeline: [
-      //         {
-      //           $match: {
-      //             $expr: {
-      //               $eq: ["$barcode", "$$arch_codice"]
-      //             },
-      //           },
-      //         },
-      //         { $project: { "_id": 0, "descrizione": 1, "tipo": 1, "assegnazione": 1, "stato": 1, "ubicazione": 1 } }
-      //       ],
-      //       as: "badge",
-      //     },
-      //   },
-      //   { $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ["$badge", 0] }, "$$ROOT"] } } },
-      //   { $match: query },
-      //   { $project: { "_id": 0, "badge": 0 } },
-      //   { $limit: 500 },
-      // ]);
-      const cursor = archivio.find(query);
+      const cursor = archivio.find(query, {
+        projection: {
+          _id: 0,
+          codice: "$badge.barcode",
+          tipo: "$badge.tipo",
+          cliente: 1,
+          postazione: 1,
+          ip: 1,
+          assegnaz: "$badge.assegnazione",
+          nome: { $ifNull: ["$badge.nominativo.nome", ""] },
+          cognome: { $ifNull: ["$badge.nominativo.cognome", ""] },
+          ditta: { $ifNull: ["$badge.nominativo.ditta", ""] },
+          entrata: "$data.entrata",
+          uscita: "$data.uscita",
+        },
+      });
       const displayCursor = cursor.limit(500).skip(0);
       const archivioList = await displayCursor.toArray();
       return archivioList;
@@ -103,93 +92,147 @@ export default class ArchivioDAO {
     }
   }
 
-  static async getInStruttBy(key: string, value: string | ObjectId) {
+  static async #getTimbraResponse(id: ObjectId, msg: string) {
     try {
-      const filter: Record<string, unknown> = {};
-      filter[key] = key === "_id" ? { $eq: new ObjectId(value) } : { $eq: value };
-
-      const response = await archivio.findOne(
-        { $and: [filter, { "data.uscita": { $eq: null } }] }
+      return await archivio.findOne(
+        {
+          _id: id,
+        },
+        {
+          projection: {
+            _id: 0,
+            timbra: {
+              codice: "$badge.barcode",
+              tipo: "$badge.tipo",
+              cliente: 1,
+              postazione: 1,
+              assegnaz: "$badge.assegnazione",
+              nome: { $ifNull: ["$badge.nominativo.nome", ""] },
+              cognome: { $ifNull: ["$badge.nominativo.cognome", ""] },
+              ditta: { $ifNull: ["$badge.nominativo.ditta", ""] },
+              entrata: "$data.entrata",
+            },
+            badge: {
+              barcode: "$badge.barcode",
+              descrizione: { $ifNull: ["$badge.descrizione", ""] },
+              tipo: "$badge.tipo",
+              assegnazione: "$badge.assegnazione",
+              ubicazione: { $ifNull: ["$badge.ubicazione", ""] },
+              stato: "$badge.stato",
+              nome: { $ifNull: ["$badge.nominativo.nome", ""] },
+              cognome: { $ifNull: ["$badge.nominativo.cognome", ""] },
+              ditta: { $ifNull: ["$badge.nominativo.ditta", ""] },
+              telefono: { $ifNull: ["$badge.nominativo.telefono", ""] },
+              ndoc: { $ifNull: ["$badge.nominativo.ndoc", ""] },
+              tdoc: { $ifNull: ["$badge.nominativo.tdoc", ""] },
+              scadenza: { $ifNull: ["$badge.nominativo.scadenza", ""] },
+              targa1: { $ifNull: ["$badge.nominativo.targhe.1", ""] },
+              targa2: { $ifNull: ["$badge.nominativo.targhe.2", ""] },
+              targa3: { $ifNull: ["$badge.nominativo.targhe.3", ""] },
+              targa4: { $ifNull: ["$badge.nominativo.targhe.4", ""] },
+            },
+            msg
+          },
+        }
       );
-      return response;
     } catch (err) {
-      errCheck(err, "getInStruttBy |");
+      errCheck(err, "getTimbraResponse |");
+      return null;
     }
   }
 
-  static async getArchivioById(id: ObjectId) {
-    try {
-      const response = await archivio.findOne(
-        { $and: [{ _id: { $eq: id } }, { "data.uscita": { $ne: null } }] }
-      );
-      return response;
-    } catch (err) {
-      errCheck(err, "getArchivioById |");
-    }
-  }
-
-  static async timbra(badgeDoc: TGenericBadge, cliente: string, postazione: string, ip: string) {
-    // this will the response, a "timbra" document
-    const timbraResp: TInStrutt = {
-      badge: badgeDoc,
-      cliente,
-      postazione,
-      ip,
-      data: { entrata: new Date() },
-    };
-
+  static async timbra(barcode: string, cliente: string, postazione: string, ip: string) {
     // check if barcode is a "tessera universitario" document number
-    const isUni = badgeDoc.barcode.length === 7 && /^\d+$/.test(badgeDoc.barcode);
+    const isUni = barcode.length === 7 && /^\d+$/.test(barcode);
+
+    let badgeTimbra: TGenericBadge;
 
     try {
       // if isUni then create a new badge provvisorio
-      if(isUni) {
+      if (isUni) {
         const uniDoc: TGenericBadge = {
-          barcode: badgeDoc.barcode,
+          barcode,
           descrizione: "UNIVERSITARIO",
-          tipo: "BADGE",
+          tipo: "PROVVISORIO",
           assegnazione: "UNIVERSITARIO",
           stato: "VALIDO",
           ubicazione: "",
           nominativo: {
             tdoc: "TESSERA STUDENTE",
-            ndoc: badgeDoc.barcode
-          } as TGenericNom
+            ndoc: barcode,
+          } as TGenericNom,
         };
-        timbraResp.badge = uniDoc;
+        badgeTimbra = uniDoc;
       }
       // or else search for an existing badge in order to gather nominativo's data
       else {
-        const [fetchedBadge] = await BadgesDAO.getBadges({ barcode: badgeDoc.barcode });
+        // get badge for timbratura
+        const fetchedBadge = await BadgesDAO.findBadgeByBarcode(barcode);
         if (!fetchedBadge) {
+          throw new Error(`Badge ${barcode} non valido: non esistente`);
+        } else if (fetchedBadge.tipo === "CHIAVE") {
           throw new Error(
-            `Badge ${badgeDoc.barcode} non valido: non esistente`
+            `Badge ${barcode} non valido: impossibile accedere con badge di tipo ${fetchedBadge.tipo}`
           );
         } else if (fetchedBadge.stato?.toUpperCase() !== "VALIDO") {
-          throw new Error(
-            `Badge ${badgeDoc.barcode} non valido: ${fetchedBadge.stato}`
-          );
+          throw new Error(`Badge ${barcode} non valido: ${fetchedBadge.stato}`);
         } else if (
           fetchedBadge.nominativo &&
           fetchedBadge.nominativo.scadenza &&
           new Date() >= new Date(fetchedBadge.nominativo.scadenza)
         ) {
-          throw new Error(`Badge ${badgeDoc.barcode} non valido: scaduto`);
+          throw new Error(`Badge ${barcode} non valido: scaduto`);
         }
-        timbraResp.badge = fetchedBadge as unknown as TGenericBadge;
+
+        badgeTimbra = fetchedBadge;
       }
 
-      const timbratura = await this.#timbraUnilaterale(
-        timbraResp.badge, cliente, postazione, ip
+      // check if is inStrutt, then "timbra esce", "timbra entra" otherwise
+      const inStrutt = await archivio.findOne(
+        {
+          $and: [
+            { "badge.barcode": barcode },
+            { "data.uscita": { $eq: null } },
+          ],
+        },
+        { projection: { _id: 1 } }
       );
 
-      if ("error" in timbratura) throw new Error(timbratura.error);
+      let idTimbra: ObjectId;
+      let msgTimbra = "";
 
-      timbraResp.data.entrata = timbratura.dataEntra;
+      if(inStrutt) {
+        const timbraEsceResp = await this.#timbraEsce(inStrutt._id);
+        if ("error" in timbraEsceResp) throw new Error(timbraEsceResp.error);
+        else if (timbraEsceResp.modifiedCount === 0)
+          throw new Error(
+            `Non è stato possibile timbrare in uscita badge ${barcode}.`
+          );
 
-      console.log(timbraResp);
+        // if badge is PROVVISORIO and is not UNIVERSITARIO and "timbra esce" then delete PROVVISORIO badge
+        if (
+          badgeTimbra.tipo === "PROVVISORIO" &&
+          badgeTimbra.assegnazione !== "UNIVERSITARIO"
+        ) {
+          const deleteResp = await BadgesDAO.deleteBadge(barcode);
+          if ("error" in deleteResp) throw new Error(deleteResp.error);
+        }
 
-      return { response: timbraResp, msg: timbratura.msg };
+        idTimbra = inStrutt._id;
+        msgTimbra = "Timbra Entra";
+      }
+      else {
+        const timbraEntraResp = await this.#timbraEntra(badgeTimbra, cliente, postazione, ip);
+        if ("error" in timbraEntraResp) 
+          throw new Error(timbraEntraResp.error);
+
+        idTimbra = timbraEntraResp.insertedId;
+        msgTimbra = "Timbra Esce";
+      }
+
+      const timbraResp = await this.#getTimbraResponse(idTimbra, msgTimbra);
+      if(!timbraResp) throw new Error(`timbra: DB error`);
+      return timbraResp;
     } catch(err) {
       return errCheck("timbra |");
     }
@@ -333,54 +376,54 @@ export default class ArchivioDAO {
   //   }
   // }
 
-  static async #timbraUnilaterale(badgeDoc: TGenericBadge, cliente: string, postazione: string, ip: string) {
-    try {
-      let inStrutt = await this.getInStruttBy("badge.barcode", badgeDoc.barcode);
+  // static async #timbraUnilaterale(badgeDoc: TGenericBadge, cliente: string, postazione: string, ip: string) {
+  //   try {
+  //     let inStrutt = await this.getInStruttBy("badge.barcode", badgeDoc.barcode);
 
-      // badge è in struttura, verrà timbrata la sua uscita
-      if (inStrutt) {
-        const id = inStrutt._id;
-        // aggiornamento oggetto archivio: viene settata data di uscita del badge nell'archivio
-        const timbraEsceResp = await this.#timbraEsce(id);
+  //     // badge è in struttura, verrà timbrata la sua uscita
+  //     if (inStrutt) {
+  //       const id = inStrutt._id;
+  //       // aggiornamento oggetto archivio: viene settata data di uscita del badge nell'archivio
+  //       const timbraEsceResp = await this.#timbraEsce(id);
 
-        if("error" in timbraEsceResp)
-          throw new Error(timbraEsceResp.error);
+  //       if("error" in timbraEsceResp)
+  //         throw new Error(timbraEsceResp.error);
 
-        if (timbraEsceResp.modifiedCount === 0)
-          throw new Error(
-            `Non è stato possibile timbrare in uscita badge ${badgeDoc.barcode}.`
-          );
+  //       if (timbraEsceResp.modifiedCount === 0)
+  //         throw new Error(
+  //           `Non è stato possibile timbrare in uscita badge ${badgeDoc.barcode}.`
+  //         );
 
-        return {
-          msg: "Timbra Esce",
-          dataEntra: inStrutt.data.entrata
-        };
-      // badge NON è in struttura, verrà timbrata la sua entrata
-      } else {
-        // creazione nuovo oggetto archivio
-        const timbraEntraResp = await this.#timbraEntra(
-          badgeDoc, cliente, postazione, ip
-        );
+  //       return {
+  //         msg: "Timbra Esce",
+  //         dataEntra: inStrutt.data.entrata
+  //       };
+  //     // badge NON è in struttura, verrà timbrata la sua entrata
+  //     } else {
+  //       // creazione nuovo oggetto archivio
+  //       const timbraEntraResp = await this.#timbraEntra(
+  //         badgeDoc, cliente, postazione, ip
+  //       );
 
-        if ("error" in timbraEntraResp) 
-          throw new Error(timbraEntraResp.error);
+  //       if ("error" in timbraEntraResp) 
+  //         throw new Error(timbraEntraResp.error);
         
-        // viene prelevata la data di entrata di timbratura del badge
-        inStrutt = await this.getInStruttBy("_id", timbraEntraResp.insertedId);
-        if (!inStrutt)
-          throw new Error(
-            `Non è stato possibile timbrare in entrata badge ${badgeDoc.barcode}.`
-          );
+  //       // viene prelevata la data di entrata di timbratura del badge
+  //       inStrutt = await this.getInStruttBy("_id", timbraEntraResp.insertedId);
+  //       if (!inStrutt)
+  //         throw new Error(
+  //           `Non è stato possibile timbrare in entrata badge ${badgeDoc.barcode}.`
+  //         );
         
-        return {
-          msg: "Timbra Entra",
-          dataEntra: inStrutt.data.entrata
-        };
-      }
-    } catch (err) {
-      return errCheck("timbraUnilaterale |");
-    }
-  }
+  //       return {
+  //         msg: "Timbra Entra",
+  //         dataEntra: inStrutt.data.entrata
+  //       };
+  //     }
+  //   } catch (err) {
+  //     return errCheck("timbraUnilaterale |");
+  //   }
+  // }
 
   static async #timbraEntra(badgeDoc: TGenericBadge, cliente: string, postazione: string, ip: string) {
     try {
@@ -427,51 +470,27 @@ export default class ArchivioDAO {
     };
 
     try {
-      const cursor = archivio.find(query);
+      const cursor = archivio.find(query, {
+        projection: {
+          _id: 0,
+          codice: "$badge.barcode",
+          tipo: "$badge.tipo",
+          cliente: 1,
+          postazione: 1,
+          assegnaz: "$badge.assegnazione",
+          nome: { $ifNull: ["$badge.nominativo.nome", ""] },
+          cognome: { $ifNull: ["$badge.nominativo.cognome", ""] },
+          ditta: { $ifNull: ["$badge.nominativo.ditta", ""] },
+          entrata: "$data.entrata",
+        },
+      });
       const displayCursor = cursor.limit(500).skip(0);
       const archivioList = await displayCursor.toArray();
+      console.log(archivioList);
       return archivioList;
     } catch(err) {
       errCheck(err, "getInStrutt |");
       return [];
     }
   }
-
-  // static async getInStrutt(tipoBadge = "") {
-  //   try {
-  //     const tipoExpr = tipoBadge ? { "tipo": { $regex: new RegExp(tipoBadge, "i") } } : {};
-  //     const cursor = await archivio.aggregate([
-  //       {
-  //         $lookup: {
-  //           from: "badges",
-  //           let: { arch_codice: "$barcode" },
-  //           pipeline: [
-  //             {
-  //               $match: {
-  //                 $expr: {
-  //                   $and: [
-  //                     { $eq: ["$barcode", "$$arch_codice"] },
-  //                     {}//tipoExpr
-  //                   ],
-  //                 },
-  //               },
-  //             },
-  //             { $project: { "_id": 0, "descrizione": 1, "tipo": 1, "assegnazione": 1, "stato": 1, "ubicazione": 1 } }
-  //           ],
-  //           as: "badge",
-  //         },
-  //       },
-  //       { $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ["$badge", 0] }, "$$ROOT"] } } },
-  //       { $match: { $and: [{ "data.uscita": { $eq: null } }, tipoExpr] } },
-  //       { $project: { "data.uscita": 0, "badge": 0 } },
-  //       { $limit: 500 },
-  //     ]);
-  //     const displayCursor = cursor.limit(500).skip(0);
-  //     const inStruttList = await displayCursor.toArray();
-  //     return inStruttList;
-  //   } catch (err) {
-  //     console.log(`getInStrutt - ${err}`);
-  //     return [];
-  //   }
-  // }
 }

@@ -2,7 +2,7 @@ import ArchivioDAO from "../dao/archivio.dao.js";
 import Validator from "../auth/validation.js";
 import { Request, Response } from "express";
 import errCheck from "../middlewares/errCheck.js";
-import Badge, { TGenericBadge, TGenericNom } from "../types/badges.js";
+import Badge from "../types/badges.js";
 
 export default class ArchivioController {
 
@@ -36,43 +36,15 @@ export default class ArchivioController {
         .status(400)
         .json({ success: false, msg: valErr.details[0].message, data: null });
     }
-    
+
+    const barcode = (req.body.barcode as string).toUpperCase();
+
     const { cliente, postazione } = req.body;
     // get address of client machine requesting for "timbra"
     const { ip } = req;
 
-    // badge provvisorio data gathered from "timbra provvisori" input boxes for nominativo object
-    const nominativo: TGenericNom = {
-      nome: req.body?.nome?.toUpperCase() || "",
-      cognome: req.body?.cognome?.toUpperCase() || "",
-      ditta: req.body?.ditta?.toUpperCase() || "",
-      telefono: req.body?.telefono?.toUpperCase() || "",
-      tdoc: req.body?.tdoc?.toUpperCase() || "",
-      ndoc: req.body?.ndoc?.toUpperCase() || "",
-      scadenza: req.body?.scadenza || "",
-      targhe: {
-        1: req.body?.targa1?.toUpperCase() || "",
-        2: req.body?.targa2?.toUpperCase() || "",
-        3: req.body?.targa3?.toUpperCase() || "",
-        4: req.body?.targa4?.toUpperCase() || ""
-      }
-    };
-
-    // default badge document setup
-    const badgeDoc: TGenericBadge = {
-      barcode: req.body.barcode.toUpperCase(),
-      descrizione: "",
-      tipo: req.body.tipo.toUpperCase(),
-      assegnazione: "UTENTE",
-      stato: "VALIDO",
-      ubicazione: "",
-      nominativo,
-    };
-
-    console.log("apiPostArchivio | badgeDoc: ", badgeDoc);
-
     try {
-      const archivioResponse = await ArchivioDAO.timbra(badgeDoc, cliente, postazione, ip);
+      const archivioResponse = await ArchivioDAO.timbra(barcode, cliente, postazione, ip);
 
       if ("error" in archivioResponse) {
         return res
@@ -82,8 +54,8 @@ export default class ArchivioController {
 
       res.json({
         success: true,
-        msg: archivioResponse.msg,
-        data: archivioResponse.response,
+        msg: (archivioResponse as any).msg,
+        data: archivioResponse,
       });
     } catch (err) {
       const { error } = errCheck(err, "apiPostArchivio |");

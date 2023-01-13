@@ -2,7 +2,7 @@ import isObjKey from "../middlewares/isObjKey.js";
 import { KeysOf } from "./keysOf.js";
 import { Nullable, Undefineable } from "./nullable.js";
 
-export type TBadgeTipo = "BADGE" | "CHIAVE" | "VEICOLO";
+export type TBadgeTipo = "BADGE" | "CHIAVE" | "VEICOLO" | "PROVVISORIO";
 export type TBadgeStato = "VALIDO" | "SCADUTO" | "REVOCATO" | "RICONSEGNATO";
 export type TTDoc = "CARTA IDENTITA" | "PATENTE" | "TESSERA STUDENTE" | "";
 
@@ -25,7 +25,7 @@ type TPartialNom = {
 
 export type TGenericNom = TPartialNom & { targhe: Nullable<TTarghe> };
 export type TBadgeNom = TPartialNom & { targhe: null };
-export type TVeicoloNom = TPartialNom & { targhe: TTarghe };
+export type TVeicoloNom = TPartialNom & { targhe: TTarghe, scadenza: "" };
 
 type TPartialBadge = {
     barcode: string,
@@ -40,8 +40,8 @@ export type TGenericBadge = TPartialBadge & {
     nominativo: Nullable<TGenericNom>
 };
 export type TProvvisorio = TGenericBadge & {
-    tipo: "BADGE",
-    nominativo: null
+    tipo: "PROVVISORIO",
+    nominativo: TBadgeNom & { scadenza: "" }
 };
 export type TBadge = TGenericBadge & {
     tipo: "BADGE",
@@ -49,7 +49,7 @@ export type TBadge = TGenericBadge & {
 };
 export type TChiave = TGenericBadge & {
     tipo: "CHIAVE",
-    nominativo: TBadgeNom
+    nominativo: null
 };
 export type TVeicolo = TGenericBadge & {
     tipo: "VEICOLO",
@@ -76,9 +76,10 @@ export type TBadgeAddReq = TBadgeFindReq &
 export type TBadgeUpdReq = TBadgeAddReq;
 
 const TIPI_BADGE: KeysOf<TBadgeTipo> = {
-  BADGE: null,
-  CHIAVE: null,
-  VEICOLO: null,
+    BADGE: null,
+    CHIAVE: null,
+    VEICOLO: null,
+    PROVVISORIO: null
 };
 const STATI_BADGE: KeysOf<TBadgeStato> = {
     VALIDO: null,

@@ -1,0 +1,22 @@
+.archivio-table-wrapper {
+    max-height: 600px;
+    overflow: auto;
+}
+
+.archivio-form .form-control {
+    height: 35px;
+}
+
+.archivio-form .form-select {
+    height: 38px;
+    padding: 0 0 1px 4px;
+}
+
+.archivio-form .form-floating label {
+    font-size: 13px;
+    top: -25%;
+}
+
+.archivio-form .form-floating input[type="date"] {
+    height: 48px;
+}

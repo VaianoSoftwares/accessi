@@ -59,7 +59,6 @@ export default class Validator {
     static timbra(data: unknown) {
         const scheme = Joi.object({
           barcode: Joi.string().min(3).max(32).required(),
-          tipo: Joi.string().required(),
           cliente: Joi.string().required(),
           postazione: Joi.string().required(),
           nome: Joi.string().valid(null, ""),
@@ -111,6 +110,16 @@ export default class Validator {
       const scheme = Joi.object({
         date: Joi.string().required(),
         filename: Joi.string().required()
+      });
+
+      return scheme.validate(data);
+    }
+
+    static prestitoChiave(data: unknown) {
+      const scheme = Joi.object({
+        barcodes: Joi.array().required(),
+        cliente: Joi.string().required(),
+        postazione: Joi.string().required(),
       });
 
       return scheme.validate(data);

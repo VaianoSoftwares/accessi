@@ -25,6 +25,8 @@ const AccessiNavbar: React.FC<Props> = (props: Props) => {
         <div className="navbar-brand">
           <b className="b-navbar-brand">
             {location === "/home" && "Gestione Badge"}
+            {location === "/chiavi" && "Gestione Chiavi"}
+            {location === "/archivio" && "Archivio"}
             {location === "/calendario" && "Calendario"}
             {location === "/permessi" && "Permessi"}
             {location === "/documenti" && "Documenti"}
@@ -37,6 +39,18 @@ const AccessiNavbar: React.FC<Props> = (props: Props) => {
               Badge
             </button>
           </li>
+          <li className="nav-item">
+            <button onClick={() => navigate("/chiavi")} className="btn-nav">
+              Chiavi
+            </button>
+          </li>
+          {props.user.admin === true && (
+            <li className="nav-item">
+              <button onClick={() => navigate("/archivio")} className="btn-nav">
+                Archivio
+              </button>
+            </li>
+          )}
           <li className="nav-item">
             <button onClick={() => navigate("/calendario")} className="btn-nav">
               Calendario

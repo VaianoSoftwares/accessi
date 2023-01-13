@@ -1,9 +1,9 @@
-import { TBadge, TNominativo } from "./Badge";
+import { BadgeFormState } from "./BadgeFormState";
 
-export type OspFormState = Pick<TBadge, "barcode"> &
-  Partial<Omit<TNominativo, "scadenza" | "targhe">> & {
-    targa1?: string;
-    targa2?: string;
-    targa3?: string;
-    targa4?: string;
-  };
+export type OspFormState = BadgeFormState & {
+  descrizione: "PROVVISORIO",
+  tipo: "PROVVISORIO",
+  stato: "VALIDO",
+  assegnazione: "OSPITE",
+  ubicazione: "",
+}

@@ -3,13 +3,14 @@ import "./index.css";
 
 type Props = {
   content: Array<object>;
+  tableId?: string;
 };
 
 const BadgeTable: React.FC<Props> = (props: Props) => {
   return (
     <>
       {props.content.length > 0 && (
-        <table className="badge-table table table-striped">
+        <table className="badge-table table table-striped" id={props.tableId}>
           <thead className="badge-table-thead">
             <tr className="badge-table-tr">
               {Object.keys(props.content[0]).map((keys, index) => (

@@ -1,39 +1,54 @@
 import React from "react";
-import SerialComponent from "../serial-component";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import "./index.css";
 import BadgePopup from "../BadgePopup";
-import { ArchivioTableContent, TableContentElem } from "../../types/TableContentElem";
+import { TTableContent } from "../../types/TableContentElem";
 import { TAlert } from "../../types/TAlert";
 
 type Props = {
   findBadges: () => void;
-  findArchivio: () => void;
+  timbra: () => void;
   insertBadge: () => void;
   updateBadge: () => void;
   deleteBadge: () => void;
   refreshPage: () => void;
-  setIsShown: React.Dispatch<React.SetStateAction<boolean>>;
+  openPopup: () => void;
   readOnlyForm: boolean;
-  setReadOnlyForm: React.Dispatch<React.SetStateAction<boolean>>;
+  setReadOnlyForm: () => void;
   admin: boolean;
-  setScannedValue: React.Dispatch<React.SetStateAction<string>>;
-  badges: TableContentElem[];
-  archivioList: ArchivioTableContent[];
+  runScanner: () => Promise<void>;
+  scannerConnected: boolean;
+  badges: TTableContent[];
   openAlert: (alert: TAlert) => void;
 };
 
 const FormButtons: React.FC<Props> = (props: Props) => {
-  const openPopup = () => props.setIsShown(true);
-
   return (
     <div className="form-buttons">
       <div className="row align-items-center justify-content-start g-0">
-        <SerialComponent setScannedValue={props.setScannedValue} openAlert={props.openAlert} />
-        <div className="w-100 mt-1"></div>
         <div className="col-auto">
           <button
-            onClick={() => props.setReadOnlyForm(!props.readOnlyForm)}
+            className="btn btn-outline-secondary home-form-btn"
+            id="serial-conn-btn"
+            onClick={async () => await props.runScanner()}
+          >
+            Scanner
+          </button>
+        </div>
+        <div className="col-auto mx-2 home-form-b">
+          <b
+            style={
+              props.scannerConnected ? { color: "green" } : { color: "red" }
+            }
+          >
+            {!props.scannerConnected && "Non "}
+            {"Connesso"}
+          </b>
+        </div>
+        <div className="w-100 mt-1" />
+        <div className="col-auto">
+          <button
+            onClick={() => props.setReadOnlyForm()}
             className="btn btn-success home-form-btn"
           >
             Form
@@ -45,7 +60,7 @@ const FormButtons: React.FC<Props> = (props: Props) => {
             {"Attivo"}
           </b>
         </div>
-        <div className="w-100 mt-1"></div>
+        <div className="w-100 mt-1" />
         <div className="col">
           <BadgePopup
             content={props.badges}
@@ -56,7 +71,16 @@ const FormButtons: React.FC<Props> = (props: Props) => {
             position="right top"
           />
         </div>
-        <div className="w-100 mt-1"></div>
+        <div className="w-100 mt-1" />
+        <div className="col">
+          <button
+            onClick={() => props.timbra()}
+            className="btn btn-success home-form-btn"
+          >
+            Timbra
+          </button>
+        </div>
+        <div className="w-100 mt-1" />
         {props.admin === true && (
           <>
             <div className="col">
@@ -67,7 +91,7 @@ const FormButtons: React.FC<Props> = (props: Props) => {
                 Aggiungi
               </button>
             </div>
-            <div className="w-100 mt-1"></div>
+            <div className="w-100 mt-1" />
             <div className="col">
               <button
                 onClick={() => props.updateBadge()}
@@ -76,7 +100,7 @@ const FormButtons: React.FC<Props> = (props: Props) => {
                 Aggiorna
               </button>
             </div>
-            <div className="w-100 mt-1"></div>
+            <div className="w-100 mt-1" />
             <div className="col">
               <button
                 onClick={() => props.deleteBadge()}
@@ -85,7 +109,7 @@ const FormButtons: React.FC<Props> = (props: Props) => {
                 Elimina
               </button>
             </div>
-            <div className="w-100 mt-1"></div>
+            <div className="w-100 mt-1" />
             <div className="col">
               <button
                 onClick={() => htmlTableToExcel("badge-table")}
@@ -94,20 +118,11 @@ const FormButtons: React.FC<Props> = (props: Props) => {
                 Excel
               </button>
             </div>
-            <div className="w-100 mt-1"></div>
-            <div className="col">
-              <BadgePopup
-                content={props.archivioList}
-                trigger={<button className="btn btn-success home-form-btn">Resoconto</button>}
-                onOpen={props.findArchivio}
-                position="right bottom"
-              />
-            </div>
-            <div className="w-100 mt-1"></div>
+            <div className="w-100 mt-1" />
           </>
         )}
         <div className="col">
-          <button onClick={openPopup} className="btn btn-success home-form-btn">
+          <button onClick={props.openPopup} className="btn btn-success home-form-btn">
             Provvisori
           </button>
         </div>

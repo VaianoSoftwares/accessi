@@ -2,6 +2,7 @@ import express from "express";
 import BadgesCtrl from "./badges.controller.js";
 import ArchivioCtrl from "./archivio.controller.js";
 import AuthToken from "../auth/verifyToken.js";
+import PrestitiCtrl from "./prestiti.controller.js";
 
 const Router = express.Router();
 
@@ -28,11 +29,20 @@ Router
 
 Router
     .route("/archivio")
-    .get(AuthToken.verifyGuest, ArchivioCtrl.apiGetArchivio)                    // ottieni archivio
+    .get(AuthToken.verifyAdmin, ArchivioCtrl.apiGetArchivio)                    // ottieni archivio
     .post(AuthToken.verifyGuest, ArchivioCtrl.apiPostArchivio);                 // timbra entrata/uscita
 
 Router
     .route("/archivio/in-struttura")
     .get(AuthToken.verifyGuest, ArchivioCtrl.apiGetInStruttura);                // ottieni lista persone in struttura
+
+Router
+    .route("/archivio-chiavi")
+    .get(AuthToken.verifyAdmin, PrestitiCtrl.apiGetArchivioChiave)              // ottieni archivio chiavi
+    .post(AuthToken.verifyGuest, PrestitiCtrl.apiPostArchivioChiave);           // prestito chiave
+
+Router
+    .route("/archivio-chiavi/in-prestito")
+    .get(AuthToken.verifyGuest, PrestitiCtrl.apiGetInPrestito);                 // ottieni lista chiavi in prestito
 
 export default Router;

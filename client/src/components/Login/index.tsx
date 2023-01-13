@@ -21,8 +21,8 @@ const Login: React.FC<Props> = (props: Props) => {
   const initialLoginFormState: LoginFormState = {
     username: "",
     password: "",
-    cliente: "",
-    postazione: "",
+    cliente: "montedomini",
+    postazione: "desk",
   };
 
   const [loginForm, setLoginForm] = React.useState<LoginFormState>(

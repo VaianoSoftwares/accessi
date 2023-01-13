@@ -7,52 +7,52 @@ import "./index.css";
 // Components
 import OspitiForm from "../ospiti-form";
 // Types
-import { OspFormState } from "../../types/OspFormState";
-import { TimbraDoc } from "../../types/TimbraDoc";
 import handleInputChanges from "../../utils/handleInputChanges";
 import { TEvent, TEventInput } from "../../types/TEvent";
-import { TBadgeTipo, TTDoc } from "../../types/Badge";
+import { TTDoc } from "../../types/Badge";
+import { BadgeFormState } from "../../types/BadgeFormState";
 
 type Props = {
   isShown: boolean;
   setIsShown: React.Dispatch<React.SetStateAction<boolean>>;
   tipiDoc: TTDoc[];
-  timbra: (data: TimbraDoc) => void;
+  insertOsp: (form: BadgeFormState) => void;
   isVeicolo: boolean;
-  tipoBadge: TBadgeTipo;
 };
 
 const OspitiPopup: React.FC<Props> = (props: Props) => {
   const closePopup = () => props.setIsShown(false);
 
-  const initialOspFormState: OspFormState = {
+  const initialOspFormState: BadgeFormState = {
     barcode: "",
+    descrizione: "PROVVISORIO",
+    tipo: "PROVVISORIO",
+    assegnazione: "OSPITE",
+    stato: "VALIDO",
+    ubicazione: "",
     nome: "",
     cognome: "",
     telefono: "",
     ditta: "",
-    tdoc: "CARTA IDENTITA",
+    tdoc: "",
     ndoc: "",
+    pfp: null,
+    scadenza: "",
     targa1: "",
     targa2: "",
     targa3: "",
     targa4: ""
   };
 
-  const [ospForm, setOspForm] = React.useState<OspFormState>(initialOspFormState);
+  const [ospForm, setOspForm] = React.useState<BadgeFormState>(initialOspFormState);
 
   // const handleOspInputChanges = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
   //   const { name, value } = event.target;
   //   setOspForm({ ...ospForm, [name]: value });
   // };
 
-  const timbraBtnEvent : React.MouseEventHandler<HTMLButtonElement> = () => {
-    props.timbra({ 
-      ...ospForm,
-      cliente: sessionStorage.getItem("cliente") as string,
-      postazione: sessionStorage.getItem("postazione") as string,
-      tipo: props.tipoBadge
-    });
+  const insertOspBtnEvent : React.MouseEventHandler<HTMLButtonElement> = () => {
+    props.insertOsp(ospForm);
     setOspForm(initialOspFormState);
     closePopup();
   };
@@ -93,7 +93,7 @@ const OspitiPopup: React.FC<Props> = (props: Props) => {
         <div className="actions">
           <button
             className="btn btn-primary"
-            onClick={timbraBtnEvent}
+            onClick={insertOspBtnEvent}
           >
             Timbra
           </button>

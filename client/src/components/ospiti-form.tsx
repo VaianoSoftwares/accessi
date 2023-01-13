@@ -1,10 +1,10 @@
 import React from "react";
 import { TTDoc } from "../types/Badge";
-import { OspFormState } from "../types/OspFormState";
+import { BadgeFormState } from "../types/BadgeFormState";
 import { TEvent, TEventInput } from "../types/TEvent";
 
 type Props = {
-  ospForm: OspFormState;
+  ospForm: BadgeFormState;
   handleOspInputChanges: (event: TEvent) => void;
   handleNdocInputChanges: (event: TEventInput) => void;
   tipiDoc: TTDoc[];

@@ -14,6 +14,7 @@ import Permessi from "./components/Permessi";
 import AccessiNavbar from "./components/AccessiNavbar";
 import Documenti from "./components/Documenti";
 import Calendario from "./components/Calendario";
+import Chiavi from "./components/Chiavi";
 
 // Types
 import { TUser } from "./types/TUser";
@@ -25,6 +26,12 @@ import { TBadgeStato, TBadgeTipo, TTDoc } from "./types/Badge";
 
 // Services
 import BadgeDataService from "./services/badge";
+import { TInStruttTableContent } from "./types/TableContentElem";
+
+// Utils
+import { TInPrestito } from "./types/PrestitoChiavi";
+import Archivio from "./components/Archivio";
+import serialPortHandler from "./utils/scannerHandler";
 
 const App: React.FC<{}> = () => {
   const [tipiBadge, setTipiBadge] = React.useState<TBadgeTipo[]>([]);
@@ -38,35 +45,61 @@ const App: React.FC<{}> = () => {
     if (name && admin)
       return {
         name,
-        admin: (admin === "true"),
+        admin: admin === "true",
       } as TUser;
     return null;
   });
 
   const [alert, setAlert] = React.useState<Nullable<TAlert>>(null);
-  const openAlert = (alert: TAlert) => setAlert(alert);
-  const closeAlert = () => setAlert(null);
 
-  React.useEffect(() => {
-    retriveEnums();
-  }, []);
+  function openAlert(alert: TAlert) {
+    setAlert(alert);
+  }
 
-  const login = async (user: TUser, cliente: string, postazione: string, tokens: string[]) => {
+  function closeAlert() {
+    setAlert(null);
+  }
+
+  const [accessiScanner, setAccessiScanner] = React.useState<SerialPort>();
+  const [timbraVal, setTimbraVal] = React.useState("");
+
+  const [inStrutt, setInStrutt] = React.useState<TInStruttTableContent[]>([]);
+
+  const [chiaviScanner, setChiaviScanner] = React.useState<SerialPort>();
+  const [prestaArr, setPrestaArr] = React.useState<string[]>([]);
+
+  function prestaArrAdd(value: string) {
+    setPrestaArr((prevState) => Array.from(new Set([value, ...prevState])));
+  }
+
+  function prestaArrRemove(value: string) {
+    setPrestaArr((prevState) => prevState.filter((elem) => elem !== value));
+  }
+
+  const [inPrestito, setInPrestito] = React.useState(new Array<TInPrestito>());
+
+  async function login(
+    user: TUser,
+    cliente: string,
+    postazione: string,
+    tokens: string[]
+  ) {
     sessionStorage.setItem("username", user.name);
     sessionStorage.setItem("admin", user.admin.toString());
     sessionStorage.setItem("cliente", cliente);
     sessionStorage.setItem("postazione", postazione);
     sessionStorage.setItem("guest-token", tokens[0]);
     if (user.admin) sessionStorage.setItem("admin-token", tokens[1]);
-    setUser(user);
-  };
 
-  const logout = async () => {
+    setUser(user);
+  }
+
+  async function logout() {
     sessionStorage.clear();
     setUser(null);
-  };
+  }
 
-  const retriveEnums = () => {
+  function retriveEnums() {
     BadgeDataService.getEnums()
       .then((response) => {
         const enums = response.data.data as TEnums;
@@ -76,16 +109,29 @@ const App: React.FC<{}> = () => {
         setStatiBadge(enums.stato);
       })
       .catch((err) => {
-        console.log(err);
+        console.error("retriveEnums |", err);
       });
-  };
+  }
+
+  async function runAccessiScanner() {
+    await serialPortHandler(
+      (value: string) => setTimbraVal(value),
+      setAccessiScanner,
+      openAlert
+    );
+  }
+
+  async function runChiaviScanner() {
+    await serialPortHandler(prestaArrAdd, setChiaviScanner, openAlert);
+  }
+
+  React.useEffect(() => {
+    retriveEnums();
+  }, []);
 
   return (
     <div className="App">
-      <AccessiNavbar
-        user={user}
-        logout={logout}
-      />
+      <AccessiNavbar user={user} logout={logout} />
       <Routes>
         <Route path="*" element={<PageNotFound />} />
         <Route
@@ -94,7 +140,6 @@ const App: React.FC<{}> = () => {
             user ? (
               <Home
                 user={user}
-                logout={logout}
                 alert={alert}
                 openAlert={openAlert}
                 closeAlert={closeAlert}
@@ -102,6 +147,12 @@ const App: React.FC<{}> = () => {
                 assegnazioni={assegnazioni}
                 tipiDoc={tipiDoc}
                 statiBadge={statiBadge}
+                inStrutt={inStrutt}
+                setInStrutt={setInStrutt}
+                scannedValue={timbraVal}
+                clearScannedValue={() => setTimbraVal("")}
+                scannerConnected={accessiScanner !== undefined}
+                runScanner={runAccessiScanner}
               />
             ) : (
               <Navigate replace to="/login" />
@@ -109,6 +160,40 @@ const App: React.FC<{}> = () => {
           }
         />
         <Route path="/" element={<Navigate replace to="home" />} />
+        <Route
+          path="chiavi"
+          element={
+            user ? (
+              <Chiavi
+                inPrestito={inPrestito}
+                setInPrestito={setInPrestito}
+                scannerConnected={chiaviScanner !== undefined}
+                runScanner={runChiaviScanner}
+                scanValues={prestaArr}
+                addScanValue={prestaArrAdd}
+                removeScanValue={prestaArrRemove}
+                clearScanValues={() => setPrestaArr([])}
+                alert={alert}
+                openAlert={openAlert}
+                closeAlert={closeAlert}
+              />
+            ) : (
+              <Navigate replace to="login" />
+            )
+          }
+        />
+        <Route
+          path="archivio"
+          element={
+            user && user.admin === true ? (
+              <Archivio />
+            ) : user ? (
+              <Navigate replace to="/home" />
+            ) : (
+              <Navigate replace to="login" />
+            )
+          }
+        />
         <Route
           path="calendario"
           element={

@@ -1,8 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-
 // Modules
 import React from "react";
-import dateFormat from "dateformat";
 
 // Style
 import "./index.css";
@@ -22,30 +20,24 @@ import Alert from "../Alert";
 import { TUser } from "../../types/TUser";
 import { TAlert } from "../../types/TAlert";
 import {
-  ArchivioTableContent,
-  InStruttTableContent,
-  TableContentElem,
+  TInStruttTableContent,
+  TTableContent,
 } from "../../types/TableContentElem";
 import { BadgeFormState } from "../../types/BadgeFormState";
-import { ArchivioElem } from "../../types/ArchivioElem";
-import { TBadge, TBadgeStato, TBadgeTipo, TTDoc } from "../../types/Badge";
+import { TBadgeResp, TBadgeStato, TBadgeTipo, TTDoc } from "../../types/Badge";
 import { Nullable } from "../../types/Nullable";
-import { TimbraDoc } from "../../types/TimbraDoc";
-import { FindBadgeDoc } from "../../types/FindBadgeDoc";
 import { TAssegnaz } from "../../types/TAssegnaz";
-import { ArchivioFormState } from "../../types/ArchivioFormState";
-import { FindArchivioDoc } from "../../types/FindArchivioDoc";
 import { TEvent } from "../../types/TEvent";
 
 // Utils
-import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import createFormData from "../../utils/createFormData";
 import handleInputChanges from "../../utils/handleInputChanges";
+import { TInStruttResp, TTimbraResp } from "../../types/Archivio";
+import { TableContentMapper } from "../../utils/tableContentMapper";
 
 type Props = {
   user: TUser;
-  logout: () => Promise<void>;
   alert: Nullable<TAlert>;
   openAlert: (alert: TAlert) => void;
   closeAlert: () => void;
@@ -53,139 +45,93 @@ type Props = {
   assegnazioni: TAssegnaz[];
   tipiDoc: TTDoc[];
   statiBadge: TBadgeStato[];
+  inStrutt: TInStruttTableContent[];
+  setInStrutt: React.Dispatch<React.SetStateAction<TInStruttTableContent[]>>;
+  scannedValue: string;
+  clearScannedValue: () => void;
+  scannerConnected: boolean;
+  runScanner: () => Promise<void>;
+};
+
+const initialBadgeFormState: BadgeFormState = {
+  barcode: "",
+  descrizione: "",
+  tipo: "BADGE",
+  assegnazione: "",
+  stato: "VALIDO",
+  ubicazione: "",
+  nome: "",
+  cognome: "",
+  telefono: "",
+  ditta: "",
+  tdoc: "",
+  ndoc: "",
+  pfp: null,
+  scadenza: "",
+  targa1: "",
+  targa2: "",
+  targa3: "",
+  targa4: ""
 };
 
 const Home: React.FC<Props> = (props: Props) => {
-  const initialBadgeFormState: BadgeFormState = {
-    barcode: "",
-    descrizione: "",
-    tipo: "BADGE",
-    assegnazione: "",
-    stato: "VALIDO",
-    ubicazione: "",
-    nome: "",
-    cognome: "",
-    telefono: "",
-    ditta: "",
-    tdoc: "",
-    ndoc: "",
-    pfp: null,
-    scadenza: "",
-    targa1: "",
-    targa2: "",
-    targa3: "",
-    targa4: ""
-  };
-  
-  const initialArchivioFormState: ArchivioFormState = {
-    dataInizio: dateFormat(
-        new Date(new Date().setDate(new Date().getDate() - 1)),
-        "yyyy-mm-dd"
-    ),
-    dataFine: dateFormat(
-      new Date(new Date().setDate(new Date().getDate() + 1)),
-      "yyyy-mm-dd"
-  ),
-  };
-
-  const [badges, setBadges] = React.useState<TableContentElem[]>([]);
-  const [inStrutt, setInStrutt] = React.useState<InStruttTableContent[]>([]);
-  const [archivioList, setArchivioList] = React.useState<ArchivioTableContent[]>([]);
+  const [badges, setBadges] = React.useState<TTableContent[]>([]);
   const [badgeForm, setBadgeForm] = React.useState<BadgeFormState>(initialBadgeFormState);
-  const [archivioForm, setArchivioForm] = React.useState<ArchivioFormState>(initialArchivioFormState);
   const [isShown, setIsShown] = React.useState(false);
   const [readOnlyForm, setReadOnlyForm] = React.useState(true);
-  const [scannedValue, setScannedValue] = React.useState("");
   const [timeoutRunning, setTimeoutRunning] = React.useState(false);
   const [pfpUrl, setPfpUrl] = React.useState("");
-  
-  React.useEffect(() => {
-    props.closeAlert();
-    retriveInStrutt();
-  }, [badgeForm.tipo]);
 
-  React.useEffect(() => {
-    props.closeAlert();
-    if(readOnlyForm === true) {
-      setBadgeForm({ ...initialBadgeFormState, tipo: badgeForm.tipo });
-      setPfpUrl("");
-    }
-    console.log("readOnlyForm: ", readOnlyForm);
-  }, [readOnlyForm]);
-
-  React.useEffect(() => {
-    if(!scannedValue) return;
-    
-    const timbraDoc: TimbraDoc = {
-      barcode: scannedValue,
-      cliente: sessionStorage.getItem("cliente") as string,
-      postazione: sessionStorage.getItem("postazione") as string,
-      tipo: badgeForm.tipo
-    };  
-    timbra(timbraDoc);
-    setScannedValue("");
-  }, [scannedValue]);
-
-  React.useEffect(() => {
-    if(badgeForm.pfp) {
-      const reader = new FileReader();
-      reader.readAsDataURL(badgeForm.pfp);
-      reader.onload = () => setPfpUrl(reader.result as string);
-    }
-    else {
-      setPfpUrl("");
-    }
-  }, [badgeForm.pfp]);
+  const { closeAlert, scannedValue, clearScannedValue, setInStrutt, openAlert, inStrutt } = props;
 
   const handleInputChangesBadge = (e: TEvent) =>
     handleInputChanges(e, badgeForm, setBadgeForm);
 
-  const handleInputChangesArchivio = (e: TEvent) =>
-    handleInputChanges(e, badgeForm, setBadgeForm);
-  
-  const retriveInStrutt = () => {
+  const retriveInStrutt = React.useCallback(() => {
     BadgeDataService.getInStrutt(badgeForm.tipo)
       .then(response => {
         console.log("retriveInStrutt: ", response.data);
         setInStrutt(
-          mapArchivioToInStruttTableContent(
-            response.data.data as ArchivioElem[]
+          TableContentMapper.mapArchivioToInStruttTableContent(
+            response.data.data as TInStruttResp[]
           )
         );
       })
       .catch(err => {
         console.error("retriveInStrutt | error: ", err);
       });
-  };
+  }, [badgeForm.tipo, setInStrutt])
   
-  const findArchivio = () => {
-    BadgeDataService.getArchivio(mapToFindArchivioDoc(badgeForm, archivioForm))
-      .then(response => {
-        console.log(response.data);
-        const mappedArchivio = mapArchivioToTableContent(
-          response.data.data as ArchivioElem[]
-        );
-        setArchivioList(mappedArchivio);
-        htmlTableToExcel("popup-table");
-      })
-      .catch(err => axiosErrHandl(err, props.openAlert, "findArchivio | "));
-  };
+  // const retriveInStrutt = () => {
+  //   BadgeDataService.getInStrutt(badgeForm.tipo)
+  //     .then(response => {
+  //       console.log("retriveInStrutt: ", response.data);
+  //       props.setInStrutt(
+  //         mapArchivioToInStruttTableContent(
+  //           response.data.data as TInStruttResp[]
+  //         )
+  //       );
+  //     })
+  //     .catch(err => {
+  //       console.error("retriveInStrutt | error: ", err);
+  //     });
+  // };
   
   const findBadges = () => {
-    BadgeDataService.find(mapToFindBadgeDoc(badgeForm))
+    BadgeDataService.find({ ...badgeForm, pfp: "" })
       .then(response => {
         console.log(response.data);
 
-        const findResponse = response.data.data as TBadge[]; 
+        const findResponse = response.data.data as TBadgeResp[]; 
 
         if(findResponse.length === 1) {
-          const mappedBadge = mapToAutoComplBadge(findResponse[0]);
+          const mappedBadge = TableContentMapper.mapToAutoComplBadge(findResponse[0]);
           setBadgeForm(mappedBadge);
           const url = getPfpUrlByBarcode(mappedBadge.barcode);
           setPfpUrl(url);
         }
         
-        setBadges(mapBadgesToTableContent(findResponse));
+        setBadges(TableContentMapper.mapBadgesToTableContent(findResponse));
       })
       .catch(err => {
         console.error("findBadges | error: ", err);
@@ -193,76 +139,143 @@ const Home: React.FC<Props> = (props: Props) => {
       .finally(() => props.closeAlert());
   };
 
-  const timbra = (data: TimbraDoc) => {
-    if(timeoutRunning === false)
-      retriveInStrutt();
-    BadgeDataService.timbra(data)
-      .then(response => {
-        console.log(response.data);
-        console.log(`timbra | readOnlyForm: ${readOnlyForm}`);
-
-        if(timeoutRunning === true)
-          return;
-
-        setTimeoutRunning(true);
-
-        const rowTimbra = response.data.data as ArchivioElem;
-        
-        if(readOnlyForm === true) {
-          setBadgeForm(mapToAutoComplBadge(rowTimbra.badge));
-          const url = getPfpUrlByBarcode(rowTimbra.badge.barcode);
-          setPfpUrl(url);
-        }                           
-
-        const filteredInStrutt = inStrutt
-          .filter(badge => badge.codice !== rowTimbra.badge.barcode);
-        const mappedRowTimbra = mapArchivioToInStruttTableContent([
-          rowTimbra,
-        ])[0];
-        setInStrutt([mappedRowTimbra, ...filteredInStrutt]);                        
-
-        const { msg } = response.data;
-        const badgeTable: Nullable<HTMLTableElement> = document.querySelector("table.badge-table");
-        const firstRow = badgeTable!.tBodies[0].rows[0];
-        firstRow.style.backgroundColor = msg === "Timbra Entra" ? "green" : "red";
-
-        setTimeout(() => {
-          firstRow.style.backgroundColor = "white";
-          if(readOnlyForm === true) {
-            setBadgeForm(initialBadgeFormState);
-            setPfpUrl("");
-          }
-          
-          retriveInStrutt();
-          props.closeAlert();
-
-          setTimeoutRunning(false);
-        }, 1000);
+  const timbra = React.useCallback(
+    (barcode: string) => {
+      if (timeoutRunning === false) retriveInStrutt();
+      BadgeDataService.timbra({
+        barcode,
+        cliente: sessionStorage.getItem("cliente") as string,
+        postazione: sessionStorage.getItem("postazione") as string,
       })
-      .catch(err => axiosErrHandl(err, props.closeAlert, "timbra | "));
-  };
+        .then((response) => {
+          console.log(response.data);
+          console.log(`timbra | readOnlyForm: ${readOnlyForm}`);
 
-  const insertBadge = () => {
-    const formData = createFormData(badgeForm);
-    BadgeDataService.insertBadge(formData)
+          if (timeoutRunning === true) return;
+
+          setTimeoutRunning(true);
+
+          const rowTimbra = response.data.data as TTimbraResp;
+
+          if (readOnlyForm === true) {
+            setBadgeForm(TableContentMapper.mapToAutoComplBadge(rowTimbra.badge));
+            const url = getPfpUrlByBarcode(rowTimbra.timbra.codice);
+            setPfpUrl(url);
+          }
+
+          const filteredInStrutt = inStrutt.filter(
+            (badge) => badge.codice !== rowTimbra.timbra.codice
+          );
+          const mappedRowTimbra = TableContentMapper.mapArchivioToInStruttTableContent([
+            rowTimbra.timbra,
+          ])[0];
+          setInStrutt([mappedRowTimbra, ...filteredInStrutt]);
+
+          const { msg } = response.data;
+          const badgeTable: Nullable<HTMLTableElement> =
+            document.querySelector("table.badge-table");
+          const firstRow = badgeTable!.tBodies[0].rows[0];
+          firstRow.style.backgroundColor =
+            msg === "Timbra Entra" ? "green" : "red";
+
+          setTimeout(() => {
+            firstRow.style.backgroundColor = "white";
+            if (readOnlyForm === true) {
+              setBadgeForm(initialBadgeFormState);
+              setPfpUrl("");
+            }
+
+            retriveInStrutt();
+            closeAlert();
+
+            setTimeoutRunning(false);
+          }, 1000);
+        })
+        .catch((err) => axiosErrHandl(err, openAlert, "timbra |"));
+    },
+    [
+      // closeAlert,
+      inStrutt,
+      // openAlert,
+      readOnlyForm,
+      retriveInStrutt,
+      // setInStrutt,
+      timeoutRunning,
+    ]
+  );
+
+  // const timbra = (barcode: string) => {
+  //   if(timeoutRunning === false)
+  //     retriveInStrutt();
+  //   BadgeDataService.timbra({
+  //     barcode,
+  //     cliente: sessionStorage.getItem("cliente") as string,
+  //     postazione: sessionStorage.getItem("postazione") as string,
+  //   })
+  //     .then(response => {
+  //       console.log(response.data);
+  //       console.log(`timbra | readOnlyForm: ${readOnlyForm}`);
+
+  //       if(timeoutRunning === true)
+  //         return;
+
+  //       setTimeoutRunning(true);
+
+  //       const rowTimbra = response.data.data as TTimbraResp;
+        
+  //       if(readOnlyForm === true) {
+  //         setBadgeForm(mapToAutoComplBadge(rowTimbra.badge));
+  //         const url = getPfpUrlByBarcode(rowTimbra.timbra.codice);
+  //         setPfpUrl(url);
+  //       }                           
+
+  //       const filteredInStrutt = props.inStrutt
+  //         .filter(badge => badge.codice !== rowTimbra.timbra.codice);
+  //       const mappedRowTimbra = mapArchivioToInStruttTableContent([
+  //         rowTimbra.timbra,
+  //       ])[0];
+  //       props.setInStrutt([mappedRowTimbra, ...filteredInStrutt]);                        
+
+  //       const { msg } = response.data;
+  //       const badgeTable: Nullable<HTMLTableElement> = document.querySelector("table.badge-table");
+  //       const firstRow = badgeTable!.tBodies[0].rows[0];
+  //       firstRow.style.backgroundColor = msg === "Timbra Entra" ? "green" : "red";
+
+  //       setTimeout(() => {
+  //         firstRow.style.backgroundColor = "white";
+  //         if(readOnlyForm === true) {
+  //           setBadgeForm(initialBadgeFormState);
+  //           setPfpUrl("");
+  //         }
+          
+  //         retriveInStrutt();
+  //         props.closeAlert();
+
+  //         setTimeoutRunning(false);
+  //       }, 1000);
+  //     })
+  //     .catch(err => axiosErrHandl(err, props.openAlert, "timbra |"));
+  // };
+
+  const insertBadge = (form: BadgeFormState) => {
+    BadgeDataService.insertBadge(createFormData(form))
       .then(response => {
         console.log(response.data);
         const { success, msg } = response.data;
         props.openAlert({ success, msg });
       })
-      .catch(err => axiosErrHandl(err, props.openAlert, "insertBadge | "))
+      .catch(err => axiosErrHandl(err, props.openAlert, "insertBadge |"))
       .finally(() => {
         setBadgeForm(initialBadgeFormState);
         setPfpUrl("");
       });
   };
 
-  const updateBadge = () => {
+  const updateBadge = (form: BadgeFormState) => {
     const confirmed = window.confirm("Procedere alla modifica del badge?");
 		if (!confirmed) return;
 
-    const formData = createFormData(badgeForm);
-    BadgeDataService.updateBadge(formData)
+    BadgeDataService.updateBadge(createFormData(form))
       .then(response => {
         console.log(response.data);
         const { success, msg } = response.data;
@@ -275,11 +288,11 @@ const Home: React.FC<Props> = (props: Props) => {
       });
   };
 
-  const deleteBadge = () => {
+  const deleteBadge = (barcode: string) => {
     const confirmed = window.confirm("Procedere alla rimozione del badge?");
 		if (!confirmed) return;
 
-    BadgeDataService.deleteBadge(badgeForm.barcode)
+    BadgeDataService.deleteBadge(barcode)
       .then(response => {
         console.log(response.data);
         const { success, msg } = response.data;
@@ -292,131 +305,6 @@ const Home: React.FC<Props> = (props: Props) => {
       });
   };
 
-  const mapBadgesToTableContent = (data: TBadge[]) => {
-    return data.map((elem: TBadge) => {
-      const mappedBadge: TableContentElem = {
-        codice: elem.barcode,
-        tipo: elem.tipo,
-        assegnaz: elem.assegnazione,
-        nome: elem.nominativo ? elem.nominativo.nome : "",
-        cognome: elem.nominativo ? elem.nominativo.cognome : "",
-        ditta: elem.nominativo ? elem.nominativo.ditta : "",
-      };
-      return mappedBadge;
-    });
-  };
-
-  const mapArchivioToInStruttTableContent = (data: ArchivioElem[]) => {
-    return data.map((elem: ArchivioElem) => {
-      const dataEntrata: string = new Date(elem.data.entrata).toLocaleString("it-IT", {
-        timeZone: "Europe/Rome",
-      });
-
-      const mappedArchivioElem: InStruttTableContent = {
-        codice: props.user.admin ? elem.badge.barcode : "XXXXX",
-        tipo: elem.badge.tipo,
-        assegnaz: elem.badge.assegnazione,
-        nome: elem.badge?.nominativo?.nome || "",
-        cognome: elem.badge?.nominativo?.cognome || "",
-        ditta: elem.badge?.nominativo?.ditta || "",
-        entrata: props.user.admin ? dataEntrata : "XXXXX",
-      };
-
-      return mappedArchivioElem;
-    });
-  };
-
-  const mapArchivioToTableContent = (data: ArchivioElem[]) => {
-    return data.map((elem: ArchivioElem) => {
-      const dataEntrata: string = new Date(elem.data.entrata).toLocaleString("it-IT", {
-        timeZone: "Europe/Rome",
-      });
-
-      const dataUscita: string = new Date(elem.data.uscita as string).toLocaleString("it-IT", {
-        timeZone: "Europe/Rome",
-      });
-
-      const mappedArchivioElem: ArchivioTableContent = {
-        codice: elem.badge.barcode,
-        tipo: elem.badge.tipo,
-        cliente: elem.cliente,
-        postazione: elem.postazione,
-        assegnaz: elem.badge.assegnazione,
-        nome: elem.badge?.nominativo?.nome || "",
-        cognome: elem.badge?.nominativo?.cognome || "",
-        ditta: elem.badge?.nominativo?.ditta || "",
-        entrata: dataEntrata,
-        uscita: dataUscita
-      };
-      return mappedArchivioElem;
-    });
-  };
-
-  const mapToAutoComplBadge = (
-    badge: TBadge
-  ): BadgeFormState => ({
-    barcode: badge.barcode,
-    descrizione: badge.descrizione,
-    tipo: badge.tipo,
-    assegnazione: badge.assegnazione,
-    stato: badge.stato,
-    ubicazione: badge.ubicazione,
-    nome: badge?.nominativo?.nome || "",
-    cognome: badge?.nominativo?.cognome || "",
-    telefono: badge?.nominativo?.telefono || "",
-    ditta: badge?.nominativo?.ditta || "",
-    tdoc: badge?.nominativo?.tdoc || "",
-    ndoc: badge?.nominativo?.ndoc || "",
-    pfp: null,
-    scadenza: badge?.nominativo?.scadenza
-      ? dateFormat(new Date(badge.nominativo.scadenza), "yyyy-mm-dd")
-      : "",
-    targa1: badge?.nominativo?.targhe?.[1] || "",
-    targa2: badge?.nominativo?.targhe?.[2] || "",
-    targa3: badge?.nominativo?.targhe?.[3] || "",
-    targa4: badge?.nominativo?.targhe?.[4] || "",
-  });
-
-  const mapToFindBadgeDoc = (badgeForm: BadgeFormState): FindBadgeDoc => ({
-    barcode: badgeForm.barcode,
-    descrizione: badgeForm.descrizione,
-    tipo: badgeForm.tipo,
-    assegnazione: badgeForm.assegnazione,
-    stato: badgeForm.stato,
-    ubicazione: badgeForm.ubicazione,
-    nome: badgeForm.nome,
-    cognome: badgeForm.cognome,
-    telefono: badgeForm.telefono,
-    ditta: badgeForm.ditta,
-    tdoc: badgeForm.tdoc,
-    ndoc: badgeForm.ndoc,
-    targa1: badgeForm.targa1,
-    targa2: badgeForm.targa2,
-    targa3: badgeForm.targa3,
-    targa4: badgeForm.targa4,
-  });
-
-  const mapToFindArchivioDoc = (badgeForm: BadgeFormState, archivioForm: ArchivioFormState): FindArchivioDoc => ({
-    dataInizio: archivioForm.dataInizio,
-    dataFine: archivioForm.dataFine,
-    barcode: badgeForm.barcode,
-    descrizione: badgeForm.descrizione,
-    tipo: badgeForm.tipo,
-    assegnazione: badgeForm.assegnazione,
-    stato: badgeForm.stato,
-    ubicazione: badgeForm.ubicazione,
-    nome: badgeForm.nome,
-    cognome: badgeForm.cognome,
-    telefono: badgeForm.telefono,
-    ditta: badgeForm.ditta,
-    tdoc: badgeForm.tdoc,
-    ndoc: badgeForm.ndoc,
-    targa1: badgeForm.targa1,
-    targa2: badgeForm.targa2,
-    targa3: badgeForm.targa3,
-    targa4: badgeForm.targa4,
-  });
-
   const getPfpUrlByBarcode = (barcode?: string) =>
     barcode
       ? `/api/v1/public/foto-profilo/USER_${barcode}.jpg`
@@ -424,11 +312,43 @@ const Home: React.FC<Props> = (props: Props) => {
 
   const refreshPage = () => {
     setBadgeForm(initialBadgeFormState);
-    setArchivioForm(initialArchivioFormState);
     retriveInStrutt();
     setPfpUrl("");
     props.closeAlert();
   };
+
+  React.useEffect(() => {
+    console.log("useEffect retriveInStrutt");
+    closeAlert();
+    retriveInStrutt();
+  }, [badgeForm.tipo, /*closeAlert,*/ retriveInStrutt]);
+
+  React.useEffect(() => {
+    closeAlert();
+    if(readOnlyForm === true) {
+      setBadgeForm({ ...initialBadgeFormState, tipo: badgeForm.tipo });
+      setPfpUrl("");
+    }
+    console.log("readOnlyForm: ", readOnlyForm);
+  }, [readOnlyForm, /*closeAlert,*/ badgeForm.tipo]);
+
+  React.useEffect(() => {
+    if(!scannedValue) return;
+    console.log("Scanner accessi | scannedValue:", scannedValue);
+    timbra(scannedValue);
+    clearScannedValue();
+  }, [scannedValue, /*clearScannedValue,*/ timbra]);
+
+  React.useEffect(() => {
+    if(badgeForm.pfp) {
+      const reader = new FileReader();
+      reader.readAsDataURL(badgeForm.pfp);
+      reader.onload = () => setPfpUrl(reader.result as string);
+    }
+    else {
+      setPfpUrl("");
+    }
+  }, [badgeForm.pfp]);
 
   return (
     <div id="home-wrapper">
@@ -436,9 +356,7 @@ const Home: React.FC<Props> = (props: Props) => {
         <div className="row mt-2 justify-content-start align-items-start submit-form">
           <BadgeForm
             badgeForm={badgeForm}
-            archivioForm={archivioForm}
             handleInputChangesBadge={handleInputChangesBadge}
-            handleInputChangesArchivio={handleInputChangesArchivio}
             tipiBadge={props.tipiBadge}
             assegnazioni={props.assegnazioni}
             tipiDoc={props.tipiDoc}
@@ -449,25 +367,25 @@ const Home: React.FC<Props> = (props: Props) => {
           />
           <FormButtons
             findBadges={findBadges}
-            findArchivio={findArchivio}
-            insertBadge={insertBadge}
-            updateBadge={updateBadge}
-            deleteBadge={deleteBadge}
+            timbra={() => timbra(badgeForm.barcode)}
+            insertBadge={() => insertBadge(badgeForm)}
+            updateBadge={() => updateBadge(badgeForm)}
+            deleteBadge={() => deleteBadge(badgeForm.barcode)}
             refreshPage={refreshPage}
-            setIsShown={setIsShown}
+            openPopup={() => setIsShown(true)}
             readOnlyForm={readOnlyForm}
-            setReadOnlyForm={setReadOnlyForm}
+            setReadOnlyForm={() => setReadOnlyForm(!readOnlyForm)}
             admin={props.user.admin}
-            setScannedValue={setScannedValue}
+            runScanner={props.runScanner}
+            scannerConnected={props.scannerConnected}
             badges={badges}
-            archivioList={archivioList}
             openAlert={props.openAlert}
           />
           <div className="col-4">
             <Clock />
           </div>
           <div className="in-strutt-count">
-            <b># in struttura:</b> {inStrutt.length}
+            <b># in struttura:</b> {props.inStrutt.length}
           </div>
         </div>
         <div className="home-alert-wrapper">
@@ -478,13 +396,10 @@ const Home: React.FC<Props> = (props: Props) => {
         isShown={isShown}
         setIsShown={setIsShown}
         tipiDoc={props.tipiDoc}
-        timbra={timbra}
+        insertOsp={insertBadge}
         isVeicolo={badgeForm.tipo === "VEICOLO"}
-        tipoBadge={badgeForm.tipo}
       />
-      <div className="badge-table-wrapper" id="badge-table">
-        <BadgeTable content={inStrutt} />
-      </div>
+      <BadgeTable content={props.inStrutt} tableId="badge-table" />
     </div>
   );
 }
