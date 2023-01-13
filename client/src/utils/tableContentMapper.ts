@@ -59,6 +59,8 @@ export class TableContentMapper {
   }
 
   static parseDate(elements: Record<string, string>[]) {
+    if(elements.length === 0) return;
+    
     if("prestito" in elements[0]) {
       if("reso" in elements[0]) {
         elements.forEach(element => {

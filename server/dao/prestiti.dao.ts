@@ -215,7 +215,7 @@ export default class PrestitiDAO {
     postazione: string,
     ip: string
   ) {
-    const archivioDoc = {
+    const archivioDoc: TArchivioChiave = {
       nominativo,
       chiave,
       data: {
@@ -225,7 +225,7 @@ export default class PrestitiDAO {
       cliente,
       postazione,
       ip,
-    } satisfies TArchivioChiave;
+    };
 
     try {
       return await prestiti.insertOne(archivioDoc);

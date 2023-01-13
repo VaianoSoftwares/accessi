@@ -36,7 +36,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
             onChange={props.handleInputChangesBadge}
             name="barcode"
             placeholder="barcode"
-            readOnly={props.readOnlyForm}
+            // readOnly={props.readOnlyForm}
             autoComplete="off"
           />
           <label htmlFor="barcode">barcode</label>

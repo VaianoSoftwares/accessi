@@ -38,6 +38,9 @@ export default class ArchivioDAO {
         let filterName = "";
 
         switch(key) {
+          case "nominativo":
+            filterName = "badge.barcode";
+            break;
           case "barcode":
           case "descrizione":
           case "tipo":
@@ -64,7 +67,7 @@ export default class ArchivioDAO {
       });
 
     const query = { $and: archivioFilter };
-    console.log("getArchivio | query: ", query);
+    // console.log("getArchivio | query: ", query);
 
     try {
       const cursor = archivio.find(query, {
@@ -200,7 +203,7 @@ export default class ArchivioDAO {
 
       let idTimbra: ObjectId;
       let msgTimbra = "";
-
+      
       if(inStrutt) {
         const timbraEsceResp = await this.#timbraEsce(inStrutt._id);
         if ("error" in timbraEsceResp) throw new Error(timbraEsceResp.error);
@@ -219,7 +222,7 @@ export default class ArchivioDAO {
         }
 
         idTimbra = inStrutt._id;
-        msgTimbra = "Timbra Entra";
+        msgTimbra = "Timbra Esce";
       }
       else {
         const timbraEntraResp = await this.#timbraEntra(badgeTimbra, cliente, postazione, ip);
@@ -227,7 +230,7 @@ export default class ArchivioDAO {
           throw new Error(timbraEntraResp.error);
 
         idTimbra = timbraEntraResp.insertedId;
-        msgTimbra = "Timbra Esce";
+        msgTimbra = "Timbra Entra";
       }
 
       const timbraResp = await this.#getTimbraResponse(idTimbra, msgTimbra);
@@ -486,7 +489,7 @@ export default class ArchivioDAO {
       });
       const displayCursor = cursor.limit(500).skip(0);
       const archivioList = await displayCursor.toArray();
-      console.log(archivioList);
+      // console.log(archivioList);
       return archivioList;
     } catch(err) {
       errCheck(err, "getInStrutt |");

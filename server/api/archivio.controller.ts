@@ -8,9 +8,9 @@ export default class ArchivioController {
 
   static async apiGetArchivio(req: Request, res: Response) {
     try {
-      console.log("apiGetArchivio | req.query: ", req.query);
+      // console.log("apiGetArchivio | req.query: ", req.query);
       const archivioResponse = await ArchivioDAO.getArchivio(req.query);
-      console.log("apiGetArchivio | archivioResponse: ", archivioResponse);
+      // console.log("apiGetArchivio | archivioResponse: ", archivioResponse);
       res.json({
         success: true,
         data: archivioResponse,
@@ -51,6 +51,8 @@ export default class ArchivioController {
           .status(400)
           .json({ success: false, msg: archivioResponse.error, data: null });
       }
+
+      console.log(archivioResponse);
 
       res.json({
         success: true,
