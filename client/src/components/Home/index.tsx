@@ -88,7 +88,11 @@ const Home: React.FC<Props> = (props: Props) => {
     handleInputChanges(e, badgeForm, setBadgeForm);
 
   const retriveInStrutt = React.useCallback(() => {
-    BadgeDataService.getInStrutt(badgeForm.tipo)
+    BadgeDataService.getInStrutt({ 
+      tipo: badgeForm.tipo, 
+      cliente: props.user.admin ? sessionStorage.getItem("cliente")! : "", 
+      postazione: props.user.admin ? sessionStorage.getItem("postazione")! : "", 
+    })
       .then(response => {
         console.log("retriveInStrutt: ", response.data);
         setInStrutt(
@@ -101,7 +105,7 @@ const Home: React.FC<Props> = (props: Props) => {
         console.error("retriveInStrutt | error: ", err);
       });
   }, [badgeForm.tipo, setInStrutt])
-  
+
   // const retriveInStrutt = () => {
   //   BadgeDataService.getInStrutt(badgeForm.tipo)
   //     .then(response => {
@@ -116,21 +120,21 @@ const Home: React.FC<Props> = (props: Props) => {
   //       console.error("retriveInStrutt | error: ", err);
   //     });
   // };
-  
+
   const findBadges = () => {
     BadgeDataService.find({ ...badgeForm, pfp: "" })
       .then(response => {
         console.log(response.data);
 
-        const findResponse = response.data.data as TBadgeResp[]; 
+        const findResponse = response.data.data as TBadgeResp[];
 
-        if(findResponse.length === 1) {
+        if (findResponse.length === 1) {
           const mappedBadge = TableContentMapper.mapToAutoComplBadge(findResponse[0]);
           setBadgeForm(mappedBadge);
           const url = getPfpUrlByBarcode(mappedBadge.barcode);
           setPfpUrl(url);
         }
-        
+
         setBadges(TableContentMapper.mapBadgesToTableContent(findResponse));
       })
       .catch(err => {
@@ -144,8 +148,8 @@ const Home: React.FC<Props> = (props: Props) => {
       if (timeoutRunning === false) retriveInStrutt();
       BadgeDataService.timbra({
         barcode,
-        cliente: sessionStorage.getItem("cliente") as string,
-        postazione: sessionStorage.getItem("postazione") as string,
+        cliente: sessionStorage.getItem("cliente")!,
+        postazione: sessionStorage.getItem("postazione")!,
       })
         .then((response) => {
           console.log(response.data);
@@ -172,14 +176,18 @@ const Home: React.FC<Props> = (props: Props) => {
           setInStrutt([mappedRowTimbra, ...filteredInStrutt]);
 
           const { msg } = response.data;
-          const badgeTable: Nullable<HTMLTableElement> =
-            document.querySelector("table.badge-table");
-          const firstRow = badgeTable!.tBodies[0].rows[0];
-          firstRow.style.backgroundColor =
-            msg === "Timbra Entra" ? "green" : "red";
+
+          const badgeTable =
+            document.getElementById("badge-table");
+
+          const firstRow = badgeTable ? (badgeTable as HTMLTableElement).tBodies[0].rows[0] : null;
+          if (firstRow) {
+            firstRow.style.backgroundColor =
+              msg === "Timbra Entra" ? "green" : "red";
+          }
 
           setTimeout(() => {
-            firstRow.style.backgroundColor = "white";
+            if (firstRow) firstRow.style.backgroundColor = "white";
             if (readOnlyForm === true) {
               setBadgeForm(initialBadgeFormState);
               setPfpUrl("");
@@ -222,7 +230,7 @@ const Home: React.FC<Props> = (props: Props) => {
   //       setTimeoutRunning(true);
 
   //       const rowTimbra = response.data.data as TTimbraResp;
-        
+
   //       if(readOnlyForm === true) {
   //         setBadgeForm(mapToAutoComplBadge(rowTimbra.badge));
   //         const url = getPfpUrlByBarcode(rowTimbra.timbra.codice);
@@ -247,7 +255,7 @@ const Home: React.FC<Props> = (props: Props) => {
   //           setBadgeForm(initialBadgeFormState);
   //           setPfpUrl("");
   //         }
-          
+
   //         retriveInStrutt();
   //         props.closeAlert();
 
@@ -273,7 +281,7 @@ const Home: React.FC<Props> = (props: Props) => {
 
   const updateBadge = (form: BadgeFormState) => {
     const confirmed = window.confirm("Procedere alla modifica del badge?");
-		if (!confirmed) return;
+    if (!confirmed) return;
 
     BadgeDataService.updateBadge(createFormData(form))
       .then(response => {
@@ -290,7 +298,7 @@ const Home: React.FC<Props> = (props: Props) => {
 
   const deleteBadge = (barcode: string) => {
     const confirmed = window.confirm("Procedere alla rimozione del badge?");
-		if (!confirmed) return;
+    if (!confirmed) return;
 
     BadgeDataService.deleteBadge(barcode)
       .then(response => {
@@ -325,7 +333,7 @@ const Home: React.FC<Props> = (props: Props) => {
 
   React.useEffect(() => {
     closeAlert();
-    if(readOnlyForm === true) {
+    if (readOnlyForm === true) {
       setBadgeForm({ ...initialBadgeFormState, tipo: badgeForm.tipo });
       setPfpUrl("");
     }
@@ -333,14 +341,14 @@ const Home: React.FC<Props> = (props: Props) => {
   }, [readOnlyForm, /*closeAlert,*/ badgeForm.tipo]);
 
   React.useEffect(() => {
-    if(!scannedValue) return;
+    if (!scannedValue) return;
     console.log("Scanner accessi | scannedValue:", scannedValue);
     timbra(scannedValue);
     clearScannedValue();
   }, [scannedValue, /*clearScannedValue,*/ timbra]);
 
   React.useEffect(() => {
-    if(badgeForm.pfp) {
+    if (badgeForm.pfp) {
       const reader = new FileReader();
       reader.readAsDataURL(badgeForm.pfp);
       reader.onload = () => setPfpUrl(reader.result as string);
