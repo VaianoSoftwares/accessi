@@ -74,6 +74,11 @@ const initialBadgeFormState: BadgeFormState = {
   targa4: ""
 };
 
+const getInStruttReqData = {
+  cliente: sessionStorage.getItem("cliente")!,
+  postazione: sessionStorage.getItem("postazione")!,
+};
+
 const Home: React.FC<Props> = (props: Props) => {
   const [badges, setBadges] = React.useState<TTableContent[]>([]);
   const [badgeForm, setBadgeForm] = React.useState<BadgeFormState>(initialBadgeFormState);
@@ -88,12 +93,10 @@ const Home: React.FC<Props> = (props: Props) => {
     handleInputChanges(e, badgeForm, setBadgeForm);
 
   const retriveInStrutt = React.useCallback(() => {
-    BadgeDataService.getInStrutt({ 
-      tipo: badgeForm.tipo, 
-      cliente: props.user.admin ? sessionStorage.getItem("cliente")! : "", 
-      postazione: props.user.admin ? sessionStorage.getItem("postazione")! : "", 
-    })
-      .then(response => {
+    const reqData = props.user.admin ? undefined : getInStruttReqData;
+
+    BadgeDataService.getInStrutt(reqData)
+      .then((response) => {
         console.log("retriveInStrutt: ", response.data);
         setInStrutt(
           TableContentMapper.mapArchivioToInStruttTableContent(
@@ -101,10 +104,10 @@ const Home: React.FC<Props> = (props: Props) => {
           )
         );
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("retriveInStrutt | error: ", err);
       });
-  }, [badgeForm.tipo, setInStrutt])
+  }, [props.user.admin, setInStrutt])
 
   // const retriveInStrutt = () => {
   //   BadgeDataService.getInStrutt(badgeForm.tipo)

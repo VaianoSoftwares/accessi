@@ -7,6 +7,8 @@ const Router = express.Router();
 
 Router.route("/register").post(AuthToken.verifyAdmin, UsersCtrl.apiRegister);
 Router.route("/login").post(UsersCtrl.apiLogin);
+Router.route("/logout").post(AuthToken.verifyGuest, UsersCtrl.apiLogout);
+Router.route("/session").get(UsersCtrl.apiGetSession);
 
 Router.route("/permessi")
     .get(AuthToken.verifyGuest, PermessiCtrl.apiGetPermessi)

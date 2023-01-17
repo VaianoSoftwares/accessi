@@ -66,12 +66,11 @@ export default class ArchivioController {
   }
 
   static async apiGetInStruttura(req: Request, res: Response) {
-    const tipo = Badge.toBadgeTipo(req.query.tipo);
-    const cliente = req.query?.cliente;
-    const postazione = req.query?.postazione;
+    const cliente = req.query?.cliente as string || "";
+    const postazione = req.query?.postazione as string || "";
 
     try {
-      const archivioList = await ArchivioDAO.getInStrutt(tipo, cliente, postazione);
+      const archivioList = await ArchivioDAO.getInStrutt(cliente, postazione);
       res.json({ success: true, data: archivioList, msg: "Lista dipendenti in struttura ottenuta con successo" });
     } catch (err) {
       const { error } = errCheck(err, "apiGetInStruttura |");

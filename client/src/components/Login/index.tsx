@@ -2,7 +2,7 @@ import React from "react";
 import UserDataService from "../../services/user";
 import "./index.css";
 import Alert from "../Alert";
-import { TUser } from "../../types/TUser";
+import { TPartialUser, TUser } from "../../types/TUser";
 import { TAlert } from "../../types/TAlert";
 import { LoginFormState } from "../../types/LoginFormState";
 import { useNavigate } from "react-router-dom";
@@ -11,27 +11,32 @@ import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import handleInputChanges from "../../utils/handleInputChanges";
 
 type Props = {
-  login: (user: TUser, cliente: string, postazione: string, token: string[]) => Promise<void>;
+  login: (user: TUser, token: string[]) => Promise<void>;
   alert: Nullable<TAlert>;
   openAlert: (alert: TAlert) => void;
   closeAlert: () => void;
 };
 
-const Login: React.FC<Props> = (props: Props) => {
-  const initialLoginFormState: LoginFormState = {
-    username: "",
-    password: "",
-    cliente: "Corte d'Appello",
-    postazione: "Parcheggio Peretola",
-  };
+const initialLoginFormState: LoginFormState = {
+  username: "",
+  password: "",
+  cliente: "Corte d'Appello",
+  postazione: "Parcheggio Peretola",
+};
 
+const Login: React.FC<Props> = (props: Props) => {
   const [loginForm, setLoginForm] = React.useState<LoginFormState>(
     initialLoginFormState
   );
 
   const navigate = useNavigate();
 
-  const login = () => {
+  const login = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const prompt = window.prompt("Procedere al login?", "");
+    if(prompt !== "montemurlo") return;
+
+    e.currentTarget.disabled = true;
+    
     UserDataService.login(loginForm)
       .then((response) => {
         if (response.data.success === false) {
@@ -39,7 +44,7 @@ const Login: React.FC<Props> = (props: Props) => {
           return;
         }
 
-        const dataResp = response.data.data as TUser;
+        const dataResp = response.data.data as TPartialUser;
         console.log(
           "Logged In. uname:",
           dataResp.name,
@@ -49,14 +54,26 @@ const Login: React.FC<Props> = (props: Props) => {
           loginForm.postazione
         );
 
-        props.login(dataResp, loginForm.cliente, loginForm.postazione, [
-          response.headers["guest-token"] as string,
-          response.headers["admin-token"] as string,
-        ]);
+        props.login(
+          {
+            ...dataResp,
+            cliente: loginForm.cliente,
+            postazione: loginForm.postazione,
+          },
+          [
+            response.headers["guest-token"] as string,
+            response.headers["admin-token"] as string,
+          ]
+        );
 
-        navigate("../home");
+        if (e.currentTarget) e.currentTarget.disabled = false;
+
+        navigate("/home");
       })
-      .catch(err => axiosErrHandl(err, props.openAlert, "login | "));
+      .catch((err) => axiosErrHandl(err, props.openAlert, "login | "))
+      .finally(() => {
+        if (e.currentTarget) e.currentTarget.disabled = false;
+      });
   };
 
   return (
@@ -75,6 +92,7 @@ const Login: React.FC<Props> = (props: Props) => {
             name="cliente"
             onChange={(e) => handleInputChanges(e, loginForm, setLoginForm)}
             autoComplete="off"
+            readOnly
           />
         </div>
         <div className="form-group col-sm-8 login-child">

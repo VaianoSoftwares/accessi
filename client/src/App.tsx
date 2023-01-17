@@ -23,15 +23,17 @@ import { Nullable } from "./types/Nullable";
 import { TAssegnaz } from "./types/TAssegnaz";
 import { TEnums } from "./types/TEnums";
 import { TBadgeStato, TBadgeTipo, TTDoc } from "./types/Badge";
+import { TInStruttTableContent } from "./types/TableContentElem";
+import { TInPrestito } from "./types/PrestitoChiavi";
 
 // Services
+import UserDataService from "./services/user";
 import BadgeDataService from "./services/badge";
-import { TInStruttTableContent } from "./types/TableContentElem";
 
 // Utils
-import { TInPrestito } from "./types/PrestitoChiavi";
 import Archivio from "./components/Archivio";
 import serialPortHandler from "./utils/scannerHandler";
+import setSessionStorage from "./utils/setSessionStorage";
 
 const App: React.FC<{}> = () => {
   const [tipiBadge, setTipiBadge] = React.useState<TBadgeTipo[]>([]);
@@ -80,14 +82,9 @@ const App: React.FC<{}> = () => {
 
   async function login(
     user: TUser,
-    cliente: string,
-    postazione: string,
     tokens: string[]
   ) {
-    sessionStorage.setItem("username", user.name);
-    sessionStorage.setItem("admin", user.admin.toString());
-    sessionStorage.setItem("cliente", cliente);
-    sessionStorage.setItem("postazione", postazione);
+    setSessionStorage(user);
     sessionStorage.setItem("guest-token", tokens[0]);
     if (user.admin) sessionStorage.setItem("admin-token", tokens[1]);
 
@@ -95,8 +92,15 @@ const App: React.FC<{}> = () => {
   }
 
   async function logout() {
-    sessionStorage.clear();
-    setUser(null);
+    try {
+      const response = await UserDataService.logout();
+      console.log("logout |", response.data);
+    } catch(err) {
+      console.error("logout |", err);
+    } finally {
+      sessionStorage.clear();
+      setUser(null);
+    }
   }
 
   function retriveEnums() {
@@ -110,6 +114,19 @@ const App: React.FC<{}> = () => {
       })
       .catch((err) => {
         console.error("retriveEnums |", err);
+      });
+  }
+
+  function retriveSession() {
+    UserDataService.getSession()
+      .then((response) => {
+        const user = response.data.data as TUser;
+        if(!user) return;
+        setSessionStorage(user);
+        setUser(user);
+      })
+      .catch((err) => {
+        console.error("retriveSession |", err);
       });
   }
 
@@ -127,6 +144,7 @@ const App: React.FC<{}> = () => {
 
   React.useEffect(() => {
     retriveEnums();
+    retriveSession();
   }, []);
 
   return (
@@ -159,7 +177,7 @@ const App: React.FC<{}> = () => {
             )
           }
         />
-        <Route path="/" element={<Navigate replace to="home" />} />
+        <Route path="/" element={<Navigate replace to="/home" />} />
         <Route
           path="chiavi"
           element={
@@ -178,7 +196,7 @@ const App: React.FC<{}> = () => {
                 closeAlert={closeAlert}
               />
             ) : (
-              <Navigate replace to="login" />
+              <Navigate replace to="/login" />
             )
           }
         />
@@ -190,7 +208,7 @@ const App: React.FC<{}> = () => {
             ) : user ? (
               <Navigate replace to="/home" />
             ) : (
-              <Navigate replace to="login" />
+              <Navigate replace to="/login" />
             )
           }
         />
@@ -258,12 +276,16 @@ const App: React.FC<{}> = () => {
         <Route
           path="login"
           element={
-            <Login
-              login={login}
-              alert={alert}
-              openAlert={openAlert}
-              closeAlert={closeAlert}
-            />
+            !user ? (
+              <Login
+                login={login}
+                alert={alert}
+                openAlert={openAlert}
+                closeAlert={closeAlert}
+              />
+            ) : (
+              <Navigate replace to="/home" />
+            )
           }
         />
       </Routes>

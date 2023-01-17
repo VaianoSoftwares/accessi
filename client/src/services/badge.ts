@@ -8,7 +8,6 @@ import { isQueryEmpty, queryToString } from "./dataServicesUtilis";
 import { TPrestitoDataReq } from "../types/PrestitoChiavi";
 
 type TInStruttDataReq = {
-  tipo: string,
   cliente?: string,
   postazione?: string,
 };
@@ -104,7 +103,7 @@ class BadgesDataService {
     });
   }
 
-  getInStrutt(query: TInStruttDataReq): Promise<AxiosResponse<GenericResponse>> {
+  getInStrutt(query?: TInStruttDataReq): Promise<AxiosResponse<GenericResponse>> {
     const params = queryToString(query);
 
     return axios.get(`${baseUrl}/archivio/in-struttura?${params}`, {

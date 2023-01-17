@@ -464,14 +464,15 @@ export default class ArchivioDAO {
     }
   }
 
-  static async getInStrutt(tipoBadge: TBadgeTipo, cliente?: string, postazione?: string) {
-    const arrFilters: Array<object> = [
+  static async getInStrutt(cliente?: string, postazione?: string) {
+    const arrFilters: object[] = [
       { "data.uscita": { $eq: null } },
-      { "badge.tipo": { $regex: new RegExp(tipoBadge, "i") } },
     ];
 
     if(cliente) arrFilters.push({ cliente });
     if(postazione) arrFilters.push({ postazione });
+
+    // console.log(arrFilters);
 
     const query: Filter<unknown> = {
       $and: arrFilters,

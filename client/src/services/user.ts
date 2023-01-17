@@ -21,6 +21,18 @@ class UserDataService {
         return axios.post(`${baseUrl}/login`, data);
     }
 
+    logout(): Promise<AxiosResponse<GenericResponse>> {
+        return axios.post(`${baseUrl}/logout`, {}, {
+            headers: guestReqHeader
+        });
+    }
+
+    getSession(): Promise<AxiosResponse<GenericResponse>> {
+        return axios.get(`${baseUrl}/session`, {
+            headers: guestReqHeader
+        });
+    }
+
     getTipiUtenti(): Promise<AxiosResponse<GenericResponse>> {
         return axios.get(`${baseUrl}/tipi-utenti`, {
             headers: guestReqHeader

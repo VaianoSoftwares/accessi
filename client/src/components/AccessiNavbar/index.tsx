@@ -10,11 +10,13 @@ type Props = {
 };
 
 const AccessiNavbar: React.FC<Props> = (props: Props) => {
-
   const navigate = useNavigate();
   let location = useLocation().pathname;
 
   const logout = async () => {
+    const confirmed = window.prompt("Procedere al logout?", "");
+    if (confirmed !== "scandicci") return;
+
     await props.logout();
     navigate("/login");
   };
@@ -39,11 +41,14 @@ const AccessiNavbar: React.FC<Props> = (props: Props) => {
               Badge
             </button>
           </li>
-          <li className="nav-item">
-            <button onClick={() => navigate("/chiavi")} className="btn-nav">
-              Chiavi
-            </button>
-          </li>
+          {(props.user.admin === true ||
+            props.user.postazione === "Sala-Controllo") && (
+            <li className="nav-item">
+              <button onClick={() => navigate("/chiavi")} className="btn-nav">
+                Chiavi
+              </button>
+            </li>
+          )}
           {props.user.admin === true && (
             <li className="nav-item">
               <button onClick={() => navigate("/archivio")} className="btn-nav">
@@ -56,22 +61,30 @@ const AccessiNavbar: React.FC<Props> = (props: Props) => {
               Calendario
             </button>
           </li>
-          <li className="nav-item">
-            <button onClick={() => navigate("/permessi")} className="btn-nav">
-              Permessi
-            </button>
-          </li>
-          <li className="nav-item">
-            <button onClick={() => navigate("/documenti")} className="btn-nav">
-              Documenti
-            </button>
-          </li>
           {props.user.admin === true && (
-            <li className="nav-item">
-              <button onClick={() => navigate("/admin")} className="btn-nav">
-                Opzioni
-              </button>
-            </li>
+            <>
+              <li className="nav-item">
+                <button
+                  onClick={() => navigate("/permessi")}
+                  className="btn-nav"
+                >
+                  Permessi
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  onClick={() => navigate("/documenti")}
+                  className="btn-nav"
+                >
+                  Documenti
+                </button>
+              </li>
+              <li className="nav-item">
+                <button onClick={() => navigate("/admin")} className="btn-nav">
+                  Opzioni
+                </button>
+              </li>
+            </>
           )}
           <li className="nav-item">
             <button onClick={() => logout()} className="btn-nav">
@@ -82,6 +95,6 @@ const AccessiNavbar: React.FC<Props> = (props: Props) => {
       </nav>
     )
   );
-}
+};
 
 export default AccessiNavbar;

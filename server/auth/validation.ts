@@ -22,6 +22,14 @@ export default class Validator {
     
         return schema.validate(data);
     }
+
+    static logout(data: unknown) {
+      const schema = Joi.object({
+        id: Joi.string().required(),
+      });
+
+      return schema.validate(data);
+    }
     
     static badgeDoc(data: unknown) {
         const schema = Joi.object({
