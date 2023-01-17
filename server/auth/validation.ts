@@ -34,22 +34,22 @@ export default class Validator {
     static badgeDoc(data: unknown) {
         const schema = Joi.object({
           barcode: Joi.string().min(3).max(32).required(),
-          descrizione: Joi.string().valid(null, ""),
-          tipo: Joi.string().valid(null, ""),
-          assegnazione: Joi.string().valid(null, ""),
-          stato: Joi.string().valid(null, ""),
-          ubicazione: Joi.string().valid(null, ""),
-          nome: Joi.string().valid(null, ""),
-          cognome: Joi.string().valid(null, ""),
-          telefono: Joi.string().valid(null, ""),
-          ditta: Joi.string().valid(null, ""),
-          tdoc: Joi.string().valid(null, ""),
-          ndoc: Joi.string().valid(null, ""),
-          scadenza: Joi.string().valid(null, ""),
-          targa1: Joi.string().valid(null, ""),
-          targa2: Joi.string().valid(null, ""),
-          targa3: Joi.string().valid(null, ""),
-          targa4: Joi.string().valid(null, ""),
+          descrizione: Joi.string(),
+          tipo: Joi.string(),
+          assegnazione: Joi.string(),
+          stato: Joi.string(),
+          ubicazione: Joi.string(),
+          nome: Joi.string(),
+          cognome: Joi.string(),
+          telefono: Joi.string(),
+          ditta: Joi.string(),
+          tdoc: Joi.string(),
+          ndoc: Joi.string(),
+          scadenza: Joi.string(),
+          targa1: Joi.string(),
+          targa2: Joi.string(),
+          targa3: Joi.string(),
+          targa4: Joi.string(),
         });
 
         return schema.validate(data);
@@ -69,16 +69,16 @@ export default class Validator {
           barcode: Joi.string().min(3).max(32).required(),
           cliente: Joi.string().required(),
           postazione: Joi.string().required(),
-          nome: Joi.string().valid(null, ""),
-          cognome: Joi.string().valid(null, ""),
-          ditta: Joi.string().valid(null, ""),
-          telefono: Joi.string().valid(null, ""),
-          tdoc: Joi.string().valid(null, ""),
-          ndoc: Joi.string().valid(null, ""),
-          targa1: Joi.string().valid(null, ""),
-          targa2: Joi.string().valid(null, ""),
-          targa3: Joi.string().valid(null, ""),
-          targa4: Joi.string().valid(null, ""),
+          nome: Joi.string(),
+          cognome: Joi.string(),
+          ditta: Joi.string(),
+          telefono: Joi.string(),
+          tdoc: Joi.string(),
+          ndoc: Joi.string(),
+          targa1: Joi.string(),
+          targa2: Joi.string(),
+          targa3: Joi.string(),
+          targa4: Joi.string(),
         });
 
         return scheme.validate(data);
@@ -98,9 +98,9 @@ export default class Validator {
     static putDocumento(data: unknown) {
       const scheme = Joi.object({
         codice: Joi.string().required(),
-        nome: Joi.string().valid(null, ""),
-        cognome: Joi.string().valid(null, ""),
-        azienda: Joi.string().valid(null, ""),
+        nome: Joi.string(),
+        cognome: Joi.string(),
+        azienda: Joi.string(),
       });
 
       return scheme.validate(data);
