@@ -189,7 +189,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
               />
               <label htmlFor="cognome">cognome</label>
             </div>
-            <div className="w-100"></div>
+            <div className="w-100" />
             <div className="form-floating col-sm-3">
               <input
                 type="text"
@@ -218,7 +218,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
               />
               <label htmlFor="telefono">telefono</label>
             </div>
-            <div className="w-100"></div>
+            <div className="w-100" />
             <div className="form-floating col-sm-3">
               <select
                 className="form-select form-select-sm"
@@ -257,7 +257,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
               />
               <label htmlFor="ndoc">num documento</label>
             </div>
-            <div className="w-100"></div>
+            <div className="w-100" />
             {props.badgeForm.tipo === "BADGE" ? (
               <>
                 <div className="form-floating col-sm-3">
@@ -274,7 +274,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                   />
                   <label htmlFor="scadenza">scadenza</label>
                 </div>
-                <div className="w-100"></div>
+                <div className="w-100" />
               </>
             ) : (
               props.badgeForm.tipo === "VEICOLO" && (
@@ -306,7 +306,7 @@ const BadgeForm: React.FC<Props> = (props: Props) => {
                     />
                     <label htmlFor="targa2">targa2</label>
                   </div>
-                  <div className="w-100"></div>
+                  <div className="w-100" />
                   <div className="form-floating col-sm-3">
                     <input
                       type="text"

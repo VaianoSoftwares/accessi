@@ -2,12 +2,6 @@
     width:100%;
 }
 
-.badge-table-wrapper {
-    overflow: scroll;
-    height: 450px;
-    background-color:lightcyan;
-}
-
 .badge-table-thead {
     position: sticky;
     top: 0;

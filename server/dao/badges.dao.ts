@@ -213,9 +213,11 @@ export default class BadgesDAO {
 
   static async addBadge(data: TBadgeAddReq) {
     try {
-      const badge = await this.findBadgeByBarcode(data.barcode);
+      const barcode = data.barcode.toUpperCase();
+
+      const badge = await this.findBadgeByBarcode(barcode);
       if (badge) {
-        throw new Error(`Barcode ${data.barcode} già esistente.`);
+        throw new Error(`Barcode ${barcode} già esistente.`);
       }
 
       // const isNom = this.#isBadgeNom(data);
@@ -242,7 +244,7 @@ export default class BadgesDAO {
   }
 
   static async updateBadge(data: TBadgeUpdReq) {
-    const { barcode } = data;
+    const barcode = data.barcode.toUpperCase();
     const paramsToUpdate: Record<string, unknown> = {};
 
     try {

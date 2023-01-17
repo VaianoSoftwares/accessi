@@ -69,6 +69,8 @@ export default class BadgesController {
                 .json({ success: false, msg: fileUplResp.error, data: null });
             }
 
+            console.log(`apiPostBadge | Aggiunto badge ${badgesResponse.insertedId} con successo`);
+
             res.json({
               success: true,
               msg: "Badge aggiunto con successo",
@@ -105,10 +107,12 @@ export default class BadgesController {
                   });
             }
 
+            const barcode: string = req.body.barcode.toUpperCase();
+
             const fileUplResp = await FileManager.uploadPfp(
               req.files,
-              req.body.barcode,
-              req.body.tipo
+              barcode,
+              req.body.tipo.toUpperCase(),
             );
             if ("error" in fileUplResp) {
               return res
@@ -119,9 +123,11 @@ export default class BadgesController {
               !fileUplResp.fileName
             ) {
               throw new Error(
-                `Badge ${req.body.barcode} non aggiornato. Nessun campo inserito.`
+                `Badge ${barcode} non aggiornato. Nessun campo inserito.`
               );
             }
+
+            console.log(`apiPutBadge | Aggiornato badge ${barcode} con successo`);
 
             res.json({
               success: true,
@@ -135,12 +141,17 @@ export default class BadgesController {
     }
 
     static async apiDeleteBadges(req: Request, res: Response) {
-        const barcode = req.query.barcode as string;
+        const barcode = (req.query.barcode as string).toUpperCase();
 
         try {
             const badgesResponse = await BadgesDAO.deleteBadge(barcode);
 
-            if (
+            if("error" in badgesResponse) {
+              throw new Error(
+                `Badge ${barcode} non eliminato - ${badgesResponse.error}`
+              );
+            }
+            else if (
               "deletedCount" in badgesResponse &&
               badgesResponse.deletedCount === 0
             ) {
@@ -154,6 +165,8 @@ export default class BadgesController {
             if(delPfpResp?.error) {
                 throw new Error(`Badge ${barcode} - Non e' stato possibile eliminare pfp`);
             }
+
+            console.log(`apiDeleteBadge | Rimosso badge ${barcode} con successo`);
 
             res.json({
               success: true,

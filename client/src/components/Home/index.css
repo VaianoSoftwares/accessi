@@ -27,3 +27,8 @@
     max-height: 250px;
     max-width: 450px;
 }
+
+.badge-table-wrapper {
+    overflow: auto;
+    height: 450px;
+}

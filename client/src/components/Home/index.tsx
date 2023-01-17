@@ -410,7 +410,9 @@ const Home: React.FC<Props> = (props: Props) => {
         insertOsp={insertBadge}
         isVeicolo={badgeForm.tipo === "VEICOLO"}
       />
-      <BadgeTable content={props.inStrutt} tableId="badge-table" />
+      <div className="badge-table-wrapper">
+        <BadgeTable content={props.inStrutt} tableId="badge-table" />
+      </div>
     </div>
   );
 }

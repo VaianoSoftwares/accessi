@@ -9,9 +9,17 @@ import BadgeTable from "../BadgeTable";
 import { TEvent } from "../../types/TEvent";
 import handleInputChanges from "../../utils/handleInputChanges";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
+import { TAssegnaz } from "../../types/TAssegnaz";
+
+type Props = {
+  assegnazioni: TAssegnaz[];
+};
 
 type TArchForm = {
+  cliente: string;
+  postazione: string;
   nominativo: string;
+  assegnazione: string;
   nome: string;
   cognome: string;
   chiave: string;
@@ -21,7 +29,10 @@ type TArchForm = {
 };
 
 const initArchForm: TArchForm = {
+  cliente: "",
+  postazione: "",
   nominativo: "",
+  assegnazione: "",
   nome: "",
   cognome: "",
   chiave: "",
@@ -36,7 +47,7 @@ const initArchForm: TArchForm = {
   ),
 };
 
-const Archivio: React.FC<{}> = () => {
+const Archivio: React.FC<Props> = (props) => {
   const [archivio, setArchivio] = React.useState<TArchTableContent[] | TArchivioChiave[]>(
     []
   );
@@ -70,7 +81,7 @@ const Archivio: React.FC<{}> = () => {
 
   React.useEffect(() => {
     findArchivioBadge();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -108,14 +119,60 @@ const Archivio: React.FC<{}> = () => {
                 <input
                   type="text"
                   className="form-control form-control-sm"
+                  id="cliente"
+                  value={archForm.cliente}
+                  onChange={handleInputChangesArch}
+                  name="cliente"
+                  autoComplete="off"
+                />
+                <label htmlFor="cliente">cliente</label>
+              </div>
+              <div className="form-floating col-sm-2">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  id="postazione"
+                  value={archForm.postazione}
+                  onChange={handleInputChangesArch}
+                  name="postazione"
+                  autoComplete="off"
+                />
+                <label htmlFor="postazione">postazione</label>
+              </div>
+              <div className="w-100 mb-1" />
+              <div className="form-floating col-sm-2">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
                   id="nominativo"
                   value={archForm.nominativo}
                   onChange={handleInputChangesArch}
                   name="nominativo"
                   autoComplete="off"
                 />
-                <label htmlFor="nominativo">nominativo</label>
+                <label htmlFor="nominativo">badge</label>
               </div>
+              <div className="form-floating col-sm-2">
+                <select
+                  className="form-select form-select-sm"
+                  id="assegnazione"
+                  value={archForm.assegnazione || ""}
+                  onChange={handleInputChangesArch}
+                  name="assegnazione"
+                  placeholder="assegnazione"
+                >
+                  <option value="" key="-1"></option>
+                  {props.assegnazioni
+                    .filter(({ name }) => name)
+                    .map(({ name }, index) => (
+                      <option value={name} key={index}>
+                        {name}
+                      </option>
+                    ))}
+                </select>
+                <label htmlFor="assegnazione">assegnazione</label>
+              </div>
+              <div className="w-100 mb-1" />
               <div className="form-floating col-sm-2">
                 <input
                   type="text"
@@ -128,7 +185,6 @@ const Archivio: React.FC<{}> = () => {
                 />
                 <label htmlFor="nome">nome</label>
               </div>
-              <div className="w-100 mb-1" />
               <div className="form-floating col-sm-2">
                 <input
                   type="text"

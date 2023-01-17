@@ -204,7 +204,7 @@ const App: React.FC<{}> = () => {
           path="archivio"
           element={
             user && user.admin === true ? (
-              <Archivio />
+              <Archivio assegnazioni={assegnazioni} />
             ) : user ? (
               <Navigate replace to="/home" />
             ) : (
