@@ -1,9 +1,12 @@
 import { TBadgeStato, TBadgeTipo, TTDoc } from "./Badge";
-import { TAssegnaz } from "./TAssegnaz";
+import { TAssegnazione } from "./TAssegnazione";
+import { TPostazione } from "./TPostazione";
 
 export type TEnums = {
     badge: TBadgeTipo[],
     stato: TBadgeStato[],
     documento: TTDoc[],
-    assegnazione: TAssegnaz[]
+    assegnazione: TAssegnazione[],
+    cliente: string[],
+    postazione: TPostazione[],
 };

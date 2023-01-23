@@ -15,44 +15,53 @@ import AccessiNavbar from "./components/AccessiNavbar";
 import Documenti from "./components/Documenti";
 import Calendario from "./components/Calendario";
 import Chiavi from "./components/Chiavi";
+import Archivio from "./components/Archivio";
 
 // Types
 import { TUser } from "./types/TUser";
 import { TAlert } from "./types/TAlert";
-import { Nullable } from "./types/Nullable";
-import { TAssegnaz } from "./types/TAssegnaz";
 import { TEnums } from "./types/TEnums";
-import { TBadgeStato, TBadgeTipo, TTDoc } from "./types/Badge";
-import { TInStruttTableContent } from "./types/TableContentElem";
-import { TInPrestito } from "./types/PrestitoChiavi";
 
 // Services
-import UserDataService from "./services/user";
 import BadgeDataService from "./services/badge";
 
 // Utils
-import Archivio from "./components/Archivio";
 import serialPortHandler from "./utils/scannerHandler";
-import setSessionStorage from "./utils/setSessionStorage";
+import SSHandler from "./utils/SSHandler";
+import { TAssegnazione } from "./types/TAssegnazione";
 
-const App: React.FC<{}> = () => {
-  const [tipiBadge, setTipiBadge] = React.useState<TBadgeTipo[]>([]);
-  const [assegnazioni, setAssegnazioni] = React.useState<TAssegnaz[]>([]);
-  const [tipiDoc, setTipiDoc] = React.useState<TTDoc[]>([]);
-  const [statiBadge, setStatiBadge] = React.useState<TBadgeStato[]>([]);
+const enumsInitState: TEnums = {
+  badge: [],
+  stato: [],
+  documento: [],
+  assegnazione: [],
+  cliente: [],
+  postazione: [],
+};
 
-  const [user, setUser] = React.useState<Nullable<TUser>>(() => {
-    const name = sessionStorage.getItem("username");
-    const admin = sessionStorage.getItem("admin");
-    if (name && admin)
-      return {
-        name,
-        admin: admin === "true",
-      } as TUser;
-    return null;
-  });
+export default function App() {
+  const [enums, setEnums] = React.useState<TEnums>(enumsInitState);
 
-  const [alert, setAlert] = React.useState<Nullable<TAlert>>(null);
+  React.useEffect(() => {
+    retriveEnums();
+  }, []);
+
+  const [user, setUser] = React.useState<TUser | null>(SSHandler.getUserFromStorage());
+  const [alert, setAlert] = React.useState<TAlert | null>(null);
+
+  function addAssegnazione(assegnazione: TAssegnazione) {
+    setEnums((prev) => {
+      prev!.assegnazione.push(assegnazione);
+      return prev;
+    });
+  }
+
+  function removeAssegnazione(name: string) {
+    setEnums((prev) => {
+      prev!.assegnazione = prev!.assegnazione.filter((a) => a.name !== name);
+      return prev;
+    });
+  }
 
   function openAlert(alert: TAlert) {
     setAlert(alert);
@@ -65,8 +74,6 @@ const App: React.FC<{}> = () => {
   const [accessiScanner, setAccessiScanner] = React.useState<SerialPort>();
   const [timbraVal, setTimbraVal] = React.useState("");
 
-  const [inStrutt, setInStrutt] = React.useState<TInStruttTableContent[]>([]);
-
   const [chiaviScanner, setChiaviScanner] = React.useState<SerialPort>();
   const [prestaArr, setPrestaArr] = React.useState<string[]>([]);
 
@@ -78,55 +85,27 @@ const App: React.FC<{}> = () => {
     setPrestaArr((prevState) => prevState.filter((elem) => elem !== value));
   }
 
-  const [inPrestito, setInPrestito] = React.useState(new Array<TInPrestito>());
-
-  async function login(
-    user: TUser,
-    tokens: string[]
-  ) {
-    setSessionStorage(user);
-    sessionStorage.setItem("guest-token", tokens[0]);
-    if (user.admin) sessionStorage.setItem("admin-token", tokens[1]);
-
+  async function login(user: TUser) {
+    SSHandler.setSessionStorage(user);
+    if (user.admin === true && enums.postazione[0])
+      SSHandler.setPostazione(enums.postazione[0].name);
     setUser(user);
   }
 
   async function logout() {
-    try {
-      const response = await UserDataService.logout();
-      console.log("logout |", response.data);
-    } catch(err) {
-      console.error("logout |", err);
-    } finally {
-      sessionStorage.clear();
-      setUser(null);
-    }
+    sessionStorage.clear();
+    setUser(null);
   }
 
   function retriveEnums() {
     BadgeDataService.getEnums()
       .then((response) => {
-        const enums = response.data.data as TEnums;
-        setTipiBadge(enums.badge);
-        setAssegnazioni(enums.assegnazione);
-        setTipiDoc(enums.documento);
-        setStatiBadge(enums.stato);
+        const enumsResp = response.data.data as TEnums;
+        console.log("retriveEnums |", enumsResp);
+        setEnums(enumsResp);
       })
       .catch((err) => {
         console.error("retriveEnums |", err);
-      });
-  }
-
-  function retriveSession() {
-    UserDataService.getSession()
-      .then((response) => {
-        const user = response.data.data as TUser;
-        if(!user) return;
-        setSessionStorage(user);
-        setUser(user);
-      })
-      .catch((err) => {
-        console.error("retriveSession |", err);
       });
   }
 
@@ -142,11 +121,6 @@ const App: React.FC<{}> = () => {
     await serialPortHandler(prestaArrAdd, setChiaviScanner, openAlert);
   }
 
-  React.useEffect(() => {
-    retriveEnums();
-    retriveSession();
-  }, []);
-
   return (
     <div className="App">
       <AccessiNavbar user={user} logout={logout} />
@@ -161,12 +135,9 @@ const App: React.FC<{}> = () => {
                 alert={alert}
                 openAlert={openAlert}
                 closeAlert={closeAlert}
-                tipiBadge={tipiBadge}
-                assegnazioni={assegnazioni}
-                tipiDoc={tipiDoc}
-                statiBadge={statiBadge}
-                inStrutt={inStrutt}
-                setInStrutt={setInStrutt}
+                assegnazioni={enums.assegnazione}
+                clienti={enums.cliente}
+                postazioni={enums.postazione}
                 scannedValue={timbraVal}
                 clearScannedValue={() => setTimbraVal("")}
                 scannerConnected={accessiScanner !== undefined}
@@ -183,8 +154,6 @@ const App: React.FC<{}> = () => {
           element={
             user ? (
               <Chiavi
-                inPrestito={inPrestito}
-                setInPrestito={setInPrestito}
                 scannerConnected={chiaviScanner !== undefined}
                 runScanner={runChiaviScanner}
                 scanValues={prestaArr}
@@ -204,7 +173,11 @@ const App: React.FC<{}> = () => {
           path="archivio"
           element={
             user && user.admin === true ? (
-              <Archivio assegnazioni={assegnazioni} />
+              <Archivio
+                assegnazioni={enums.assegnazione}
+                clienti={enums.cliente}
+                postazioni={enums.postazione}
+              />
             ) : user ? (
               <Navigate replace to="/home" />
             ) : (
@@ -262,9 +235,11 @@ const App: React.FC<{}> = () => {
                 alert={alert}
                 openAlert={openAlert}
                 closeAlert={closeAlert}
-                tipiBadge={tipiBadge}
-                assegnazioni={assegnazioni}
-                setAssegnazioni={setAssegnazioni}
+                assegnazioni={enums.assegnazione}
+                addAssegnazione={addAssegnazione}
+                removeAssegnazione={removeAssegnazione}
+                clienti={enums.cliente}
+                postazioni={enums.postazione}
               />
             ) : user ? (
               <Navigate replace to="/home" />
@@ -291,6 +266,4 @@ const App: React.FC<{}> = () => {
       </Routes>
     </div>
   );
-};
-
-export default App;
+}

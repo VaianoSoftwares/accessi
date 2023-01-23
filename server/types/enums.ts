@@ -5,9 +5,16 @@ export type TAssegnaz = {
     name: string
 };
 
+export type TPostazione = {
+    cliente: string,
+    name: string,
+};
+
 export type TEnums = {
     badge: TBadgeTipo[],
     stato: TBadgeStato[],
     documento: TTDoc[],
-    assegnazione: TAssegnaz[]
+    assegnazione: TAssegnaz[],
+    cliente: string[],
+    postazione: TPostazione[],
 };

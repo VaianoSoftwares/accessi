@@ -4,8 +4,6 @@ export default class Validator {
 
     static login(data: unknown) {
         const schema = Joi.object({
-          cliente: Joi.string().min(3).max(32).required(),
-          postazione: Joi.string().min(3).max(32).required(),
           username: Joi.string().min(5).max(32).required(),
           password: Joi.string().min(6).required(),
         });
@@ -18,12 +16,22 @@ export default class Validator {
           username: Joi.string().min(6).max(32).required(),
           password: Joi.string().min(6).required(),
           admin: Joi.bool(),
+          clienti: Joi.array(),
+          postazioni: Joi.array(),
         });
     
         return schema.validate(data);
     }
 
     static logout(data: unknown) {
+      const schema = Joi.object({
+        id: Joi.string().required(),
+      });
+
+      return schema.validate(data);
+    }
+
+    static getUser(data: unknown) {
       const schema = Joi.object({
         id: Joi.string().required(),
       });

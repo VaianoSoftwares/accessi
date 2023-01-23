@@ -1,4 +1,4 @@
-import isObjKey from "../middlewares/isObjKey.js";
+import isObjKey from "../utils/isObjKey.js";
 import { KeysOf } from "./keysOf.js";
 import { Nullable, Undefineable } from "./nullable.js";
 

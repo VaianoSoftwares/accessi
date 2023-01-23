@@ -1,7 +1,7 @@
 import ArchivioDAO from "../dao/archivio.dao.js";
 import Validator from "../auth/validation.js";
 import { Request, Response } from "express";
-import errCheck from "../middlewares/errCheck.js";
+import errCheck from "../utils/errCheck.js";
 
 export default class ArchivioController {
 

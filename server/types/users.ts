@@ -1,16 +1,18 @@
-import { Undefineable } from "./nullable.js";
-
 export type TUser = {
     username: string,
     password: string,
-    admin: boolean
+    admin: boolean,
+    clienti: string[] | null,
+    postazioni: string[] | null,
 };
 
 export type TUserReq = {
-    [key: string]: Undefineable<string | boolean>,
+    [key: string]: string | string[] | boolean | undefined,
     username: string,
     password: string,
-    admin?: boolean
+    admin?: boolean,
+    clienti?: string[],
+    postazioni?: string[],
 };
 
 export type TPermesso = {
@@ -19,5 +21,5 @@ export type TPermesso = {
 };
 
 export type TPermessoReq = {
-  [key: string]: Undefineable<string>;
+  [key: string]: string | undefined;
 } & Partial<TPermesso>;

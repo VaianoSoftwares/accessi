@@ -1,5 +1,5 @@
 import { Collection, Filter, MongoClient, ObjectId } from "mongodb";
-import errCheck from "../middlewares/errCheck.js";
+import errCheck from "../utils/errCheck.js";
 import { TBadge, TChiave } from "../types/badges.js";
 import { TArchivioChiave } from "../types/prestiti.js";
 import BadgesDAO from "./badges.dao.js";

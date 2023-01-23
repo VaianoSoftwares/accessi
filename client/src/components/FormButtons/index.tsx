@@ -14,7 +14,7 @@ type Props = {
   refreshPage: () => void;
   openPopup: () => void;
   readOnlyForm: boolean;
-  setReadOnlyForm: () => void;
+  toggleReadOnlyForm: () => void;
   admin: boolean;
   runScanner: () => Promise<void>;
   scannerConnected: boolean;
@@ -48,7 +48,7 @@ const FormButtons: React.FC<Props> = (props: Props) => {
         <div className="w-100 mt-1" />
         <div className="col-auto">
           <button
-            onClick={() => props.setReadOnlyForm()}
+            onClick={() => props.toggleReadOnlyForm()}
             className="btn btn-success home-form-btn"
           >
             Form

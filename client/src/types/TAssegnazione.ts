@@ -1,6 +1,6 @@
 import { TBadgeTipo } from "./Badge";
 
-export type TAssegnaz = {
+export type TAssegnazione = {
     badge: TBadgeTipo,
     name: string
 };

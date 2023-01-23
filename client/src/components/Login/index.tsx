@@ -4,40 +4,27 @@ import "./index.css";
 import Alert from "../Alert";
 import { TPartialUser, TUser } from "../../types/TUser";
 import { TAlert } from "../../types/TAlert";
-import { LoginFormState } from "../../types/LoginFormState";
 import { useNavigate } from "react-router-dom";
-import { Nullable } from "../../types/Nullable";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
-import handleInputChanges from "../../utils/handleInputChanges";
 
 type Props = {
-  login: (user: TUser, token: string[]) => Promise<void>;
-  alert: Nullable<TAlert>;
+  login: (user: TUser) => Promise<void>;
+  alert: TAlert | null;
   openAlert: (alert: TAlert) => void;
   closeAlert: () => void;
 };
 
-const initialLoginFormState: LoginFormState = {
-  username: "",
-  password: "",
-  cliente: "Corte d'Appello",
-  postazione: "Parcheggio Peretola",
-};
-
-const Login: React.FC<Props> = (props: Props) => {
-  const [loginForm, setLoginForm] = React.useState<LoginFormState>(
-    initialLoginFormState
-  );
+export default function Login(props: Props) {
+  const usernameRef = React.useRef<HTMLInputElement>(null);
+  const passwordRef = React.useRef<HTMLInputElement>(null);
 
   const navigate = useNavigate();
 
-  const login = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const prompt = window.prompt("Procedere al login?", "");
-    if(prompt !== "montemurlo") return;
-
-    e.currentTarget.disabled = true;
-    
-    UserDataService.login(loginForm)
+  const login = () => {
+    UserDataService.login({
+      username: usernameRef.current!.value,
+      password: passwordRef.current!.value,
+    })
       .then((response) => {
         if (response.data.success === false) {
           console.error("Login failed.");
@@ -45,34 +32,18 @@ const Login: React.FC<Props> = (props: Props) => {
         }
 
         const dataResp = response.data.data as TPartialUser;
-        console.log(
-          "Logged In. uname:",
-          dataResp.name,
-          "admin:",
-          dataResp.admin,
-          "postazione:",
-          loginForm.postazione
-        );
+        console.log(dataResp.name, "logged In.");
 
-        props.login(
-          {
-            ...dataResp,
-            cliente: loginForm.cliente,
-            postazione: loginForm.postazione,
-          },
-          [
-            response.headers["guest-token"] as string,
-            response.headers["admin-token"] as string,
-          ]
-        );
-
-        if (e.currentTarget) e.currentTarget.disabled = false;
+        props.login({
+          ...dataResp,
+          token: response.headers["x-access-token"]! as string,
+        });
 
         navigate("/home");
       })
       .catch((err) => axiosErrHandl(err, props.openAlert, "login | "))
       .finally(() => {
-        if (e.currentTarget) e.currentTarget.disabled = false;
+        passwordRef.current!.value = passwordRef.current!.defaultValue;
       });
   };
 
@@ -80,49 +51,17 @@ const Login: React.FC<Props> = (props: Props) => {
     <div className="login-wrapper">
       <div className="submit-form login-form login-center">
         <div className="form-group col-sm-8 login-child">
-          <label htmlFor="cliente" className="col-form-label">
-            Cliente
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="cliente"
-            required
-            value={loginForm.cliente}
-            name="cliente"
-            onChange={(e) => handleInputChanges(e, loginForm, setLoginForm)}
-            autoComplete="off"
-            readOnly
-          />
-        </div>
-        <div className="form-group col-sm-8 login-child">
-          <label htmlFor="postazione" className="col-form-label">
-            Postazione
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="postazione"
-            required
-            value={loginForm.postazione}
-            name="postazione"
-            onChange={(e) => handleInputChanges(e, loginForm, setLoginForm)}
-            autoComplete="off"
-          />
-        </div>
-        <div className="form-group col-sm-8 login-child">
           <label htmlFor="username" className="col-form-label">
             Username
           </label>
           <input
+            id="username"
             type="text"
             className="form-control"
-            id="username"
             required
-            value={loginForm.username}
-            name="username"
-            onChange={(e) => handleInputChanges(e, loginForm, setLoginForm)}
+            defaultValue=""
             autoComplete="off"
+            ref={usernameRef}
           />
         </div>
         <div className="form-group col-sm-8 login-child">
@@ -130,14 +69,13 @@ const Login: React.FC<Props> = (props: Props) => {
             Password
           </label>
           <input
+            id="password"
             type="password"
             className="form-control"
-            id="password"
             required
-            value={loginForm.password}
-            name="password"
-            onChange={(e) => handleInputChanges(e, loginForm, setLoginForm)}
+            defaultValue=""
             autoComplete="off"
+            ref={passwordRef}
           />
         </div>
         <br />
@@ -152,6 +90,4 @@ const Login: React.FC<Props> = (props: Props) => {
       </div>
     </div>
   );
-};
-
-export default Login;
+}

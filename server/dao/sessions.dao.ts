@@ -1,5 +1,5 @@
 import { Collection, Document, MongoClient} from "mongodb";
-import errCheck from "../middlewares/errCheck.js";
+import errCheck from "../utils/errCheck.js";
 
 const COLLECTION_NAME = "sessions";
 

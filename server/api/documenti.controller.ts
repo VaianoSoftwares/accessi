@@ -3,7 +3,7 @@ import Validator from "../auth/validation.js";
 import FileManager from "./badges.filemanager.js";
 import { Request, Response } from "express";
 import { GenericResponse } from "../types/responses.js";
-import errCheck from "../middlewares/errCheck.js";
+import errCheck from "../utils/errCheck.js";
 import { TDocumento, TDocumentoReq, TDocUpdReq } from "../types/documenti.js";
 
 export default class DocumentiController {

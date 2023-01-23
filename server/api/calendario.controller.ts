@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import Validator from "../auth/validation.js";
-import errCheck from "../middlewares/errCheck.js";
+import errCheck from "../utils/errCheck.js";
 import FileManager from "./badges.filemanager.js";
 
 export default class CalendarioController {

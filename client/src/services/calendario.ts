@@ -1,30 +1,21 @@
-import axios from "./axiosSetup";
-import { AxiosResponse } from "axios";
-import { GenericResponse } from "../types/Responses";
-import { adminReqFileHeader, adminReqHeader, guestReqHeader } from "./dataServicesConfigs";
+import DataServices from "./DataServices";
 
-const baseUrl = "/api/v1/calendario";
-
-class CalendarioDataService {
-
-  getFilenames(date: string): Promise<AxiosResponse<GenericResponse>> {
-    return axios.get(`${baseUrl}?date=${date}`, {
-      headers: guestReqHeader,
-    });
+class CalendarioDataService extends DataServices {
+  getFilenames(date: string) {
+    return super.request({ token: true, data: { date } });
   }
 
-  insertFiles(data: FormData): Promise<AxiosResponse<GenericResponse>> {
-    return axios.post(baseUrl, data, {
-      headers: adminReqFileHeader,
-    });
+  insertFiles(data: FormData) {
+    return super.request({ method: "POST", token: true, files: true, data });
   }
 
-  deleteFile(date: string, filename: string): Promise<AxiosResponse<GenericResponse>> {
-    return axios.delete(`${baseUrl}?date=${date}&filename=${filename}`, {
-      headers: adminReqHeader,
+  deleteFile(date: string, filename: string) {
+    return super.request({
+      method: "DELETE",
+      token: true,
+      data: { date, filename },
     });
   }
-
 }
 
-export default new CalendarioDataService();
+export default new CalendarioDataService("/api/v1/calendario");

@@ -1,5 +1,5 @@
 import { Collection, MongoClient } from "mongodb";
-import errCheck from "../middlewares/errCheck.js";
+import errCheck from "../utils/errCheck.js";
 import { TAssegnaz, TEnums } from "../types/enums.js";
 
 const COLLECTION_NAME = "enums";

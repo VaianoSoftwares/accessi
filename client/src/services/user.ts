@@ -1,66 +1,74 @@
-import axios from "./axiosSetup";
-import { AxiosResponse } from "axios";
 import { LoginFormState } from "../types/LoginFormState";
 import { TPermesso } from "../types/TPermesso";
 import { RegisterFormState } from "../types/RegisterFormState";
-import { GenericResponse } from "../types/Responses";
-import { adminReqHeader, guestReqHeader } from "./dataServicesConfigs";
-import { queryToString } from "./dataServicesUtilis";
+import DataServices from "./DataServices";
 
-const baseUrl = "/api/v1/users";
+class UserDataService extends DataServices {
+  register(data: RegisterFormState) {
+    return super.request({
+      method: "POST",
+      url: "/register",
+      token: true,
+      data,
+    });
+  }
 
-class UserDataService {
+  login(data: LoginFormState) {
+    return super.request({
+      method: "POST",
+      url: "/login",
+      data,
+    });
+  }
 
-    register(data: RegisterFormState): Promise<AxiosResponse<GenericResponse>> {
-        return axios.post(`${baseUrl}/register`, data, {
-            headers: adminReqHeader
-        });
-    }
+  getUser(id: string) {
+    return super.request({
+      url: "/user",
+      data: { id },
+      token: true,
+    });
+  }
 
-    login(data: LoginFormState): Promise<AxiosResponse<GenericResponse>> {
-        return axios.post(`${baseUrl}/login`, data);
-    }
+  logout() {
+    return super.request({
+      method: "POST",
+      url: "/logout",
+      token: true,
+    });
+  }
 
-    logout(): Promise<AxiosResponse<GenericResponse>> {
-        return axios.post(`${baseUrl}/logout`, {}, {
-            headers: guestReqHeader
-        });
-    }
+  getSession() {
+    return super.request({
+      url: "/session",
+      token: true,
+    });
+  }
 
-    getSession(): Promise<AxiosResponse<GenericResponse>> {
-        return axios.get(`${baseUrl}/session`, {
-            headers: guestReqHeader
-        });
-    }
+  getPermessi(data?: TPermesso) {
+    return super.request({
+      url: "/permessi",
+      data,
+      token: true,
+    });
+  }
 
-    getTipiUtenti(): Promise<AxiosResponse<GenericResponse>> {
-        return axios.get(`${baseUrl}/tipi-utenti`, {
-            headers: guestReqHeader
-        });
-    }
+  postPermesso(data: TPermesso) {
+    return super.request({
+      method: "POST",
+      url: "/permessi",
+      token: true,
+      data,
+    });
+  }
 
-    getPermessi(data?: TPermesso): Promise<AxiosResponse<GenericResponse>> {
-        const params = queryToString(data);
-        
-        return axios.get(`${baseUrl}/permessi?${params}`, {
-            headers: guestReqHeader
-        });
-    }
-
-    postPermesso(data: TPermesso): Promise<AxiosResponse<GenericResponse>> {
-        return axios.post(`${baseUrl}/permessi`, data, {
-            headers: guestReqHeader
-        });
-    }
-
-    deletePermesso(data: TPermesso): Promise<AxiosResponse<GenericResponse>> {
-        const params = queryToString(data);
-        
-        return axios.delete(`${baseUrl}/permessi?${params}`, {
-            headers: adminReqHeader
-        });
-    }
-    
+  deletePermesso(data: TPermesso) {
+    return super.request({
+      method: "DELETE",
+      url: "/permessi",
+      token: true,
+      data,
+    });
+  }
 }
 
-export default new UserDataService();
+export default new UserDataService("/api/v1/users");

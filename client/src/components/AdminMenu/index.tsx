@@ -1,5 +1,4 @@
 // modules
-import React from "react";
 import {
     Routes,
     Route,
@@ -14,22 +13,23 @@ import "./index.css";
 // types
 import { TUser } from "../../types/TUser";
 import { TAlert } from "../../types/TAlert";
-import { Nullable } from "../../types/Nullable";
-import { TAssegnaz } from "../../types/TAssegnaz";
-import { TBadgeTipo } from "../../types/Badge";
+import { TPostazione } from "../../types/TPostazione";
+import { TAssegnazione } from "../../types/TAssegnazione";
 
 type Props = {
     user: TUser;
     logout: () => Promise<void>;
-    alert: Nullable<TAlert>;
+    alert: TAlert | null;
     openAlert: (alert: TAlert) => void;
     closeAlert: () => void;
-    tipiBadge: TBadgeTipo[];
-    assegnazioni: TAssegnaz[];
-    setAssegnazioni: React.Dispatch<React.SetStateAction<TAssegnaz[]>>;
+    assegnazioni: TAssegnazione[];
+    addAssegnazione: (assegnazione: TAssegnazione) => void;
+    removeAssegnazione: (name: string) => void;
+    clienti: string[];
+    postazioni: TPostazione[];
 };
 
-const AdminMenu: React.FC<Props> = (props: Props) => {
+export default function AdminMenu(props: Props) {
 
     return (
         <div className="row admin-menu-wrapper">
@@ -61,6 +61,8 @@ const AdminMenu: React.FC<Props> = (props: Props) => {
                                 alert={props.alert}
                                 openAlert={props.openAlert}
                                 closeAlert={props.closeAlert}
+                                clienti={props.clienti}
+                                postazioni={props.postazioni}
                             />
                         ) : props.user ? (
                             <Navigate replace to="../../home" />
@@ -76,9 +78,9 @@ const AdminMenu: React.FC<Props> = (props: Props) => {
                                 alert={props.alert}
                                 openAlert={props.openAlert}
                                 closeAlert={props.closeAlert}
-                                tipiBadge={props.tipiBadge}
                                 assegnazioni={props.assegnazioni}
-                                setAssegnazioni={props.setAssegnazioni}
+                                addAssegnazione={props.addAssegnazione}
+                                removeAssegnazione={props.removeAssegnazione}
                             />
                         ) : props.user ? (
                             <Navigate replace to="../../home" />
@@ -90,6 +92,4 @@ const AdminMenu: React.FC<Props> = (props: Props) => {
             </div>
         </div>
     );
-};
-
-export default AdminMenu;
+}

@@ -1,5 +1,3 @@
-import { Nullable } from "./Nullable";
-
 type TPartialDoc = {
     codice: string;
     azienda: string;
@@ -12,5 +10,5 @@ export type TDocumento = TPartialDoc & {
 };
 
 export type DocFormState = TPartialDoc & {
-    docimg: Nullable<File>;
+    docimg: File | null;
 };

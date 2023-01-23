@@ -48,10 +48,11 @@ export class TableContentMapper {
     }));
   }
 
-  static mapToAutoComplBadge(badge: TBadgeResp): BadgeFormState {
+  static mapToAutoComplBadge(badge: TBadgeResp, postazione: string): BadgeFormState {
     return {
       ...badge,
-      pfp: null,
+      pfp: "",
+      postazione,
       scadenza: badge.scadenza
         ? dateFormat(new Date(badge.scadenza), "yyyy-mm-dd")
         : "",

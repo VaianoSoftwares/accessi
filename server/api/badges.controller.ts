@@ -3,7 +3,7 @@ import FileManager from "./badges.filemanager.js";
 import EnumsDAO from "../dao/enums.dao.js";
 import Validator from "../auth/validation.js";
 import { Request, Response } from "express";
-import errCheck from "../middlewares/errCheck.js";
+import errCheck from "../utils/errCheck.js";
 import { GenericResponse } from "../types/responses.js";
 import Badge, { TBadgeAddReq, TBadgeFindReq } from "../types/badges.js";
 import { TAssegnaz } from "../types/enums.js";
@@ -189,24 +189,6 @@ export default class BadgesController {
         }
     }
 
-    // static async apiGetAssegnazioni(req: Request, res: Response) {
-    //     try {
-    //         const { tipo } = req.query;
-    //         if(tipo) {
-    //             const enumResp = await EnumsDAO.getEnums(`assegnazione.${tipo}`);
-    //             res.json({ success: true, data: enumResp.assegnazione[tipo], msg: "Assegnazioni ottenute con successo" });
-    //         }
-    //         else {
-    //             const enumResp = await EnumsDAO.getEnums("assegnazione");
-    //             /*const assegnazList = Object.values(enumResp.assegnazione).flat()*/;
-    //             res.json({ success: true, data: /*assegnazList*/enumResp, msg: "Assegnazioni ottenute con successo" });
-    //         }
-    //     } catch(err) {
-    //         console.log(`apiGetAssegnazioni - ${err}`);
-    //         res.status(500).json({ success: false, data: {}, msg: String(err) });
-    //     }
-    // }
-
     static async apiPostAssegnazioni(req: Request, res: Response) {
         try {
             const { error } = Validator.enumDoc(req.body);
@@ -275,34 +257,4 @@ export default class BadgesController {
             res.status(500).json({ success: false, msg: error });
         }
     }
-
-    // static async apiGetTipiDoc(req: Request, res: Response) {
-    //     try {
-    //         const enumResp = await EnumsDAO.getEnums("documento");
-    //         res.json({ success: true, data: enumResp.documento });
-    //     } catch(err) {
-    //         console.log(`apiGetTipiDoc - ${err}`);
-    //         res.status(500).json({ success: false, data: [], msg: err.message });
-    //     }
-    // }
-
-    // static async apiGetStati(req: Request, res: Response) {
-    //     try {
-    //         const enumResp = await EnumsDAO.getEnums("stato");
-    //         res.json({ success: true, data: enumResp.stato });
-    //     } catch(err) {
-    //         console.log(`apiGetStati - ${err}`);
-    //         res.status(500).json({ success: false, data: [], msg: err.message });
-    //     }
-    // }
-
-    // static async apiGetTipiBadge(req: Request, res: Response) {
-    //     try {
-    //         const enumResp = await EnumsDAO.getEnums("badge");
-    //         res.json({ success: true, data: enumResp.badge });
-    //     } catch(err) {
-    //         console.log(`apiGetTipiBadge - ${err}`);
-    //         res.status(500).json({ success: false, data: [], msg: err.message });
-    //     }
-    // }
 }

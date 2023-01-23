@@ -1,4 +1,4 @@
-import isObjKey from "../middlewares/isObjKey.js";
+import isObjKey from "../utils/isObjKey.js";
 import { Undefineable } from "./nullable.js";
 
 export type TDocumento = {

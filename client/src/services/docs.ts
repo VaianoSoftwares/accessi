@@ -1,50 +1,26 @@
-import { AxiosResponse } from "axios";
-import axios from "./axiosSetup";
-import { GenericResponse } from "../types/Responses";
 import { DocFormState } from "../types/Documento";
-import { adminReqFileHeader, adminReqHeader, guestReqHeader } from "./dataServicesConfigs";
-import { isQueryEmpty, queryToString } from "./dataServicesUtilis";
+import DataServices from "./DataServices";
 
-const baseUrl = "/api/v1/documenti";
-
-class DocumentsDataService {
-
-  getAll(): Promise<AxiosResponse<GenericResponse>> {
-    return axios.get(baseUrl, {
-      headers: guestReqHeader,
-    });
+class DocumentsDataService extends DataServices {
+  getAll() {
+    return super.request({ token: true });
   }
 
-  find(query: DocFormState): Promise<AxiosResponse<GenericResponse>> {
-    if (isQueryEmpty(query))
-      return this.getAll();
-
-    const params = queryToString(query);
-    // console.log(params);
-    
-    return axios.get(`${baseUrl}?${params}`, {
-      headers: guestReqHeader,
-    });
+  find(query: DocFormState) {
+    return super.request({ token: true, data: query });
   }
 
-  insertDoc(data: FormData): Promise<AxiosResponse<GenericResponse>> {
-    return axios.post(baseUrl, data, {
-      headers: adminReqFileHeader,
-    });
+  insert(data: FormData) {
+    return super.request({ method: "POST", token: true, files: true, data });
   }
 
-  updateDoc(data: FormData): Promise<AxiosResponse<GenericResponse>> {
-    return axios.put(baseUrl, data, {
-      headers: adminReqFileHeader,
-    });
+  update(data: FormData) {
+    return super.request({ method: "PUT", token: true, files: true, data });
   }
 
-  deleteDoc(codice: string): Promise<AxiosResponse<GenericResponse>> {
-    return axios.delete(`${baseUrl}?codice=${codice}`, {
-      headers: adminReqHeader,
-    });
+  delete(codice: string) {
+    return super.request({ method: "DELETE", token: true, data: { codice } });
   }
-
 }
 
-export default new DocumentsDataService();
+export default new DocumentsDataService("/api/v1/documenti");

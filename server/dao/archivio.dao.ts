@@ -1,6 +1,6 @@
 import BadgesDAO from "./badges.dao.js";
 import { MongoClient, ObjectId, Collection, Filter, WithId } from "mongodb";
-import errCheck from "../middlewares/errCheck.js";
+import errCheck from "../utils/errCheck.js";
 import { TBadgeTipo, TGenericBadge, TGenericNom } from "../types/badges.js";
 import { TArchivio } from "../types/archivio.js";
 
@@ -237,7 +237,7 @@ export default class ArchivioDAO {
       if(!timbraResp) throw new Error(`timbra: DB error`);
       return timbraResp;
     } catch(err) {
-      return errCheck("timbra |");
+      return errCheck(err, "timbra |");
     }
   }
 

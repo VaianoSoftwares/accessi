@@ -32,3 +32,34 @@
     overflow: auto;
     height: 450px;
 }
+
+.pfp-container {
+    border: 2px solid green;
+    width: 150px;
+    height: 150px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+}
+
+.badge-form .form-control {
+    height: 35px;
+}
+
+.badge-form .form-select {
+    height: 38px;
+    padding: 0 0 1px 4px;
+}
+
+.badge-form .form-floating label {
+    font-size: 13px;
+    top: -25%;
+}
+
+.badge-form .form-floating input[type="date"] {
+    height: 48px;
+}
+
+.badge-form input[type="file"] {
+    font-size: 13.5px
+}

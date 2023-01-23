@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import PermessiDAO from "../dao/permessi.dao.js";
-import errCheck from "../middlewares/errCheck.js";
+import errCheck from "../utils/errCheck.js";
 import { TPermesso, TPermessoReq } from "../types/users.js";
 
 export default class PermessiController {

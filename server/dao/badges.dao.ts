@@ -1,6 +1,6 @@
 import dateFormat from "dateformat";
 import { Collection, Filter, MongoClient } from "mongodb";
-import errCheck from "../middlewares/errCheck.js";
+import errCheck from "../utils/errCheck.js";
 import Badge, {
   TBadge,
   TBadgeAddReq,
@@ -219,22 +219,7 @@ export default class BadgesDAO {
       if (badge) {
         throw new Error(`Barcode ${barcode} già esistente.`);
       }
-
-      // const isNom = this.#isBadgeNom(data);
-
-      // const badgeDoc = !isNom
-      //   ? this.#getProvvisorioDoc(data)
-      //   : !data.tipo || data.tipo === "BADGE"
-      //   ? this.#getBadgeDoc(data)
-      //   : data.tipo === "VEICOLO"
-      //   ? this.#getVeicoloDoc(data)
-      //   : data.tipo === "CHIAVE"
-      //   ? this.#getChiaveDoc(data)
-      //   : null;
-
-      // if(!badgeDoc) {
-      //   throw new Error(`Tipo badge ${data.tipo} sconosciuto.`);
-      // }
+      
       const badgeDoc = this.#createBadgeDoc(data);
 
       return await badges.insertOne(badgeDoc);
@@ -295,13 +280,8 @@ export default class BadgesDAO {
 
   static async nullifyNominativo(barcode: string) {
     try {
-      const badge = await badges.findOne({ barcode });
-      if(!badge) {
-        throw new Error(`Barcode ${barcode} non esistente`);
-      }
-
       return await badges.updateOne(
-        { _id: badge._id },
+        { barcode },
         { $set: { nominativo: null } }
       );
     } catch(err) {

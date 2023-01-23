@@ -1,5 +1,5 @@
 import { Collection, MongoClient, ObjectId } from "mongodb";
-import errCheck from "../middlewares/errCheck.js";
+import errCheck from "../utils/errCheck.js";
 import { isDocUpdKey, TDocumento, TDocumentoReq, TDocUpdReq } from "../types/documenti.js";
 
 const COLLECTION_NAME = "documenti";

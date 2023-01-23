@@ -1,5 +1,5 @@
-import { Collection, MongoClient } from "mongodb";
-import errCheck from "../middlewares/errCheck.js";
+import { Collection, MongoClient, ObjectId } from "mongodb";
+import errCheck from "../utils/errCheck.js";
 import { TUser } from "../types/users.js";
 
 let users: Collection<TUser>;
@@ -33,6 +33,14 @@ export default class UsersDAO {
             return await users.findOne({ username });
         } catch(err) {
             errCheck(err, "getUserByName |");
+        }
+    }
+
+    static async getUserById(id: string | ObjectId) {
+        try {
+            return await users.findOne({ _id: new ObjectId(id) });
+        } catch(err) {
+            errCheck(err, "getUserById |");
         }
     }
 }

@@ -6,13 +6,14 @@ import BadgeDataService from "../../services/badge";
 import "./index.css";
 import dateFormat from "dateformat";
 import BadgeTable from "../BadgeTable";
-import { TEvent } from "../../types/TEvent";
-import handleInputChanges from "../../utils/handleInputChanges";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
-import { TAssegnaz } from "../../types/TAssegnaz";
+import { TPostazione } from "../../types/TPostazione";
+import { TAssegnazione } from "../../types/TAssegnazione";
 
 type Props = {
-  assegnazioni: TAssegnaz[];
+  assegnazioni: TAssegnazione[];
+  clienti: string[];
+  postazioni: TPostazione[];
 };
 
 type TArchForm = {
@@ -28,60 +29,77 @@ type TArchForm = {
   dataFine: string;
 };
 
-const initArchForm: TArchForm = {
-  cliente: "",
-  postazione: "",
-  nominativo: "",
-  assegnazione: "",
-  nome: "",
-  cognome: "",
-  chiave: "",
-  descrizione: "",
-  dataInizio: dateFormat(
-    new Date(new Date().setDate(new Date().getDate() - 1)),
-    "yyyy-mm-dd"
-  ),
-  dataFine: dateFormat(
-    new Date(new Date().setDate(new Date().getDate() + 1)),
-    "yyyy-mm-dd"
-  ),
-};
+const TABLE_ID = "archivio-table";
 
-const Archivio: React.FC<Props> = (props) => {
-  const [archivio, setArchivio] = React.useState<TArchTableContent[] | TArchivioChiave[]>(
-    []
-  );
-  const [archForm, setArchForm] = React.useState<TArchForm>(initArchForm);
+export default function Archivio(props: Props) {
+  const clienteRef = React.useRef<HTMLSelectElement>(null);
+  const postazioneRef = React.useRef<HTMLSelectElement>(null);
+  const nominativoRef = React.useRef<HTMLInputElement>(null);
+  const assegnazioneRef = React.useRef<HTMLSelectElement>(null);
+  const nomeRef = React.useRef<HTMLInputElement>(null);
+  const cognomeRef = React.useRef<HTMLInputElement>(null);
+  const chiaveRef = React.useRef<HTMLInputElement>(null);
+  const descrizioneRef = React.useRef<HTMLInputElement>(null);
+  const dataInizioRef = React.useRef<HTMLInputElement>(null);
+  const dataFineRef = React.useRef<HTMLInputElement>(null);
 
-  const findArchivioBadge = () => {
-    BadgeDataService.getArchivio(archForm)
-      .then(response => {
+  const [archivio, setArchivio] = React.useState<
+    TArchTableContent[] | TArchivioChiave[]
+  >([]);
+
+  function formToObj(): TArchForm {
+    return {
+      cliente: clienteRef.current!.value,
+      postazione: postazioneRef.current!.value,
+      nominativo: nominativoRef.current!.value,
+      assegnazione: assegnazioneRef.current!.value,
+      nome: nomeRef.current!.value,
+      cognome: cognomeRef.current!.value,
+      chiave: chiaveRef.current!.value,
+      descrizione: descrizioneRef.current!.value,
+      dataInizio: dataInizioRef.current!.value,
+      dataFine: dataFineRef.current!.value,
+    };
+  }
+
+  // function clearForm() {
+  //   clienteRef.current!.value = clienteRef.current!.options!.item(0)!.value;
+  //   postazioneRef.current!.value = postazioneRef.current!.options!.item(0)!.value;
+  //   nominativoRef.current!.value = nominativoRef.current!.defaultValue;
+  //   assegnazioneRef.current!.value = assegnazioneRef.current!.options!.item(0)!.value;
+  //   nomeRef.current!.value = nomeRef.current!.defaultValue;
+  //   cognomeRef.current!.value = cognomeRef.current!.defaultValue;
+  //   chiaveRef.current!.value = chiaveRef.current!.defaultValue;
+  //   descrizioneRef.current!.value = descrizioneRef.current!.defaultValue;
+  //   dataInizioRef.current!.value = dataInizioRef.current!.defaultValue;
+  //   dataFineRef.current!.value = dataFineRef.current!.defaultValue;
+  // }
+
+  function findArchivioBadge() {
+    BadgeDataService.getArchivio(formToObj())
+      .then((response) => {
         console.log(response.data);
         const archResponse = response.data.data as TArchivioChiave[];
         TableContentMapper.parseDate(archResponse);
         setArchivio(archResponse);
       })
-      .catch(err => console.error("findArchivio |", err));
-  };
+      .catch((err) => console.error("findArchivio |", err));
+  }
 
-  const findArchivioChiavi = () => {
-    BadgeDataService.getArchivioChiavi(archForm)
-      .then(response => {
+  function findArchivioChiavi() {
+    BadgeDataService.getArchivioChiavi(formToObj())
+      .then((response) => {
         console.log(response.data);
         const archResponse = response.data.data as TArchTableContent[];
         TableContentMapper.parseDate(archResponse);
         setArchivio(archResponse);
       })
-      .catch(err => console.error("findArchivio |", err));
-  };
-
-  const handleInputChangesArch = (e: TEvent) => {
-    handleInputChanges(e, archForm, setArchForm);
-  };
+      .catch((err) => console.error("findArchivio |", err));
+  }
 
   React.useEffect(() => {
     findArchivioBadge();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -95,10 +113,12 @@ const Archivio: React.FC<Props> = (props) => {
                   type="date"
                   className="form-control form-control-sm"
                   id="dataInizio"
-                  value={archForm.dataInizio}
-                  onChange={handleInputChangesArch}
-                  name="dataInizio"
                   autoComplete="off"
+                  ref={dataInizioRef}
+                  defaultValue={dateFormat(
+                    new Date(new Date().setDate(new Date().getDate() - 1)),
+                    "yyyy-mm-dd"
+                  )}
                 />
                 <label htmlFor="dataInizio">resoconto inizio</label>
               </div>
@@ -107,36 +127,53 @@ const Archivio: React.FC<Props> = (props) => {
                   type="date"
                   className="form-control form-control-sm"
                   id="dataFine"
-                  value={archForm.dataFine}
-                  onChange={handleInputChangesArch}
-                  name="dataFine"
                   autoComplete="off"
+                  ref={dataFineRef}
+                  defaultValue={dateFormat(
+                    new Date(new Date().setDate(new Date().getDate() + 1)),
+                    "yyyy-mm-dd"
+                  )}
+                  min={dataInizioRef.current!.value}
                 />
                 <label htmlFor="dataFine">resoconto fine</label>
               </div>
               <div className="w-100 mb-1" />
               <div className="form-floating col-sm-2">
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
+                <select
+                  className="form-select form-select-sm"
                   id="cliente"
-                  value={archForm.cliente}
-                  onChange={handleInputChangesArch}
-                  name="cliente"
-                  autoComplete="off"
-                />
+                  placeholder="cliente"
+                  ref={clienteRef}
+                  defaultValue=""
+                >
+                  <option value="" key="-1"></option>
+                  {props.clienti
+                    .filter((cliente) => cliente)
+                    .map((cliente, index) => (
+                      <option value={cliente} key={index}>
+                        {cliente}
+                      </option>
+                    ))}
+                </select>
                 <label htmlFor="cliente">cliente</label>
               </div>
               <div className="form-floating col-sm-2">
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
+                <select
+                  className="form-select form-select-sm"
                   id="postazione"
-                  value={archForm.postazione}
-                  onChange={handleInputChangesArch}
-                  name="postazione"
-                  autoComplete="off"
-                />
+                  placeholder="postazione"
+                  ref={postazioneRef}
+                  defaultValue=""
+                >
+                  <option value="" key="-1"></option>
+                  {props.postazioni
+                    .filter(({ name }) => name)
+                    .map(({ name }, index) => (
+                      <option value={name} key={index}>
+                        {name}
+                      </option>
+                    ))}
+                </select>
                 <label htmlFor="postazione">postazione</label>
               </div>
               <div className="w-100 mb-1" />
@@ -145,10 +182,9 @@ const Archivio: React.FC<Props> = (props) => {
                   type="text"
                   className="form-control form-control-sm"
                   id="nominativo"
-                  value={archForm.nominativo}
-                  onChange={handleInputChangesArch}
-                  name="nominativo"
                   autoComplete="off"
+                  ref={nominativoRef}
+                  defaultValue=""
                 />
                 <label htmlFor="nominativo">badge</label>
               </div>
@@ -156,10 +192,9 @@ const Archivio: React.FC<Props> = (props) => {
                 <select
                   className="form-select form-select-sm"
                   id="assegnazione"
-                  value={archForm.assegnazione || ""}
-                  onChange={handleInputChangesArch}
-                  name="assegnazione"
                   placeholder="assegnazione"
+                  ref={assegnazioneRef}
+                  defaultValue=""
                 >
                   <option value="" key="-1"></option>
                   {props.assegnazioni
@@ -178,10 +213,9 @@ const Archivio: React.FC<Props> = (props) => {
                   type="text"
                   className="form-control form-control-sm"
                   id="nome"
-                  value={archForm.nome}
-                  onChange={handleInputChangesArch}
-                  name="nome"
                   autoComplete="off"
+                  ref={nomeRef}
+                  defaultValue=""
                 />
                 <label htmlFor="nome">nome</label>
               </div>
@@ -190,10 +224,9 @@ const Archivio: React.FC<Props> = (props) => {
                   type="text"
                   className="form-control form-control-sm"
                   id="cognome"
-                  value={archForm.cognome}
-                  onChange={handleInputChangesArch}
-                  name="cognome"
                   autoComplete="off"
+                  ref={cognomeRef}
+                  defaultValue=""
                 />
                 <label htmlFor="cognome">cognome</label>
               </div>
@@ -203,10 +236,9 @@ const Archivio: React.FC<Props> = (props) => {
                   type="text"
                   className="form-control form-control-sm"
                   id="chiave"
-                  value={archForm.chiave}
-                  onChange={handleInputChangesArch}
-                  name="chiave"
                   autoComplete="off"
+                  ref={chiaveRef}
+                  defaultValue=""
                 />
                 <label htmlFor="chiave">chiave</label>
               </div>
@@ -215,10 +247,9 @@ const Archivio: React.FC<Props> = (props) => {
                   type="text"
                   className="form-control form-control-sm"
                   id="descrizione"
-                  value={archForm.descrizione}
-                  onChange={handleInputChangesArch}
-                  name="descrizione"
                   autoComplete="off"
+                  ref={descrizioneRef}
+                  defaultValue=""
                 />
                 <label htmlFor="descrizione">descrizione</label>
               </div>
@@ -247,7 +278,7 @@ const Archivio: React.FC<Props> = (props) => {
               <div className="col">
                 <button
                   className="btn btn-success"
-                  onClick={() => htmlTableToExcel("archivio-table")}
+                  onClick={() => htmlTableToExcel(TABLE_ID)}
                 >
                   Excel
                 </button>
@@ -257,10 +288,8 @@ const Archivio: React.FC<Props> = (props) => {
         </div>
       </div>
       <div className="archivio-table-wrapper">
-        <BadgeTable content={archivio} tableId="archivio-table" />
+        <BadgeTable content={archivio} tableId={TABLE_ID} />
       </div>
     </div>
   );
-};
-
-export default Archivio;
+}

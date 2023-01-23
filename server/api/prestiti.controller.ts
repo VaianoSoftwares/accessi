@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import Validator from "../auth/validation.js";
 import PrestitiDAO from "../dao/prestiti.dao.js";
-import errCheck from "../middlewares/errCheck.js";
+import errCheck from "../utils/errCheck.js";
 
 export default class PrestitiController {
   static async apiGetArchivioChiave(req: Request, res: Response) {

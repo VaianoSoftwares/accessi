@@ -1,50 +1,58 @@
 import React from "react";
 import DocumentsDataService from "../../services/docs";
-import { Nullable } from "../../types/Nullable";
 import { TAlert } from "../../types/TAlert";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
-import createFormData from "../../utils/createFormData";
-import { TDocumento, DocFormState } from "../../types/Documento";
+import { TDocumento } from "../../types/Documento";
 import BadgeTable from "../BadgeTable";
-import handleInputChanges from "../../utils/handleInputChanges";
 import "./index.css";
 import Alert from "../Alert";
 
 type Props = {
-  alert: Nullable<TAlert>;
+  alert: TAlert | null;
   openAlert: (alert: TAlert) => void;
   closeAlert: () => void;
   admin: boolean;
 };
 
 const Documenti: React.FC<Props> = (props: Props) => {
-  const initialDocFormState: DocFormState = {
-    codice: "",
-    azienda: "",
-    nome: "",
-    cognome: "",
-    docimg: null,
-  };
-
   const [documenti, setDocumenti] = React.useState<TDocumento[]>([]);
   const [docFindView, setDocFindView] = React.useState<TDocumento[]>([]);
-  const [docForm, setDocForm] = React.useState<DocFormState>(initialDocFormState);
   const [docImgUrl, setDocImgUrl] = React.useState("");
 
-  React.useEffect(() => retriveDocumenti(), []);
+  const codiceRef = React.useRef<HTMLInputElement>(null);
+  const aziendaRef = React.useRef<HTMLInputElement>(null);
+  const nomeRef = React.useRef<HTMLInputElement>(null);
+  const cognomeRef = React.useRef<HTMLInputElement>(null);
+  const docimgRef = React.useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
-    if(docForm.docimg) {
-      const reader = new FileReader();
-      reader.readAsDataURL(docForm.docimg);
-      reader.onload = () => setDocImgUrl(reader.result as string);
-    }
-    else {
-      setDocImgUrl("");
-    }
-  }, [docForm.docimg]);
+  function clearForm() {
+    codiceRef.current!.value = codiceRef.current!.defaultValue;
+    aziendaRef.current!.value = aziendaRef.current!.defaultValue;
+    nomeRef.current!.value = nomeRef.current!.defaultValue;
+    cognomeRef.current!.value = cognomeRef.current!.defaultValue;
+    docimgRef.current!.files = null;
+  }
 
-  const retriveDocumenti = () => {
+  function createFormData() {
+    const data = new FormData();
+    data.append("codice", codiceRef.current!.value);
+    data.append("azienda", aziendaRef.current!.value);
+    data.append("nome", nomeRef.current!.value);
+    data.append("cognome", cognomeRef.current!.value);
+    const doc = docimgRef.current?.files?.item(0)
+    doc && data.append("docimg", doc);
+    return data;
+  }
+
+  function setForm(obj: TDocumento) {
+    codiceRef.current!.value = obj.codice;
+    aziendaRef.current!.value = obj.azienda;
+    nomeRef.current!.value = obj.nome;
+    cognomeRef.current!.value = obj.cognome;
+    docimgRef.current!.files = null;
+  }
+
+  function retriveDocumenti() {
     DocumentsDataService.getAll()
       .then(response => {
         console.log("retriveDocumenti | response: ", response.data);
@@ -53,10 +61,10 @@ const Documenti: React.FC<Props> = (props: Props) => {
       .catch(err => {
         console.error("retriveDocumenti | error: ", err);
       });
-  };
+  }
 
-  const findDocumenti = () => {
-    const filteredDocs = documentiFilter(docForm);
+  function findDocumenti() {
+    const filteredDocs = documentiFilter();
     console.log("findDocumenti | filteredDocs: ", filteredDocs);
 
     setDocFindView(filteredDocs);
@@ -66,15 +74,14 @@ const Documenti: React.FC<Props> = (props: Props) => {
       const url = getDocImgUrlByCodice(filename);
       setDocImgUrl(url);
 
-      setDocForm(mapToDocFormState(filteredDocs[0]));
+      setForm(filteredDocs[0]);
     }
 
     props.closeAlert();
-  };
+  }
 
-  const insertDocumento = () => {
-    const formData = createFormData(docForm);
-    DocumentsDataService.insertDoc(formData)
+  function insertDocumento() {
+    DocumentsDataService.insert(createFormData())
       .then(response => {
         console.log("insertDocumento | response: ", response.data);
 
@@ -88,12 +95,11 @@ const Documenti: React.FC<Props> = (props: Props) => {
       .finally(() => refreshPage());
   };
 
-  const updateDocumento = () => {
+  function updateDocumento() {
     const confirmed = window.confirm("Procedere alla modifica del documento?");
 		if(!confirmed) return;
 
-    const formData = createFormData(docForm);
-    DocumentsDataService.updateDoc(formData)
+    DocumentsDataService.update(createFormData())
       .then(response => {
         console.log("updateDocumento | response: ", response.data);
 
@@ -111,11 +117,11 @@ const Documenti: React.FC<Props> = (props: Props) => {
       .finally(() => refreshPage());
   };
 
-  const deleteDocumento = () => {
+  function deleteDocumento() {
     const confirmed = window.confirm("Procedere alla rimozione del documento?");
 		if(!confirmed) return;
 
-    DocumentsDataService.deleteDoc(docForm.codice)
+    DocumentsDataService.delete(codiceRef.current!.value)
       .then(response => {
         console.log("deleteDocumento | response: ", response.data);
 
@@ -129,34 +135,41 @@ const Documenti: React.FC<Props> = (props: Props) => {
       })
       .catch(err => axiosErrHandl(err, props.openAlert, "deleteDocumento | "))
       .finally(() => refreshPage());
-  };
+  }
 
-  const refreshPage = (closePopup = false) => {
-    setDocForm(initialDocFormState);
+  function documentiFilter() {
+    return documenti.filter(
+      (doc) =>
+        (codiceRef.current!.value &&
+          doc.codice.includes(codiceRef.current!.value!.toUpperCase())) ||
+        (aziendaRef.current!.value &&
+          doc.azienda.includes(aziendaRef.current!.value!.toUpperCase())) ||
+        (nomeRef.current!.value &&
+          doc.nome.includes(nomeRef.current!.value!.toUpperCase())) ||
+        (cognomeRef.current!.value &&
+          doc.cognome.includes(cognomeRef.current!.value!.toUpperCase()))
+    );
+  }
+
+  function updateImgPreview(file: File) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => setDocImgUrl(reader.result as string);
+  }
+
+  function getDocImgUrlByCodice(filename = "") {
+    return filename ? `/api/v1/public/documenti/${filename}` : "";
+  }
+
+  function refreshPage(closePopup = false) {
+    clearForm();
     setDocImgUrl("");
     setDocFindView([]);
     if(closePopup)
       props.closeAlert();
-  };
+  }
 
-  const documentiFilter = (form: DocFormState) =>
-    documenti.filter(doc => 
-      (form.codice && doc.codice.includes(form.codice.toUpperCase())) ||
-      (form.azienda && doc.azienda.includes(form.azienda.toUpperCase())) ||
-      (form.nome && doc.nome.includes(form.nome.toUpperCase())) ||
-      (form.cognome && doc.cognome.includes(form.cognome.toUpperCase()))
-    );
-
-  const getDocImgUrlByCodice = (filename = "") =>
-    filename ? `/api/v1/public/documenti/${filename}` : "";
-
-  const mapToDocFormState = (doc: TDocumento): DocFormState => ({
-    codice: doc.codice,
-    azienda: doc.azienda,
-    nome: doc.nome,
-    cognome: doc.cognome,
-    docimg: null,
-  });
+  React.useEffect(() => retriveDocumenti(), []);
 
   return (
     <div id="doc-wrapper">
@@ -176,10 +189,14 @@ const Documenti: React.FC<Props> = (props: Props) => {
                     type="file"
                     className="custom-file-input"
                     id="docimg"
-                    onChange={(e) => handleInputChanges(e, docForm, setDocForm)}
-                    name="docimg"
+                    onChange={(e) => {
+                      const file = e.target.files?.item(0);
+                      if(file) updateImgPreview(file);
+                      else setDocImgUrl("");
+                    }}
                     disabled={props.admin === false}
                     autoComplete="off"
+                    ref={docimgRef}
                   />
                 </div>
               </div>
@@ -192,11 +209,10 @@ const Documenti: React.FC<Props> = (props: Props) => {
                   type="text"
                   className="form-control form-control-sm"
                   id="codice"
-                  value={docForm.codice}
-                  onChange={(e) => handleInputChanges(e, docForm, setDocForm)}
-                  name="codice"
                   placeholder="numero documento"
                   autoComplete="off"
+                  ref={codiceRef}
+                  defaultValue=""
                 />
                 <label htmlFor="codice">ndoc</label>
               </div>
@@ -205,11 +221,10 @@ const Documenti: React.FC<Props> = (props: Props) => {
                   type="text"
                   className="form-control form-control-sm"
                   id="azienda"
-                  value={docForm.azienda}
-                  onChange={(e) => handleInputChanges(e, docForm, setDocForm)}
-                  name="azienda"
                   placeholder="azienda"
                   autoComplete="off"
+                  ref={aziendaRef}
+                  defaultValue=""
                 />
                 <label htmlFor="azienda">azienda</label>
               </div>
@@ -219,11 +234,10 @@ const Documenti: React.FC<Props> = (props: Props) => {
                   type="text"
                   className="form-control form-control-sm"
                   id="nome"
-                  value={docForm.nome}
-                  onChange={(e) => handleInputChanges(e, docForm, setDocForm)}
-                  name="nome"
                   placeholder="nome"
                   autoComplete="off"
+                  ref={nomeRef}
+                  defaultValue=""
                 />
                 <label htmlFor="nome">nome</label>
               </div>
@@ -232,11 +246,10 @@ const Documenti: React.FC<Props> = (props: Props) => {
                   type="text"
                   className="form-control form-control-sm"
                   id="cognome"
-                  value={docForm.cognome}
-                  onChange={(e) => handleInputChanges(e, docForm, setDocForm)}
-                  name="cognome"
                   placeholder="cognome"
                   autoComplete="off"
+                  ref={cognomeRef}
+                  defaultValue=""
                 />
                 <label htmlFor="cognome">cognome</label>
               </div>

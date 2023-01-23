@@ -1,5 +1,5 @@
 import { Collection, MongoClient } from "mongodb";
-import errCheck from "../middlewares/errCheck.js";
+import errCheck from "../utils/errCheck.js";
 import { TPermesso, TPermessoReq } from "../types/users.js";
 
 const COLLECTION_NAME = "permessi";

@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs/promises";
 import { FileArray, UploadedFile } from "express-fileupload";
-import errCheck from "../middlewares/errCheck.js";
+import errCheck from "../utils/errCheck.js";
 import { NullOrUndefOr } from "../types/nullable.js";
 import { PathLike } from "fs";
 

@@ -1,17 +1,18 @@
 import express from "express";
 import BadgesCtrl from "./badges.controller.js";
 import ArchivioCtrl from "./archivio.controller.js";
-import AuthToken from "../auth/verifyToken.js";
 import PrestitiCtrl from "./prestiti.controller.js";
+import SessionAuth from "../middlewares/SessionAuth.js";
+import JwtAuth from "../middlewares/JwtAuth.js";
 
 const Router = express.Router();
 
 Router
     .route("/")
-    .get(AuthToken.verifyGuest, BadgesCtrl.apiGetBadges)                        // ricerca badge
-    .post(AuthToken.verifyAdmin, BadgesCtrl.apiPostBadges)                      // aggiungi nuovo badge
-    .put(AuthToken.verifyAdmin, BadgesCtrl.apiPutBadges)                        // modifica un badge
-    .delete(AuthToken.verifyAdmin, BadgesCtrl.apiDeleteBadges);                 // elimina un badge
+    .get(JwtAuth.verifyToken, BadgesCtrl.apiGetBadges)                        // ricerca badge
+    .post(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiPostBadges)                      // aggiungi nuovo badge
+    .put(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiPutBadges)                        // modifica un badge
+    .delete(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiDeleteBadges);                 // elimina un badge
 
 Router
     .route("/enums")
@@ -20,8 +21,8 @@ Router
 Router
     .route("/assegnazioni")
     // .get(AuthToken.verifyGuest, BadgesCtrl.apiGetAssegnazioni)                  // ottieni assegnazioni
-    .post(AuthToken.verifyAdmin, BadgesCtrl.apiPostAssegnazioni)                // aggiungi nuova assegnazione
-    .delete(AuthToken.verifyAdmin, BadgesCtrl.apiDeleteAssegnazioni);           // elimina una assegnazione
+    .post(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiPostAssegnazioni)                // aggiungi nuova assegnazione
+    .delete(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiDeleteAssegnazioni);           // elimina una assegnazione
 
 // Router.route("/tipi-doc").get(BadgesCtrl.apiGetTipiDoc);                        // ottieni tipi documento
 // Router.route("/stati").get(BadgesCtrl.apiGetStati);                             // ottieni tipi stato badge
@@ -29,20 +30,20 @@ Router
 
 Router
     .route("/archivio")
-    .get(AuthToken.verifyAdmin, ArchivioCtrl.apiGetArchivio)                    // ottieni archivio
-    .post(AuthToken.verifyGuest, ArchivioCtrl.apiPostArchivio);                 // timbra entrata/uscita
+    .get(JwtAuth.verifyToken, JwtAuth.isAdmin, ArchivioCtrl.apiGetArchivio)                    // ottieni archivio
+    .post(JwtAuth.verifyToken, ArchivioCtrl.apiPostArchivio);                 // timbra entrata/uscita
 
 Router
     .route("/archivio/in-struttura")
-    .get(AuthToken.verifyGuest, ArchivioCtrl.apiGetInStruttura);                // ottieni lista persone in struttura
+    .get(JwtAuth.verifyToken, ArchivioCtrl.apiGetInStruttura);                // ottieni lista persone in struttura
 
 Router
     .route("/archivio-chiavi")
-    .get(AuthToken.verifyAdmin, PrestitiCtrl.apiGetArchivioChiave)              // ottieni archivio chiavi
-    .post(AuthToken.verifyGuest, PrestitiCtrl.apiPostArchivioChiave);           // prestito chiave
+    .get(JwtAuth.verifyToken, JwtAuth.isAdmin, PrestitiCtrl.apiGetArchivioChiave)              // ottieni archivio chiavi
+    .post(JwtAuth.verifyToken, PrestitiCtrl.apiPostArchivioChiave);           // prestito chiave
 
 Router
     .route("/archivio-chiavi/in-prestito")
-    .get(AuthToken.verifyGuest, PrestitiCtrl.apiGetInPrestito);                 // ottieni lista chiavi in prestito
+    .get(JwtAuth.verifyToken, PrestitiCtrl.apiGetInPrestito);                 // ottieni lista chiavi in prestito
 
 export default Router;

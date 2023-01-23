@@ -2,7 +2,6 @@ import dateFormat from "dateformat";
 import React from "react";
 import "./index.css";
 import CalendarioDataService from "../../services/calendario";
-import createFormData from "../../utils/createFormData";
 import {
   N_DATE_DIVS,
   N_CALENDAR_COLS,
@@ -25,11 +24,11 @@ const Calendario: React.FC<Props> = (props: Props) => {
   );
 
   function incrCurrDate() {
-    return setCurrDate(addMonthsToDate(currDate, 1));
+    setCurrDate(addMonthsToDate(currDate, 1));
   }
 
   function decrCurrDate() {
-    return setCurrDate(addMonthsToDate(currDate, -1));
+    setCurrDate(addMonthsToDate(currDate, -1));
   }
 
   const [filenames, setFilenames] = React.useState<string[]>([]);
@@ -156,7 +155,9 @@ const Calendario: React.FC<Props> = (props: Props) => {
     const { files } = inputFile.current!;
     if (!files || !files[0]) return;
 
-    const formData = createFormData({ date: selectedDate, files });
+    const formData = new FormData();
+    formData.append("date", selectedDate);
+    Array.from(files).forEach((file) => formData.append("files", file));
 
     uploadFiles(formData).finally(() => {
       inputFile.current!.files = null;

@@ -1,22 +1,17 @@
-import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Nullable } from "../../types/Nullable";
 import { TUser } from "../../types/TUser";
 import "./index.css";
 
 type Props = {
-  user: Nullable<TUser>;
+  user: TUser | null;
   logout: () => Promise<void>;
 };
 
-const AccessiNavbar: React.FC<Props> = (props: Props) => {
+export default function AccessiNavbar(props: Props) {
   const navigate = useNavigate();
   let location = useLocation().pathname;
 
   const logout = async () => {
-    const confirmed = window.prompt("Procedere al logout?", "");
-    if (confirmed !== "scandicci") return;
-
     await props.logout();
     navigate("/login");
   };
@@ -42,7 +37,7 @@ const AccessiNavbar: React.FC<Props> = (props: Props) => {
             </button>
           </li>
           {(props.user.admin === true ||
-            props.user.postazione === "Sala-Controllo") && (
+            props.user.postazioni!.indexOf("Sala-Controllo") >= 0) && (
             <li className="nav-item">
               <button onClick={() => navigate("/chiavi")} className="btn-nav">
                 Chiavi
@@ -95,6 +90,4 @@ const AccessiNavbar: React.FC<Props> = (props: Props) => {
       </nav>
     )
   );
-};
-
-export default AccessiNavbar;
+}
