@@ -133,7 +133,7 @@ export default function Archivio(props: Props) {
                     new Date(new Date().setDate(new Date().getDate() + 1)),
                     "yyyy-mm-dd"
                   )}
-                  min={dataInizioRef.current!.value}
+                  min={dataInizioRef.current?.value}
                 />
                 <label htmlFor="dataFine">resoconto fine</label>
               </div>
