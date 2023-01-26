@@ -10,28 +10,17 @@ import { TUser } from "../types/users.js";
 
 export default class UsersController {
   static async apiRegister(req: Request, res: Response) {
-    const { error } = Validator.register(req.body);
-    if (error) {
+    const parsed = Validator.register(req.body);
+    
+    if (parsed.success === false) {
       return res
         .status(400)
-        .json({ success: false, msg: error.details[0].message, data: null });
+        .json({ success: false, msg: parsed.error.message });
     }
 
-    const admin = (req.body.admin as boolean) || false;
-
-    const { username, password, clienti, postazioni } = req.body;
+    const { username, password, admin, clienti, postazioni } = parsed.data;
 
     try {
-      if (
-        !admin &&
-        (!Array.isArray(clienti) ||
-          clienti.length === 0 ||
-          !Array.isArray(postazioni) ||
-          postazioni.length === 0)
-      ) {
-        throw new Error("Clienti/Postazioni non forniti");
-      }
-
       const salt = await bcrypt.genSalt(10);
       const hashPsw = await bcrypt.hash(password as string, salt);
 
@@ -62,16 +51,16 @@ export default class UsersController {
   }
 
   static async apiLogin(req: Request, res: Response) {
-    const { error } = Validator.login(req.body);
+    const parsed = Validator.login(req.body);
 
-    if (error) {
-      console.log("apiLogin |", error);
+    if (parsed.success === false) {
+      console.log("apiLogin |", parsed.error);
       return res
         .status(400)
-        .json({ success: false, msg: error.details[0].message, data: null });
+        .json({ success: false, msg: parsed.error.message });
     }
 
-    const { username, password } = req.body;
+    const { username, password } = parsed.data;
 
     try {
       const user = await UsersDAO.getUserByName(username);
@@ -175,25 +164,25 @@ export default class UsersController {
   }
 
   static async apiGetUser(req: Request, res: Response) {
-    const { error } = Validator.login(req.body);
+    // const { error } = Validator.login(req.body);
 
-    if (error) {
-      console.log("apiGetUser |", error);
-      return res
-        .status(400)
-        .json({ success: false, msg: error.details[0].message, data: null });
-    }
+    // if (error) {
+    //   console.log("apiGetUser |", error);
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, msg: error.details[0].message, data: null });
+    // }
 
-    try {
-      const user = await UsersDAO.getUserById(req.query.id as string);
-      if (!user) {
-        return res.status(404).json({ success: false, msg: "User not found" });
-      }
-      res.json({ success: true, msg: "User has been found", data: user });
-    } catch (err) {
-      const { error } = errCheck(err, "getUser |");
-      res.status(500).json({ success: false, msg: error });
-    }
+    // try {
+    //   const user = await UsersDAO.getUserById(req.query.id as string);
+    //   if (!user) {
+    //     return res.status(404).json({ success: false, msg: "User not found" });
+    //   }
+    //   res.json({ success: true, msg: "User has been found", data: user });
+    // } catch (err) {
+    //   const { error } = errCheck(err, "getUser |");
+    //   res.status(500).json({ success: false, msg: error });
+    // }
   }
 
   static async apiGetSession(req: Request, res: Response) {

@@ -3,14 +3,13 @@ import { Collection, Filter, MongoClient } from "mongodb";
 import errCheck from "../utils/errCheck.js";
 import Badge, {
   TBadge,
-  TBadgeAddReq,
-  TBadgeFindReq,
   TBadgeUpdReq,
   TChiave,
   TGenericBadge,
   TProvvisorio,
   TVeicolo,
 } from "../types/badges.js";
+import { TFindBadgeReq, TInsertBadgeReq, TUpdateBadgeReq } from "../auth/validation.js";
 
 const COLLECTION_NAME = "badges";
 
@@ -29,7 +28,7 @@ export default class BadgesDAO {
     }
   }
 
-  static async getBadges(filters: TBadgeFindReq = {}) {
+  static async getBadges(filters: TFindBadgeReq = {}) {
     const exprList = Object.entries(filters)
       .filter(
         ([key, value]) =>
@@ -98,108 +97,90 @@ export default class BadgesDAO {
     }
   }
 
-  static #getBadgeDoc(data: TBadgeAddReq) {
-    const badgeDoc: TBadge = {
+  static #getBadgeDoc(data: TInsertBadgeReq): TBadge {
+    return {
       barcode: data.barcode.toUpperCase(),
-      descrizione: data?.descrizione?.toUpperCase() || "",
+      descrizione: data.descrizione.toUpperCase(),
       tipo: "BADGE",
-      assegnazione: data?.assegnazione?.toUpperCase() || "",
-      ubicazione: data?.ubicazione?.toUpperCase() || "",
-      stato: Badge.toBadgeStato(data?.stato?.toUpperCase()),
+      assegnazione: data.assegnazione.toUpperCase(),
+      ubicazione: data.ubicazione.toUpperCase(),
+      stato: data.stato,
       nominativo: {
-        nome: data?.nome?.toUpperCase() || "",
-        cognome: data?.cognome?.toUpperCase() || "",
-        ditta: data?.ditta?.toUpperCase() || "",
-        telefono: data?.telefono?.toUpperCase() || "",
-        tdoc: Badge.toTDoc(data?.tdoc?.toUpperCase()),
-        ndoc: data?.ndoc?.toUpperCase() || "",
-        scadenza: !data.scadenza
+        nome: data.nome.toUpperCase(),
+        cognome: data.cognome.toUpperCase(),
+        ditta: data.ditta.toUpperCase(),
+        telefono: data.telefono.toUpperCase(),
+        tdoc: data.tdoc,
+        ndoc: data.ndoc.toUpperCase(),
+        scadenza: data.scadenza === ""
           ? ""
           : dateFormat(new Date(data.scadenza), "yyyy-mm-dd"),
         targhe: null,
       },
     };
-
-    return badgeDoc;
   }
 
-  static #getVeicoloDoc(data: TBadgeAddReq) {
-    const veicoloDoc: TVeicolo = {
+  static #getVeicoloDoc(data: TInsertBadgeReq): TVeicolo {
+    return {
       barcode: data.barcode.toUpperCase(),
-      descrizione: data?.descrizione?.toUpperCase() || "",
+      descrizione: data.descrizione.toUpperCase(),
       tipo: "VEICOLO",
-      assegnazione: data?.assegnazione?.toUpperCase() || "",
-      ubicazione: data?.ubicazione?.toUpperCase() || "",
-      stato: Badge.toBadgeStato(data?.stato?.toUpperCase()),
+      assegnazione: data.assegnazione.toUpperCase(),
+      ubicazione: data.ubicazione.toUpperCase(),
+      stato: data.stato,
       nominativo: {
-        nome: data?.nome?.toUpperCase() || "",
-        cognome: data?.cognome?.toUpperCase() || "",
-        ditta: data?.ditta?.toUpperCase() || "",
-        telefono: data?.telefono?.toUpperCase() || "",
-        tdoc: Badge.toTDoc(data?.tdoc?.toUpperCase()),
-        ndoc: data?.ndoc?.toUpperCase() || "",
+        nome: data.nome.toUpperCase(),
+        cognome: data.cognome.toUpperCase(),
+        ditta: data.ditta.toUpperCase(),
+        telefono: data.telefono.toUpperCase(),
+        tdoc: data.tdoc,
+        ndoc: data.ndoc,
         scadenza: "",
         targhe: {
-          1: data?.targa1?.toUpperCase() || "",
-          2: data?.targa2?.toUpperCase() || "",
-          3: data?.targa3?.toUpperCase() || "",
-          4: data?.targa4?.toUpperCase() || ""
+          1: data.targa1.toUpperCase(),
+          2: data.targa2.toUpperCase(),
+          3: data.targa3.toUpperCase(),
+          4: data.targa4.toUpperCase()
         }
       }
     };
-
-    return veicoloDoc;
   }
 
-  static #getChiaveDoc(data: TBadgeAddReq) {
-    const chiaveDoc: TChiave = {
+  static #getChiaveDoc(data: TInsertBadgeReq): TChiave {
+    return {
       barcode: data.barcode.toUpperCase(),
-      descrizione: data?.descrizione?.toUpperCase() || "",
+      descrizione: data.descrizione.toUpperCase(),
       tipo: "CHIAVE",
-      assegnazione: data?.assegnazione?.toUpperCase() || "",
-      ubicazione: data?.ubicazione?.toUpperCase() || "",
-      stato: Badge.toBadgeStato(data?.stato?.toUpperCase()),
+      assegnazione: data.assegnazione.toUpperCase(),
+      ubicazione: data.ubicazione.toUpperCase(),
+      stato: data.stato,
       nominativo: null
     };
-
-    return chiaveDoc;
   }
 
-  static #getProvvisorioDoc(data: TBadgeAddReq) {
-    const provDoc: TProvvisorio = {
+  static #getProvvisorioDoc(data: TInsertBadgeReq): TProvvisorio {
+    return {
       barcode: data.barcode.toUpperCase(),
-      descrizione: data?.descrizione?.toUpperCase() || "",
+      descrizione: data.descrizione.toUpperCase(),
       tipo: "PROVVISORIO",
-      assegnazione: data?.assegnazione?.toUpperCase() || "",
-      ubicazione: data?.ubicazione?.toUpperCase() || "",
-      stato: Badge.toBadgeStato(data?.stato?.toUpperCase()),
+      assegnazione: data.assegnazione.toUpperCase(),
+      ubicazione: data.ubicazione.toUpperCase(),
+      stato: data.stato,
       nominativo: {
-        nome: data?.nome?.toUpperCase() || "",
-        cognome: data?.cognome?.toUpperCase() || "",
-        ditta: data?.ditta?.toUpperCase() || "",
-        telefono: data?.telefono?.toUpperCase() || "",
-        tdoc: Badge.toTDoc(data?.tdoc?.toUpperCase()),
-        ndoc: data?.ndoc?.toUpperCase() || "",
+        nome: data.nome.toUpperCase(),
+        cognome: data.cognome.toUpperCase(),
+        ditta: data.ditta.toUpperCase(),
+        telefono: data.telefono.toUpperCase(),
+        tdoc: data.tdoc,
+        ndoc: data.ndoc.toUpperCase(),
         scadenza: "",
         targhe: null,
       },
     };
-
-    return provDoc;
   }
 
-  // static #isBadgeNom(data: TBadgeAddReq) {
-  //   return (
-  //     Object.entries(data).filter(
-  //       ([key, value]) => value && Badge.isNomKey(key)
-  //     ).length > 0
-  //   );
-  // }
-
-  static #createBadgeDoc(data: TBadgeAddReq) {
-    const tipo = data.tipo || "PROVVISORIO";
-
-      switch(tipo) {
+  static #createBadgeDoc(data: TInsertBadgeReq) {
+      switch(data.tipo) {
         case "PROVVISORIO":
           return this.#getProvvisorioDoc(data);
         case "BADGE":
@@ -211,7 +192,7 @@ export default class BadgesDAO {
       }
   }
 
-  static async addBadge(data: TBadgeAddReq) {
+  static async addBadge(data: TInsertBadgeReq) {
     try {
       const barcode = data.barcode.toUpperCase();
 
@@ -228,7 +209,7 @@ export default class BadgesDAO {
     }
   }
 
-  static async updateBadge(data: TBadgeUpdReq) {
+  static async updateBadge(data: TUpdateBadgeReq) {
     const barcode = data.barcode.toUpperCase();
     const paramsToUpdate: Record<string, unknown> = {};
 
@@ -239,9 +220,9 @@ export default class BadgesDAO {
       }
 
       Object.entries(data)
-        .filter(([key, value]) => value && key !== "barcode" && Badge.isBadgeKey(key))
+        .filter(([key, value]) => value && !["barcode", "tipo"].includes(key))
         .forEach(([key, value]) => {
-          value = value as string;
+          value = value.toString();
 
           if (key === "scadenza")
             paramsToUpdate[`nominativo.${key}`] = dateFormat(
@@ -262,7 +243,7 @@ export default class BadgesDAO {
         { _id: badgeId },
         { $set: paramsToUpdate }
       );
-      return updateResponse;
+      return {...updateResponse, tipoBadge: badge.tipo };
     } catch (err) {
       return errCheck(err, "updateBadge |");
     }

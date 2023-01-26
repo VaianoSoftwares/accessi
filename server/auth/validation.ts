@@ -1,144 +1,221 @@
-import Joi from "joi";
+import z from "zod";
+import { TIPI_BADGE, STATI_BADGE, TDOCS } from "../types/badges.js";
+
+const LOGIN_SCHEMA = z.object({
+  username: z.string().min(6).max(32),
+  password: z.string().min(6).max(256),
+});
+
+const REGISTER_SCHEMA = z.object({
+  username: z.string().min(6).max(32),
+  password: z.string().min(6).max(256),
+  admin: z.coerce.boolean().default(false),
+  clienti: z.string().array().optional(),
+  postazioni: z.string().array().optional(),
+});
+
+const GUEST_SCHEMA = z.object({
+  username: z.string().min(6).max(32),
+  password: z.string().min(6).max(256),
+  admin: z.literal(false),
+  clienti: z.string().array().nonempty("Clienti non forniti"),
+  postazioni: z.string().array().nonempty("Postazioni non fornite"),
+});
+
+const GET_USER_SCHEMA = z.object({
+  id: z.string().length(24),
+});
+
+const FIND_BADGE_SCHEMA = z
+  .object({
+    barcode: z.string().min(3).max(32).optional(),
+    descrizione: z.string().optional(),
+    tipo: z.enum(TIPI_BADGE).optional(),
+    assegnazione: z.string().optional(),
+    stato: z.enum(STATI_BADGE).optional(),
+    ubicazione: z.string().optional(),
+    nome: z.string().optional(),
+    cognome: z.string().optional(),
+    telefono: z.string().optional(),
+    ditta: z.string().optional(),
+    tdoc: z.enum(TDOCS).optional(),
+    ndoc: z.string().optional(),
+    scadenza: z.union([z.coerce.date(), z.literal("")]).optional(),
+    targa1: z.string().optional(),
+    targa2: z.string().optional(),
+    targa3: z.string().optional(),
+    targa4: z.string().optional(),
+  })
+  .optional();
+export type TFindBadgeReq = z.infer<typeof FIND_BADGE_SCHEMA>;
+
+const INSERT_BADGE_SCHEMA = z.object({
+  barcode: z.string().min(3).max(32),
+  descrizione: z.string().default(""),
+  tipo: z.enum(TIPI_BADGE).default("BADGE"),
+  assegnazione: z.string().default(""),
+  stato: z.enum(STATI_BADGE).default("VALIDO"),
+  ubicazione: z.string().default(""),
+  nome: z.string().default(""),
+  cognome: z.string().default(""),
+  telefono: z.string().default(""),
+  ditta: z.string().default(""),
+  tdoc: z.enum(TDOCS).default(""),
+  ndoc: z.string().default(""),
+  scadenza: z.union([z.coerce.date(), z.literal("")]),
+  targa1: z.string().default(""),
+  targa2: z.string().default(""),
+  targa3: z.string().default(""),
+  targa4: z.string().default(""),
+});
+export type TInsertBadgeReq = z.infer<typeof INSERT_BADGE_SCHEMA>;
+
+const UPDATE_BADGE_SCHEMA = z.object({
+  barcode: z.string().min(3).max(32),
+  descrizione: z.string().optional(),
+  tipo: z.enum(TIPI_BADGE).optional(),
+  assegnazione: z.string().optional(),
+  stato: z.enum(STATI_BADGE).optional(),
+  ubicazione: z.string().optional(),
+  nome: z.string().optional(),
+  cognome: z.string().optional(),
+  telefono: z.string().optional(),
+  ditta: z.string().optional(),
+  tdoc: z.enum(TDOCS).optional(),
+  ndoc: z.string().optional(),
+  scadenza: z.union([z.coerce.date(), z.literal("")]).optional(),
+  targa1: z.string().optional(),
+  targa2: z.string().optional(),
+  targa3: z.string().optional(),
+  targa4: z.string().optional(),
+});
+export type TUpdateBadgeReq = z.infer<typeof UPDATE_BADGE_SCHEMA>;
+
+const DELETE_BADGE_SCHEMA = z.object({
+  barcode: z.string().min(3).max(32),
+});
+
+const ASSEGNAZIONE_SCHEMA = z.object({
+  badge: z.enum(TIPI_BADGE),
+  name: z.string(),
+});
+
+const POSTAZIONE_SCHEMA = z.object({
+  cliente: z.string(),
+  name: z.string(),
+});
+
+const TIMBRA_SCHEMA = z.object({
+  barcode: z.string().min(3).max(32),
+  cliente: z.string(),
+  postazione: z.string(),
+});
+
+const GET_INSTRUTT_SCHEMA = z
+  .object({
+    cliente: z.string().optional(),
+    postazione: z.string().optional(),
+  })
+  .optional();
+
+const INSERT_DOCUMENTO_SCHEMA = z.object({
+  codice: z.string(),
+  nome: z.string(),
+  cognome: z.string(),
+  azienda: z.string(),
+});
+
+const UPDATE_DOCUMENTO_SCHEMA = z.object({
+  codice: z.string(),
+  nome: z.string().optional(),
+  cognome: z.string().optional(),
+  azienda: z.string().optional(),
+});
+
+const POST_CALENDARIO_SCHEMA = z.object({
+  date: z.string(),
+});
+
+const DELETE_CALENDARIO_SCHEMA = z.object({
+  date: z.string(),
+  filename: z.string(),
+});
+
+const PRESTITO_CHIAVE_SCHEMA = z.object({
+  barcodes: z.string().min(3).max(32).array(),
+  cliente: z.string(),
+  postazione: z.string(),
+});
 
 export default class Validator {
+  static login(input: unknown) {
+    return LOGIN_SCHEMA.safeParse(input);
+  }
 
-    static login(data: unknown) {
-        const schema = Joi.object({
-          username: Joi.string().min(5).max(32).required(),
-          password: Joi.string().min(6).required(),
-        });
-        
-        return schema.validate(data);
-    }
+  static register(input: unknown) {
+    const parsed = REGISTER_SCHEMA.safeParse(input);
+    if (parsed.success === false || parsed.data.admin === true) return parsed;
 
-    static register(data: unknown) {
-        const schema = Joi.object({
-          username: Joi.string().min(6).max(32).required(),
-          password: Joi.string().min(6).required(),
-          admin: Joi.bool(),
-          clienti: Joi.array(),
-          postazioni: Joi.array(),
-        });
-    
-        return schema.validate(data);
-    }
+    return GUEST_SCHEMA.safeParse(parsed);
+  }
 
-    static logout(data: unknown) {
-      const schema = Joi.object({
-        id: Joi.string().required(),
-      });
+  static logout(input: unknown) {
+    return GET_USER_SCHEMA.safeParse(input);
+  }
 
-      return schema.validate(data);
-    }
+  static getUser(input: unknown) {
+    return GET_USER_SCHEMA.safeParse(input);
+  }
 
-    static getUser(data: unknown) {
-      const schema = Joi.object({
-        id: Joi.string().required(),
-      });
+  static findBadge(input: unknown) {
+    return FIND_BADGE_SCHEMA.safeParse(input);
+  }
 
-      return schema.validate(data);
-    }
-    
-    static badgeDoc(data: unknown) {
-        const schema = Joi.object({
-          barcode: Joi.string().min(3).max(32).required(),
-          descrizione: Joi.string(),
-          tipo: Joi.string(),
-          assegnazione: Joi.string(),
-          stato: Joi.string(),
-          ubicazione: Joi.string(),
-          nome: Joi.string(),
-          cognome: Joi.string(),
-          telefono: Joi.string(),
-          ditta: Joi.string(),
-          tdoc: Joi.string(),
-          ndoc: Joi.string(),
-          scadenza: Joi.string(),
-          targa1: Joi.string(),
-          targa2: Joi.string(),
-          targa3: Joi.string(),
-          targa4: Joi.string(),
-        });
+  static insertBadge(input: unknown) {
+    return INSERT_BADGE_SCHEMA.safeParse(input);
+  }
 
-        return schema.validate(data);
-    }
+  static updateBadge(input: unknown) {
+    return UPDATE_BADGE_SCHEMA.safeParse(input);
+  }
 
-    static enumDoc(data: unknown) {
-        const scheme = Joi.object({
-          badge: Joi.string().required(),
-          name: Joi.string().required(),
-        });
+  static deleteBadge(input: unknown) {
+    return DELETE_BADGE_SCHEMA.safeParse(input);
+  }
 
-        return scheme.validate(data);
-    }
+  static assegnazioni(input: unknown) {
+    return ASSEGNAZIONE_SCHEMA.safeParse(input);
+  }
 
-    static timbra(data: unknown) {
-        const scheme = Joi.object({
-          barcode: Joi.string().min(3).max(32).required(),
-          cliente: Joi.string().required(),
-          postazione: Joi.string().required(),
-          nome: Joi.string(),
-          cognome: Joi.string(),
-          ditta: Joi.string(),
-          telefono: Joi.string(),
-          tdoc: Joi.string(),
-          ndoc: Joi.string(),
-          targa1: Joi.string(),
-          targa2: Joi.string(),
-          targa3: Joi.string(),
-          targa4: Joi.string(),
-        });
+  static postazioni(input: unknown) {
+    return POSTAZIONE_SCHEMA.safeParse(input);
+  }
 
-        return scheme.validate(data);
-    }
+  static timbra(input: unknown) {
+    return TIMBRA_SCHEMA.safeParse(input);
+  }
 
-    static postDocumento(data: unknown) {
-      const scheme = Joi.object({
-        codice: Joi.string().required(),
-        nome: Joi.string().required(),
-        cognome: Joi.string().required(),
-        azienda: Joi.string().required(),
-      });
+  static getInStrutt(input: unknown) {
+    return GET_INSTRUTT_SCHEMA.safeParse(input);
+  }
 
-      return scheme.validate(data);
-    }
+  static insertDocumento(input: unknown) {
+    return INSERT_DOCUMENTO_SCHEMA.safeParse(input);
+  }
 
-    static putDocumento(data: unknown) {
-      const scheme = Joi.object({
-        codice: Joi.string().required(),
-        nome: Joi.string(),
-        cognome: Joi.string(),
-        azienda: Joi.string(),
-      });
+  static updateDocumento(input: unknown) {
+    return UPDATE_DOCUMENTO_SCHEMA.safeParse(input);
+  }
 
-      return scheme.validate(data);
-    }
+  static postCalendario(input: unknown) {
+    return POST_CALENDARIO_SCHEMA.safeParse(input);
+  }
 
-    static postCalendario(data: unknown) {
-      const scheme = Joi.object({
-        date: Joi.string().required()
-      });
+  static deleteCalendario(input: unknown) {
+    return DELETE_CALENDARIO_SCHEMA.safeParse(input);
+  }
 
-      return scheme.validate(data);
-    }
-
-    static deleteCalendario(data: unknown) {
-      const scheme = Joi.object({
-        date: Joi.string().required(),
-        filename: Joi.string().required()
-      });
-
-      return scheme.validate(data);
-    }
-
-    static prestitoChiave(data: unknown) {
-      const scheme = Joi.object({
-        barcodes: Joi.array().required(),
-        cliente: Joi.string().required(),
-        postazione: Joi.string().required(),
-      });
-
-      return scheme.validate(data);
-    }
-    
+  static prestitoChiave(input: unknown) {
+    return PRESTITO_CHIAVE_SCHEMA.safeParse(input);
+  }
 }

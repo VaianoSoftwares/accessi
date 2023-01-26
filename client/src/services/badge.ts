@@ -2,6 +2,7 @@ import { TimbraDoc } from "../types/TimbraDoc";
 import { TAssegnazione } from "../types/TAssegnazione";
 import { TPrestitoDataReq } from "../types/PrestitoChiavi";
 import DataServices from "./DataServices";
+import { TPostazione } from "../types/TPostazione";
 
 type TInStruttDataReq = {
   cliente?: string;
@@ -46,6 +47,24 @@ class BadgesDataService extends DataServices {
     return super.request({
       method: "DELETE",
       url: "/assegnazioni",
+      token: true,
+      data,
+    });
+  }
+
+  insertPostazione(data: TPostazione) {
+    return super.request({
+      method: "POST",
+      url: "/postazione",
+      token: true,
+      data,
+    });
+  }
+
+  deletePostazione(data: TPostazione) {
+    return super.request({
+      method: "DELETE",
+      url: "/postazione",
       token: true,
       data,
     });

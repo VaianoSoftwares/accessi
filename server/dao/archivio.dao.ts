@@ -1,7 +1,7 @@
 import BadgesDAO from "./badges.dao.js";
-import { MongoClient, ObjectId, Collection, Filter, WithId } from "mongodb";
+import { MongoClient, ObjectId, Collection, Filter } from "mongodb";
 import errCheck from "../utils/errCheck.js";
-import { TBadgeTipo, TGenericBadge, TGenericNom } from "../types/badges.js";
+import { TGenericBadge, TGenericNom } from "../types/badges.js";
 import { TArchivio } from "../types/archivio.js";
 
 const COLLECTION_NAME = "archivio1";
@@ -471,8 +471,6 @@ export default class ArchivioDAO {
 
     if(cliente) arrFilters.push({ cliente });
     if(postazione) arrFilters.push({ postazione });
-
-    // console.log(arrFilters);
 
     const query: Filter<unknown> = {
       $and: arrFilters,

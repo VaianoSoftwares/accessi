@@ -15,6 +15,7 @@ import { TUser } from "../../types/TUser";
 import { TAlert } from "../../types/TAlert";
 import { TPostazione } from "../../types/TPostazione";
 import { TAssegnazione } from "../../types/TAssegnazione";
+import Postazioni from "../Postazioni";
 
 type Props = {
     user: TUser;
@@ -27,6 +28,8 @@ type Props = {
     removeAssegnazione: (name: string) => void;
     clienti: string[];
     postazioni: TPostazione[];
+    addPostazione: (postazione: TPostazione) => void;
+    removePostazione: (name: string) => void;
 };
 
 export default function AdminMenu(props: Props) {
@@ -43,6 +46,11 @@ export default function AdminMenu(props: Props) {
                     <button className="btn btn-success btn-block">
                         <Link className="link-white-text" to="assegnaz">
                             Modifica Assegnaz
+                        </Link>
+                    </button>
+                    <button className="btn btn-success btn-block">
+                        <Link className="link-white-text" to="postazioni">
+                            Modifica Postazioni
                         </Link>
                     </button>
                     <button className="btn btn-success btn-block">
@@ -81,6 +89,24 @@ export default function AdminMenu(props: Props) {
                                 assegnazioni={props.assegnazioni}
                                 addAssegnazione={props.addAssegnazione}
                                 removeAssegnazione={props.removeAssegnazione}
+                            />
+                        ) : props.user ? (
+                            <Navigate replace to="../../home" />
+                        ) : (
+                            <Navigate replace to="../../login" />
+                        )}
+                    />
+                    <Route
+                        path="postazioni"
+                        element={props.user && props.user.admin === true ? (
+                            <Postazioni
+                                alert={props.alert}
+                                openAlert={props.openAlert}
+                                closeAlert={props.closeAlert}
+                                clienti={props.clienti}
+                                postazioni={props.postazioni}
+                                addPostazione={props.addPostazione}
+                                removePostazione={props.removePostazione}
                             />
                         ) : props.user ? (
                             <Navigate replace to="../../home" />

@@ -35,20 +35,20 @@ export default class DocumentiController {
     }
 
     static async apiPostDocumenti(req: Request, res: Response) {
-        const valErr = Validator.postDocumento(req.body).error;
-        if(valErr) {
+        const parsed = Validator.insertDocumento(req.body);
+        if(parsed.success === false) {
             return res.status(400).json({ 
                 success: false,
-                msg: valErr.details[0].message,
+                msg: parsed.error.message,
                 data: null 
             });
         }
 
         const docToAdd: TDocumento = {
-            codice: req.body.codice.toUpperCase(),
-            nome: req.body.nome.toUpperCase(),
-            cognome: req.body.cognome.toUpperCase(),
-            azieda: req.body.azienda.toUpperCase(),
+            codice: parsed.data.codice.toUpperCase(),
+            nome: parsed.data.nome.toUpperCase(),
+            cognome: parsed.data.cognome.toUpperCase(),
+            azieda: parsed.data.azienda.toUpperCase(),
             filename: ""
         };
 
@@ -93,20 +93,20 @@ export default class DocumentiController {
     }
 
     static async apiPutDocumenti(req: Request, res: Response) {
-        const valErr = Validator.putDocumento(req.body).error;
-        if(valErr) {
+        const parsed = Validator.updateDocumento(req.body);
+        if(parsed.success === false) {
             return res.status(400).json({ 
                 success: false,
-                msg: valErr.details[0].message,
+                msg: parsed.error.message,
                 data: null 
             });
         }
 
         const docToUpd: TDocUpdReq = {
-            codice: req.body.codice.toUpperCase(),
-            nome: req.body?.nome?.toUpperCase(),
-            cognome: req.body?.cognome?.toUpperCase(),
-            azieda: req.body?.azienda?.toUpperCase(),
+            codice: parsed.data.codice.toUpperCase(),
+            nome: parsed.data?.nome?.toUpperCase(),
+            cognome: parsed.data?.cognome?.toUpperCase(),
+            azieda: parsed.data?.azienda?.toUpperCase(),
         };
 
         try {

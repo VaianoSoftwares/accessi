@@ -1,0 +1,14 @@
+.postazioni-list {
+    max-height: 300px;
+    overflow: scroll;
+}
+
+.btn-del-postazioni {
+    background-color: red;
+    color: white;
+    border: 1px solid;
+}
+
+.btn-del-postazioni:hover {
+    background-color: darkred;
+}

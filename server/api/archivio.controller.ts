@@ -29,21 +29,20 @@ export default class ArchivioController {
 
   static async apiPostArchivio(req: Request, res: Response) {
     // barcode, tipo, cliente, postazione are REQUIRED in order to execute a "timbratura"
-    const valErr = Validator.timbra(req.body).error;
-    if (valErr) {
+    const parsed = Validator.timbra(req.body);
+    if (parsed.success === false) {
       return res
         .status(400)
-        .json({ success: false, msg: valErr.details[0].message, data: null });
+        .json({ success: false, msg: parsed.error.message, data: null });
     }
 
-    const barcode = (req.body.barcode as string).toUpperCase();
-
-    const { cliente, postazione } = req.body;
-    // get address of client machine requesting for "timbra"
-    const { ip } = req;
-
     try {
-      const archivioResponse = await ArchivioDAO.timbra(barcode, cliente, postazione, ip);
+      const archivioResponse = await ArchivioDAO.timbra(
+        parsed.data.barcode.toUpperCase(),
+        parsed.data.cliente,
+        parsed.data.postazione,
+        req.ip,
+      );
 
       if ("error" in archivioResponse) {
         return res
@@ -65,11 +64,18 @@ export default class ArchivioController {
   }
 
   static async apiGetInStruttura(req: Request, res: Response) {
-    const cliente = req.query?.cliente as string || "";
-    const postazione = req.query?.postazione as string || "";
+    const parsed = Validator.getInStrutt(req.query);
+    if (parsed.success === false) {
+      return res
+        .status(400)
+        .json({ success: false, msg: parsed.error.message, data: null });
+    }
 
     try {
-      const archivioList = await ArchivioDAO.getInStrutt(cliente, postazione);
+      const archivioList = await ArchivioDAO.getInStrutt(
+        parsed?.data?.cliente,
+        parsed?.data?.postazione
+      );
       res.json({ success: true, data: archivioList, msg: "Lista dipendenti in struttura ottenuta con successo" });
     } catch (err) {
       const { error } = errCheck(err, "apiGetInStruttura |");

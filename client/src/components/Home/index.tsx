@@ -422,10 +422,7 @@ export default function Home({
                             props.user.postazioni.indexOf(name) >= 0))
                     )
                     .map(({ name }, index) => (
-                      <option
-                        value={name}
-                        key={index}
-                      >
+                      <option value={name} key={index}>
                         {name}
                       </option>
                     ))}
@@ -542,7 +539,9 @@ export default function Home({
               <div className="col-2">
                 <div
                   className="pfp-container"
-                  style={{ backgroundImage: `url(${pfpUrl})` }}
+                  style={{
+                    backgroundImage: `url(${pfpUrl})`,
+                  }}
                 />
                 <div className="input-group input-group-sm">
                   <input

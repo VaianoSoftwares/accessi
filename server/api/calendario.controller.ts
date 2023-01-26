@@ -6,20 +6,18 @@ import FileManager from "./badges.filemanager.js";
 export default class CalendarioController {
 
     static async apiGetCalendario(req: Request, res: Response) {
-        const valErr = Validator.postCalendario(req.query).error;
-        if(valErr) {
+        const parsed = Validator.postCalendario(req.query);
+        if(parsed.success === false) {
             return res
             .status(400)
             .json({
               success: false,
-              msg: valErr.details[0].message,
+              msg: parsed.error.message,
             });
         }
 
-        const { date } = req.query;
-
         try {
-            const fileResp = await FileManager.getFilenamesByDate(date as string);
+            const fileResp = await FileManager.getFilenamesByDate(parsed.data.date);
             res.json({
                 success: true,
                 msg: "File ottenuti con successo.",
@@ -36,20 +34,21 @@ export default class CalendarioController {
     }
 
     static async apiPostCalendario(req: Request, res: Response) {
-        const valErr = Validator.postCalendario(req.body).error;
-        if(valErr) {
+        const parsed = Validator.postCalendario(req.body);
+        if(parsed.success === false) {
             return res
             .status(400)
             .json({
               success: false,
-              msg: valErr.details[0].message,
+              msg: parsed.error.message,
             });
         }
-
-        const date = req.body.date as string;
         
         try {
-            const fileResp = await FileManager.uploadCalendarioFiles(req.files, date);
+            const fileResp = await FileManager.uploadCalendarioFiles(
+              req.files,
+              parsed.data.date
+            );
             if("error" in fileResp) {
                 return res.status(400).json({
                     success: false,
@@ -72,20 +71,20 @@ export default class CalendarioController {
     }
 
     static async apiDeleteCalendario(req: Request, res: Response) {
-        const valErr = Validator.deleteCalendario(req.query).error;
-        if(valErr) {
+        const parsed = Validator.deleteCalendario(req.query);
+        if(parsed.success === false) {
             return res
             .status(400)
             .json({
               success: false,
-              msg: valErr.details[0].message,
+              msg: parsed.error.message,
             });
         }
 
-        const { filename, date } = req.query;
+        const { filename, date } = parsed.data;
 
         try {
-            const fileResp = await FileManager.deleteCalendarioFile(filename as string, date as string);
+            const fileResp = await FileManager.deleteCalendarioFile(filename, date);
             if("error" in fileResp) {
                 return res.status(400).json({
                     success: false,

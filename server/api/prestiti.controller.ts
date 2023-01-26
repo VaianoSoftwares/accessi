@@ -30,18 +30,18 @@ export default class PrestitiController {
   }
 
   static async apiPostArchivioChiave(req: Request, res: Response) {
-    const valErr = Validator.prestitoChiave(req.body).error;
-    if (valErr) {
+    const parsed = Validator.prestitoChiave(req.body);
+    if (parsed.success === false) {
       return res
         .status(400)
-        .json({ success: false, msg: valErr.details[0].message, data: null });
+        .json({ success: false, msg: parsed.error.message, data: null });
     }
 
     try {
         const response = await PrestitiDAO.prestitoChiavi(
-            req.body.barcodes as Array<string>,
-            req.body.cliente as string,
-            req.body.postazione as string,
+            parsed.data.barcodes,
+            parsed.data.cliente,
+            parsed.data.postazione,
             req.ip
         );
         if("error" in response) {

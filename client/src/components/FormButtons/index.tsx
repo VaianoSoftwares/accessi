@@ -46,32 +46,42 @@ const FormButtons: React.FC<Props> = (props: Props) => {
           </b>
         </div>
         <div className="w-100 mt-1" />
-        <div className="col-auto">
-          <button
-            onClick={() => props.toggleReadOnlyForm()}
-            className="btn btn-success home-form-btn"
-          >
-            Form
-          </button>
-        </div>
-        <div className="col-auto mx-2 home-form-b">
-          <b style={props.readOnlyForm ? { color: "red" } : { color: "green" }}>
-            {props.readOnlyForm && "Non "}
-            {"Attivo"}
-          </b>
-        </div>
-        <div className="w-100 mt-1" />
-        <div className="col">
-          <BadgePopup
-            content={props.badges}
-            trigger={
-              <button className="btn btn-success home-form-btn">Cerca</button>
-            }
-            onOpen={props.findBadges}
-            position="right top"
-          />
-        </div>
-        <div className="w-100 mt-1" />
+        {props.admin === true && (
+          <>
+            <div className="col-auto">
+              <button
+                onClick={() => props.toggleReadOnlyForm()}
+                className="btn btn-success home-form-btn"
+              >
+                Form
+              </button>
+            </div>
+            <div className="col-auto mx-2 home-form-b">
+              <b
+                style={
+                  props.readOnlyForm ? { color: "red" } : { color: "green" }
+                }
+              >
+                {props.readOnlyForm && "Non "}
+                {"Attivo"}
+              </b>
+            </div>
+            <div className="w-100 mt-1" />
+            <div className="col">
+              <BadgePopup
+                content={props.badges}
+                trigger={
+                  <button className="btn btn-success home-form-btn">
+                    Cerca
+                  </button>
+                }
+                onOpen={props.findBadges}
+                position="right top"
+              />
+            </div>
+            <div className="w-100 mt-1" />
+          </>
+        )}
         <div className="col">
           <button
             onClick={() => props.timbra()}
@@ -110,19 +120,22 @@ const FormButtons: React.FC<Props> = (props: Props) => {
               </button>
             </div>
             <div className="w-100 mt-1" />
-            <div className="col">
-              <button
-                onClick={() => htmlTableToExcel("badge-table")}
-                className="btn btn-success home-form-btn"
-              >
-                Excel
-              </button>
-            </div>
-            <div className="w-100 mt-1" />
           </>
         )}
         <div className="col">
-          <button onClick={props.openPopup} className="btn btn-success home-form-btn">
+          <button
+            onClick={() => htmlTableToExcel("badge-table")}
+            className="btn btn-success home-form-btn"
+          >
+            Excel
+          </button>
+        </div>
+        <div className="w-100 mt-1" />
+        <div className="col">
+          <button
+            onClick={props.openPopup}
+            className="btn btn-success home-form-btn"
+          >
             Provvisori
           </button>
         </div>

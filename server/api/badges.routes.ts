@@ -2,7 +2,6 @@ import express from "express";
 import BadgesCtrl from "./badges.controller.js";
 import ArchivioCtrl from "./archivio.controller.js";
 import PrestitiCtrl from "./prestiti.controller.js";
-import SessionAuth from "../middlewares/SessionAuth.js";
 import JwtAuth from "../middlewares/JwtAuth.js";
 
 const Router = express.Router();
@@ -20,13 +19,13 @@ Router
 
 Router
     .route("/assegnazioni")
-    // .get(AuthToken.verifyGuest, BadgesCtrl.apiGetAssegnazioni)                  // ottieni assegnazioni
     .post(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiPostAssegnazioni)                // aggiungi nuova assegnazione
     .delete(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiDeleteAssegnazioni);           // elimina una assegnazione
 
-// Router.route("/tipi-doc").get(BadgesCtrl.apiGetTipiDoc);                        // ottieni tipi documento
-// Router.route("/stati").get(BadgesCtrl.apiGetStati);                             // ottieni tipi stato badge
-// Router.route("/tipi").get(BadgesCtrl.apiGetTipiBadge);                          // ottieni tipi badge
+// Router
+//     .route("/postazioni")
+//     .post(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiPostPostazione)
+//     .delete(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiDeletePostazione);
 
 Router
     .route("/archivio")

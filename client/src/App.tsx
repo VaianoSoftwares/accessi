@@ -29,6 +29,7 @@ import BadgeDataService from "./services/badge";
 import serialPortHandler from "./utils/scannerHandler";
 import SSHandler from "./utils/SSHandler";
 import { TAssegnazione } from "./types/TAssegnazione";
+import { TPostazione } from "./types/TPostazione";
 
 const enumsInitState: TEnums = {
   badge: [],
@@ -59,6 +60,20 @@ export default function App() {
   function removeAssegnazione(name: string) {
     setEnums((prev) => {
       prev!.assegnazione = prev!.assegnazione.filter((a) => a.name !== name);
+      return prev;
+    });
+  }
+
+  function addPostazione(postazione: TPostazione) {
+    setEnums((prev) => {
+      prev!.postazione.push(postazione);
+      return prev;
+    })
+  }
+
+  function removePostazione(name: string) {
+    setEnums((prev) => {
+      prev!.postazione = prev!.postazione.filter((a) => a.name !== name);
       return prev;
     });
   }
@@ -240,6 +255,8 @@ export default function App() {
                 removeAssegnazione={removeAssegnazione}
                 clienti={enums.cliente}
                 postazioni={enums.postazione}
+                addPostazione={addPostazione}
+                removePostazione={removePostazione}
               />
             ) : user ? (
               <Navigate replace to="/home" />

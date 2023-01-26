@@ -17,4 +17,5 @@ export type TEnums = {
     assegnazione: TAssegnaz[],
     cliente: string[],
     postazione: TPostazione[],
+    postazioni: Record<string, string[]>
 };

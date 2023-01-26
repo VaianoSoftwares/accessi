@@ -6,6 +6,10 @@ export type TBadgeTipo = "BADGE" | "CHIAVE" | "VEICOLO" | "PROVVISORIO";
 export type TBadgeStato = "VALIDO" | "SCADUTO" | "REVOCATO" | "RICONSEGNATO";
 export type TTDoc = "CARTA IDENTITA" | "PATENTE" | "TESSERA STUDENTE" | "";
 
+export const TIPI_BADGE = ["BADGE", "CHIAVE", "VEICOLO", "PROVVISORIO"] as const;
+export const STATI_BADGE = ["VALIDO", "SCADUTO", "REVOCATO", "RICONSEGNATO"] as const;
+export const TDOCS = ["CARTA IDENTITA", "PATENTE", "TESSERA STUDENTE", ""] as const;
+
 export type TTarghe = {
     1: string,
     2: string,
@@ -75,19 +79,19 @@ export type TBadgeAddReq = TBadgeFindReq &
     Pick<TGenericBadge, "barcode">;
 export type TBadgeUpdReq = TBadgeAddReq;
 
-const TIPI_BADGE: KeysOf<TBadgeTipo> = {
+const _TIPI_BADGE: KeysOf<TBadgeTipo> = {
     BADGE: null,
     CHIAVE: null,
     VEICOLO: null,
     PROVVISORIO: null
 };
-const STATI_BADGE: KeysOf<TBadgeStato> = {
+const _STATI_BADGE: KeysOf<TBadgeStato> = {
     VALIDO: null,
     SCADUTO: null,
     REVOCATO: null,
     RICONSEGNATO: null
 };
-const TDOCS: KeysOf<TTDoc> = {
+const _TDOCS: KeysOf<TTDoc> = {
     "": null,
     "CARTA IDENTITA": null,
     PATENTE: null,
@@ -164,7 +168,7 @@ export default class Badge {
     static toBadgeTipo(value: unknown): TBadgeTipo {
         if (typeof value !== "string") return "BADGE";
     
-        if(isObjKey(value.toUpperCase(), TIPI_BADGE))
+        if(isObjKey(value.toUpperCase(), _TIPI_BADGE))
             return value.toUpperCase() as TBadgeTipo;
     
         return "BADGE";
@@ -173,7 +177,7 @@ export default class Badge {
     static toBadgeStato(value: unknown): TBadgeStato {
         if (typeof value !== "string") return "VALIDO";
     
-        if(isObjKey(value.toUpperCase(), STATI_BADGE))
+        if(isObjKey(value.toUpperCase(), _STATI_BADGE))
             return value.toUpperCase() as TBadgeStato;
     
         return "VALIDO";
@@ -182,7 +186,7 @@ export default class Badge {
     static toTDoc(value: unknown): TTDoc {
         if (typeof value !== "string") return "";
     
-        if(isObjKey(value.toUpperCase(), TDOCS))
+        if(isObjKey(value.toUpperCase(), _TDOCS))
             return value.toUpperCase() as TTDoc;
     
         return "";
