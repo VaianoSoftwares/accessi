@@ -83,7 +83,7 @@ export default function AccessiNavbar(props: Props) {
           )}
           <li className="nav-item">
             <button onClick={() => logout()} className="btn-nav">
-              Logout {props.user.name}
+              Logout {props.user.username}
             </button>
           </li>
         </div>

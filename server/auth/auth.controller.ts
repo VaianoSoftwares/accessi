@@ -5,31 +5,31 @@ import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import errCheck from "../utils/errCheck.js";
 import { TUser } from "../types/users.js";
-// import SessionUser from "../types/SessionUser.js";
-// import SessionsDAO from "../dao/sessions.dao.js";
 
 export default class UsersController {
   static async apiRegister(req: Request, res: Response) {
     const parsed = Validator.register(req.body);
-    
+
     if (parsed.success === false) {
       return res
         .status(400)
         .json({ success: false, msg: parsed.error.message });
     }
 
-    const { username, password, admin, clienti, postazioni } = parsed.data;
+    const { username, password, admin, clienti, postazioni, device } =
+      parsed.data;
 
     try {
       const salt = await bcrypt.genSalt(10);
-      const hashPsw = await bcrypt.hash(password as string, salt);
+      const hashPsw = await bcrypt.hash(password, salt);
 
       const userDoc: TUser = {
-        username: username as string,
+        username,
         password: hashPsw,
         admin,
-        clienti: admin ? null : clienti as string[],
-        postazioni: admin ? null : postazioni as string[],
+        clienti: admin ? null : (clienti as string[]),
+        postazioni: admin ? null : (postazioni as string[]),
+        device: admin ? false : device,
       };
 
       const response = await UsersDAO.addUser(userDoc);
@@ -70,11 +70,6 @@ export default class UsersController {
 
       const userId = user._id.toString();
 
-      // const [alreadyLogged] = await SessionsDAO.getSessions({ id: userId });
-      // if (alreadyLogged && alreadyLogged._id.toString() !== req.sessionID) {
-      //   throw new Error(`Utente ${user.username} già loggato.`);
-      // }
-
       const isPswValid = await bcrypt.compare(password, user.password);
       if (!isPswValid) {
         throw new Error("Username/Password non validi.");
@@ -93,114 +88,49 @@ export default class UsersController {
           msg: "Login effettuato",
           data: {
             id: userId,
-            name: user.username,
+            username: user.username,
             admin: user.admin,
             clienti: user.clienti,
             postazioni: user.postazioni,
           },
         });
       });
-
-      // req.session.regenerate((err) => {
-      //   if (err) {
-      //     throw new Error(err);
-      //   }
-
-      //   req.session.user = {
-      //     id: userId,
-      //     username,
-      //     admin: user.admin,
-      //     cliente,
-      //     postazione,
-      //     token,
-      //   };
-
-      //   req.session.save((err) => {
-      //     if (err) {
-      //       throw new Error(err);
-      //     }
-
-      //     console.log(`${username} logged in.`);
-
-      //     res.header("x-access-token", token).json({
-      //       success: true,
-      //       msg: "Login effettuato",
-      //       data: {
-      //         id: userId,
-      //         name: user.username,
-      //         admin: user.admin,
-      //       },
-      //     });
-      //   });
-      // });
     } catch (err) {
       const { error } = errCheck(err, "apiLogin |");
       res.status(400).json({ success: false, msg: error, data: null });
     }
   }
 
-  static async apiLogout(req: Request, res: Response) {
-    // req.session.user = null;
-    // req.session.save((err) => {
-    //   if (err) {
-    //     const { error } = errCheck(err, "apiLogout |");
-    //     return res.status(400).json({ success: false, msg: error, data: null });
-    //   }
-    //   req.session.regenerate((err) => {
-    //     if (err) {
-    //       const { error } = errCheck(err, "apiLogout |");
-    //       return res
-    //         .status(400)
-    //         .json({ success: false, msg: error, data: null });
-    //     }
-    //     console.log("Logout effettuato.");
-    //     return res.json({
-    //       success: true,
-    //       msg: "Logout effettuato",
-    //       data: null,
-    //     });
-    //   });
-    // });
-  }
+  static async apiGetUserWithDevice(req: Request, res: Response) {
+    try {
+      const user = await UsersDAO.getUserByNameWithDevice(
+        req.query.device as string
+      );
+      if (!user) {
+        return res.status(404).json({ success: false, msg: "User not found" });
+      }
 
-  static async apiGetUser(req: Request, res: Response) {
-    // const { error } = Validator.login(req.body);
+      const secret = process.env.TOKEN_SECRET!;
+      jwt.sign({ id: user._id }, secret, {}, (err, token) => {
+        if (err) {
+          throw err;
+        }
 
-    // if (error) {
-    //   console.log("apiGetUser |", error);
-    //   return res
-    //     .status(400)
-    //     .json({ success: false, msg: error.details[0].message, data: null });
-    // }
-
-    // try {
-    //   const user = await UsersDAO.getUserById(req.query.id as string);
-    //   if (!user) {
-    //     return res.status(404).json({ success: false, msg: "User not found" });
-    //   }
-    //   res.json({ success: true, msg: "User has been found", data: user });
-    // } catch (err) {
-    //   const { error } = errCheck(err, "getUser |");
-    //   res.status(500).json({ success: false, msg: error });
-    // }
-  }
-
-  static async apiGetSession(req: Request, res: Response) {
-    // if (!req.session.user) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     msg: "Session ID non valido",
-    //   });
-    // }
-    // res.json({
-    //   success: true,
-    //   msg: "Info sessione ottenute con successo",
-    //   data: {
-    //     name: req.session.user.username,
-    //     admin: req.session.user.admin,
-    //     cliente: req.session.user.cliente,
-    //     postazione: req.session.user.postazione,
-    //   },
-    // });
+        res.header("x-access-token", token).json({
+          success: true,
+          msg: "User has been found",
+          data: {
+            id: user._id,
+            username: user.username,
+            admin: user.admin,
+            clienti: user.clienti,
+            postazioni: user.postazioni,
+          },
+        });
+      });
+    } catch (err) {
+      const { error } = errCheck(err, "apiGetUserWithDevice |");
+      res.status(500).json({ success: false, msg: error });
+    }
   }
 }

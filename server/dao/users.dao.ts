@@ -43,4 +43,12 @@ export default class UsersDAO {
             errCheck(err, "getUserById |");
         }
     }
+
+    static async getUserByNameWithDevice(username: string) {
+        try {
+            return await users.findOne({ username, device: true });
+        } catch(err) {
+            errCheck(err, "getUserByName |");
+        }
+    }
 }

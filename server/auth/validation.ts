@@ -12,6 +12,7 @@ const REGISTER_SCHEMA = z.object({
   admin: z.coerce.boolean().default(false),
   clienti: z.string().array().optional(),
   postazioni: z.string().array().optional(),
+  device: z.coerce.boolean().default(false),
 });
 
 const GUEST_SCHEMA = z.object({
@@ -20,6 +21,7 @@ const GUEST_SCHEMA = z.object({
   admin: z.literal(false),
   clienti: z.string().array().nonempty("Clienti non forniti"),
   postazioni: z.string().array().nonempty("Postazioni non fornite"),
+  device: z.coerce.boolean().default(false),
 });
 
 const GET_USER_SCHEMA = z.object({

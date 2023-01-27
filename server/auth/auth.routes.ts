@@ -8,10 +8,7 @@ const Router = express.Router();
 Router.route("/register").post(JwtAuth.verifyToken, JwtAuth.isAdmin, UsersCtrl.apiRegister);
 Router.route("/login").post(UsersCtrl.apiLogin);
 
-Router.route("/logout").post(JwtAuth.verifyToken, UsersCtrl.apiLogout);
-Router.route("/session").get(UsersCtrl.apiGetSession);
-
-Router.route("/user").get(JwtAuth.verifyToken, UsersCtrl.apiGetUser);
+Router.route("/user").get(UsersCtrl.apiGetUserWithDevice);
 
 Router.route("/permessi")
     .get(JwtAuth.verifyToken, PermessiCtrl.apiGetPermessi)

@@ -20,7 +20,32 @@ export default function Login(props: Props) {
 
   const navigate = useNavigate();
 
-  const login = () => {
+  React.useEffect(() => {
+    function retriveUser(device: string) {
+      UserDataService.getUser(device)
+        .then((response) => {
+          const dataResp = response.data.data as TPartialUser;
+          console.log(dataResp.username, "logged In.");
+  
+          window.location.hash = "";
+  
+          props.login({
+            ...dataResp,
+            token: response.headers["x-access-token"]! as string,
+          });
+        })
+        .catch((err) => {
+          console.error("retriveUser |", err);
+        });
+    }
+
+    if(window.location.hash) {
+      retriveUser(window.location.hash.slice(1));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function login() {
     UserDataService.login({
       username: usernameRef.current!.value,
       password: passwordRef.current!.value,
@@ -32,7 +57,7 @@ export default function Login(props: Props) {
         }
 
         const dataResp = response.data.data as TPartialUser;
-        console.log(dataResp.name, "logged In.");
+        console.log(dataResp.username, "logged In.");
 
         props.login({
           ...dataResp,
@@ -45,7 +70,7 @@ export default function Login(props: Props) {
       .finally(() => {
         passwordRef.current!.value = passwordRef.current!.defaultValue;
       });
-  };
+  }
 
   return (
     <div className="login-wrapper">

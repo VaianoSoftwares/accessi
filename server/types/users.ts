@@ -4,6 +4,7 @@ export type TUser = {
     admin: boolean,
     clienti: string[] | null,
     postazioni: string[] | null,
+    device: boolean,
 };
 
 export type TUserReq = {

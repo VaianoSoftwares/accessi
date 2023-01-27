@@ -128,7 +128,7 @@ const Calendario: React.FC<Props> = (props) => {
   
   const checkboxEventHandl = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value/*, parentElement*/ } = e.target;
-    const tmpPerm: TPermesso = { username: props.user.name, date: value };
+    const tmpPerm: TPermesso = { username: props.user.username, date: value };
     insertPermesso(tmpPerm)/*.then(() =>
       setDateDivToPrenotato(parentElement as HTMLDivElement)
     )*/;
@@ -210,7 +210,7 @@ const Calendario: React.FC<Props> = (props) => {
         return adminDateDiv(i, tmpDate);
 
       const tmpPerm: TPermesso = {
-        username: props.user.name,
+        username: props.user.username,
         date: dateFormat(tmpDate, "dd-mm-yyyy"),
       };
       if (isPrenotato(tmpPerm))

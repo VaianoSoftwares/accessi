@@ -44,6 +44,18 @@ export default function App() {
   const [enums, setEnums] = React.useState<TEnums>(enumsInitState);
 
   React.useEffect(() => {
+    function retriveEnums() {
+      BadgeDataService.getEnums()
+        .then((response) => {
+          const enumsResp = response.data.data as TEnums;
+          console.log("retriveEnums |", enumsResp);
+          setEnums(enumsResp);
+        })
+        .catch((err) => {
+          console.error("retriveEnums |", err);
+        });
+    }
+
     retriveEnums();
   }, []);
 
@@ -110,18 +122,6 @@ export default function App() {
   async function logout() {
     sessionStorage.clear();
     setUser(null);
-  }
-
-  function retriveEnums() {
-    BadgeDataService.getEnums()
-      .then((response) => {
-        const enumsResp = response.data.data as TEnums;
-        console.log("retriveEnums |", enumsResp);
-        setEnums(enumsResp);
-      })
-      .catch((err) => {
-        console.error("retriveEnums |", err);
-      });
   }
 
   async function runAccessiScanner() {

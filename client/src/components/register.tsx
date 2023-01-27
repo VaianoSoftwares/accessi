@@ -17,6 +17,7 @@ const Register: React.FC<Props> = (props: Props) => {
   const usernameRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
   const adminRef = React.useRef<HTMLInputElement>(null);
+  const deviceRef = React.useRef<HTMLInputElement>(null);
   const clientiRef = React.useRef<HTMLSelectElement>(null);
   const postazioniRef = React.useRef<HTMLSelectElement>(null);
 
@@ -25,6 +26,7 @@ const Register: React.FC<Props> = (props: Props) => {
       username: usernameRef.current!.value,
       password: passwordRef.current!.value,
       admin: adminRef.current!.checked,
+      device: deviceRef.current!.checked,
       clienti: Array.from(
         clientiRef.current!.selectedOptions,
         (option) => option.value
@@ -40,6 +42,7 @@ const Register: React.FC<Props> = (props: Props) => {
     usernameRef.current!.value = usernameRef.current!.defaultValue;
     passwordRef.current!.value = passwordRef.current!.defaultValue;
     adminRef.current!.checked = adminRef.current!.defaultChecked;
+    deviceRef.current!.checked = deviceRef.current!.defaultChecked;
     clientiRef.current!.selectedIndex = -1;
     postazioniRef.current!.selectedIndex = -1;
   }
@@ -99,6 +102,20 @@ const Register: React.FC<Props> = (props: Props) => {
           id="admin"
           autoComplete="off"
           ref={adminRef}
+          defaultChecked={false}
+        />
+      </div>
+      <div className="form-check col-sm-2 mb-2">
+        <label htmlFor="device" className="form-check-label">
+          Device
+        </label>
+        <input
+          type="checkbox"
+          className="form-check-input"
+          required
+          id="device"
+          autoComplete="off"
+          ref={deviceRef}
           defaultChecked={false}
         />
       </div>

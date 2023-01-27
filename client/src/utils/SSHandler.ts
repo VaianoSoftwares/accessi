@@ -3,18 +3,18 @@ import { TUser } from "../types/TUser";
 export default class SSHandler {
   static getUserFromStorage(): TUser | null {
     const _id = sessionStorage.getItem("uid");
-    const name = sessionStorage.getItem("username");
+    const username = sessionStorage.getItem("username");
     const strAdmin = sessionStorage.getItem("admin");
     const token = sessionStorage.getItem("token");
 
-    if (!_id || !name || !strAdmin || !token) return null;
+    if (!_id || !username || !strAdmin || !token) return null;
 
     const admin = strAdmin === "true";
 
     if (admin)
       return {
         _id,
-        name,
+        username,
         admin,
         clienti: null,
         postazioni: null,
@@ -41,7 +41,7 @@ export default class SSHandler {
 
     return {
       _id,
-      name,
+      username,
       admin,
       clienti,
       postazioni,
@@ -51,7 +51,7 @@ export default class SSHandler {
 
   static setSessionStorage(user: TUser) {
     sessionStorage.setItem("uid", user._id);
-    sessionStorage.setItem("username", user.name);
+    sessionStorage.setItem("username", user.username);
     sessionStorage.setItem("admin", user.admin.toString());
     user?.clienti?.forEach?.((value, index) =>
       sessionStorage.setItem(`cliente${index}`, value)

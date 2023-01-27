@@ -1,6 +1,6 @@
 export type TPartialUser = {
     _id: string;
-    name: string;
+    username: string;
     admin: boolean;
     clienti: string[] | null;
     postazioni: string[] | null;

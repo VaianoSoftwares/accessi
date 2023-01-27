@@ -21,26 +21,10 @@ class UserDataService extends DataServices {
     });
   }
 
-  getUser(id: string) {
+  getUser(device: string) {
     return super.request({
       url: "/user",
-      data: { id },
-      token: true,
-    });
-  }
-
-  logout() {
-    return super.request({
-      method: "POST",
-      url: "/logout",
-      token: true,
-    });
-  }
-
-  getSession() {
-    return super.request({
-      url: "/session",
-      token: true,
+      data: { device },
     });
   }
 
