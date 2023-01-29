@@ -37,7 +37,11 @@ export default abstract class DataServices {
       ? "?" +
           Object.entries(query)
             .filter(([, value]) => value)
-            .map(([key, value]) => `${key}=${value}`)
+            .map(([key, value]) =>
+              Array.isArray(value)
+                ? `${key}=${value.join(`&${key}=`)}`
+                : `${key}=${value}`
+            )
             .join("&")
       : "";
   }

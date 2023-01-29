@@ -1,6 +1,8 @@
 import { TBadgeResp } from "./Badge";
 
-export type BadgeFormState = TBadgeResp & {
-  pfp: string;
-  postazione: string;
-};
+export type BadgeFormState = Partial<
+  TBadgeResp & {
+    pfp: string;
+    postazione: string;
+  }
+>;

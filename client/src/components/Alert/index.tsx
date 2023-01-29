@@ -2,11 +2,10 @@ import React from "react";
 
 import "./index.css";
 
-import { Nullable } from "../../types/Nullable";
 import { TAlert } from "../../types/TAlert";
 
 type Props = {
-  alert: Nullable<TAlert>;
+  alert: TAlert | null;
   closeAlert: () => void;
 };
 
@@ -27,7 +26,7 @@ const Alert: React.FC<Props> = (props: Props) => {
             </strong>
           </span>
           <span className="alert-custom-component">
-            {props.alert.msg.replace("Error:", "")}
+            {props.alert.msg.replace("Error:", "").slice(0, 220)}
           </span>
           <span>
             <button

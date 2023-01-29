@@ -1,7 +1,7 @@
 import BadgesDAO from "./badges.dao.js";
 import { MongoClient, ObjectId, Collection, Filter } from "mongodb";
 import errCheck from "../utils/errCheck.js";
-import { TGenericBadge, TGenericNom } from "../types/badges.js";
+import { TBadgeTipo, TGenericBadge, TGenericNom } from "../types/badges.js";
 import { TArchivio } from "../types/archivio.js";
 
 const COLLECTION_NAME = "archivio1";
@@ -464,13 +464,14 @@ export default class ArchivioDAO {
     }
   }
 
-  static async getInStrutt(cliente?: string, postazione?: string) {
+  static async getInStrutt(cliente?: string, postazione?: string, tipi?: TBadgeTipo[]) {
     const arrFilters: object[] = [
       { "data.uscita": { $eq: null } },
     ];
 
     if(cliente) arrFilters.push({ cliente });
     if(postazione) arrFilters.push({ postazione });
+    if(tipi) arrFilters.push({ "badge.tipo": { $in: tipi } });
 
     const query: Filter<unknown> = {
       $and: arrFilters,

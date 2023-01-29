@@ -41,10 +41,14 @@ export default function OspitiPopup(props: Props) {
     formData.append("ditta", dittaOspRef.current!.value);
     formData.append("tdoc", tdocOspRef.current!.value);
     formData.append("ndoc", ndocOspRef.current!.value);
-    targa1OspRef.current && formData.append("targa1", targa1OspRef.current.value);
-    targa2OspRef.current && formData.append("targa2", targa2OspRef.current.value);
-    targa3OspRef.current && formData.append("targa3", targa3OspRef.current.value);
-    targa4OspRef.current && formData.append("targa4", targa4OspRef.current.value);
+    targa1OspRef.current &&
+      formData.append("targa1", targa1OspRef.current.value);
+    targa2OspRef.current &&
+      formData.append("targa2", targa2OspRef.current.value);
+    targa3OspRef.current &&
+      formData.append("targa3", targa3OspRef.current.value);
+    targa4OspRef.current &&
+      formData.append("targa4", targa4OspRef.current.value);
     return formData;
   }
 
@@ -78,7 +82,7 @@ export default function OspitiPopup(props: Props) {
         <div className="header">Accessi Provvisori</div>
         <div className="content">
           <div className="submit-form osp-form">
-            <div className="row">
+            <div className="row mb-1">
               <div className="form-floating col-sm-4">
                 <input
                   type="text"
@@ -90,6 +94,8 @@ export default function OspitiPopup(props: Props) {
                 />
                 <label htmlFor="osp-barcode">barcode</label>
               </div>
+            </div>
+            <div className="row">
               <div className="form-floating col-sm-4">
                 <input
                   type="text"
@@ -112,8 +118,6 @@ export default function OspitiPopup(props: Props) {
                 />
                 <label htmlFor="osp-cognome">cognome</label>
               </div>
-            </div>
-            <div className="row">
               <div className="form-floating col-sm-4">
                 <input
                   type="text"
@@ -125,6 +129,8 @@ export default function OspitiPopup(props: Props) {
                 />
                 <label htmlFor="osp-ditta">ditta</label>
               </div>
+            </div>
+            <div className="row mb-1">
               <div className="form-floating col-sm-4">
                 <input
                   type="text"
@@ -137,27 +143,6 @@ export default function OspitiPopup(props: Props) {
                 <label htmlFor="osp-telefono">telefono</label>
               </div>
               <div className="form-floating col-sm-4">
-                <select
-                  className="form-select form-select-sm"
-                  id="osp-tdoc"
-                  placeholder="tipo documento"
-                  ref={tdocOspRef}
-                  defaultValue={"CARTA IDENTITA"}
-                >
-                  {TDOCS.map((tipoDoc, index) => (
-                    <option
-                      value={tipoDoc}
-                      key={index}
-                    >
-                      {tipoDoc}
-                    </option>
-                  ))}
-                </select>
-                <label htmlFor="osp-tdoc">tipo documento</label>
-              </div>
-            </div>
-            <div className="row">
-              <div className="form-floating col-sm-4">
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -168,6 +153,22 @@ export default function OspitiPopup(props: Props) {
                   onChange={onChangeNDocOsp}
                 />
                 <label htmlFor="osp-ndoc">num documento</label>
+              </div>
+              <div className="form-floating col-sm-4">
+                <select
+                  className="form-select form-select-sm"
+                  id="osp-tdoc"
+                  placeholder="tipo documento"
+                  ref={tdocOspRef}
+                  defaultValue={"CARTA IDENTITA"}
+                >
+                  {TDOCS.map((tipoDoc, index) => (
+                    <option value={tipoDoc} key={index}>
+                      {tipoDoc}
+                    </option>
+                  ))}
+                </select>
+                <label htmlFor="osp-tdoc">tipo documento</label>
               </div>
             </div>
             {props.isVeicolo === true && (
@@ -226,7 +227,7 @@ export default function OspitiPopup(props: Props) {
         </div>
         <div className="actions">
           <button className="btn btn-primary" onClick={insertOspBtnEvent}>
-            Timbra
+            Crea Badge Ospite
           </button>
         </div>
       </div>

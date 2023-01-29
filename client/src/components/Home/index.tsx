@@ -55,6 +55,7 @@ type Props = {
   clearScannedValue: () => void;
   scannerConnected: boolean;
   runScanner: () => Promise<void>;
+  tipoBadge: TBadgeTipo;
 };
 
 export default function Home({
@@ -66,6 +67,7 @@ export default function Home({
 }: Props) {
   const barcodeRef = React.useRef<HTMLInputElement>(null);
   const descrizioneRef = React.useRef<HTMLInputElement>(null);
+  const tipoRef = React.useRef<HTMLSelectElement>(null);
   const assegnazioneRef = React.useRef<HTMLSelectElement>(null);
   const statoRef = React.useRef<HTMLSelectElement>(null);
   const ubicazioneRef = React.useRef<HTMLInputElement>(null);
@@ -83,8 +85,6 @@ export default function Home({
   const targa4Ref = React.useRef<HTMLInputElement>(null);
   const postazioneRef = React.useRef<HTMLSelectElement>(null);
 
-  const [currTBadge, setCurrTBadge] = React.useState<TBadgeTipo>("BADGE");
-
   const [badges, setBadges] = React.useState<TTableContent[]>([]);
   const [inStrutt, setInStrutt] = React.useState<TInStruttTableContent[]>([]);
 
@@ -96,111 +96,114 @@ export default function Home({
 
   function createFormData() {
     const formData = new FormData();
-    formData.append("barcode", barcodeRef.current!.value);
-    formData.append("descrizione", descrizioneRef.current!.value);
-    formData.append("tipo", currTBadge);
-    formData.append("assegnazione", assegnazioneRef.current!.value);
-    formData.append("stato", statoRef.current!.value);
-    formData.append("ubicazione", ubicazioneRef.current!.value);
-    formData.append("nome", nomeRef.current!.value);
-    formData.append("cognome", cognomeRef.current!.value);
-    formData.append("telefono", telefonoRef.current!.value);
-    formData.append("ditta", dittaRef.current!.value);
-    formData.append("tdoc", tdocRef.current!.value);
-    formData.append("ndoc", ndocRef.current!.value);
-    formData.append("pfp", pfpRef.current!.files!.item(0)!);
-    formData.append("scadenza", scadenzaRef.current!.value);
-    targa1Ref.current && formData.append("targa1", targa1Ref.current.value);
-    targa2Ref.current && formData.append("targa2", targa2Ref.current.value);
-    targa3Ref.current && formData.append("targa3", targa3Ref.current.value);
-    targa4Ref.current && formData.append("targa4", targa4Ref.current.value);
+    barcodeRef.current?.value &&
+      formData.append("barcode", barcodeRef.current.value);
+    descrizioneRef.current?.value &&
+      formData.append("descrizione", descrizioneRef.current!.value);
+    tipoRef.current?.value && formData.append("tipo", tipoRef.current.value);
+    assegnazioneRef.current?.value &&
+      formData.append("assegnazione", assegnazioneRef.current.value);
+    statoRef.current?.value && formData.append("stato", statoRef.current.value);
+    ubicazioneRef.current?.value &&
+      formData.append("ubicazione", ubicazioneRef.current.value);
+    nomeRef.current?.value && formData.append("nome", nomeRef.current.value);
+    cognomeRef.current?.value &&
+      formData.append("cognome", cognomeRef.current.value);
+    telefonoRef.current?.value &&
+      formData.append("telefono", telefonoRef.current.value);
+    dittaRef.current?.value && formData.append("ditta", dittaRef.current.value);
+    tdocRef.current?.value && formData.append("tdoc", tdocRef.current.value);
+    ndocRef.current?.value && formData.append("ndoc", ndocRef.current.value);
+    pfpRef.current?.files?.item(0) &&
+      formData.append("pfp", pfpRef.current.files.item(0)!);
+    scadenzaRef.current?.value &&
+      formData.append("scadenza", scadenzaRef.current.value);
+    targa1Ref.current?.value &&
+      formData.append("targa1", targa1Ref.current.value);
+    targa2Ref.current?.value &&
+      formData.append("targa2", targa2Ref.current.value);
+    targa3Ref.current?.value &&
+      formData.append("targa3", targa3Ref.current.value);
+    targa4Ref.current?.value &&
+      formData.append("targa4", targa4Ref.current.value);
     formData.append("postazione", postazioneRef.current!.value);
     return formData;
   }
 
-  function clearForm() {
-    barcodeRef.current!.value = barcodeRef.current!.defaultValue;
-    descrizioneRef.current!.value = descrizioneRef.current!.defaultValue;
-    setCurrTBadge("BADGE");
+  function setForm(obj?: BadgeFormState) {
+    barcodeRef.current!.value = obj?.barcode || barcodeRef.current!.defaultValue;
+    descrizioneRef.current!.value =
+      obj?.descrizione || descrizioneRef.current!.defaultValue;
+    tipoRef.current!.value = obj?.tipo || tipoRef.current!.options.item(0)!.value;
     assegnazioneRef.current!.value =
-      assegnazioneRef.current!.options.item(0)!.value;
-    statoRef.current!.value = statoRef.current!.options.item(0)!.value;
-    ubicazioneRef.current!.value = ubicazioneRef.current!.defaultValue;
-    nomeRef.current!.value = nomeRef.current!.defaultValue;
-    cognomeRef.current!.value = cognomeRef.current!.defaultValue;
-    telefonoRef.current!.value = telefonoRef.current!.defaultValue;
-    dittaRef.current!.value = dittaRef.current!.defaultValue;
-    tdocRef.current!.value = tdocRef.current!.options.item(0)!.value;
-    ndocRef.current!.value = ndocRef.current!.defaultValue;
+      obj?.assegnazione || assegnazioneRef.current!.options.item(0)!.value;
+    statoRef.current!.value =
+      obj?.stato || statoRef.current!.options.item(0)!.value;
+    ubicazioneRef.current!.value =
+      obj?.ubicazione || ubicazioneRef.current!.defaultValue;
+    nomeRef.current!.value = obj?.nome || nomeRef.current!.defaultValue;
+    cognomeRef.current!.value = obj?.cognome || cognomeRef.current!.defaultValue;
+    telefonoRef.current!.value =
+      obj?.telefono || telefonoRef.current!.defaultValue;
+    dittaRef.current!.value = obj?.ditta || dittaRef.current!.defaultValue;
+    tdocRef.current!.value =
+      obj?.tdoc || tdocRef.current!.options.item(0)!.value;
+    ndocRef.current!.value = obj?.ndoc || ndocRef.current!.defaultValue;
     pfpRef.current!.files = null;
-    scadenzaRef.current!.value = scadenzaRef.current!.defaultValue;
+    pfpRef.current!.value = pfpRef.current!.defaultValue;
+    scadenzaRef.current!.value =
+      obj?.scadenza || scadenzaRef.current!.defaultValue;
     targa1Ref.current &&
-      (targa1Ref.current.value = targa1Ref.current.defaultValue);
+      (targa1Ref.current.value = obj?.targa1 || targa1Ref.current.defaultValue);
     targa2Ref.current &&
-      (targa2Ref.current.value = targa2Ref.current.defaultValue);
+      (targa2Ref.current.value = obj?.targa2 || targa2Ref.current.defaultValue);
     targa3Ref.current &&
-      (targa3Ref.current.value = targa3Ref.current.defaultValue);
+      (targa3Ref.current.value = obj?.targa3 || targa3Ref.current.defaultValue);
     targa4Ref.current &&
-      (targa4Ref.current.value = targa4Ref.current.defaultValue);
+      (targa4Ref.current.value = obj?.targa4 || targa4Ref.current.defaultValue);
     postazioneRef.current!.value =
+      obj?.postazione ||
       postazioneRef.current?.options.item(0)?.value ||
       SSHandler.getPostazione();
   }
 
-  function setForm(obj: BadgeFormState) {
-    barcodeRef.current!.value = obj.barcode;
-    descrizioneRef.current!.value = obj.descrizione;
-    setCurrTBadge(obj.tipo);
-    assegnazioneRef.current!.value = obj.assegnazione;
-    statoRef.current!.value = obj.stato;
-    ubicazioneRef.current!.value = obj.ubicazione;
-    nomeRef.current!.value = obj.nome;
-    cognomeRef.current!.value = obj.cognome;
-    telefonoRef.current!.value = obj.telefono;
-    dittaRef.current!.value = obj.ditta;
-    tdocRef.current!.value = obj.tdoc;
-    ndocRef.current!.value = obj.ndoc;
-    pfpRef.current!.files = null;
-    scadenzaRef.current!.value = obj.scadenza;
-    targa1Ref.current && (targa1Ref.current.value = obj.targa1);
-    targa2Ref.current && (targa2Ref.current.value = obj.targa2);
-    targa3Ref.current && (targa3Ref.current.value = obj.targa3);
-    targa4Ref.current && (targa4Ref.current.value = obj.targa4);
-    postazioneRef.current!.value = obj.postazione;
+  function clearForm() {
+    setForm();
   }
 
   function formToObj(): BadgeFormState {
     return {
-      barcode: barcodeRef.current!.value,
-      descrizione: descrizioneRef.current!.value,
-      tipo: currTBadge,
-      assegnazione: assegnazioneRef.current!.value,
-      stato: statoRef.current!.value as TBadgeStato,
-      ubicazione: ubicazioneRef.current!.value,
-      nome: nomeRef.current!.value,
-      cognome: cognomeRef.current!.value,
-      telefono: telefonoRef.current!.value,
-      ditta: dittaRef.current!.value,
-      tdoc: tdocRef.current!.value as TTDoc,
-      ndoc: ndocRef.current!.value,
-      pfp: pfpRef.current!.value,
-      scadenza: scadenzaRef.current!.value,
-      targa1: targa1Ref.current?.value || "",
-      targa2: targa2Ref.current?.value || "",
-      targa3: targa3Ref.current?.value || "",
-      targa4: targa4Ref.current?.value || "",
-      postazione: postazioneRef.current!.value,
+      barcode: barcodeRef.current?.value || undefined,
+      descrizione: descrizioneRef.current?.value || undefined,
+      tipo: tipoRef.current?.value as TBadgeTipo || undefined,
+      assegnazione: assegnazioneRef.current?.value || undefined,
+      stato: statoRef.current?.value as TBadgeStato || undefined,
+      ubicazione: ubicazioneRef.current?.value || undefined,
+      nome: nomeRef.current?.value || undefined,
+      cognome: cognomeRef.current?.value || undefined,
+      telefono: telefonoRef.current?.value || undefined,
+      ditta: dittaRef.current?.value || undefined,
+      tdoc: tdocRef.current?.value as TTDoc || undefined,
+      ndoc: ndocRef.current?.value || undefined,
+      pfp: pfpRef.current?.value || undefined,
+      scadenza: scadenzaRef.current?.value || undefined,
+      targa1: targa1Ref.current?.value || undefined,
+      targa2: targa2Ref.current?.value || undefined,
+      targa3: targa3Ref.current?.value || undefined,
+      targa4: targa4Ref.current?.value || undefined,
+      postazione: postazioneRef.current?.value || undefined,
     };
   }
 
   const retriveInStrutt = React.useCallback(() => {
+    const tipiArr: TBadgeTipo[] = [props.tipoBadge, "PROVVISORIO"];
     const reqData = props.user.admin
-      ? undefined
-      : SSHandler.getGuestInStruttReq();
+      ? { tipi: tipiArr }
+      : { ...SSHandler.getGuestInStruttReq(), tipi: tipiArr };
 
     BadgeDataService.getInStrutt(reqData)
       .then((response) => {
-        console.log("retriveInStrutt: ", response.data);
+        console.log("retriveInStrutt |", response.data);
         setInStrutt(
           TableContentMapper.mapArchivioToInStruttTableContent(
             response.data.data as TInStruttResp[]
@@ -208,36 +211,11 @@ export default function Home({
         );
       })
       .catch((err) => {
-        console.error("retriveInStrutt | error: ", err);
+        console.error("retriveInStrutt | error:", err);
       });
-  }, [props.user.admin]);
+  }, [props.tipoBadge, props.user.admin]);
 
-  function findBadges() {
-    BadgeDataService.find({ ...formToObj(), pfp: "", postazione: "" })
-      .then((response) => {
-        console.log("findBadges |", response.data);
-
-        const findResponse = response.data.data as TBadgeResp[];
-
-        if (findResponse.length === 1) {
-          setForm(
-            TableContentMapper.mapToAutoComplBadge(
-              findResponse[0],
-              postazioneRef.current!.value
-            )
-          );
-
-          const url = getPfpUrlByBarcode(findResponse[0].barcode);
-          setPfpUrl(url);
-        }
-
-        setBadges(TableContentMapper.mapBadgesToTableContent(findResponse));
-      })
-      .catch((err) => {
-        console.error("findBadges | error:", err);
-      })
-      .finally(() => closeAlert());
-  }
+  React.useEffect(retriveInStrutt, [retriveInStrutt]);
 
   const timbra = React.useCallback(
     (data: TimbraDoc) => {
@@ -265,24 +243,28 @@ export default function Home({
           }
 
           const filteredInStrutt = inStrutt.filter(
-            (badge) => badge.codice !== rowTimbra.timbra.codice
+            ({ codice }) => codice !== rowTimbra.timbra.codice
           );
+          
           const mappedRowTimbra =
             TableContentMapper.mapArchivioToInStruttTableContent([
               rowTimbra.timbra,
             ])[0];
           setInStrutt([mappedRowTimbra, ...filteredInStrutt]);
 
-          const { msg } = response.data;
-
           const badgeTable = document.getElementById("badge-table");
-
           const firstRow = badgeTable
             ? (badgeTable as HTMLTableElement).tBodies[0].rows[0]
             : null;
           if (firstRow) {
-            firstRow.style.backgroundColor =
-              msg === "Timbra Entra" ? "green" : "red";
+            switch(response.data.msg) {
+              case "Timbra Entra":
+                firstRow.style.backgroundColor = "green";
+                break;
+              case "Timbra Esce":
+                firstRow.style.backgroundColor = "red";
+                break;
+            }
           }
 
           setTimeout(() => {
@@ -308,6 +290,33 @@ export default function Home({
       retriveInStrutt,
     ]
   );
+
+  function findBadges() {
+    BadgeDataService.find({ ...formToObj(), pfp: "", postazione: "" })
+      .then((response) => {
+        console.log("findBadges |", response.data);
+
+        const findResponse = response.data.data as TBadgeResp[];
+
+        if (findResponse.length === 1) {
+          setForm(
+            TableContentMapper.mapToAutoComplBadge(
+              findResponse[0],
+              postazioneRef.current!.value
+            )
+          );
+
+          const url = getPfpUrlByBarcode(findResponse[0].barcode);
+          setPfpUrl(url);
+        }
+
+        setBadges(TableContentMapper.mapBadgesToTableContent(findResponse));
+      })
+      .catch((err) => {
+        console.error("findBadges | error:", err);
+      })
+      .finally(() => closeAlert());
+  }
 
   function insertBadge(data: FormData) {
     BadgeDataService.insertBadge(data)
@@ -346,7 +355,7 @@ export default function Home({
 
     BadgeDataService.deleteBadge(barcode)
       .then((response) => {
-        console.log(response.data);
+        console.log("deleteBadge |", response.data);
         const { success, msg } = response.data;
         openAlert({ success, msg });
       })
@@ -461,18 +470,19 @@ export default function Home({
                   className="form-select form-select-sm"
                   id="tipo"
                   placeholder="tipo"
-                  onChange={(e) => setCurrTBadge(e.target.value as TBadgeTipo)}
-                  defaultValue="BADGE"
+                  ref={tipoRef}
+                  defaultValue={props.tipoBadge}
                 >
                   {TIPI_BADGE.map((tipo, index) => (
                     <option
                       value={tipo}
                       key={index}
-                      disabled={currTBadge !== tipo && readOnlyForm === true}
+                      disabled={readOnlyForm === true}
                     >
                       {tipo}
                     </option>
                   ))}
+                  <option value="" key="-1" disabled={readOnlyForm === true} />
                 </select>
                 <label htmlFor="tipo">tipo</label>
               </div>
@@ -486,7 +496,9 @@ export default function Home({
                 >
                   <option value="" key="-1" disabled={readOnlyForm === true} />
                   {props.assegnazioni
-                    .filter(({ name, badge }) => badge === currTBadge && name)
+                    .filter(
+                      ({ name, badge }) => badge === props.tipoBadge && name
+                    )
                     .map(({ name }, index) => (
                       <option
                         value={name}
@@ -506,8 +518,9 @@ export default function Home({
                   id="stato"
                   placeholder="stato"
                   ref={statoRef}
-                  defaultValue="VALIDO"
+                  defaultValue=""
                 >
+                  <option value="" key="-1" disabled={readOnlyForm === true} />
                   {STATI_BADGE.map((stato, index) => (
                     <option
                       value={stato}
@@ -517,7 +530,6 @@ export default function Home({
                       {stato}
                     </option>
                   ))}
-                  <option value="" key="-1" disabled={readOnlyForm === true} />
                 </select>
                 <label htmlFor="stato">stato</label>
               </div>
@@ -554,6 +566,7 @@ export default function Home({
                     }
                     autoComplete="off"
                     ref={pfpRef}
+                    defaultValue=""
                     onChange={(e) => {
                       const file = e.target.files?.item(0);
                       if (file) updatePfp(file);
@@ -659,7 +672,7 @@ export default function Home({
                     <label htmlFor="ndoc">num documento</label>
                   </div>
                   <div className="w-100" />
-                  {currTBadge === "BADGE" ? (
+                  {props.tipoBadge === "BADGE" ? (
                     <>
                       <div className="form-floating col-sm-3">
                         <input
@@ -679,7 +692,7 @@ export default function Home({
                       <div className="w-100" />
                     </>
                   ) : (
-                    currTBadge === "VEICOLO" && (
+                    props.tipoBadge === "VEICOLO" && (
                       <>
                         <div className="form-floating col-sm-3">
                           <input
@@ -780,10 +793,17 @@ export default function Home({
         isShown={isShown}
         closePopup={() => setIsShown(false)}
         insertOsp={insertBadge}
-        isVeicolo={currTBadge === "VEICOLO"}
+        isVeicolo={props.tipoBadge === "VEICOLO"}
       />
       <div className="badge-table-wrapper">
-        <BadgeTable content={inStrutt} tableId="badge-table" />
+        <BadgeTable
+          content={inStrutt}
+          tableId="badge-table"
+          // omitedParams={["_id", "id"]}
+          obfuscatedParams={
+            props.user.admin === true ? undefined : ["codice", "entrata"]
+          }
+        />
       </div>
     </div>
   );

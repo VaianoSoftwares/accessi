@@ -9,7 +9,7 @@ const Router = express.Router();
 Router
     .route("/")
     .get(JwtAuth.verifyToken, BadgesCtrl.apiGetBadges)                        // ricerca badge
-    .post(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiPostBadges)                      // aggiungi nuovo badge
+    .post(JwtAuth.verifyToken, BadgesCtrl.apiPostBadges)                      // aggiungi nuovo badge
     .put(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiPutBadges)                        // modifica un badge
     .delete(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiDeleteBadges);                 // elimina un badge
 

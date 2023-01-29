@@ -23,6 +23,7 @@ export default function AccessiNavbar(props: Props) {
           <b className="b-navbar-brand">
             {location === "/home" && "Gestione Badge"}
             {location === "/chiavi" && "Gestione Chiavi"}
+            {location === "/veicoli" && "Gestione Veicoli"}
             {location === "/archivio" && "Archivio"}
             {location === "/calendario" && "Calendario"}
             {location === "/permessi" && "Permessi"}
@@ -45,11 +46,24 @@ export default function AccessiNavbar(props: Props) {
             </li>
           )}
           {props.user.admin === true && (
-            <li className="nav-item">
-              <button onClick={() => navigate("/archivio")} className="btn-nav">
-                Archivio
-              </button>
-            </li>
+            <>
+              <li className="nav-item">
+                <button
+                  onClick={() => navigate("/veicoli")}
+                  className="btn-nav"
+                >
+                  Veicoli
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  onClick={() => navigate("/archivio")}
+                  className="btn-nav"
+                >
+                  Archivio
+                </button>
+              </li>
+            </>
           )}
           <li className="nav-item">
             <button onClick={() => navigate("/calendario")} className="btn-nav">
@@ -79,13 +93,13 @@ export default function AccessiNavbar(props: Props) {
                   Opzioni
                 </button>
               </li>
+              <li className="nav-item">
+                <button onClick={() => logout()} className="btn-nav">
+                  Logout {props.user.username}
+                </button>
+              </li>
             </>
           )}
-          <li className="nav-item">
-            <button onClick={() => logout()} className="btn-nav">
-              Logout {props.user.username}
-            </button>
-          </li>
         </div>
       </nav>
     )

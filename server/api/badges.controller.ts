@@ -4,7 +4,7 @@ import EnumsDAO from "../dao/enums.dao.js";
 import Validator from "../auth/validation.js";
 import { Request, Response } from "express";
 import errCheck from "../utils/errCheck.js";
-import { TAssegnaz, TPostazione } from "../types/enums.js";
+import { TAssegnaz } from "../types/enums.js";
 
 export default class BadgesController {
   static async apiGetBadges(req: Request, res: Response) {
@@ -37,6 +37,7 @@ export default class BadgesController {
   static async apiPostBadges(req: Request, res: Response) {
     const parsed = Validator.insertBadge(req.body);
     if (parsed.success === false) {
+      console.error("apiPostBadges | error:", parsed.error);
       return res.status(400).json({
         success: false,
         msg: parsed.error.message,
@@ -83,6 +84,7 @@ export default class BadgesController {
   static async apiPutBadges(req: Request, res: Response) {
     const parsed = Validator.updateBadge(req.body);
     if (parsed.success === false) {
+      console.error("apiPutBadges | error:", parsed.error);
       return res.status(400).json({
         success: false,
         msg: parsed.error.message,
@@ -134,6 +136,7 @@ export default class BadgesController {
   static async apiDeleteBadges(req: Request, res: Response) {
     const parsed = Validator.deleteBadge(req.query);
     if (parsed.success === false) {
+      console.error("apiDeleteBadges | error:", parsed.error);
       return res
         .status(400)
         .json({ success: false, msg: parsed.error.message });
@@ -196,6 +199,7 @@ export default class BadgesController {
     try {
       const parsed = Validator.assegnazioni(req.body);
       if (parsed.success === false) {
+        console.error("apiPostAssegnazioni | error:", parsed.error);
         return res
           .status(400)
           .json({ success: false, msg: parsed.error.message });
@@ -229,6 +233,7 @@ export default class BadgesController {
     try {
       const parsed = Validator.assegnazioni(req.query);
       if (parsed.success === false) {
+        console.error("apiDeleteAssegnazioni | error:", parsed.error);
         return res
           .status(400)
           .json({ success: false, msg: parsed.error.message });
@@ -262,6 +267,7 @@ export default class BadgesController {
     try {
       const parsed = Validator.postazioni(req.body);
       if (parsed.success === false) {
+        console.error("apiPostPostazione | error:", parsed.error);
         return res
           .status(400)
           .json({ success: false, msg: parsed.error.message });
@@ -290,6 +296,7 @@ export default class BadgesController {
     try {
       const parsed = Validator.postazioni(req.query);
       if (parsed.success === false) {
+        console.error("apiDeletePostazione | error:", parsed.error);
         return res
           .status(400)
           .json({ success: false, msg: parsed.error.message });

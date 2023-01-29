@@ -2,12 +2,13 @@
     position: absolute;
     left: 70%;
     top: 35%;
+    margin-right: 1%;
 }
 
 .in-strutt-count {
     position: absolute;
     left: 53%;
-    top: 45%;
+    top: 40%;
     font-size: 20px;
 }
 

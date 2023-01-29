@@ -17,16 +17,16 @@ type Props = {
 };
 
 type TArchForm = {
-  cliente: string;
-  postazione: string;
-  nominativo: string;
-  assegnazione: string;
-  nome: string;
-  cognome: string;
-  chiave: string;
-  descrizione: string;
-  dataInizio: string;
-  dataFine: string;
+  cliente?: string;
+  postazione?: string;
+  nominativo?: string;
+  assegnazione?: string;
+  nome?: string;
+  cognome?: string;
+  chiave?: string;
+  descrizione?: string;
+  dataInizio?: string;
+  dataFine?: string;
 };
 
 const TABLE_ID = "archivio-table";
@@ -49,16 +49,16 @@ export default function Archivio(props: Props) {
 
   function formToObj(): TArchForm {
     return {
-      cliente: clienteRef.current!.value,
-      postazione: postazioneRef.current!.value,
-      nominativo: nominativoRef.current!.value,
-      assegnazione: assegnazioneRef.current!.value,
-      nome: nomeRef.current!.value,
-      cognome: cognomeRef.current!.value,
-      chiave: chiaveRef.current!.value,
-      descrizione: descrizioneRef.current!.value,
-      dataInizio: dataInizioRef.current!.value,
-      dataFine: dataFineRef.current!.value,
+      cliente: clienteRef.current!.value || undefined,
+      postazione: postazioneRef.current!.value || undefined,
+      nominativo: nominativoRef.current!.value || undefined,
+      assegnazione: assegnazioneRef.current!.value || undefined,
+      nome: nomeRef.current!.value || undefined,
+      cognome: cognomeRef.current!.value || undefined,
+      chiave: chiaveRef.current!.value || undefined,
+      descrizione: descrizioneRef.current!.value || undefined,
+      dataInizio: dataInizioRef.current!.value || undefined,
+      dataFine: dataFineRef.current!.value || undefined,
     };
   }
 

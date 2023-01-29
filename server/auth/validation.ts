@@ -2,13 +2,13 @@ import z from "zod";
 import { TIPI_BADGE, STATI_BADGE, TDOCS } from "../types/badges.js";
 
 const LOGIN_SCHEMA = z.object({
-  username: z.string().min(6).max(32),
-  password: z.string().min(6).max(256),
+  username: z.string({ required_error: "Username non fornito" }).min(6).max(32),
+  password: z.string({ required_error: "Password non fornita" }).min(6).max(256),
 });
 
 const REGISTER_SCHEMA = z.object({
-  username: z.string().min(6).max(32),
-  password: z.string().min(6).max(256),
+  username: z.string({ required_error: "Username non fornito" }).min(6).max(32),
+  password: z.string({ required_error: "Password non fornita" }).min(6).max(256),
   admin: z.coerce.boolean().default(false),
   clienti: z.string().array().optional(),
   postazioni: z.string().array().optional(),
@@ -16,8 +16,8 @@ const REGISTER_SCHEMA = z.object({
 });
 
 const GUEST_SCHEMA = z.object({
-  username: z.string().min(6).max(32),
-  password: z.string().min(6).max(256),
+  username: z.string({ required_error: "Username non fornito" }).min(6).max(32),
+  password: z.string({ required_error: "Password non fornita" }).min(6).max(256),
   admin: z.literal(false),
   clienti: z.string().array().nonempty("Clienti non forniti"),
   postazioni: z.string().array().nonempty("Postazioni non fornite"),
@@ -52,7 +52,7 @@ const FIND_BADGE_SCHEMA = z
 export type TFindBadgeReq = z.infer<typeof FIND_BADGE_SCHEMA>;
 
 const INSERT_BADGE_SCHEMA = z.object({
-  barcode: z.string().min(3).max(32),
+  barcode: z.string({ required_error: "Barcode non fornito" }).min(3).max(32),
   descrizione: z.string().default(""),
   tipo: z.enum(TIPI_BADGE).default("BADGE"),
   assegnazione: z.string().default(""),
@@ -64,7 +64,7 @@ const INSERT_BADGE_SCHEMA = z.object({
   ditta: z.string().default(""),
   tdoc: z.enum(TDOCS).default(""),
   ndoc: z.string().default(""),
-  scadenza: z.union([z.coerce.date(), z.literal("")]),
+  scadenza: z.union([z.string().default(""), z.coerce.date()]),
   targa1: z.string().default(""),
   targa2: z.string().default(""),
   targa3: z.string().default(""),
@@ -73,7 +73,7 @@ const INSERT_BADGE_SCHEMA = z.object({
 export type TInsertBadgeReq = z.infer<typeof INSERT_BADGE_SCHEMA>;
 
 const UPDATE_BADGE_SCHEMA = z.object({
-  barcode: z.string().min(3).max(32),
+  barcode: z.string({ required_error: "Barcode non fornito" }).min(3).max(32),
   descrizione: z.string().optional(),
   tipo: z.enum(TIPI_BADGE).optional(),
   assegnazione: z.string().optional(),
@@ -85,7 +85,7 @@ const UPDATE_BADGE_SCHEMA = z.object({
   ditta: z.string().optional(),
   tdoc: z.enum(TDOCS).optional(),
   ndoc: z.string().optional(),
-  scadenza: z.union([z.coerce.date(), z.literal("")]).optional(),
+  scadenza: z.union([z.string().default(""), z.coerce.date()]).optional(),
   targa1: z.string().optional(),
   targa2: z.string().optional(),
   targa3: z.string().optional(),
@@ -94,59 +94,60 @@ const UPDATE_BADGE_SCHEMA = z.object({
 export type TUpdateBadgeReq = z.infer<typeof UPDATE_BADGE_SCHEMA>;
 
 const DELETE_BADGE_SCHEMA = z.object({
-  barcode: z.string().min(3).max(32),
+  barcode: z.string({ required_error: "Barcode non fornito" }).min(3).max(32),
 });
 
 const ASSEGNAZIONE_SCHEMA = z.object({
   badge: z.enum(TIPI_BADGE),
-  name: z.string(),
+  name: z.string({ required_error: "Nome per assegnazione non fornito" }),
 });
 
 const POSTAZIONE_SCHEMA = z.object({
-  cliente: z.string(),
-  name: z.string(),
+  cliente: z.string({ required_error: "Cliente per postazione non fornito" }),
+  name: z.string({ required_error: "Nome per postazione non fornito" }),
 });
 
 const TIMBRA_SCHEMA = z.object({
-  barcode: z.string().min(3).max(32),
-  cliente: z.string(),
-  postazione: z.string(),
+  barcode: z.string({ required_error: "Barcode non fornito" }).min(3).max(32),
+  cliente: z.string({ required_error: "Cliente non fornito" }),
+  postazione: z.string({ required_error: "Postazione non fornita" }),
 });
 
 const GET_INSTRUTT_SCHEMA = z
   .object({
     cliente: z.string().optional(),
     postazione: z.string().optional(),
+    tipi: z.enum(TIPI_BADGE).array().nonempty().optional(),
   })
   .optional();
 
 const INSERT_DOCUMENTO_SCHEMA = z.object({
-  codice: z.string(),
-  nome: z.string(),
-  cognome: z.string(),
-  azienda: z.string(),
+  codice: z.string({ required_error: "Codice non fornito" }),
+  nome: z.string({ required_error: "Nome non fornito" }),
+  cognome: z.string({ required_error: "Cognome non fornito" }),
+  azienda: z.string({ required_error: "Azienda non fornita" }),
 });
 
 const UPDATE_DOCUMENTO_SCHEMA = z.object({
-  codice: z.string(),
+  codice: z.string({ required_error: "Codice non fornito" }),
   nome: z.string().optional(),
   cognome: z.string().optional(),
   azienda: z.string().optional(),
 });
 
 const POST_CALENDARIO_SCHEMA = z.object({
-  date: z.string(),
+  date: z.string({ required_error: "Data non fornita" }),
 });
 
 const DELETE_CALENDARIO_SCHEMA = z.object({
-  date: z.string(),
-  filename: z.string(),
+  date: z.string({ required_error: "Data non fornito" }),
+  filename: z.string({ required_error: "Nome file non fornito" }),
 });
 
 const PRESTITO_CHIAVE_SCHEMA = z.object({
-  barcodes: z.string().min(3).max(32).array(),
-  cliente: z.string(),
-  postazione: z.string(),
+  barcodes: z.string().min(3).max(32).array().nonempty("Nessun barcode selezionato"),
+  cliente: z.string({ required_error: "Cliente non fornito" }),
+  postazione: z.string({ required_error: "Postazione non fornita" }),
 });
 
 export default class Validator {

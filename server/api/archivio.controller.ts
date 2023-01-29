@@ -31,6 +31,7 @@ export default class ArchivioController {
     // barcode, tipo, cliente, postazione are REQUIRED in order to execute a "timbratura"
     const parsed = Validator.timbra(req.body);
     if (parsed.success === false) {
+      console.error("apiPostArchivio | error:", parsed.error);
       return res
         .status(400)
         .json({ success: false, msg: parsed.error.message, data: null });
@@ -66,6 +67,7 @@ export default class ArchivioController {
   static async apiGetInStruttura(req: Request, res: Response) {
     const parsed = Validator.getInStrutt(req.query);
     if (parsed.success === false) {
+      console.error("apiGetinStruttura | error:", parsed.error);
       return res
         .status(400)
         .json({ success: false, msg: parsed.error.message, data: null });
@@ -74,8 +76,12 @@ export default class ArchivioController {
     try {
       const archivioList = await ArchivioDAO.getInStrutt(
         parsed?.data?.cliente,
-        parsed?.data?.postazione
+        parsed?.data?.postazione,
+        parsed?.data?.tipi,
       );
+      
+      // console.log("apiGetInStruttura |", archivioList);
+
       res.json({ success: true, data: archivioList, msg: "Lista dipendenti in struttura ottenuta con successo" });
     } catch (err) {
       const { error } = errCheck(err, "apiGetInStruttura |");

@@ -25,16 +25,14 @@ export class TableContentMapper {
   static mapArchivioToInStruttTableContent(
     data: TInStruttResp[]
   ): TInStruttTableContent[] {
-    const admin = sessionStorage.getItem("admin") === "true";
-
     return data.map((elem: TInStruttResp) => ({
-      codice: admin ? elem.codice : "XXXXX",
+      codice: elem.codice,
       tipo: elem.tipo,
       assegnaz: elem.assegnaz,
       nome: elem.nome,
       cognome: elem.cognome,
       ditta: elem.ditta,
-      entrata: admin ? this.toStrDate(elem.entrata) : "XXXXX",
+      entrata: this.toStrDate(elem.entrata),
     }));
   }
 

@@ -67,19 +67,6 @@ const FormButtons: React.FC<Props> = (props: Props) => {
               </b>
             </div>
             <div className="w-100 mt-1" />
-            <div className="col">
-              <BadgePopup
-                content={props.badges}
-                trigger={
-                  <button className="btn btn-success home-form-btn">
-                    Cerca
-                  </button>
-                }
-                onOpen={props.findBadges}
-                position="right top"
-              />
-            </div>
-            <div className="w-100 mt-1" />
           </>
         )}
         <div className="col">
@@ -93,6 +80,19 @@ const FormButtons: React.FC<Props> = (props: Props) => {
         <div className="w-100 mt-1" />
         {props.admin === true && (
           <>
+            <div className="col">
+              <BadgePopup
+                content={props.badges}
+                trigger={
+                  <button className="btn btn-success home-form-btn">
+                    Cerca
+                  </button>
+                }
+                onOpen={props.findBadges}
+                position="right top"
+              />
+            </div>
+            <div className="w-100 mt-1" />
             <div className="col">
               <button
                 onClick={() => props.insertBadge()}

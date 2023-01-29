@@ -31,3 +31,17 @@
   border-radius: 18px;
   border: 1px solid #cfcece;
 }
+
+.osp-form .form-control {
+  height: 35px;
+}
+
+.osp-form .form-select {
+  height: 35px;
+  padding: 0 0 1px 4px;
+}
+
+.osp-form .form-floating label {
+  font-size: 13px;
+  top: -25%;
+}

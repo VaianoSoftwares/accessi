@@ -59,7 +59,9 @@ export default function App() {
     retriveEnums();
   }, []);
 
-  const [user, setUser] = React.useState<TUser | null>(SSHandler.getUserFromStorage());
+  const [user, setUser] = React.useState<TUser | null>(
+    SSHandler.getUserFromStorage()
+  );
   const [alert, setAlert] = React.useState<TAlert | null>(null);
 
   function addAssegnazione(assegnazione: TAssegnazione) {
@@ -80,7 +82,7 @@ export default function App() {
     setEnums((prev) => {
       prev!.postazione.push(postazione);
       return prev;
-    })
+    });
   }
 
   function removePostazione(name: string) {
@@ -157,6 +159,7 @@ export default function App() {
                 clearScannedValue={() => setTimbraVal("")}
                 scannerConnected={accessiScanner !== undefined}
                 runScanner={runAccessiScanner}
+                tipoBadge={"BADGE"}
               />
             ) : (
               <Navigate replace to="/login" />
@@ -178,6 +181,29 @@ export default function App() {
                 alert={alert}
                 openAlert={openAlert}
                 closeAlert={closeAlert}
+              />
+            ) : (
+              <Navigate replace to="/login" />
+            )
+          }
+        />
+        <Route
+          path="veicoli"
+          element={
+            user ? (
+              <Home
+                user={user}
+                alert={alert}
+                openAlert={openAlert}
+                closeAlert={closeAlert}
+                assegnazioni={enums.assegnazione}
+                clienti={enums.cliente}
+                postazioni={enums.postazione}
+                scannedValue={timbraVal}
+                clearScannedValue={() => setTimbraVal("")}
+                scannerConnected={accessiScanner !== undefined}
+                runScanner={runAccessiScanner}
+                tipoBadge={"VEICOLO"}
               />
             ) : (
               <Navigate replace to="/login" />

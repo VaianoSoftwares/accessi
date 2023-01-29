@@ -3,10 +3,12 @@ import { TAssegnazione } from "../types/TAssegnazione";
 import { TPrestitoDataReq } from "../types/PrestitoChiavi";
 import DataServices from "./DataServices";
 import { TPostazione } from "../types/TPostazione";
+import { TBadgeTipo } from "../types/Badge";
 
 type TInStruttDataReq = {
   cliente?: string;
   postazione?: string;
+  tipi?: TBadgeTipo[];
 };
 
 class BadgesDataService extends DataServices {
