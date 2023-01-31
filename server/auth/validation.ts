@@ -159,7 +159,7 @@ export default class Validator {
     const parsed = REGISTER_SCHEMA.safeParse(input);
     if (parsed.success === false || parsed.data.admin === true) return parsed;
 
-    return GUEST_SCHEMA.safeParse(parsed);
+    return GUEST_SCHEMA.safeParse(parsed.data);
   }
 
   static logout(input: unknown) {

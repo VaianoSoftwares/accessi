@@ -8,7 +8,9 @@ import { TUser } from "../types/users.js";
 
 export default class UsersController {
   static async apiRegister(req: Request, res: Response) {
+    console.log("apiRegister | req.body:", req.body);
     const parsed = Validator.register(req.body);
+    console.log("apiRegister | parsed:", parsed);
 
     if (parsed.success === false) {
       return res

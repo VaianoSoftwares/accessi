@@ -42,6 +42,8 @@ export default function Login(props: Props) {
     if(window.location.hash) {
       retriveUser(window.location.hash.slice(1));
     }
+
+    window.location.hash = "";
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
