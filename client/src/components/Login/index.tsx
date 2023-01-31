@@ -27,8 +27,6 @@ export default function Login(props: Props) {
           const dataResp = response.data.data as TPartialUser;
           console.log(dataResp.username, "logged In.");
   
-          window.location.hash = "";
-  
           props.login({
             ...dataResp,
             token: response.headers["x-access-token"]! as string,
@@ -36,7 +34,8 @@ export default function Login(props: Props) {
         })
         .catch((err) => {
           console.error("retriveUser |", err);
-        });
+        })
+        .finally(() => window.location.hash = "");
     }
 
     if(window.location.hash) {
