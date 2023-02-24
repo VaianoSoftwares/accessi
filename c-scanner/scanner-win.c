@@ -15,15 +15,18 @@ uint8_t coms[NDEVS];
 HANDLE com_mutex, req_mutex, start_mutex;
 
 void create_threads(HANDLE *h_threads, tparams_t *tparams);
-BOOL find_serial_port(int n_thread, HANDLE h_comm);
-BOOL open_serial_port(int n_thread, HANDLE h_comm, DWORD *event_mask);
+BOOL find_serial_port(int n_thread, HANDLE *h_comm);
+BOOL open_serial_port(int n_thread, HANDLE *h_comm, DWORD *event_mask);
 BOOL read_scanner(HANDLE h_comm, DWORD dw_event_mask, char *buf, size_t size);
 SOCKET conn_to_server(const char *hostname, int port);
 void send_timbra_req(void *thread_params);
+DWORD __print_err(const char *msg, va_list argptr);
 
 int main(int argc, char *argv[])
 {
-    printf("MAIN | Execution started.\n");
+    puts("MAIN | Execution started.");
+
+    memset(coms, 0, sizeof(coms));
 
     // guest token must be specified as cmd arg
     if (argc < 2)
@@ -33,15 +36,14 @@ int main(int argc, char *argv[])
     const char *token = argv[1];
 
     const char *hostname = (argc >= 3 && strlen(argv[2]) > 0) ? argv[2] : DEFAULT_HOSTNAME;
-    int port = (argc >= 7 && atoi(argv[6]) > 0) ? atoi(argv[6]) : DEFAULT_PORT;
+    int port = (argc >= 6 && atoi(argv[5]) > 0) ? atoi(argv[6]) : DEFAULT_PORT;
 
     body_args_t ba = { NULL };
-    ba.cliente = (argc >= 4 && strlen(argv[3]) > 0) ? argv[3] : DEFAULT_CLIENTE;
-    ba.postazione = (argc >= 5 && strlen(argv[4]) > 0) ? argv[4] : DEFAULT_CLIENTE;
-    ba.tipo = (argc >= 6 && strlen(argv[5]) > 0) ? argv[5] : DEFAULT_TIPO;
+    ba.postazione = (argc >= 4 && strlen(argv[3]) > 0) ? argv[4] : DEFAULT_POST;
+    ba.cliente = (argc >= 3 && strlen(argv[4]) > 0) ? argv[3] : DEFAULT_CLIENTE;
     ba.barcode = NULL;
 
-    int body_len = strlen(BODY_FORMAT) + strlen(ba.tipo) +
+    int body_len = strlen(BODY_FORMAT) +
                    strlen(ba.cliente) + strlen(ba.postazione) + SCAN_BUF_SIZE;
     int req_len =
         strlen(MSG_FORMAT) + body_len + strlen(hostname) + strlen(token);
@@ -92,10 +94,10 @@ int main(int argc, char *argv[])
     // create threads
     create_threads(h_threads, &tparams);
 
-    printf("MAIN | Waiting for children.\n");
+    puts("MAIN | Waiting for children.");
 
     // waiting for threads
-    WaitForMultipleObjects(NDEVS, h_threads, TRUE, 0L);
+    WaitForMultipleObjects(NDEVS, h_threads, TRUE, INFINITE);
 
     /*#################################################################################################################*/
 
@@ -111,7 +113,7 @@ int main(int argc, char *argv[])
     if(start_mutex)
         CloseHandle(start_mutex);
 
-    printf("MAIN | Execution terminated.\n");
+    puts("MAIN | Execution terminated.");
 
     return EXIT_SUCCESS;
 }
@@ -166,9 +168,9 @@ void send_timbra_req(void *thread_params)
             WaitForSingleObject(com_mutex, INFINITE);
 
             // connect scanner
-            if (!open_serial_port(n_thread, h_comm, &event_mask))
+            if (!open_serial_port(n_thread, &h_comm, &event_mask))
             {
-                fprintf(stderr, "send_timbra_req | open_serial_port\n");
+                print_err("send_timbra_req | open_serial_port");
 
                 if (h_comm) CloseHandle(h_comm);
                 coms[n_thread] = 0;
@@ -187,7 +189,7 @@ void send_timbra_req(void *thread_params)
         // get barcode
         if (!read_scanner(h_comm, event_mask, scan_buf, sizeof(scan_buf)))
         {
-            fprintf(stderr, "send_timbra_req | read_scanner\n");
+            print_err("send_timbra_req | read_scanner");
             if (h_comm) CloseHandle(h_comm);
             coms[n_thread] = 0;
             Sleep(5000);
@@ -195,22 +197,22 @@ void send_timbra_req(void *thread_params)
         }
 
         // create msg request
-        snprintf(body_msg, sizeof(body_msg), BODY_FORMAT, scan_buf, ba->cliente, ba->postazione,
-                 ba->tipo);
-        snprintf(request, sizeof(request), MSG_FORMAT, hostname, token,
+        _snprintf_s(body_msg, sizeof(body_msg), sizeof(body_msg), BODY_FORMAT, scan_buf, ba->cliente, ba->postazione /*,
+                 ba->tipo*/);
+        _snprintf_s(request, sizeof(request), sizeof(request), MSG_FORMAT, hostname, token,
                  strlen(body_msg), body_msg);
 
         WaitForSingleObject(req_mutex, INFINITE);
 
-        printf("---------------------------------------------------------------------------------------------------\n");
-        printf("%s\n", request);
-        printf("---------------------------------------------------------------------------------------------------\n");
+        puts("---------------------------------------------------------------------------------------------------");
+        puts(request);
+        puts("---------------------------------------------------------------------------------------------------");
 
         // send request
         if (SSL_write(ssl, request, strlen(request)) <= 0)
         {
             ERR_print_errors_fp(stderr);
-            fprintf(stderr, "Unable to send request.\n");
+            print_err("Unable to send request.");
             ReleaseMutex(req_mutex);
             break;
         }
@@ -219,13 +221,13 @@ void send_timbra_req(void *thread_params)
         if ((nbytes = SSL_read(ssl, response, sizeof(response))) <= 0)
         {
             ERR_print_errors_fp(stderr);
-            fprintf(stderr, "No response. (nbytes=%d)\n", nbytes);
+            print_err("No response. (nbytes=%d)", nbytes);
             ReleaseMutex(req_mutex);
             break;
         }
         response[nbytes] = 0;
 
-        printf("%s\n", response);
+        puts(response);
 
         ReleaseMutex(req_mutex);
     }
@@ -236,30 +238,58 @@ void send_timbra_req(void *thread_params)
     printf("THREAD %d | Execution terminated.\n", n_thread);
 }
 
-void throw_err(const char *msg)
-{
+DWORD __print_err(const char *msg, va_list argptr) {
     DWORD err_code = GetLastError();
-
+    
     if (!err_code)
     {
-        fprintf(stderr, "%s", msg);
-        exit(EXIT_FAILURE);
+        vfprintf(stderr, msg, argptr);
+        fprintf(stderr,"\n");
+        return EXIT_FAILURE;
     }
 
-    LPTSTR lpMsgBuf;
+    LPTSTR lp_err_descr_buf;
 
     FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
                       FORMAT_MESSAGE_IGNORE_INSERTS,
                   NULL, err_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                  (LPTSTR)&lpMsgBuf, 0, NULL);
+                  (LPTSTR)&lp_err_descr_buf, 0, NULL);
+    
+    if(!lp_err_descr_buf) {
+        vfprintf(stderr, msg, argptr);
+        fprintf(stderr,"\n");
+        return EXIT_FAILURE;
+    }
 
-    fprintf(stderr, "%s: %s", msg, lpMsgBuf);
+    size_t msg_len = strlen(msg) + strlen(argptr) + 1;
+    char *formatted_msg = (char *)malloc(msg_len);
 
-    LocalFree(lpMsgBuf);
+    vsnprintf_s(formatted_msg, msg_len, msg_len, msg, argptr);
+
+    fprintf(stderr, "%s: %s\n", formatted_msg, lp_err_descr_buf);
+
+    free(formatted_msg);
+    LocalFree(lp_err_descr_buf);
+    return err_code;
+}
+
+void print_err(const char *msg, ...) {
+    va_list argptr;
+    va_start(argptr, msg);
+    __print_err(msg, argptr);
+    va_end(argptr);
+}
+
+void throw_err(const char *msg, ...)
+{
+    va_list argptr;
+    va_start(argptr, msg);
+    DWORD err_code = __print_err(msg, argptr);
+    va_end(argptr);
     exit(err_code);
 }
 
-BOOL find_serial_port(int n_thread, HANDLE h_comm)
+BOOL find_serial_port(int n_thread, HANDLE *h_comm)
 {
     char com_port_name[16];
     BOOL port_taken = FALSE;
@@ -280,9 +310,9 @@ BOOL find_serial_port(int n_thread, HANDLE h_comm)
         if (port_taken)
             continue;
 
-        snprintf(com_port_name, sizeof(com_port_name), COM_PORT_FORMAT, i);
+        _snprintf_s(com_port_name, sizeof(com_port_name), sizeof(com_port_name), COM_PORT_FORMAT, i);
 
-        h_comm = CreateFile(
+        *h_comm = CreateFile(
             com_port_name,
             GENERIC_READ | GENERIC_WRITE,
             0,
@@ -291,46 +321,46 @@ BOOL find_serial_port(int n_thread, HANDLE h_comm)
             FILE_ATTRIBUTE_NORMAL,
             NULL);
 
-        if (h_comm != INVALID_HANDLE_VALUE)
+        if (*h_comm != INVALID_HANDLE_VALUE)
         {
             coms[n_thread] = i;
-            printf("THREAD %d | Found available serial device %s.\n", n_thread, com_port_name);
+            // printf("THREAD %d | Found available serial device %s.\n", n_thread, com_port_name);
             return TRUE;
         }
 
-        CloseHandle(h_comm);
+        CloseHandle(*h_comm);
     }
 
-    fprintf(stderr, "find_serial_port | Not available serial port\n");
+    // print_err("find_serial_port | Not available serial port");
     return FALSE;
 }
 
-BOOL open_serial_port(int n_thread, HANDLE h_comm, DWORD *event_mask)
+BOOL open_serial_port(int n_thread, HANDLE *h_comm, DWORD *event_mask)
 {
     if (!find_serial_port(n_thread, h_comm))
     {
         coms[n_thread] = 0;
-        if(h_comm) CloseHandle(h_comm);
-        fprintf(stderr, "open_serial_port | find_serial_port\n");
+        if(*h_comm) CloseHandle(*h_comm);
+        // print_err("open_serial_port | find_serial_port");
         return FALSE;
     }
-
-    if (!FlushFileBuffers(h_comm))
+    
+    if (!FlushFileBuffers(*h_comm))
     {
         coms[n_thread] = 0;
-        if(h_comm) CloseHandle(h_comm);
-        fprintf(stderr, "open_serial_port | FlushFileBuffer\n");
+        if(*h_comm) CloseHandle(*h_comm);
+        print_err("open_serial_port | FlushFileBuffer");
         return FALSE;
     }
 
     DCB dcb_serial_params = {0}; // Initializing DCB structure
     dcb_serial_params.DCBlength = sizeof(dcb_serial_params);
 
-    if (!GetCommState(h_comm, &dcb_serial_params))
+    if (!GetCommState(*h_comm, &dcb_serial_params))
     {
         coms[n_thread] = 0;
-        if(h_comm) CloseHandle(h_comm);
-        fprintf(stderr, "init_scanner | GetComState\n");
+        if(*h_comm) CloseHandle(*h_comm);
+        print_err("init_scanner | GetComState");
         return FALSE;
     }
 
@@ -339,11 +369,11 @@ BOOL open_serial_port(int n_thread, HANDLE h_comm, DWORD *event_mask)
     dcb_serial_params.StopBits = ONESTOPBIT; // Setting StopBits = 1
     dcb_serial_params.Parity = NOPARITY;     // Setting Parity = None
 
-    if (!SetCommState(h_comm, &dcb_serial_params))
+    if (!SetCommState(*h_comm, &dcb_serial_params))
     {
         coms[n_thread] = 0;
-        if(h_comm) CloseHandle(h_comm);
-        fprintf(stderr, "init_scanner | SetComState\n");
+        if(*h_comm) CloseHandle(*h_comm);
+        print_err("init_scanner | SetComState");
         return FALSE;
     }
 
@@ -354,20 +384,20 @@ BOOL open_serial_port(int n_thread, HANDLE h_comm, DWORD *event_mask)
     timeouts.WriteTotalTimeoutConstant = 0;
     timeouts.WriteTotalTimeoutMultiplier = 0;
 
-    if (!SetCommTimeouts(h_comm, &timeouts))
+    if (!SetCommTimeouts(*h_comm, &timeouts))
     {
         coms[n_thread] = 0;
-        if(h_comm) CloseHandle(h_comm);
-        fprintf(stderr, "init_scanner | SetComTimeouts\n");
+        if(*h_comm) CloseHandle(*h_comm);
+        print_err("init_scanner | SetComTimeouts");
         return FALSE;
     }
 
     *event_mask = (DWORD)EV_RXCHAR;
-    if (!SetCommMask(h_comm, *event_mask))
+    if (!SetCommMask(*h_comm, *event_mask))
     {
         coms[n_thread] = 0;
-        if(h_comm) CloseHandle(h_comm);
-        fprintf(stderr, "init_scanner | SetCommMask\n");
+        if(*h_comm) CloseHandle(*h_comm);
+        print_err("init_scanner | SetCommMask");
         return FALSE;
     }
 
@@ -381,7 +411,7 @@ BOOL read_scanner(HANDLE h_comm, DWORD dw_event_mask, char *buf, size_t size)
 
     if (!WaitCommEvent(h_comm, &dw_event_mask, NULL))
     {
-        fprintf(stderr, "read_scanner | WaitCommEvent");
+        print_err("read_scanner | WaitCommEvent");
         CloseHandle(h_comm);
         return FALSE;
     }
@@ -396,7 +426,7 @@ BOOL read_scanner(HANDLE h_comm, DWORD dw_event_mask, char *buf, size_t size)
     {
         if (!ReadFile(h_comm, &tmp_ch, sizeof(tmp_ch), &bytes_read, NULL))
         {
-            fprintf(stderr, "read_scanner | ReadFile");
+            print_err("read_scanner | ReadFile");
             CloseHandle(h_comm);
             return FALSE;
         }
@@ -415,14 +445,13 @@ SOCKET conn_to_server(const char *hostname, int port)
 
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != NO_ERROR)
     {
-        fprintf(stderr, "Failed. Error Code : %d.\n", WSAGetLastError());
-        throw_err("conn_to_server | WSAStartup");
+        throw_err("conn_to_server | WSAStartup. Failed. Error Code : %d.", WSAGetLastError());
     }
 
     // Create a socket
     if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET)
     {
-        fprintf(stderr, "Could not create socket : %d.\n", WSAGetLastError());
+        print_err("Could not create socket : %d.", WSAGetLastError());
         WSACleanup();
         throw_err("conn_to_server | socket");
     }
@@ -444,7 +473,7 @@ SOCKET conn_to_server(const char *hostname, int port)
         // if connection failed retry to connect after 1 sec
         if ((connected = connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr))) == SOCKET_ERROR)
         {
-            fprintf(stderr, "Connection to server failed. Error: %d\n", WSAGetLastError());
+            print_err("Connection to server failed. Error %d", WSAGetLastError());
             Sleep(1000);
         }
     } while (connected == SOCKET_ERROR);
@@ -477,11 +506,11 @@ void show_certs(SSL *ssl)
     X509 *cert = SSL_get_peer_certificate(ssl); /* get the server's certificate */
     if (cert == NULL)
     {
-        printf("Info: No client certificates configured.\n");
+        puts("Info: No client certificates configured.");
         return;
     }
 
-    printf("Server certificates:\n");
+    puts("Server certificates:");
     line = X509_NAME_oneline(X509_get_subject_name(cert), 0, 0);
     printf("Subject: %s\n", line);
     free(line); /* free the malloc'ed string */

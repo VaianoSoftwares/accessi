@@ -28,9 +28,10 @@ void wait_threads(pthread_t *threads, int *irets);
 bool find_scanner(int n_thread);
 int connect_scanner(char *dev_name, struct termios *tio);
 int conn_to_server(const char *hostname, uint16_t port);
+void __print_err(const char *msg, va_list args);
 
 int main(int argc, char *argv[]) {
-    printf("MAIN | Execution started.\n");
+    puts("MAIN | Execution started.");
 
     if(argc < 2) throw_err("MAIN | invalid arguments: token is missing");
 
@@ -38,16 +39,15 @@ int main(int argc, char *argv[]) {
     char *token = argv[1];
 
     char *hostname = (argc >= 3 && strlen(argv[2]) > 0) ? argv[2] : DEFAULT_HOSTNAME;
-    uint16_t port = (argc >= 7 && atoi(argv[6]) > 0) ? atoi(argv[6]) : DEFAULT_PORT;
+    uint16_t port = (argc >= 6 && atoi(argv[5]) > 0) ? atoi(argv[6]) : DEFAULT_PORT;
 
     body_args_t ba;
-    ba.cliente = (argc >= 4 && strlen(argv[3]) > 0) ? argv[3] : DEFAULT_CLIENTE;
-    ba.postazione = (argc >= 5 && strlen(argv[4]) > 0) ? argv[4] : DEFAULT_CLIENTE;
-    ba.tipo = (argc >= 6 && strlen(argv[5]) > 0) ? argv[5] : DEFAULT_TIPO;
+    ba.cliente = (argc >= 5 && strlen(argv[4]) > 0) ? argv[4] : DEFAULT_CLIENTE;
+    ba.postazione = (argc >= 4 && strlen(argv[3]) > 0) ? argv[3] : DEFAULT_CLIENTE;
     ba.barcode = NULL;
 
     int body_len = strlen(BODY_FORMAT) + strlen(ba.cliente) +
-                   strlen(ba.postazione) + strlen(ba.tipo) + SCAN_BUF_SIZE;
+                   strlen(ba.postazione) + SCAN_BUF_SIZE;
     int req_len =
         strlen(MSG_FORMAT) + body_len + strlen(hostname) + strlen(token);
     
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
         throw_err("MAIN | SSL_connect");
     }
 
-    printf("MAIN | SSL connection enstablished.\n");
+    puts("MAIN | SSL connection enstablished.");
 
     show_certs(ssl);
 
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
     create_threads(threads, irets, &tparams);
 
     // wait for threads to terminate
-    printf("MAIN | Wait for threads to terminate.\n");
+    puts("MAIN | Wait for threads to terminate.");
     wait_threads(threads, irets);
 
     /*#################################################################################################################*/
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
     close(client_fd);
     SSL_CTX_free(ctx);
 
-    printf("MAIN | Execution terminated.\n");
+    puts("MAIN | Execution terminated.");
 
     return EXIT_SUCCESS;
 }
@@ -173,7 +173,7 @@ void *thread_run(void *targs) {
 
             // connetc serial scanner
             if((scan_fd = connect_scanner(od[n_thread].pathname, &tio)) == INVALID_FD) {
-                fprintf(stderr, RED "THREAD %d | Failed to open scanner %s.\n" RESET, n_thread, od[n_thread].pathname);
+                print_err("THREAD %d | Failed to open scanner %s.", n_thread, od[n_thread].pathname);
                 close(scan_fd);
                 od[n_thread].open = false;
                 pthread_mutex_unlock(&scan_mutex);
@@ -185,12 +185,12 @@ void *thread_run(void *targs) {
 
             pthread_mutex_unlock(&scan_mutex);
         }
-
+        
         // get barcode
         printf("THREAD %d | Waiting for scanner input.\n", n_thread);
         while((read_scan = read(scan_fd, scan_buf, sizeof(scan_buf))) < 0);
         if (!read_scan) {
-            fprintf(stderr, RED "THREAD %d | Scanner %s has been unplugged.\n" RESET, n_thread, od[n_thread].pathname);
+            print_err("THREAD %d | Scanner %s has been unplugged.", n_thread, od[n_thread].pathname);
             close(scan_fd);
             od[n_thread].open = false;
             continue;
@@ -198,17 +198,17 @@ void *thread_run(void *targs) {
 
         // create msg request
         snprintf(body_msg, sizeof(body_msg), BODY_FORMAT, scan_buf,
-                 ba->cliente, ba->postazione, ba->tipo);
+                 ba->cliente, ba->postazione);
         snprintf(request, sizeof(request), MSG_FORMAT, hostname, token,
                  strlen(body_msg), body_msg);
 
         pthread_mutex_lock(&req_mutex);
 
-        printf("-------------------------------------------------------------"
-               "--------------------------------------\n");
-        printf("%s\n", request);
-        printf("-------------------------------------------------------------"
-               "--------------------------------------\n");
+        puts("-------------------------------------------------------------"
+               "--------------------------------------");
+        puts(request);
+        puts("-------------------------------------------------------------"
+               "--------------------------------------");
 
         // send request
         if (SSL_write(ssl, request, strlen(request)) <= 0)
@@ -229,7 +229,7 @@ void *thread_run(void *targs) {
         }
         response[nbytes] = 0;
 
-        printf("%s\n", response);
+        puts(response);
 
         pthread_mutex_unlock(&req_mutex);
     }
@@ -241,16 +241,39 @@ void *thread_run(void *targs) {
     return NULL;
 }
 
-void throw_err(const char *msg) {
+void __print_err(const char *msg, va_list args) {
+    size_t msg_size = strlen(msg) + strlen((char *)args) + 1;
+    char *formatted_msg = (char *)malloc(msg_size);
+    vsnprintf(formatted_msg, msg_size, msg, args);
+
     if(!errno) {
-        fprintf(stderr, RED "%s\n" RESET, msg);
-        exit(EXIT_FAILURE);
+        fprintf(stderr, RED "%s\n" RESET, formatted_msg);
+        free(formatted_msg);
+        return;
     }
     
     fprintf(stderr, RED);
-    perror(msg);
+    perror(formatted_msg);
     fprintf(stderr, RESET);
-    exit(errno);
+
+    free(formatted_msg);
+}
+
+void print_err(const char *msg, ...) {
+    va_list args;
+    va_start(args, msg);
+    __print_err(msg, args);
+    va_end(args);
+}
+
+void throw_err(const char *msg, ...) {
+    va_list args;
+    va_start(args, msg);
+    __print_err(msg, args);
+    va_end(args);
+
+    if(!errno) exit(EXIT_FAILURE);
+    else exit(errno);
 }
 
 bool find_scanner(int n_thread) {
@@ -261,8 +284,7 @@ bool find_scanner(int n_thread) {
 
     // open serial devices directory
     if((dp = opendir(SERIAL_DIR)) == NULL) {
-        fprintf(stderr,
-              RED "Can't open serial devices directory: no device detected.\n" RESET);
+        print_err("Can't open serial devices directory: no device detected.");
         closedir(dp);
         return false;
     }
@@ -305,14 +327,14 @@ int connect_scanner(char *dev_name, struct termios *tio) {
     // open device on non-blocking read-only
     int fd;
     if((fd = open(dev_name, O_RDONLY | O_NONBLOCK)) == INVALID_FD) {
-        perror("connect_scanner | open");
+        print_err("connect_scanner | open");
         close(fd);
         return INVALID_FD;
     }
 
     // device must be a tty
     if(!isatty(fd)) {
-        fprintf(stderr, RED "connect_scanner | not a tty" RESET);
+        print_err("connect_scanner | not a tty");
         close(fd);
         return INVALID_FD;
     }
@@ -354,7 +376,7 @@ int conn_to_server(const char *hostname, uint16_t port) {
 
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = *(long*)(host->h_addr);
+    addr.sin_addr.s_addr = *(long*)(host->h_addr_list[0]);
 
     printf("Attempt to connect to %s:%d.\n", hostname, port);
 
@@ -386,11 +408,11 @@ void show_certs(SSL *ssl) {
 
     X509 *cert = SSL_get_peer_certificate(ssl); /* get the server's certificate */
     if(cert == NULL) {
-        printf("Info: No client certificates configured.\n");
+        puts("Info: No client certificates configured.");
         return;
     } 
 
-    printf("Server certificates:\n");
+    puts("Server certificates:");
     line = X509_NAME_oneline(X509_get_subject_name(cert), 0, 0);
     printf("Subject: %s\n", line);
     free(line); /* free the malloc'ed string */
