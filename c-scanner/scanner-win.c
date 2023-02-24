@@ -170,7 +170,7 @@ void send_timbra_req(void *thread_params)
             // connect scanner
             if (!open_serial_port(n_thread, &h_comm, &event_mask))
             {
-                print_err("send_timbra_req | open_serial_port");
+                // print_err("send_timbra_req | open_serial_port");
 
                 if (h_comm) CloseHandle(h_comm);
                 coms[n_thread] = 0;
@@ -324,7 +324,7 @@ BOOL find_serial_port(int n_thread, HANDLE *h_comm)
         if (*h_comm != INVALID_HANDLE_VALUE)
         {
             coms[n_thread] = i;
-            // printf("THREAD %d | Found available serial device %s.\n", n_thread, com_port_name);
+            printf("THREAD %d | Found available serial device %s.\n", n_thread, com_port_name);
             return TRUE;
         }
 

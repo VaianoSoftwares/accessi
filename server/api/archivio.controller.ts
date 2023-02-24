@@ -34,7 +34,7 @@ export default class ArchivioController {
       console.error("apiPostArchivio | error:", parsed.error);
       return res
         .status(400)
-        .json({ success: false, msg: parsed.error.message, data: null });
+        .json({ success: false, msg: parsed.error.errors[0].message, data: null });
     }
 
     try {
@@ -70,7 +70,7 @@ export default class ArchivioController {
       console.error("apiGetinStruttura | error:", parsed.error);
       return res
         .status(400)
-        .json({ success: false, msg: parsed.error.message, data: null });
+        .json({ success: false, msg: parsed.error.errors[0].message, data: null });
     }
 
     try {

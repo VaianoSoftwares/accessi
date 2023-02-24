@@ -10,6 +10,8 @@ export type TTableContent = {
 };
 
 type TInStruttPartialContent = {
+    cliente: string;
+    postazione: string;
     entrata: string;
 };
 

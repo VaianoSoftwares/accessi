@@ -18,7 +18,7 @@
 
 
 #define SCAN_BUF_SIZE   32
-#define NDEVS           3
+#define NDEVS           2
 
 typedef struct body_args_t {
     const char *cliente;

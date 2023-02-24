@@ -799,10 +799,10 @@ export default function Home({
         <BadgeTable
           content={inStrutt}
           tableId="badge-table"
-          // omitedParams={["_id", "id"]}
-          obfuscatedParams={
-            props.user.admin === true ? undefined : ["codice", "entrata"]
-          }
+          omitedParams={["_id", "id"]}
+          // obfuscatedParams={
+          //   props.user.admin === true ? undefined : ["codice", "entrata"]
+          // }
         />
       </div>
     </div>

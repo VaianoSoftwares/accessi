@@ -191,20 +191,16 @@ export default class ArchivioDAO {
       }
 
       // check if is inStrutt, then "timbra esce", "timbra entra" otherwise
-      const inStrutt = await archivio.findOne(
-        {
-          $and: [
-            { "badge.barcode": barcode },
-            { "data.uscita": { $eq: null } },
-          ],
-        },
-        { projection: { _id: 1 } }
-      );
+      const inStrutt = await this.#findOneIdInStrutt(barcode);
 
       let idTimbra: ObjectId;
       let msgTimbra = "";
       
       if(inStrutt) {
+        if(inStrutt.cliente !== cliente || inStrutt.postazione !== postazione) {
+          throw new Error(`Impossibile timbrare l'uscita del badge ${barcode}`);
+        }
+
         const timbraEsceResp = await this.#timbraEsce(inStrutt._id);
         if ("error" in timbraEsceResp) throw new Error(timbraEsceResp.error);
         else if (timbraEsceResp.modifiedCount === 0)
@@ -432,7 +428,15 @@ export default class ArchivioDAO {
     try {
       const archivioDoc: TArchivio = {
         badge: badgeDoc,
-        data: {
+        data: {      // const inStrutt = await archivio.findOne(
+          //   {
+          //     $and: [
+          //       { "badge.barcode": barcode },
+          //       { "data.uscita": { $eq: null } },
+          //     ],
+          //   },
+          //   { projection: { _id: 1 } }
+          // );
           entrata: new Date(new Date().toISOString()),
           uscita: null,
         },
@@ -461,6 +465,24 @@ export default class ArchivioDAO {
       return response;
     } catch (err) {
       return errCheck("timbraEsce |");
+    }
+  }
+
+  static async #findOneIdInStrutt(barcode: string) {
+    try {
+      return await archivio.findOne({
+        $and: [{ "data.uscita": { $eq: null } },
+        { "badge.barcode": barcode },]
+      }, {
+        projection: {
+          _id: 1,
+          cliente: 1,
+          postazione: 1,
+        },
+      });
+    } catch (err) {
+      errCheck(err, "findOneIdInStrutt |");
+      return null;
     }
   }
 

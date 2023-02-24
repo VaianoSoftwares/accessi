@@ -27,6 +27,8 @@ export class TableContentMapper {
   ): TInStruttTableContent[] {
     return data.map((elem: TInStruttResp) => ({
       codice: elem.codice,
+      cliente: elem.cliente,
+      postazione: elem.postazione,
       tipo: elem.tipo,
       assegnaz: elem.assegnaz,
       nome: elem.nome,
