@@ -2,13 +2,14 @@ import DataServices from "./DataServices";
 import { GenericAbortSignal } from "axios";
 import {
   TInStruttDataReq,
-  TPostazione,
   TAssegnazione,
   TimbraDoc,
   TPrestitoDataReq,
 } from "../types";
 
 class BadgesDataService extends DataServices {
+  baseUrl = "/api/v1/badges";
+
   getAll(signal?: GenericAbortSignal) {
     return super.request({ token: true, signal });
   }
@@ -167,4 +168,4 @@ class BadgesDataService extends DataServices {
   }
 }
 
-export default new BadgesDataService("/api/v1/badges");
+export default new BadgesDataService();

@@ -21,6 +21,7 @@ import EnumsDAO from "./dao/enums.dao.js";
 import PermessiDAO from "./dao/permessi.dao.js";
 import DocumentiDAO from "./dao/documenti.dao.js";
 import PrestitiDAO from "./dao/prestiti.dao.js";
+import PostazioniDao from "./dao/postazioni.dao.js";
 
 const MongoClient = mongodb.MongoClient;
 const port = process.env.PORT || 4316;
@@ -35,6 +36,7 @@ MongoClient.connect(process.env.ACCESSI_DB_URI || "")
     await PermessiDAO.injectDB(client);
     await DocumentiDAO.injectDB(client);
     await PrestitiDAO.injectDB(client);
+    await PostazioniDao.injectDB(client);
     
     httpsServer.listen(port, () => console.log(`HTTPS Server running on port ${port}.`));
     

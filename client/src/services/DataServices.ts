@@ -23,20 +23,20 @@ type TReqOptions = {
 };
 
 export default abstract class DataServices {
-  constructor(private readonly baseUrl: string) {}
+  protected static baseUrl = "";
 
-  private isFormDataMethod(method: string): method is TFormDataMethod {
+  private static isFormDataMethod(method: string): method is TFormDataMethod {
     return ["POST", "PUT", "PATCH"].includes(method);
   }
 
-  private getHeaders(token = false, files = false) {
+  private static getHeaders(token = false, files = false) {
     const headers: RawAxiosRequestHeaders = {};
-    token && (headers["x-access-token"] = sessionStorage.getItem("token"));
+    token && (headers["x-access-token"] = JSON.parse(sessionStorage.getItem("user") || "{token:''}").token);
     files && (headers["Content-Type"] = "multipart/form-data");
     return headers;
   }
 
-  private queryToString<T extends GenericForm>(query?: T) {
+  private static queryToString<T extends GenericForm>(query?: T) {
     return query
       ? "?" +
           Object.entries(query)
@@ -50,7 +50,7 @@ export default abstract class DataServices {
       : "";
   }
 
-  protected request({
+  protected async request({
     url = "",
     token = false,
     files = false,
@@ -58,24 +58,24 @@ export default abstract class DataServices {
     data,
     signal = undefined,
   }: TReqOptions): TAxiosResp {
-    const headers = this.getHeaders(token, files);
+    const headers = DataServices.getHeaders(token, files);
 
     const completeUrl =
-      data instanceof FormData || this.isFormDataMethod(method)
-        ? `${this.baseUrl}${url}`
-        : `${this.baseUrl}${url}${this.queryToString(data)}`;
-
+      data instanceof FormData || DataServices.isFormDataMethod(method)
+        ? `${DataServices.baseUrl}${url}`
+        : `${DataServices.baseUrl}${url}${DataServices.queryToString(data)}`;
+    
     switch (method) {
       case "GET":
-        return axios.get(completeUrl, { headers, signal });
+        return await axios.get(completeUrl, { headers, signal });
       case "DELETE":
-        return axios.delete(completeUrl, { headers, signal });
+        return await axios.delete(completeUrl, { headers, signal });
       case "POST":
-        return axios.post(completeUrl, data, { headers, signal });
+        return await axios.post(completeUrl, data, { headers, signal });
       case "PUT":
-        return axios.put(completeUrl, data, { headers, signal });
+        return await axios.put(completeUrl, data, { headers, signal });
       case "PATCH":
-        return axios.patch(completeUrl, data, { headers, signal });
+        return await axios.patch(completeUrl, data, { headers, signal });
     }
   }
 }

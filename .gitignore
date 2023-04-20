@@ -14,6 +14,7 @@ server/tmp/*
 
 # tsc server build files
 /dist
+/build
 
 # vscode configs
 /.vscode
