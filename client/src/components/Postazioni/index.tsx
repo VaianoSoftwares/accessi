@@ -1,47 +1,57 @@
-import React from "react";
+import { useRef, useState } from "react";
 
 import "./index.css";
 
 import BadgeDataService from "../../services/badge";
 
-import { TAlert } from "../../types/TAlert";
-
-import Alert from "../Alert";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
-import { TPostazione } from "../../types/TPostazione";
+import { TPostazione } from "../../types";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-type Props = {
-  alert: TAlert | null;
-  openAlert: (alert: TAlert) => void;
-  closeAlert: () => void;
-  clienti: string[];
-  postazioni: TPostazione[];
-  addPostazione: (postazione: TPostazione) => void;
-  removePostazione: (name: string) => void;
-};
+export default function Postazioni() {
+  const queryClient = useQueryClient();
 
-export default function Postazioni(props: Props) {
-  const [currTCliente, setCurrTCliente] = React.useState("");
-  const nameRef = React.useRef<HTMLInputElement>(null);
+  const clienti = useQuery({
+    queryKey: ["clienti"],
+    queryFn: () =>
+      BadgeDataService.getClienti().then((response) => {
+        console.log("queryClienti | response:", response);
+        const result = response.data.data as string[];
+        return result;
+      }),
+  });
 
-  function addPostazione(postazione: TPostazione) {
-    BadgeDataService.insertPostazione(postazione)
-      .then(() => {
-        props.addPostazione(postazione);
-        nameRef.current!.value = nameRef.current!.defaultValue;
-      })
-      .catch((err) => axiosErrHandl(err, props.openAlert, "addPostazione |"));
-  }
+  const queryPostazioni = useQuery({
+    queryKey: ["assegnazioni"],
+    queryFn: () =>
+      BadgeDataService.getPostazioni().then((response) => {
+        console.log("queryPostazioni | response:", response);
+        const result = response.data.data as TPostazione[];
+        return result;
+      }),
+  });
 
-  function deletePostazione(postazione: TPostazione) {
-    BadgeDataService.deletePostazione(postazione)
-      .then(() => {
-        props.removePostazione(postazione.name);
-      })
-      .catch((err) =>
-        axiosErrHandl(err, props.openAlert, "deletePostazione |")
-      );
-  }
+  const addPostazione = useMutation({
+    mutationFn: BadgeDataService.insertPostazione,
+    onSuccess: async (response) => {
+      console.log("addPostazione | response:", response);
+      await queryClient.invalidateQueries({ queryKey: ["postazioni"] });
+      nameRef.current!.value = nameRef.current!.defaultValue;
+    },
+    onError: async (err) => axiosErrHandl(err, "addPostazione"),
+  });
+
+  const deletePostazione = useMutation({
+    mutationFn: BadgeDataService.deletePostazione,
+    onSuccess: async (response) => {
+      console.log("deletePostazione | response:", response);
+      await queryClient.invalidateQueries({ queryKey: ["postazioni"] });
+    },
+    onError: async (err) => axiosErrHandl(err, "deletePostazione"),
+  });
+
+  const [currTCliente, setCurrTCliente] = useState("");
+  const nameRef = useRef<HTMLInputElement>(null);
 
   return (
     <>
@@ -57,7 +67,7 @@ export default function Postazioni(props: Props) {
             defaultValue=""
           >
             <option value="" key="-1" />
-            {props.clienti.map((cliente, index) => (
+            {clienti.data?.map((cliente, index) => (
               <option value={cliente} key={index}>
                 {cliente}
               </option>
@@ -80,7 +90,7 @@ export default function Postazioni(props: Props) {
         <div className="col-sm-3 mb-1">
           <button
             onClick={() =>
-              addPostazione({
+              addPostazione.mutate({
                 cliente: currTCliente,
                 name: nameRef.current!.value,
               })
@@ -92,13 +102,13 @@ export default function Postazioni(props: Props) {
         </div>
         <div className="w-100 mb-3"></div>
         <div className="list-group list-postazioni col-sm-3 postazioni-list mx-3">
-          {props.postazioni
-            .filter(({ name, cliente }) => name && cliente === currTCliente)
-            .map(({ name }, index) => (
+          {queryPostazioni.data
+            ?.filter(({ name, cliente }) => name && cliente === currTCliente)
+            .map(({ _id, name }) => (
               <div
-                id={`list-postazioni-entry-${index}`}
+                id={`list-postazioni-entry-${_id}`}
                 className="list-group-item"
-                key={index}
+                key={_id}
               >
                 <div className="row justify-content-between align-items-center">
                   <div className="col-10">
@@ -106,16 +116,20 @@ export default function Postazioni(props: Props) {
                   </div>
                   <div className="col">
                     <button
-                      value={name}
+                      value={_id}
                       type="button"
                       className="close btn-del-postazioni"
                       aria-label="Close"
-                      onClick={(e) =>
-                        deletePostazione({
-                          cliente: currTCliente,
-                          name: e.currentTarget.value,
-                        })
-                      }
+                      onClick={(e) => {
+                        const confirmed = confirm(
+                          "Procede all'eliminazione della postazione?"
+                        );
+                        if (!confirmed) return;
+
+                        deletePostazione.mutate({
+                          _id: e.currentTarget.value,
+                        });
+                      }}
                     >
                       <span aria-hidden="true">&times;</span>
                     </button>
@@ -125,7 +139,6 @@ export default function Postazioni(props: Props) {
             ))}
         </div>
       </div>
-      <Alert alert={props.alert} closeAlert={props.closeAlert} />
     </>
   );
 }

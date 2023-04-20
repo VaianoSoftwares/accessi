@@ -1,14 +1,11 @@
-import React from "react";
 import "./index.css";
 
-type Props = {
+export default function BadgeTable(props: {
   content: object[];
   tableId?: string;
   omitedParams?: string[];
-  obfuscatedParams?: string[]; 
-};
-
-const BadgeTable: React.FC<Props> = (props: Props) => {
+  obfuscatedParams?: string[];
+}) {
   return (
     <>
       {props.content.length > 0 && (
@@ -44,6 +41,4 @@ const BadgeTable: React.FC<Props> = (props: Props) => {
       )}
     </>
   );
-};
-
-export default BadgeTable;
+}

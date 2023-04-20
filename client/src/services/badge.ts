@@ -1,112 +1,168 @@
-import { TimbraDoc } from "../types/TimbraDoc";
-import { TAssegnazione } from "../types/TAssegnazione";
-import { TPrestitoDataReq } from "../types/PrestitoChiavi";
 import DataServices from "./DataServices";
-import { TPostazione } from "../types/TPostazione";
-import { TBadgeTipo } from "../types/Badge";
-
-type TInStruttDataReq = {
-  cliente?: string;
-  postazione?: string;
-  tipi?: TBadgeTipo[];
-};
+import { GenericAbortSignal } from "axios";
+import {
+  TInStruttDataReq,
+  TPostazione,
+  TAssegnazione,
+  TimbraDoc,
+  TPrestitoDataReq,
+} from "../types";
 
 class BadgesDataService extends DataServices {
-  getAll() {
-    return super.request({ token: true });
+  getAll(signal?: GenericAbortSignal) {
+    return super.request({ token: true, signal });
   }
 
-  find(query: Record<string, string>) {
-    return super.request({ token: true, data: query });
+  find(query: Record<string, string>, signal?: GenericAbortSignal) {
+    return super.request({ token: true, data: query, signal });
   }
 
-  insertBadge(data: FormData) {
-    return super.request({ method: "POST", token: true, data, files: true });
+  insertBadge(data: FormData, signal?: GenericAbortSignal) {
+    return super.request({
+      method: "POST",
+      token: true,
+      data,
+      files: true,
+      signal,
+    });
   }
 
-  updateBadge(data: FormData) {
-    return super.request({ method: "PUT", token: true, data, files: true });
+  updateBadge(data: FormData, signal?: GenericAbortSignal) {
+    return super.request({
+      method: "PUT",
+      token: true,
+      data,
+      files: true,
+      signal,
+    });
   }
 
-  deleteBadge(barcode: string) {
-    return super.request({ method: "DELETE", token: true, data: { barcode } });
+  deleteBadge(barcode: string, signal?: GenericAbortSignal) {
+    return super.request({
+      method: "DELETE",
+      token: true,
+      data: { barcode },
+      signal,
+    });
   }
 
-  getEnums() {
-    return super.request({ url: "/enums" });
+  getEnums(signal?: GenericAbortSignal) {
+    return super.request({ url: "/enums", signal });
   }
 
-  insertAssegnazione(data: TAssegnazione) {
+  getAssegnazioni(signal?: GenericAbortSignal) {
+    return super.request({ url: "/assegnazioni", signal });
+  }
+
+  insertAssegnazione(data: TAssegnazione, signal?: GenericAbortSignal) {
     return super.request({
       method: "POST",
       url: "/assegnazioni",
       token: true,
       data,
+      signal,
     });
   }
 
-  deleteAssegnazione(data: TAssegnazione) {
+  deleteAssegnazione(data: TAssegnazione, signal?: GenericAbortSignal) {
     return super.request({
       method: "DELETE",
       url: "/assegnazioni",
       token: true,
       data,
+      signal,
     });
   }
 
-  insertPostazione(data: TPostazione) {
+  getPostazioni(
+    query?: { ids?: string[]; names?: string[] },
+    signal?: GenericAbortSignal
+  ) {
+    return super.request({ url: "/postazioni", data: query, signal });
+  }
+
+  insertPostazione(
+    data: { cliente: string; name: string },
+    signal?: GenericAbortSignal
+  ) {
     return super.request({
       method: "POST",
       url: "/postazione",
       token: true,
       data,
+      signal,
     });
   }
 
-  deletePostazione(data: TPostazione) {
+  deletePostazione(data: { _id: string }, signal?: GenericAbortSignal) {
     return super.request({
       method: "DELETE",
       url: "/postazione",
       token: true,
       data,
+      signal,
     });
   }
 
-  getArchivio(query: Record<string, string>) {
-    return super.request({ url: "/archivio", token: true, data: query });
+  getClienti(signal?: GenericAbortSignal) {
+    return super.request({ url: "/clienti", signal });
   }
 
-  getInStrutt(query?: TInStruttDataReq) {
+  getArchivio(query: Record<string, string>, signal?: GenericAbortSignal) {
+    return super.request({
+      url: "/archivio",
+      token: true,
+      data: query,
+      signal,
+    });
+  }
+
+  getInStrutt(query?: TInStruttDataReq, signal?: GenericAbortSignal) {
     return super.request({
       url: "/archivio/in-struttura",
       token: true,
       data: query,
+      signal,
     });
   }
 
-  timbra(data: TimbraDoc) {
+  timbra(data: TimbraDoc, signal?: GenericAbortSignal) {
     return super.request({
       method: "POST",
       url: "/archivio",
       token: true,
       data,
+      signal,
     });
   }
 
-  getArchivioChiavi(query: Record<string, string>) {
-    return super.request({ url: "/archivio-chiavi", token: true, data: query });
+  getArchivioChiavi(
+    query: Record<string, string>,
+    signal?: GenericAbortSignal
+  ) {
+    return super.request({
+      url: "/archivio-chiavi",
+      token: true,
+      data: query,
+      signal,
+    });
   }
 
-  getInPrestito() {
-    return super.request({ url: "/archivio-chiavi/in-prestito", token: true });
+  getInPrestito(signal?: GenericAbortSignal) {
+    return super.request({
+      url: "/archivio-chiavi/in-prestito",
+      token: true,
+      signal,
+    });
   }
 
-  prestaChiavi(data: TPrestitoDataReq) {
+  prestaChiavi(data: TPrestitoDataReq, signal?: GenericAbortSignal) {
     return super.request({
       method: "POST",
       url: "/archivio-chiavi",
       token: true,
       data,
+      signal,
     });
   }
 }

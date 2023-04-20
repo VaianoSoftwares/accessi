@@ -3,13 +3,16 @@ import { Collection, Filter, MongoClient } from "mongodb";
 import errCheck from "../utils/errCheck.js";
 import Badge, {
   TBadge,
-  TBadgeUpdReq,
   TChiave,
   TGenericBadge,
   TProvvisorio,
   TVeicolo,
 } from "../types/badges.js";
-import { TFindBadgeReq, TInsertBadgeReq, TUpdateBadgeReq } from "../auth/validation.js";
+import {
+  TFindBadgeReq,
+  TInsertBadgeReq,
+  TUpdateBadgeReq,
+} from "../auth/validation.js";
 
 const COLLECTION_NAME = "badges";
 
@@ -32,7 +35,10 @@ export default class BadgesDAO {
     const exprList = Object.entries(filters)
       .filter(
         ([key, value]) =>
-          value && key !== "scadenza" && !Badge.isTargheKey(key) && Badge.isBadgeKey(key)
+          value &&
+          key !== "scadenza" &&
+          !Badge.isTargheKey(key) &&
+          Badge.isBadgeKey(key)
       )
       .map(([key, value]) => {
         const fieldName = Badge.isNomKey(key) ? `nominativo.${key}` : key;
@@ -50,8 +56,8 @@ export default class BadgesDAO {
       exprList.push({ "nominativo.targhe": { $all: targhe } });
     }
 
-    if(exprList.length === 0) return [];
-    
+    if (exprList.length === 0) return [];
+
     const query: Filter<unknown> = { $and: exprList };
     console.log(query);
 
@@ -112,9 +118,10 @@ export default class BadgesDAO {
         telefono: data.telefono.toUpperCase(),
         tdoc: data.tdoc,
         ndoc: data.ndoc.toUpperCase(),
-        scadenza: data.scadenza === ""
-          ? ""
-          : dateFormat(new Date(data.scadenza), "yyyy-mm-dd"),
+        scadenza:
+          data.scadenza === ""
+            ? ""
+            : dateFormat.default(new Date(data.scadenza), "yyyy-mm-dd"),
         targhe: null,
       },
     };
@@ -140,9 +147,9 @@ export default class BadgesDAO {
           1: data.targa1.toUpperCase(),
           2: data.targa2.toUpperCase(),
           3: data.targa3.toUpperCase(),
-          4: data.targa4.toUpperCase()
-        }
-      }
+          4: data.targa4.toUpperCase(),
+        },
+      },
     };
   }
 
@@ -154,7 +161,7 @@ export default class BadgesDAO {
       assegnazione: data.assegnazione.toUpperCase(),
       ubicazione: data.ubicazione.toUpperCase(),
       stato: data.stato,
-      nominativo: null
+      nominativo: null,
     };
   }
 
@@ -180,16 +187,16 @@ export default class BadgesDAO {
   }
 
   static #createBadgeDoc(data: TInsertBadgeReq) {
-      switch(data.tipo) {
-        case "PROVVISORIO":
-          return this.#getProvvisorioDoc(data);
-        case "BADGE":
-          return this.#getBadgeDoc(data);
-        case "CHIAVE":
-          return this.#getChiaveDoc(data);
-        case "VEICOLO":
-          return this.#getVeicoloDoc(data);
-      }
+    switch (data.tipo) {
+      case "PROVVISORIO":
+        return this.#getProvvisorioDoc(data);
+      case "BADGE":
+        return this.#getBadgeDoc(data);
+      case "CHIAVE":
+        return this.#getChiaveDoc(data);
+      case "VEICOLO":
+        return this.#getVeicoloDoc(data);
+    }
   }
 
   static async addBadge(data: TInsertBadgeReq) {
@@ -200,7 +207,7 @@ export default class BadgesDAO {
       if (badge) {
         throw new Error(`Barcode ${barcode} già esistente.`);
       }
-      
+
       const badgeDoc = this.#createBadgeDoc(data);
 
       return await badges.insertOne(badgeDoc);
@@ -225,7 +232,7 @@ export default class BadgesDAO {
           value = value.toString();
 
           if (key === "scadenza")
-            paramsToUpdate[`nominativo.${key}`] = dateFormat(
+            paramsToUpdate[`nominativo.${key}`] = dateFormat.default(
               new Date(value),
               "yyyy-mm-dd"
             );
@@ -243,7 +250,7 @@ export default class BadgesDAO {
         { _id: badgeId },
         { $set: paramsToUpdate }
       );
-      return {...updateResponse, tipoBadge: badge.tipo };
+      return { ...updateResponse, tipoBadge: badge.tipo, updatedId: badgeId };
     } catch (err) {
       return errCheck(err, "updateBadge |");
     }
@@ -251,8 +258,8 @@ export default class BadgesDAO {
 
   static async deleteBadge(barcode: string) {
     try {
-      return await badges.deleteOne({ 
-        barcode: barcode.toUpperCase() 
+      return await badges.deleteOne({
+        barcode: barcode.toUpperCase(),
       });
     } catch (err) {
       return errCheck(err, "deleteBadge |");
@@ -265,9 +272,8 @@ export default class BadgesDAO {
         { barcode },
         { $set: { nominativo: null } }
       );
-    } catch(err) {
+    } catch (err) {
       return errCheck(err, "nullifyNominativo |");
     }
   }
-
 }

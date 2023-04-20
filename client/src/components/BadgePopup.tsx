@@ -1,17 +1,14 @@
 // Modules
-import React from "react";
 import Popup from "reactjs-popup";
 import { PopupPosition } from "reactjs-popup/dist/types";
 import BadgeTable from "./BadgeTable";
 
-type Props = {
-    content: Array<object>;
-    trigger: JSX.Element;
-    onOpen: () => void;
-    position: PopupPosition;
-}
-
-const BadgePopup: React.FC<Props> = (props: Props) => {
+export default function BadgePopup(props: {
+  content: object[];
+  trigger: JSX.Element;
+  onOpen: () => void;
+  position: PopupPosition;
+}) {
   return (
     <Popup
       trigger={props.trigger}
@@ -27,6 +24,4 @@ const BadgePopup: React.FC<Props> = (props: Props) => {
       )}
     </Popup>
   );
-};
-
-export default BadgePopup;
+}

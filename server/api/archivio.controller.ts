@@ -4,7 +4,6 @@ import { Request, Response } from "express";
 import errCheck from "../utils/errCheck.js";
 
 export default class ArchivioController {
-
   static async apiGetArchivio(req: Request, res: Response) {
     try {
       // console.log("apiGetArchivio | req.query: ", req.query);
@@ -14,7 +13,7 @@ export default class ArchivioController {
         success: true,
         data: archivioResponse,
         filters: req.query,
-        msg: "Archivio ottenuto con successo"
+        msg: "Archivio ottenuto con successo",
       });
     } catch (err) {
       const { error } = errCheck(err, "apiGetArchivio |");
@@ -34,7 +33,11 @@ export default class ArchivioController {
       console.error("apiPostArchivio | error:", parsed.error);
       return res
         .status(400)
-        .json({ success: false, msg: parsed.error.errors[0].message, data: null });
+        .json({
+          success: false,
+          msg: parsed.error.errors[0].message,
+          data: null,
+        });
     }
 
     try {
@@ -42,7 +45,7 @@ export default class ArchivioController {
         parsed.data.barcode.toUpperCase(),
         parsed.data.cliente,
         parsed.data.postazione,
-        req.ip,
+        req.ip
       );
 
       if ("error" in archivioResponse) {
@@ -70,25 +73,30 @@ export default class ArchivioController {
       console.error("apiGetinStruttura | error:", parsed.error);
       return res
         .status(400)
-        .json({ success: false, msg: parsed.error.errors[0].message, data: null });
+        .json({
+          success: false,
+          msg: parsed.error.errors[0].message,
+          data: null,
+        });
     }
 
     try {
       const archivioList = await ArchivioDAO.getInStrutt(
         parsed?.data?.cliente,
         parsed?.data?.postazione,
-        parsed?.data?.tipi,
+        parsed?.data?.tipi
       );
-      
+
       // console.log("apiGetInStruttura |", archivioList);
 
-      res.json({ success: true, data: archivioList, msg: "Lista dipendenti in struttura ottenuta con successo" });
+      res.json({
+        success: true,
+        data: archivioList,
+        msg: "Lista dipendenti in struttura ottenuta con successo",
+      });
     } catch (err) {
       const { error } = errCheck(err, "apiGetInStruttura |");
-      res
-        .status(500)
-        .json({ success: false, msg: error, data: [] });
+      res.status(500).json({ success: false, msg: error, data: [] });
     }
   }
-  
 }

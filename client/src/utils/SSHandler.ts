@@ -1,4 +1,4 @@
-import { TUser } from "../types/TUser";
+import { TUser } from "../types";
 
 export default class SSHandler {
   static getUserFromStorage(): TUser | null {
@@ -70,7 +70,7 @@ export default class SSHandler {
     sessionStorage.setItem("postazione0", str);
   }
 
-  static getGuestInStruttReq() {
+  static getGuestClienteAndPostazione() {
     return {
       cliente: sessionStorage.getItem("cliente0")!,
       postazione: sessionStorage.getItem("postazione0")!,

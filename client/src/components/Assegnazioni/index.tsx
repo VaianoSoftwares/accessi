@@ -4,44 +4,45 @@ import "./index.css";
 
 import BadgeDataService from "../../services/badge";
 
-import { TAlert } from "../../types/TAlert";
-import { TAssegnazione } from "../../types/TAssegnazione";
-import { TBadgeTipo, TIPI_BADGE } from "../../types/Badge";
+import { TAssegnazione, TBadgeTipo, TIPI_BADGE } from "../../types";
 
-import Alert from "../Alert";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-type Props = {
-  alert: TAlert | null;
-  openAlert: (alert: TAlert) => void;
-  closeAlert: () => void;
-  assegnazioni: TAssegnazione[];
-  addAssegnazione: (assegnazione: TAssegnazione) => void;
-  removeAssegnazione: (name: string) => void;
-};
+export default function Assegnazioni() {
+  const queryClient = useQueryClient();
 
-export default function Assegnaz(props: Props) {
+  const queryAssegnazioni = useQuery({
+    queryKey: ["assegnazioni"],
+    queryFn: () =>
+      BadgeDataService.getAssegnazioni().then((response) => {
+        console.log("queryAssegnazioni | response:", response);
+        const result = response.data.data as TAssegnazione[];
+        return result;
+      }),
+  });
+
+  const addAssegnazione = useMutation({
+    mutationFn: BadgeDataService.insertAssegnazione,
+    onSuccess: async (response) => {
+      console.log("addAssegnazione | response:", response);
+      await queryClient.invalidateQueries({ queryKey: ["assegnazioni"] });
+      nameRef.current!.value = nameRef.current!.defaultValue;
+    },
+    onError: async (err) => axiosErrHandl(err, "addAssegnazione"),
+  });
+
+  const deleteAssegnazione = useMutation({
+    mutationFn: BadgeDataService.deleteAssegnazione,
+    onSuccess: async (response) => {
+      console.log("deleteAssegnazione | response:", response);
+      await queryClient.invalidateQueries({ queryKey: ["assegnazioni"] });
+    },
+    onError: async (err) => axiosErrHandl(err, "deleteAssegnazione"),
+  });
+
   const [currTBadge, setCurrTBadge] = React.useState<TBadgeTipo>("BADGE");
   const nameRef = React.useRef<HTMLInputElement>(null);
-
-  function addAssegnazione(assegnazione: TAssegnazione) {
-    BadgeDataService.insertAssegnazione(assegnazione)
-      .then(() => {
-        props.addAssegnazione(assegnazione);
-        nameRef.current!.value = nameRef.current!.defaultValue;
-      })
-      .catch((err) => axiosErrHandl(err, props.openAlert, "addAssegnazione |"));
-  }
-
-  function deleteAssegnazione(assegnazione: TAssegnazione) {
-    BadgeDataService.deleteAssegnazione(assegnazione)
-      .then(() => {
-        props.removeAssegnazione(assegnazione.name);
-      })
-      .catch((err) =>
-        axiosErrHandl(err, props.openAlert, "deleteAssegnazione |")
-      );
-  }
 
   return (
     <>
@@ -79,9 +80,9 @@ export default function Assegnaz(props: Props) {
         <div className="col-sm-3 mb-1">
           <button
             onClick={() =>
-              addAssegnazione({
+              addAssegnazione.mutate({
                 badge: currTBadge,
-                name: nameRef.current!.value,
+                name: nameRef.current!.value.toUpperCase(),
               })
             }
             className="btn btn-success"
@@ -91,8 +92,8 @@ export default function Assegnaz(props: Props) {
         </div>
         <div className="w-100 mb-3"></div>
         <div className="list-group list-assegnaz col-sm-3 assegnaz-list mx-3">
-          {props.assegnazioni
-            .filter(({ name, badge }) => name && badge === currTBadge)
+          {queryAssegnazioni.data
+            ?.filter(({ name, badge }) => name && badge === currTBadge)
             .map(({ name }, index) => (
               <div
                 id={`list-assegnaz-entry-${index}`}
@@ -109,12 +110,17 @@ export default function Assegnaz(props: Props) {
                       type="button"
                       className="close btn-del-assegnaz"
                       aria-label="Close"
-                      onClick={(e) =>
-                        deleteAssegnazione({
+                      onClick={(e) => {
+                        const confirmed = confirm(
+                          "Procede all'eliminazione della assegnazione?"
+                        );
+                        if (!confirmed) return;
+
+                        deleteAssegnazione.mutate({
                           badge: currTBadge,
                           name: e.currentTarget.value,
-                        })
-                      }
+                        });
+                      }}
                     >
                       <span aria-hidden="true">&times;</span>
                     </button>
@@ -124,7 +130,7 @@ export default function Assegnaz(props: Props) {
             ))}
         </div>
       </div>
-      <Alert alert={props.alert} closeAlert={props.closeAlert} />
+      <br />
     </>
   );
 }

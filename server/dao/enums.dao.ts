@@ -26,6 +26,60 @@ export default class EnumsDAO {
     }
   }
 
+  static async getAssegnazioni() {
+    try {
+      const dbResp = await enums.findOne(
+        {},
+        {
+          projection: {
+            _id: 0,
+            assegnazione: 1,
+          },
+        }
+      );
+      return dbResp?.assegnazione ?? null;
+    } catch (err) {
+      errCheck(err, "getAssegnazioni |");
+      return null;
+    }
+  }
+
+  static async getClienti() {
+    try {
+      const dbResp = await enums.findOne(
+        {},
+        {
+          projection: {
+            _id: 0,
+            cliente: 1,
+          },
+        }
+      );
+      return dbResp?.cliente ?? null;
+    } catch (err) {
+      errCheck(err, "getClienti |");
+      return null;
+    }
+  }
+
+  static async getPostazioni() {
+    try {
+      const dbResp = await enums.findOne(
+        {},
+        {
+          projection: {
+            _id: 0,
+            postazione: 1,
+          },
+        }
+      );
+      return dbResp?.postazione ?? null;
+    } catch (err) {
+      errCheck(err, "getPostazioni |");
+      return null;
+    }
+  }
+
   static async pushAssegnaz(dataToPush: TAssegnaz[] = []) {
     try {
       return await enums.updateOne(
@@ -50,28 +104,25 @@ export default class EnumsDAO {
 
   static async addCliente(cliente: string) {
     try {
-        const enumsResp = await this.getEnums();
-        if(enumsResp!.cliente.includes(cliente)) {
-          throw new Error("Cliente già esistente");
-        }
+      const enumsResp = await this.getEnums();
+      if (enumsResp!.cliente.includes(cliente)) {
+        throw new Error("Cliente già esistente");
+      }
 
-        return await enums.updateOne(
-            {},
-            { $push: { cliente } }
-        );
-    } catch(err) {
-        return errCheck(err, "addCliente |");
+      return await enums.updateOne({}, { $push: { cliente } });
+    } catch (err) {
+      return errCheck(err, "addCliente |");
     }
   }
 
   static async deleteCliente(cliente: string) {
     try {
-        return await enums.updateOne(
-            {},
-            { $pull: { cliente, postazione: { cliente } } }
-        );
-    } catch(err) {
-        return errCheck(err, "deleteCliente |");
+      return await enums.updateOne(
+        {},
+        { $pull: { cliente, postazione: { cliente } } }
+      );
+    } catch (err) {
+      return errCheck(err, "deleteCliente |");
     }
   }
 
@@ -82,10 +133,7 @@ export default class EnumsDAO {
         throw new Error("Cliente non valido esistente");
       }
 
-      return await enums.updateOne(
-        {},
-        { $push: { postazione } }
-      );
+      return await enums.updateOne({}, { $push: { postazione } });
     } catch (err) {
       return errCheck(err, "pushPostazione |");
     }
@@ -93,10 +141,7 @@ export default class EnumsDAO {
 
   static async pullPostazione(postazione: TPostazione) {
     try {
-      return await enums.updateOne(
-        {},
-        { $pull: { postazione } }
-      );
+      return await enums.updateOne({}, { $pull: { postazione } });
     } catch (err) {
       return errCheck(err, "pullPostazione |");
     }

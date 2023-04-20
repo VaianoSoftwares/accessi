@@ -20,7 +20,9 @@ export default class ArchivioDAO {
   }
 
   static async getArchivio(filters: Record<string, unknown> = {}) {
-    const archivioFilter: Record<string, unknown>[] = [{ "data.uscita": { $ne: null } }];
+    const archivioFilter: Record<string, unknown>[] = [
+      { "data.uscita": { $ne: null } },
+    ];
 
     if (filters.dataInizio && filters.dataFine) {
       const dateFilter = {
@@ -37,7 +39,7 @@ export default class ArchivioDAO {
       .forEach(([key, value]) => {
         let filterName = "";
 
-        switch(key) {
+        switch (key) {
           case "nominativo":
             filterName = "badge.barcode";
             break;
@@ -86,7 +88,7 @@ export default class ArchivioDAO {
           uscita: "$data.uscita",
         },
       });
-      const displayCursor = cursor.limit(500).skip(0);
+      const displayCursor = cursor.sort({ _id: -1 }).limit(500).skip(0);
       const archivioList = await displayCursor.toArray();
       return archivioList;
     } catch (err) {
@@ -106,9 +108,9 @@ export default class ArchivioDAO {
             _id: 0,
             timbra: {
               codice: "$badge.barcode",
-              tipo: "$badge.tipo",
               cliente: 1,
               postazione: 1,
+              tipo: "$badge.tipo",
               assegnaz: "$badge.assegnazione",
               nome: { $ifNull: ["$badge.nominativo.nome", ""] },
               cognome: { $ifNull: ["$badge.nominativo.cognome", ""] },
@@ -134,7 +136,7 @@ export default class ArchivioDAO {
               targa3: { $ifNull: ["$badge.nominativo.targhe.3", ""] },
               targa4: { $ifNull: ["$badge.nominativo.targhe.4", ""] },
             },
-            msg
+            msg,
           },
         }
       );
@@ -144,7 +146,12 @@ export default class ArchivioDAO {
     }
   }
 
-  static async timbra(barcode: string, cliente: string, postazione: string, ip: string) {
+  static async timbra(
+    barcode: string,
+    cliente: string,
+    postazione: string,
+    ip: string
+  ) {
     // check if barcode is a "tessera universitario" document number
     const isUni = barcode.length === 7 && /^\d+$/.test(barcode);
 
@@ -195,9 +202,12 @@ export default class ArchivioDAO {
 
       let idTimbra: ObjectId;
       let msgTimbra = "";
-      
-      if(inStrutt) {
-        if(inStrutt.cliente !== cliente || inStrutt.postazione !== postazione) {
+
+      if (inStrutt) {
+        if (
+          inStrutt.cliente !== cliente ||
+          inStrutt.postazione !== postazione
+        ) {
           throw new Error(`Impossibile timbrare l'uscita del badge ${barcode}`);
         }
 
@@ -219,20 +229,23 @@ export default class ArchivioDAO {
 
         idTimbra = inStrutt._id;
         msgTimbra = "Timbra Esce";
-      }
-      else {
-        const timbraEntraResp = await this.#timbraEntra(badgeTimbra, cliente, postazione, ip);
-        if ("error" in timbraEntraResp) 
-          throw new Error(timbraEntraResp.error);
+      } else {
+        const timbraEntraResp = await this.#timbraEntra(
+          badgeTimbra,
+          cliente,
+          postazione,
+          ip
+        );
+        if ("error" in timbraEntraResp) throw new Error(timbraEntraResp.error);
 
         idTimbra = timbraEntraResp.insertedId;
         msgTimbra = "Timbra Entra";
       }
 
       const timbraResp = await this.#getTimbraResponse(idTimbra, msgTimbra);
-      if(!timbraResp) throw new Error(`timbra: DB error`);
+      if (!timbraResp) throw new Error(`timbra: DB error`);
       return timbraResp;
-    } catch(err) {
+    } catch (err) {
       return errCheck(err, "timbra |");
     }
   }
@@ -404,16 +417,16 @@ export default class ArchivioDAO {
   //         badgeDoc, cliente, postazione, ip
   //       );
 
-  //       if ("error" in timbraEntraResp) 
+  //       if ("error" in timbraEntraResp)
   //         throw new Error(timbraEntraResp.error);
-        
+
   //       // viene prelevata la data di entrata di timbratura del badge
   //       inStrutt = await this.getInStruttBy("_id", timbraEntraResp.insertedId);
   //       if (!inStrutt)
   //         throw new Error(
   //           `Non è stato possibile timbrare in entrata badge ${badgeDoc.barcode}.`
   //         );
-        
+
   //       return {
   //         msg: "Timbra Entra",
   //         dataEntra: inStrutt.data.entrata
@@ -424,11 +437,17 @@ export default class ArchivioDAO {
   //   }
   // }
 
-  static async #timbraEntra(badgeDoc: TGenericBadge, cliente: string, postazione: string, ip: string) {
+  static async #timbraEntra(
+    badgeDoc: TGenericBadge,
+    cliente: string,
+    postazione: string,
+    ip: string
+  ) {
     try {
       const archivioDoc: TArchivio = {
         badge: badgeDoc,
-        data: {      // const inStrutt = await archivio.findOne(
+        data: {
+          // const inStrutt = await archivio.findOne(
           //   {
           //     $and: [
           //       { "badge.barcode": barcode },
@@ -470,30 +489,37 @@ export default class ArchivioDAO {
 
   static async #findOneIdInStrutt(barcode: string) {
     try {
-      return await archivio.findOne({
-        $and: [{ "data.uscita": { $eq: null } },
-        { "badge.barcode": barcode },]
-      }, {
-        projection: {
-          _id: 1,
-          cliente: 1,
-          postazione: 1,
+      return await archivio.findOne(
+        {
+          $and: [
+            { "data.uscita": { $eq: null } },
+            { "badge.barcode": barcode },
+          ],
         },
-      });
+        {
+          projection: {
+            _id: 1,
+            cliente: 1,
+            postazione: 1,
+          },
+        }
+      );
     } catch (err) {
       errCheck(err, "findOneIdInStrutt |");
       return null;
     }
   }
 
-  static async getInStrutt(cliente?: string, postazione?: string, tipi?: TBadgeTipo[]) {
-    const arrFilters: object[] = [
-      { "data.uscita": { $eq: null } },
-    ];
+  static async getInStrutt(
+    cliente?: string,
+    postazione?: string,
+    tipi?: TBadgeTipo[]
+  ) {
+    const arrFilters: object[] = [{ "data.uscita": { $eq: null } }];
 
-    if(cliente) arrFilters.push({ cliente });
-    if(postazione) arrFilters.push({ postazione });
-    if(tipi) arrFilters.push({ "badge.tipo": { $in: tipi } });
+    if (cliente) arrFilters.push({ cliente });
+    if (postazione) arrFilters.push({ postazione });
+    if (tipi) arrFilters.push({ "badge.tipo": { $in: tipi } });
 
     const query: Filter<unknown> = {
       $and: arrFilters,
@@ -504,9 +530,9 @@ export default class ArchivioDAO {
         projection: {
           _id: 0,
           codice: "$badge.barcode",
-          tipo: "$badge.tipo",
           cliente: 1,
           postazione: 1,
+          tipo: "$badge.tipo",
           assegnaz: "$badge.assegnazione",
           nome: { $ifNull: ["$badge.nominativo.nome", ""] },
           cognome: { $ifNull: ["$badge.nominativo.cognome", ""] },
@@ -514,11 +540,11 @@ export default class ArchivioDAO {
           entrata: "$data.entrata",
         },
       });
-      const displayCursor = cursor.limit(500).skip(0);
+      const displayCursor = cursor.sort({ _id: -1 }).limit(500).skip(0);
       const archivioList = await displayCursor.toArray();
       // console.log(archivioList);
       return archivioList;
-    } catch(err) {
+    } catch (err) {
       errCheck(err, "getInStrutt |");
       return [];
     }

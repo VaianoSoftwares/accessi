@@ -1,32 +1,25 @@
-import React from "react";
 import UserDataService from "../../services/user";
 import "./index.css";
-import Alert from "../Alert";
-import { TPartialUser, TUser } from "../../types/TUser";
-import { TAlert } from "../../types/TAlert";
 import { useNavigate } from "react-router-dom";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
+import { useRef, useEffect } from "react";
+import { TPartialUser, TUser } from "../../types";
 
-type Props = {
+export default function Login(props: {
   login: (user: TUser) => Promise<void>;
-  alert: TAlert | null;
-  openAlert: (alert: TAlert) => void;
-  closeAlert: () => void;
-};
-
-export default function Login(props: Props) {
-  const usernameRef = React.useRef<HTMLInputElement>(null);
-  const passwordRef = React.useRef<HTMLInputElement>(null);
-
+}) {
   const navigate = useNavigate();
 
-  React.useEffect(() => {
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
     function retriveUser(device: string) {
       UserDataService.getUser(device)
         .then((response) => {
           const dataResp = response.data.data as TPartialUser;
           console.log(dataResp.username, "logged In.");
-  
+
           props.login({
             ...dataResp,
             token: response.headers["x-access-token"]! as string,
@@ -35,15 +28,15 @@ export default function Login(props: Props) {
         .catch((err) => {
           console.error("retriveUser |", err);
         })
-        .finally(() => window.location.hash = "");
+        .finally(() => (window.location.hash = ""));
     }
 
-    if(window.location.hash) {
+    if (window.location.hash) {
       retriveUser(window.location.hash.slice(1));
     }
 
     window.location.hash = "";
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function login() {
@@ -67,7 +60,7 @@ export default function Login(props: Props) {
 
         navigate("/home");
       })
-      .catch((err) => axiosErrHandl(err, props.openAlert, "login | "))
+      .catch((err) => axiosErrHandl(err, "login"))
       .finally(() => {
         passwordRef.current!.value = passwordRef.current!.defaultValue;
       });
@@ -110,9 +103,6 @@ export default function Login(props: Props) {
             Login
           </button>
         </div>
-      </div>
-      <div className="login-alert-wrapper">
-        <Alert alert={props.alert} closeAlert={props.closeAlert} />
       </div>
     </div>
   );

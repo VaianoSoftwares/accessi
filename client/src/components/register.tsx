@@ -1,19 +1,32 @@
+import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import UserDataService from "../services/user";
-import { RegisterFormState } from "../types/RegisterFormState";
-import { TAlert } from "../types/TAlert";
-import { TPostazione } from "../types/TPostazione";
-import Alert from "./Alert";
+import BadgeDataService from "../services/badge";
+import { toast } from "react-hot-toast";
+import { axiosErrHandl } from "../utils/axiosErrHandl";
+import { RegisterFormState, TPostazione } from "../types";
 
-type Props = {
-  alert: TAlert | null;
-  openAlert: (alert: TAlert) => void;
-  closeAlert: () => void;
-  clienti: string[];
-  postazioni: TPostazione[];
-};
+export default function Register() {
+  const postazioni = useQuery({
+    queryKey: ["postazioni"],
+    queryFn: async () => {
+      const response = await BadgeDataService.getPostazioni();
+      console.log("queryPostazioni | response:", response);
+      const result = response.data.data as TPostazione[];
+      return result;
+    },
+  });
 
-const Register: React.FC<Props> = (props: Props) => {
+  const clienti = useQuery({
+    queryKey: ["clienti"],
+    queryFn: async () => {
+      const response = await BadgeDataService.getClienti();
+      console.log("queryClienti | response:", response);
+      const result = response.data.data as string[];
+      return result;
+    },
+  });
+
   const usernameRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
   const adminRef = React.useRef<HTMLInputElement>(null);
@@ -50,17 +63,10 @@ const Register: React.FC<Props> = (props: Props) => {
   function register() {
     UserDataService.register(formToObj())
       .then((response) => {
-        console.log(response.data);
-        const { success, msg } = response.data;
-        props.openAlert({ success, msg });
+        console.log("register |", response.data);
+        toast.success(response.data.msg);
       })
-      .catch((err) => {
-        console.log(err);
-        if (err.response) {
-          const { success, msg } = err.response.data;
-          props.openAlert({ success, msg });
-        }
-      })
+      .catch((err) => axiosErrHandl(err, "register"))
       .finally(() => clearForm());
   }
 
@@ -128,8 +134,8 @@ const Register: React.FC<Props> = (props: Props) => {
         aria-label="clienti"
         ref={clientiRef}
       >
-        {props.clienti
-          .filter((cliente) => cliente)
+        {clienti.data
+          ?.filter((cliente) => cliente)
           .map((cliente, index) => (
             <option key={index} value={cliente}>
               {cliente}
@@ -145,20 +151,17 @@ const Register: React.FC<Props> = (props: Props) => {
         aria-label="postazioni"
         ref={postazioniRef}
       >
-        {props.postazioni
-          .filter(({ name }) => name)
-          .map(({ name }, index) => (
-            <option key={index} value={name}>
-              {name}
+        {postazioni.data
+          ?.filter(({ cliente, name }) => cliente && name)
+          .map(({ _id, cliente, name }) => (
+            <option key={_id} value={_id}>
+              {cliente} - {name}
             </option>
           ))}
       </select>
       <button onClick={() => register()} className="btn btn-success">
         Register
       </button>
-      <Alert alert={props.alert} closeAlert={props.closeAlert} />
     </div>
   );
-};
-
-export default Register;
+}

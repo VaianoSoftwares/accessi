@@ -1,8 +1,6 @@
 import axios from "axios";
 
-// axios.defaults.withCredentials = true;
-
-if(process.env.NODE_ENV !== "production")
-    axios.defaults.baseURL = process.env.REACT_APP_PROXY;
+if(import.meta.env.DEV)
+    axios.defaults.baseURL = import.meta.env.VITE_PROXY;
 
 export default axios;

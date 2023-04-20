@@ -1,25 +1,42 @@
-import { DocFormState } from "../types/Documento";
+import { GenericAbortSignal } from "axios";
 import DataServices from "./DataServices";
 
 class DocumentsDataService extends DataServices {
-  getAll() {
-    return super.request({ token: true });
+  getAll(signal?: GenericAbortSignal) {
+    return super.request({ token: true, signal });
   }
 
-  find(query: DocFormState) {
-    return super.request({ token: true, data: query });
+  find(query: Record<string, string>, signal?: GenericAbortSignal) {
+    return super.request({ token: true, data: query, signal });
   }
 
-  insert(data: FormData) {
-    return super.request({ method: "POST", token: true, files: true, data });
+  insert(data: FormData, signal?: GenericAbortSignal) {
+    return super.request({
+      method: "POST",
+      token: true,
+      files: true,
+      data,
+      signal,
+    });
   }
 
-  update(data: FormData) {
-    return super.request({ method: "PUT", token: true, files: true, data });
+  update(data: FormData, signal?: GenericAbortSignal) {
+    return super.request({
+      method: "PUT",
+      token: true,
+      files: true,
+      data,
+      signal,
+    });
   }
 
-  delete(codice: string) {
-    return super.request({ method: "DELETE", token: true, data: { codice } });
+  delete(codice: string, signal?: GenericAbortSignal) {
+    return super.request({
+      method: "DELETE",
+      token: true,
+      data: { codice },
+      signal,
+    });
   }
 }
 

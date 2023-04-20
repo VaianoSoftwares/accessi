@@ -1,19 +1,30 @@
+import { GenericAbortSignal } from "axios";
 import DataServices from "./DataServices";
 
 class CalendarioDataService extends DataServices {
-  getFilenames(date: string) {
-    return super.request({ token: true, data: { date } });
+  getFilenames(date: string, signal?: GenericAbortSignal) {
+    return super.request({ token: true, data: { date }, signal });
   }
 
-  insertFiles(data: FormData) {
-    return super.request({ method: "POST", token: true, files: true, data });
+  insertFiles(data: FormData, signal?: GenericAbortSignal) {
+    return super.request({
+      method: "POST",
+      token: true,
+      files: true,
+      data,
+      signal,
+    });
   }
 
-  deleteFile(date: string, filename: string) {
+  deleteFile(
+    { date, filename }: { date: string; filename: string },
+    signal?: GenericAbortSignal
+  ) {
     return super.request({
       method: "DELETE",
       token: true,
       data: { date, filename },
+      signal,
     });
   }
 }

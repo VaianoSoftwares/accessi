@@ -1,5 +1,5 @@
 import React from "react";
-import { TAlert } from "../types/TAlert";
+import { toast } from "react-hot-toast";
 import utf8ArrayToStr from "./utf8ArrayToStr";
 
 async function initScanner() {
@@ -52,8 +52,7 @@ async function readScanner(
 
 export default async function runScanner(
   setValue: (value: string) => void,
-  setScanner: (value: React.SetStateAction<SerialPort | undefined>) => void,
-  openAlert: (alert: TAlert) => void
+  setScanner: (value: React.SetStateAction<SerialPort | undefined>) => void
 ) {
   try {
     const port = await initScanner();
@@ -64,6 +63,6 @@ export default async function runScanner(
     setScanner(undefined);
   } catch (err) {
     console.error("runScanner |", err);
-    openAlert({ success: false, msg: String(err) });
+    toast.error(String(err));
   }
 }

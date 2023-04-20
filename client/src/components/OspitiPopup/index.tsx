@@ -5,17 +5,14 @@ import Cf from "codice-fiscale-js";
 // Style
 import "./index.css";
 // Types
-import { TEventInput } from "../../types/TEvent";
-import { TDOCS } from "../../types/Badge";
+import { TEventInput, TDOCS } from "../../types";
 
-type Props = {
+export default function OspitiPopup(props: {
   isShown: boolean;
   closePopup: () => void;
   insertOsp: (data: FormData) => void;
   isVeicolo: boolean;
-};
-
-export default function OspitiPopup(props: Props) {
+}) {
   const barcodeOspRef = React.useRef<HTMLInputElement>(null);
   const nomeOspRef = React.useRef<HTMLInputElement>(null);
   const cognomeOspRef = React.useRef<HTMLInputElement>(null);

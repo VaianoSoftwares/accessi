@@ -1,7 +1,10 @@
 import axios from "./axiosSetup";
-import { GenericForm } from "../types/GenericForm";
-import { AxiosResponse, RawAxiosRequestHeaders } from "axios";
-import { GenericResponse } from "../types/Responses";
+import {
+  AxiosResponse,
+  GenericAbortSignal,
+  RawAxiosRequestHeaders,
+} from "axios";
+import { GenericResponse, GenericForm } from "../types";
 
 type TAxiosResp = Promise<AxiosResponse<GenericResponse>>;
 
@@ -16,6 +19,7 @@ type TReqOptions = {
   files?: boolean;
   method?: TMethod;
   data?: TReqData;
+  signal?: GenericAbortSignal;
 };
 
 export default abstract class DataServices {
@@ -52,6 +56,7 @@ export default abstract class DataServices {
     files = false,
     method = "GET",
     data,
+    signal = undefined,
   }: TReqOptions): TAxiosResp {
     const headers = this.getHeaders(token, files);
 
@@ -62,15 +67,15 @@ export default abstract class DataServices {
 
     switch (method) {
       case "GET":
-        return axios.get(completeUrl, { headers });
+        return axios.get(completeUrl, { headers, signal });
       case "DELETE":
-        return axios.delete(completeUrl, { headers });
+        return axios.delete(completeUrl, { headers, signal });
       case "POST":
-        return axios.post(completeUrl, data, { headers });
+        return axios.post(completeUrl, data, { headers, signal });
       case "PUT":
-        return axios.put(completeUrl, data, { headers });
+        return axios.put(completeUrl, data, { headers, signal });
       case "PATCH":
-        return axios.patch(completeUrl, data, { headers });
+        return axios.patch(completeUrl, data, { headers, signal });
     }
   }
 }

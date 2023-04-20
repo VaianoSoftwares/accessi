@@ -1,4 +1,4 @@
-import { GenericForm } from "../types/GenericForm";
+import { GenericForm } from "../types";
 
 export default (() => {
   return (form: GenericForm) => {

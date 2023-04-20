@@ -1,5 +1,5 @@
 // Modules
-import React from "react";
+import { useEffect, useRef, useState } from "react";
 import dateFormat from "dateformat";
 
 // Style
@@ -13,17 +13,13 @@ import BadgeTable from "../BadgeTable";
 import Clock from "../Clock";
 import FormButtons from "../FormButtons";
 import OspitiPopup from "../OspitiPopup";
-import Alert from "../Alert";
 
 // Types
-import { TUser } from "../../types/TUser";
-import { TAlert } from "../../types/TAlert";
 import {
+  TUser,
   TInStruttTableContent,
-  TTableContent,
-} from "../../types/TableContentElem";
-import { BadgeFormState } from "../../types/BadgeFormState";
-import {
+  TBadgeFormState,
+  TPostazione,
   STATI_BADGE,
   TBadgeResp,
   TBadgeStato,
@@ -31,68 +27,179 @@ import {
   TDOCS,
   TIPI_BADGE,
   TTDoc,
-} from "../../types/Badge";
-import { TPostazione } from "../../types/TPostazione";
-import { TimbraDoc } from "../../types/TimbraDoc";
+  TInStruttDataReq,
+  TAssegnazione,
+  TTimbraResp,
+} from "../../types";
 
 // Utils
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
-import { TInStruttResp, TTimbraResp } from "../../types/Archivio";
 import { TableContentMapper } from "../../utils/tableContentMapper";
-import getClienteFromPostazione from "../../utils/getClienteFromPostazione";
-import SSHandler from "../../utils/SSHandler";
-import { TAssegnazione } from "../../types/TAssegnazione";
+import useBool from "../../hooks/useBool";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import useImage from "../../hooks/useImage";
+import useReadonlyForm from "../../hooks/useReadonlyForm";
+import { toast } from "react-hot-toast";
 
-type Props = {
+export default function Home({
+  scannedValue,
+  clearScannedValue,
+  ...props
+}: {
   user: TUser;
-  alert: TAlert | null;
-  openAlert: (alert: TAlert) => void;
-  closeAlert: () => void;
-  assegnazioni: TAssegnazione[];
-  clienti: string[];
-  postazioni: TPostazione[];
   scannedValue: string;
   clearScannedValue: () => void;
   scannerConnected: boolean;
   runScanner: () => Promise<void>;
   tipoBadge: TBadgeTipo;
-};
+}) {
+  const barcodeRef = useRef<HTMLInputElement>(null);
+  const descrizioneRef = useRef<HTMLInputElement>(null);
+  const tipoRef = useRef<HTMLSelectElement>(null);
+  const assegnazioneRef = useRef<HTMLSelectElement>(null);
+  const statoRef = useRef<HTMLSelectElement>(null);
+  const ubicazioneRef = useRef<HTMLInputElement>(null);
+  const nomeRef = useRef<HTMLInputElement>(null);
+  const cognomeRef = useRef<HTMLInputElement>(null);
+  const telefonoRef = useRef<HTMLInputElement>(null);
+  const dittaRef = useRef<HTMLInputElement>(null);
+  const tdocRef = useRef<HTMLSelectElement>(null);
+  const ndocRef = useRef<HTMLInputElement>(null);
+  const pfpRef = useRef<HTMLInputElement>(null);
+  const scadenzaRef = useRef<HTMLInputElement>(null);
+  const targa1Ref = useRef<HTMLInputElement>(null);
+  const targa2Ref = useRef<HTMLInputElement>(null);
+  const targa3Ref = useRef<HTMLInputElement>(null);
+  const targa4Ref = useRef<HTMLInputElement>(null);
+  const postazioneRef = useRef<HTMLSelectElement>(null);
 
-export default function Home({
-  closeAlert,
-  scannedValue,
-  clearScannedValue,
-  openAlert,
-  ...props
-}: Props) {
-  const barcodeRef = React.useRef<HTMLInputElement>(null);
-  const descrizioneRef = React.useRef<HTMLInputElement>(null);
-  const tipoRef = React.useRef<HTMLSelectElement>(null);
-  const assegnazioneRef = React.useRef<HTMLSelectElement>(null);
-  const statoRef = React.useRef<HTMLSelectElement>(null);
-  const ubicazioneRef = React.useRef<HTMLInputElement>(null);
-  const nomeRef = React.useRef<HTMLInputElement>(null);
-  const cognomeRef = React.useRef<HTMLInputElement>(null);
-  const telefonoRef = React.useRef<HTMLInputElement>(null);
-  const dittaRef = React.useRef<HTMLInputElement>(null);
-  const tdocRef = React.useRef<HTMLSelectElement>(null);
-  const ndocRef = React.useRef<HTMLInputElement>(null);
-  const pfpRef = React.useRef<HTMLInputElement>(null);
-  const scadenzaRef = React.useRef<HTMLInputElement>(null);
-  const targa1Ref = React.useRef<HTMLInputElement>(null);
-  const targa2Ref = React.useRef<HTMLInputElement>(null);
-  const targa3Ref = React.useRef<HTMLInputElement>(null);
-  const targa4Ref = React.useRef<HTMLInputElement>(null);
-  const postazioneRef = React.useRef<HTMLSelectElement>(null);
+  const queryClient = useQueryClient();
 
-  const [badges, setBadges] = React.useState<TTableContent[]>([]);
-  const [inStrutt, setInStrutt] = React.useState<TInStruttTableContent[]>([]);
+  function getCurrPostazioneData() {
+    return postazioneRef.current?.options.item(
+      postazioneRef.current.selectedIndex
+    )?.dataset;
+  }
 
-  const [isShown, setIsShown] = React.useState(false);
-  const [readOnlyForm, setReadOnlyForm] = React.useState(true);
-  const timeoutRunning = React.useRef(false);
+  const assegnazioni = useQuery({
+    queryKey: ["assegnazioni"],
+    queryFn: () =>
+      BadgeDataService.getAssegnazioni().then((response) => {
+        console.log("queryAssegnazioni | response:", response);
+        const result = response.data.data as TAssegnazione[];
+        return result;
+      }),
+  });
 
-  const [pfpUrl, setPfpUrl] = React.useState("");
+  const postazioni = useQuery({
+    queryKey: ["postazioni", props.user.postazioni],
+    queryFn: (context) =>
+      BadgeDataService.getPostazioni({
+        ids: context.queryKey[1]
+          ? (context.queryKey[1] as string[])
+          : undefined,
+      }).then((response) => {
+        console.log("queryPostazioni | response:", response);
+        const result = response.data.data as TPostazione[];
+        return result;
+      }),
+  });
+
+  const queryInStrutt = useQuery({
+    queryKey: ["inStrutt", getQueryInStruttReq()],
+    queryFn: (context) =>
+      BadgeDataService.getInStrutt(
+        context.queryKey[1] as TInStruttDataReq
+      ).then((response) => {
+        console.log("queryInStrutt | response:", response);
+        const result = response.data.data as TInStruttTableContent[];
+        TableContentMapper.parseDate(result);
+        return result;
+      }),
+    enabled: postazioni.isSuccess,
+  });
+
+  function getQueryInStruttReq(): TInStruttDataReq {
+    return {
+      tipi: [props.tipoBadge, "PROVVISORIO"],
+      cliente: props.user.admin ? undefined : getCurrPostazioneData()?.cliente,
+      postazione: props.user.admin ? undefined : getCurrPostazioneData()?.name,
+    };
+  }
+
+  const mutateInStrutt = useMutation({
+    mutationFn: BadgeDataService.timbra,
+    onSuccess: async (response) => {
+      console.log("timbra | response:", response);
+
+      if (timeoutRunning.current === true) return;
+      timeoutRunning.current = true;
+
+      await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
+
+      const rowTimbra = response.data.data as TTimbraResp;
+
+      if (response.data.msg.includes("Esce")) setDeletedRow(rowTimbra.timbra);
+      else setDeletedRow(undefined);
+
+      if (readonlyForm === true) {
+        setForm(
+          TableContentMapper.mapToAutoComplBadge(
+            rowTimbra.badge,
+            postazioneRef.current!.value
+          )
+        );
+
+        updateImage(rowTimbra.timbra.codice);
+      }
+
+      const badgeTable = document.getElementById("badge-table");
+      const firstRow = badgeTable
+        ? (badgeTable as HTMLTableElement).tBodies[0].rows[0]
+        : null;
+      if (firstRow) {
+        switch (response.data.msg) {
+          case "Timbra Entra":
+            firstRow.style.backgroundColor = "green";
+            break;
+          case "Timbra Esce":
+            firstRow.style.backgroundColor = "red";
+            break;
+        }
+      }
+
+      setTimeout(() => {
+        if (firstRow) firstRow.style.backgroundColor = "white";
+        if (readonlyForm === true) {
+          clearForm();
+          setNoImage();
+        }
+
+        setDeletedRow(undefined);
+      }, 1000);
+    },
+    onError: async (err) => {
+      setDeletedRow(undefined);
+      axiosErrHandl(err, "timbra");
+    },
+    onSettled: async () => (timeoutRunning.current = false),
+  });
+
+  const [deletedRow, setDeletedRow] = useState<TInStruttTableContent>();
+  const [isShown, setIsShown] = useBool(false);
+  const [readonlyForm, setReadonlyForm] = useReadonlyForm((condition) => {
+    refreshPage({
+      image: condition,
+      form: condition,
+      refetch: false,
+    });
+    console.log("home | readonlyForm:", condition);
+  });
+  const timeoutRunning = useRef(false);
+
+  const [pfpUrl, { updateImage, setNoImage }] = useImage((data) =>
+    data ? `/api/v1/public/foto-profilo/USER_${data}.jpg` : ""
+  );
 
   function createFormData() {
     const formData = new FormData();
@@ -130,11 +237,13 @@ export default function Home({
     return formData;
   }
 
-  function setForm(obj?: BadgeFormState) {
-    barcodeRef.current!.value = obj?.barcode || barcodeRef.current!.defaultValue;
+  function setForm(obj?: TBadgeFormState) {
+    barcodeRef.current!.value =
+      obj?.barcode || barcodeRef.current!.defaultValue;
     descrizioneRef.current!.value =
       obj?.descrizione || descrizioneRef.current!.defaultValue;
-    tipoRef.current!.value = obj?.tipo || tipoRef.current!.options.item(0)!.value;
+    tipoRef.current!.value =
+      obj?.tipo || tipoRef.current!.options.item(0)!.value;
     assegnazioneRef.current!.value =
       obj?.assegnazione || assegnazioneRef.current!.options.item(0)!.value;
     statoRef.current!.value =
@@ -142,7 +251,8 @@ export default function Home({
     ubicazioneRef.current!.value =
       obj?.ubicazione || ubicazioneRef.current!.defaultValue;
     nomeRef.current!.value = obj?.nome || nomeRef.current!.defaultValue;
-    cognomeRef.current!.value = obj?.cognome || cognomeRef.current!.defaultValue;
+    cognomeRef.current!.value =
+      obj?.cognome || cognomeRef.current!.defaultValue;
     telefonoRef.current!.value =
       obj?.telefono || telefonoRef.current!.defaultValue;
     dittaRef.current!.value = obj?.ditta || dittaRef.current!.defaultValue;
@@ -161,29 +271,29 @@ export default function Home({
       (targa3Ref.current.value = obj?.targa3 || targa3Ref.current.defaultValue);
     targa4Ref.current &&
       (targa4Ref.current.value = obj?.targa4 || targa4Ref.current.defaultValue);
-    postazioneRef.current!.value =
-      obj?.postazione ||
-      postazioneRef.current?.options.item(0)?.value ||
-      SSHandler.getPostazione();
+    // postazioneRef.current!.value =
+    //   obj?.postazione ||
+    //   postazioneRef.current?.options.item(0)?.value ||
+    //   SSHandler.getPostazione();
   }
 
   function clearForm() {
     setForm();
   }
 
-  function formToObj(): BadgeFormState {
+  function formToObj(): TBadgeFormState {
     return {
       barcode: barcodeRef.current?.value || undefined,
       descrizione: descrizioneRef.current?.value || undefined,
-      tipo: tipoRef.current?.value as TBadgeTipo || undefined,
+      tipo: (tipoRef.current?.value as TBadgeTipo) || undefined,
       assegnazione: assegnazioneRef.current?.value || undefined,
-      stato: statoRef.current?.value as TBadgeStato || undefined,
+      stato: (statoRef.current?.value as TBadgeStato) || undefined,
       ubicazione: ubicazioneRef.current?.value || undefined,
       nome: nomeRef.current?.value || undefined,
       cognome: cognomeRef.current?.value || undefined,
       telefono: telefonoRef.current?.value || undefined,
       ditta: dittaRef.current?.value || undefined,
-      tdoc: tdocRef.current?.value as TTDoc || undefined,
+      tdoc: (tdocRef.current?.value as TTDoc) || undefined,
       ndoc: ndocRef.current?.value || undefined,
       pfp: pfpRef.current?.value || undefined,
       scadenza: scadenzaRef.current?.value || undefined,
@@ -195,218 +305,195 @@ export default function Home({
     };
   }
 
-  const retriveInStrutt = React.useCallback(() => {
-    const tipiArr: TBadgeTipo[] = [props.tipoBadge, "PROVVISORIO"];
-    const reqData = props.user.admin
-      ? { tipi: tipiArr }
-      : { ...SSHandler.getGuestInStruttReq(), tipi: tipiArr };
+  // const retriveInStrutt = useCallback(() => {
+  //   const tipiArr: TBadgeTipo[] = [props.tipoBadge, "PROVVISORIO"];
+  //   const reqData = props.user.admin
+  //     ? { tipi: tipiArr }
+  //     : { ...SSHandler.getGuestClienteAndPostazione(), tipi: tipiArr };
 
-    BadgeDataService.getInStrutt(reqData)
-      .then((response) => {
-        console.log("retriveInStrutt |", response.data);
-        setInStrutt(
-          TableContentMapper.mapArchivioToInStruttTableContent(
-            response.data.data as TInStruttResp[]
+  //   BadgeDataService.getInStrutt(reqData)
+  //     .then((response) => {
+  //       console.log("retriveInStrutt |", response.data);
+  //       // setInStrutt(
+  //       //   TableContentMapper.mapArchivioToInStruttTableContent(
+  //       //     response.data.data as TInStruttResp[]
+  //       //   )
+  //       // );
+  //       const result = response.data.data as TInStruttResp[];
+  //       TableContentMapper.parseDate(result);
+  //       setInStrutt(result);
+  //     })
+  //     .catch((err) => {
+  //       console.error("retriveInStrutt | error:", err);
+  //     });
+  // }, [props.tipoBadge, props.user.admin]);
+
+  // useEffect(retriveInStrutt, [retriveInStrutt]);
+
+  // const timbra = useCallback(
+  //   (data: TimbraDoc) => {
+  //     if (timeoutRunning.current === false) retriveInStrutt();
+  //     BadgeDataService.timbra(data)
+  //       .then((response) => {
+  //         console.log("timbra | response:", response.data);
+  //         console.log("timbra | readonlyForm:", readonlyForm);
+
+  //         if (timeoutRunning.current === true) return;
+
+  //         timeoutRunning.current = true;
+
+  //         const rowTimbra = response.data.data as TTimbraResp;
+
+  //         if (readonlyForm === true) {
+  //           setForm(
+  //             TableContentMapper.mapToAutoComplBadge(
+  //               rowTimbra.badge,
+  //               postazioneRef.current!.value
+  //             )
+  //           );
+
+  //           updateImage(rowTimbra.timbra.codice);
+  //         }
+
+  //         const filteredInStrutt = inStrutt.filter(
+  //           ({ codice }) => codice !== rowTimbra.timbra.codice
+  //         );
+
+  //         // const mappedRowTimbra =
+  //         //   TableContentMapper.mapArchivioToInStruttTableContent([
+  //         //     rowTimbra.timbra,
+  //         //   ])[0];
+  //         setInStrutt([
+  //           /*mappedRowTimbra*/ rowTimbra.timbra,
+  //           ...filteredInStrutt,
+  //         ]);
+
+  //         const badgeTable = document.getElementById("badge-table");
+  //         const firstRow = badgeTable
+  //           ? (badgeTable as HTMLTableElement).tBodies[0].rows[0]
+  //           : null;
+  //         if (firstRow) {
+  //           switch (response.data.msg) {
+  //             case "Timbra Entra":
+  //               firstRow.style.backgroundColor = "green";
+  //               break;
+  //             case "Timbra Esce":
+  //               firstRow.style.backgroundColor = "red";
+  //               break;
+  //           }
+  //         }
+
+  //         setTimeout(() => {
+  //           if (firstRow) firstRow.style.backgroundColor = "white";
+  //           if (readonlyForm === true) {
+  //             clearForm();
+  //             setNoImage();
+  //           }
+
+  //           retriveInStrutt();
+  //           closeAlert();
+  //         }, 1000);
+  //       })
+  //       .catch((err) => axiosErrHandl(err, openAlert, "timbra |"))
+  //       .finally(() => (timeoutRunning.current = false));
+  //   },
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   [
+  //     // closeAlert,
+  //     inStrutt,
+  //     // openAlert,
+  //     readonlyForm,
+  //     retriveInStrutt,
+  //   ]
+  // );
+
+  const findBadges = useQuery({
+    queryKey: ["badges", formToObj()],
+    queryFn: async (context) => {
+      const response = await BadgeDataService.find({
+        ...(context.queryKey[1] as TBadgeFormState),
+        pfp: "",
+        postazione: "",
+      });
+      console.log("findBadges | response:", response);
+
+      const result = response.data.data as TBadgeResp[];
+
+      if (result.length === 1) {
+        setForm(
+          TableContentMapper.mapToAutoComplBadge(
+            result[0],
+            postazioneRef.current!.value
           )
         );
-      })
-      .catch((err) => {
-        console.error("retriveInStrutt | error:", err);
-      });
-  }, [props.tipoBadge, props.user.admin]);
 
-  React.useEffect(retriveInStrutt, [retriveInStrutt]);
+        updateImage(result[0].barcode);
+      }
 
-  const timbra = React.useCallback(
-    (data: TimbraDoc) => {
-      if (timeoutRunning.current === false) retriveInStrutt();
-      BadgeDataService.timbra(data)
-        .then((response) => {
-          console.log("timbra | response:", response.data);
-          console.log("timbra | readOnlyForm:", readOnlyForm);
-
-          if (timeoutRunning.current === true) return;
-
-          timeoutRunning.current = true;
-
-          const rowTimbra = response.data.data as TTimbraResp;
-
-          if (readOnlyForm === true) {
-            setForm(
-              TableContentMapper.mapToAutoComplBadge(
-                rowTimbra.badge,
-                postazioneRef.current!.value
-              )
-            );
-            const url = getPfpUrlByBarcode(rowTimbra.timbra.codice);
-            setPfpUrl(url);
-          }
-
-          const filteredInStrutt = inStrutt.filter(
-            ({ codice }) => codice !== rowTimbra.timbra.codice
-          );
-          
-          const mappedRowTimbra =
-            TableContentMapper.mapArchivioToInStruttTableContent([
-              rowTimbra.timbra,
-            ])[0];
-          setInStrutt([mappedRowTimbra, ...filteredInStrutt]);
-
-          const badgeTable = document.getElementById("badge-table");
-          const firstRow = badgeTable
-            ? (badgeTable as HTMLTableElement).tBodies[0].rows[0]
-            : null;
-          if (firstRow) {
-            switch(response.data.msg) {
-              case "Timbra Entra":
-                firstRow.style.backgroundColor = "green";
-                break;
-              case "Timbra Esce":
-                firstRow.style.backgroundColor = "red";
-                break;
-            }
-          }
-
-          setTimeout(() => {
-            if (firstRow) firstRow.style.backgroundColor = "white";
-            if (readOnlyForm === true) {
-              clearForm();
-              setPfpUrl("");
-            }
-
-            retriveInStrutt();
-            closeAlert();
-          }, 1000);
-        })
-        .catch((err) => axiosErrHandl(err, openAlert, "timbra |"))
-        .finally(() => (timeoutRunning.current = false));
+      return TableContentMapper.mapBadgesToTableContent(result);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      // closeAlert,
-      inStrutt,
-      // openAlert,
-      readOnlyForm,
-      retriveInStrutt,
-    ]
-  );
+    enabled: false,
+    refetchOnWindowFocus: false,
+  });
 
-  function findBadges() {
-    BadgeDataService.find({ ...formToObj(), pfp: "", postazione: "" })
-      .then((response) => {
-        console.log("findBadges |", response.data);
+  const insertBadge = useMutation({
+    mutationFn: BadgeDataService.insertBadge,
+    onSuccess: async (response) => {
+      console.log("insertBadge | response:", response);
+      await queryClient.invalidateQueries({ queryKey: ["badges"] });
+      await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
+      toast.success(response.data.msg);
+    },
+    onError: async (err) => axiosErrHandl(err, "insertBadge"),
+    onSettled: async () => refreshPage({ image: false, refetch: false }),
+  });
 
-        const findResponse = response.data.data as TBadgeResp[];
+  const updateBadge = useMutation({
+    mutationFn: BadgeDataService.updateBadge,
+    onSuccess: async (response) => {
+      console.log("updateBadge | response:", response);
+      await queryClient.invalidateQueries({ queryKey: ["badges"] });
+      await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
+      toast.success(response.data.msg);
+    },
+    onError: async (err) => axiosErrHandl(err, "updateBadge"),
+    onSettled: async () => refreshPage({ image: false, refetch: false }),
+  });
 
-        if (findResponse.length === 1) {
-          setForm(
-            TableContentMapper.mapToAutoComplBadge(
-              findResponse[0],
-              postazioneRef.current!.value
-            )
-          );
+  const deleteBadge = useMutation({
+    mutationFn: BadgeDataService.deleteBadge,
+    onSuccess: async (response) => {
+      console.log("deleteBadge | response:", response);
+      await queryClient.invalidateQueries({ queryKey: ["badges"] });
+      await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
+      toast.success(response.data.msg);
+    },
+    onError: async (err) => axiosErrHandl(err, "deleteBadge"),
+    onSettled: async () => refreshPage({ image: false, refetch: false }),
+  });
 
-          const url = getPfpUrlByBarcode(findResponse[0].barcode);
-          setPfpUrl(url);
-        }
-
-        setBadges(TableContentMapper.mapBadgesToTableContent(findResponse));
-      })
-      .catch((err) => {
-        console.error("findBadges | error:", err);
-      })
-      .finally(() => closeAlert());
+  function refreshPage({ form = true, image = true, refetch = true }) {
+    form && clearForm();
+    image && setNoImage();
+    refetch && queryInStrutt.refetch();
   }
 
-  function insertBadge(data: FormData) {
-    BadgeDataService.insertBadge(data)
-      .then((response) => {
-        console.log("insertBadge |", response.data);
-        const { success, msg } = response.data;
-        openAlert({ success, msg });
-      })
-      .catch((err) => axiosErrHandl(err, openAlert, "insertBadge |"))
-      .finally(() => {
-        clearForm();
-        setPfpUrl("");
-      });
-  }
-
-  function updateBadge(data: FormData) {
-    const confirmed = window.confirm("Procedere alla modifica del badge?");
-    if (!confirmed) return;
-
-    BadgeDataService.updateBadge(data)
-      .then((response) => {
-        console.log("updateBadge |", response.data);
-        const { success, msg } = response.data;
-        openAlert({ success, msg });
-      })
-      .catch((err) => axiosErrHandl(err, openAlert, "updateBadge | "))
-      .finally(() => {
-        clearForm();
-        setPfpUrl("");
-      });
-  }
-
-  function deleteBadge(barcode: string) {
-    const confirmed = window.confirm("Procedere alla rimozione del badge?");
-    if (!confirmed) return;
-
-    BadgeDataService.deleteBadge(barcode)
-      .then((response) => {
-        console.log("deleteBadge |", response.data);
-        const { success, msg } = response.data;
-        openAlert({ success, msg });
-      })
-      .catch((err) => axiosErrHandl(err, openAlert, "deleteBadge |"))
-      .finally(() => {
-        clearForm();
-        setPfpUrl("");
-      });
-  }
-
-  function getPfpUrlByBarcode(barcode?: string) {
-    return barcode ? `/api/v1/public/foto-profilo/USER_${barcode}.jpg` : "";
-  }
-
-  function updatePfp(file: File) {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => setPfpUrl(reader.result as string);
-  }
-
-  function refreshPage() {
-    clearForm();
-    retriveInStrutt();
-    setPfpUrl("");
-    closeAlert();
-  }
-
-  React.useEffect(() => {
-    closeAlert();
-    if (readOnlyForm === true) {
-      clearForm();
-      setPfpUrl("");
-    }
-    console.log("readOnlyForm:", readOnlyForm);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [readOnlyForm /*closeAlert,*/]);
-
-  React.useEffect(() => {
+  useEffect(() => {
     if (!scannedValue) return;
+
+    const cliente = getCurrPostazioneData()?.cliente;
+    const postazione = getCurrPostazioneData()?.name;
+
+    if (!cliente || !postazione) return;
+
     console.log("Scanner accessi | scannedValue:", scannedValue);
-    timbra({
+    mutateInStrutt.mutate({
       barcode: scannedValue,
-      cliente: getClienteFromPostazione(
-        postazioneRef.current!.value,
-        props.postazioni
-      ),
-      postazione: postazioneRef.current!.value,
+      cliente,
+      postazione,
     });
     clearScannedValue();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scannedValue, /*clearScannedValue,*/ timbra]);
+  }, [scannedValue]);
 
   return (
     <div id="home-wrapper">
@@ -414,30 +501,32 @@ export default function Home({
         <div className="row mt-2 justify-content-start align-items-start submit-form">
           <div className="col-8 badge-form">
             <div className="row mb-2">
-              <div className="form-floating col-sm-2">
-                <select
-                  className="form-select form-select-sm"
-                  id="postazione"
-                  placeholder="postazione"
-                  ref={postazioneRef}
-                  defaultValue={SSHandler.getPostazione()}
-                >
-                  {props.postazioni
-                    .filter(
-                      ({ name }) =>
-                        name &&
-                        (props.user.admin === true ||
-                          (props.user.postazioni &&
-                            props.user.postazioni.indexOf(name) >= 0))
-                    )
-                    .map(({ name }, index) => (
-                      <option value={name} key={index}>
-                        {name}
-                      </option>
-                    ))}
-                </select>
-                <label htmlFor="postazione">postazione</label>
-              </div>
+              {postazioni.isSuccess && (
+                <div className="form-floating col-sm-2">
+                  <select
+                    className="form-select form-select-sm"
+                    id="postazione"
+                    placeholder="postazione"
+                    ref={postazioneRef}
+                    defaultValue={postazioni.data[0].name}
+                  >
+                    {postazioni.data
+                      .filter(({ cliente, name }) => cliente && name)
+                      .map(({ _id, cliente, name }) => (
+                        <option
+                          data-cliente={cliente}
+                          data-name={name}
+                          data-id={_id}
+                          value={name}
+                          key={_id}
+                        >
+                          {cliente} - {name}
+                        </option>
+                      ))}
+                  </select>
+                  <label htmlFor="postazione">postazione</label>
+                </div>
+              )}
               <div className="w-100 mb-1" />
               <div className="form-floating col-sm-2">
                 <input
@@ -457,7 +546,7 @@ export default function Home({
                   className="form-control form-control-sm"
                   id="descrizione"
                   placeholder="descrizione"
-                  readOnly={readOnlyForm === true}
+                  readOnly={readonlyForm === true}
                   autoComplete="off"
                   ref={descrizioneRef}
                   defaultValue=""
@@ -477,12 +566,12 @@ export default function Home({
                     <option
                       value={tipo}
                       key={index}
-                      disabled={readOnlyForm === true}
+                      disabled={readonlyForm === true}
                     >
                       {tipo}
                     </option>
                   ))}
-                  <option value="" key="-1" disabled={readOnlyForm === true} />
+                  <option value="" key="-1" disabled={readonlyForm === true} />
                 </select>
                 <label htmlFor="tipo">tipo</label>
               </div>
@@ -494,16 +583,16 @@ export default function Home({
                   ref={assegnazioneRef}
                   defaultValue=""
                 >
-                  <option value="" key="-1" disabled={readOnlyForm === true} />
-                  {props.assegnazioni
-                    .filter(
+                  <option value="" key="-1" disabled={readonlyForm === true} />
+                  {assegnazioni.data
+                    ?.filter(
                       ({ name, badge }) => badge === props.tipoBadge && name
                     )
                     .map(({ name }, index) => (
                       <option
                         value={name}
                         key={index}
-                        disabled={readOnlyForm === true}
+                        disabled={readonlyForm === true}
                       >
                         {name}
                       </option>
@@ -520,12 +609,12 @@ export default function Home({
                   ref={statoRef}
                   defaultValue=""
                 >
-                  <option value="" key="-1" disabled={readOnlyForm === true} />
+                  <option value="" key="-1" disabled={readonlyForm === true} />
                   {STATI_BADGE.map((stato, index) => (
                     <option
                       value={stato}
                       key={index}
-                      disabled={readOnlyForm === true}
+                      disabled={readonlyForm === true}
                     >
                       {stato}
                     </option>
@@ -539,7 +628,7 @@ export default function Home({
                   className="form-control form-control-sm"
                   id="ubicazione"
                   placeholder="ubicazione"
-                  readOnly={readOnlyForm === true}
+                  readOnly={readonlyForm === true}
                   autoComplete="off"
                   ref={ubicazioneRef}
                   defaultValue=""
@@ -562,15 +651,15 @@ export default function Home({
                     className="custom-file-input"
                     id="pfp"
                     disabled={
-                      readOnlyForm === true || props.user.admin === false
+                      readonlyForm === true || props.user.admin === false
                     }
                     autoComplete="off"
                     ref={pfpRef}
                     defaultValue=""
                     onChange={(e) => {
                       const file = e.target.files?.item(0);
-                      if (file) updatePfp(file);
-                      else setPfpUrl("");
+                      if (file) updateImage(file);
+                      else setNoImage();
                     }}
                   />
                 </div>
@@ -583,7 +672,7 @@ export default function Home({
                       className="form-control form-control-sm"
                       id="nome"
                       placeholder="nome"
-                      readOnly={readOnlyForm === true}
+                      readOnly={readonlyForm === true}
                       autoComplete="off"
                       ref={nomeRef}
                       defaultValue=""
@@ -596,7 +685,7 @@ export default function Home({
                       className="form-control form-control-sm"
                       id="cognome"
                       placeholder="cognome"
-                      readOnly={readOnlyForm === true}
+                      readOnly={readonlyForm === true}
                       autoComplete="off"
                       ref={cognomeRef}
                       defaultValue=""
@@ -610,7 +699,7 @@ export default function Home({
                       className="form-control form-control-sm"
                       id="ditta"
                       placeholder="ditta"
-                      readOnly={readOnlyForm === true}
+                      readOnly={readonlyForm === true}
                       autoComplete="off"
                       ref={dittaRef}
                       defaultValue=""
@@ -623,7 +712,7 @@ export default function Home({
                       className="form-control form-control-sm"
                       id="telefono"
                       placeholder="telefono"
-                      readOnly={readOnlyForm === true}
+                      readOnly={readonlyForm === true}
                       autoComplete="off"
                       ref={telefonoRef}
                       defaultValue=""
@@ -642,14 +731,14 @@ export default function Home({
                       <option
                         value=""
                         key="-1"
-                        disabled={readOnlyForm === true}
+                        disabled={readonlyForm === true}
                       />
                       {TDOCS.filter((tipoDoc) => tipoDoc).map(
                         (tipoDoc, index) => (
                           <option
                             value={tipoDoc}
                             key={index}
-                            disabled={readOnlyForm === true}
+                            disabled={readonlyForm === true}
                           >
                             {tipoDoc}
                           </option>
@@ -664,7 +753,7 @@ export default function Home({
                       className="form-control form-control-sm"
                       id="ndoc"
                       placeholder="num documento"
-                      readOnly={readOnlyForm === true}
+                      readOnly={readonlyForm === true}
                       autoComplete="off"
                       ref={ndocRef}
                       defaultValue=""
@@ -681,7 +770,7 @@ export default function Home({
                           className="form-control form-control-sm"
                           id="scadenza"
                           readOnly={
-                            readOnlyForm === true || props.user.admin === false
+                            readonlyForm === true || props.user.admin === false
                           }
                           autoComplete="off"
                           ref={scadenzaRef}
@@ -700,7 +789,7 @@ export default function Home({
                             className="form-control form-control-sm"
                             id="targa1"
                             placeholder="targa1"
-                            readOnly={readOnlyForm === true}
+                            readOnly={readonlyForm === true}
                             autoComplete="off"
                             ref={targa1Ref}
                             defaultValue=""
@@ -713,7 +802,7 @@ export default function Home({
                             className="form-control form-control-sm"
                             id="targa2"
                             placeholder="targa2"
-                            readOnly={readOnlyForm === true}
+                            readOnly={readonlyForm === true}
                             ref={targa2Ref}
                             defaultValue=""
                           />
@@ -726,7 +815,7 @@ export default function Home({
                             className="form-control form-control-sm"
                             id="targa3"
                             placeholder="targa3"
-                            readOnly={readOnlyForm === true}
+                            readOnly={readonlyForm === true}
                             autoComplete="off"
                             ref={targa3Ref}
                             defaultValue=""
@@ -739,7 +828,7 @@ export default function Home({
                             className="form-control form-control-sm"
                             id="targa4"
                             placeholder="targa4"
-                            readOnly={readOnlyForm === true}
+                            readOnly={readonlyForm === true}
                             autoComplete="off"
                             ref={targa4Ref}
                             defaultValue=""
@@ -753,57 +842,69 @@ export default function Home({
               </div>
             </div>
           </div>
-          <FormButtons
-            findBadges={findBadges}
-            timbra={() =>
-              timbra({
-                barcode: barcodeRef.current!.value,
-                cliente: getClienteFromPostazione(
-                  postazioneRef.current!.value,
-                  props.postazioni
-                ),
-                postazione: postazioneRef.current!.value,
-              })
-            }
-            insertBadge={() => insertBadge(createFormData())}
-            updateBadge={() => updateBadge(createFormData())}
-            deleteBadge={() => deleteBadge(barcodeRef.current!.value)}
-            refreshPage={refreshPage}
-            openPopup={() => setIsShown(true)}
-            readOnlyForm={readOnlyForm}
-            toggleReadOnlyForm={() => setReadOnlyForm((prev) => !prev)}
-            admin={props.user.admin}
-            runScanner={props.runScanner}
-            scannerConnected={props.scannerConnected}
-            badges={badges}
-            openAlert={openAlert}
-          />
+          {postazioni.isSuccess && (
+            <FormButtons
+              findBadges={() => findBadges.refetch()}
+              timbra={() =>
+                mutateInStrutt.mutate({
+                  barcode: barcodeRef.current!.value,
+                  cliente: getCurrPostazioneData()!.cliente!,
+                  postazione: postazioneRef.current!.value,
+                })
+              }
+              insertBadge={() => insertBadge.mutate(createFormData())}
+              updateBadge={() => {
+                const confirmed = window.confirm(
+                  "Procedere alla modifica del badge?"
+                );
+                if (!confirmed) return;
+                updateBadge.mutate(createFormData());
+              }}
+              deleteBadge={() => {
+                const confirmed = window.confirm(
+                  "Procedere alla rimozione del badge?"
+                );
+                if (!confirmed) return;
+                deleteBadge.mutate(barcodeRef.current!.value);
+              }}
+              openPopup={setIsShown.setTrue}
+              readonlyForm={readonlyForm}
+              toggleReadOnlyForm={setReadonlyForm.setToggle}
+              admin={props.user.admin}
+              runScanner={props.runScanner}
+              scannerConnected={props.scannerConnected}
+              badges={findBadges.data || []}
+            />
+          )}
           <div className="col-4">
             <Clock />
           </div>
           <div className="in-strutt-count">
-            <b># in struttura:</b> {inStrutt.length}
+            <b># in struttura:</b> {queryInStrutt.data?.length || 0}
           </div>
-        </div>
-        <div className="home-alert-wrapper">
-          <Alert alert={props.alert} closeAlert={closeAlert} />
         </div>
       </div>
       <OspitiPopup
         isShown={isShown}
-        closePopup={() => setIsShown(false)}
-        insertOsp={insertBadge}
+        closePopup={setIsShown.setFalse}
+        insertOsp={insertBadge.mutate}
         isVeicolo={props.tipoBadge === "VEICOLO"}
       />
       <div className="badge-table-wrapper">
-        <BadgeTable
-          content={inStrutt}
-          tableId="badge-table"
-          omitedParams={["_id", "id"]}
-          // obfuscatedParams={
-          //   props.user.admin === true ? undefined : ["codice", "entrata"]
-          // }
-        />
+        {queryInStrutt.isSuccess && (
+          <BadgeTable
+            content={
+              deletedRow
+                ? [deletedRow, ...queryInStrutt.data]
+                : queryInStrutt.data
+            }
+            tableId="badge-table"
+            omitedParams={["_id", "id"]}
+            // obfuscatedParams={
+            //   props.user.admin === true ? undefined : ["codice", "entrata"]
+            // }
+          />
+        )}
       </div>
     </div>
   );

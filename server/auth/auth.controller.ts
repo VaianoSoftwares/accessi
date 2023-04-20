@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import errCheck from "../utils/errCheck.js";
 import { TUser } from "../types/users.js";
+import { ObjectId } from "mongodb";
 
 export default class UsersController {
   static async apiRegister(req: Request, res: Response) {
@@ -15,7 +16,7 @@ export default class UsersController {
     if (parsed.success === false) {
       return res
         .status(400)
-        .json({ success: false, msg: parsed.error.message });
+        .json({ success: false, msg: parsed.error.errors[0].message });
     }
 
     const { username, password, admin, clienti, postazioni, device } =
@@ -29,8 +30,9 @@ export default class UsersController {
         username,
         password: hashPsw,
         admin,
-        clienti: admin ? null : (clienti as string[]),
-        postazioni: admin ? null : (postazioni as string[]),
+        clienti: admin || !clienti ? null : clienti,
+        postazioni:
+          admin || !postazioni ? null : postazioni.map((p) => new ObjectId(p)),
         device: admin ? false : device,
       };
 
@@ -59,7 +61,7 @@ export default class UsersController {
       console.log("apiLogin |", parsed.error);
       return res
         .status(400)
-        .json({ success: false, msg: parsed.error.message });
+        .json({ success: false, msg: parsed.error.errors[0].message });
     }
 
     const { username, password } = parsed.data;

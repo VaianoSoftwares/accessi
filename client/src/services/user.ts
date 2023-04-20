@@ -1,56 +1,61 @@
-import { LoginFormState } from "../types/LoginFormState";
-import { TPermesso } from "../types/TPermesso";
-import { RegisterFormState } from "../types/RegisterFormState";
 import DataServices from "./DataServices";
+import { GenericAbortSignal } from "axios";
+import { RegisterFormState, LoginFormState, TPermesso } from "../types";
 
 class UserDataService extends DataServices {
-  register(data: RegisterFormState) {
+  register(data: RegisterFormState, signal?: GenericAbortSignal) {
     return super.request({
       method: "POST",
       url: "/register",
       token: true,
       data,
+      signal,
     });
   }
 
-  login(data: LoginFormState) {
+  login(data: LoginFormState, signal?: GenericAbortSignal) {
     return super.request({
       method: "POST",
       url: "/login",
       data,
+      signal,
     });
   }
 
-  getUser(device: string) {
+  getUser(device: string, signal?: GenericAbortSignal) {
     return super.request({
       url: "/user",
       data: { device },
+      signal,
     });
   }
 
-  getPermessi(data?: TPermesso) {
+  getPermessi(data?: Partial<TPermesso>, signal?: GenericAbortSignal) {
     return super.request({
       url: "/permessi",
       data,
       token: true,
+      signal,
     });
   }
 
-  postPermesso(data: TPermesso) {
+  postPermesso(data: TPermesso, signal?: GenericAbortSignal) {
     return super.request({
       method: "POST",
       url: "/permessi",
       token: true,
       data,
+      signal,
     });
   }
 
-  deletePermesso(data: TPermesso) {
+  deletePermesso(_id: string, signal?: GenericAbortSignal) {
     return super.request({
       method: "DELETE",
       url: "/permessi",
       token: true,
-      data,
+      data: { _id },
+      signal,
     });
   }
 }

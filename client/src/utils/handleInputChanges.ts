@@ -1,5 +1,4 @@
-import { GenericForm } from "../types/GenericForm";
-import { TEvent, TEventInput } from "../types/TEvent";
+import { GenericForm, TEvent, TEventInput } from "../types";
 
 export default (
   () =>
@@ -21,4 +20,3 @@ export default (
     }
   }
 )();
-

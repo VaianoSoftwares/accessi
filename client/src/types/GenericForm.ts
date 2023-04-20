@@ -1,1 +1,0 @@
-export type GenericForm = Record<PropertyKey, unknown>;

@@ -1,28 +1,22 @@
-import React from "react";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import "./index.css";
 import BadgePopup from "../BadgePopup";
-import { TTableContent } from "../../types/TableContentElem";
-import { TAlert } from "../../types/TAlert";
+import { TTableContent } from "../../types";
 
-type Props = {
+export default function FormButtons(props: {
   findBadges: () => void;
   timbra: () => void;
   insertBadge: () => void;
   updateBadge: () => void;
   deleteBadge: () => void;
-  refreshPage: () => void;
   openPopup: () => void;
-  readOnlyForm: boolean;
+  readonlyForm: boolean;
   toggleReadOnlyForm: () => void;
   admin: boolean;
   runScanner: () => Promise<void>;
   scannerConnected: boolean;
   badges: TTableContent[];
-  openAlert: (alert: TAlert) => void;
-};
-
-const FormButtons: React.FC<Props> = (props: Props) => {
+}) {
   return (
     <div className="form-buttons">
       <div className="row align-items-center justify-content-start g-0">
@@ -59,10 +53,10 @@ const FormButtons: React.FC<Props> = (props: Props) => {
             <div className="col-auto mx-2 home-form-b">
               <b
                 style={
-                  props.readOnlyForm ? { color: "red" } : { color: "green" }
+                  props.readonlyForm ? { color: "red" } : { color: "green" }
                 }
               >
-                {props.readOnlyForm && "Non "}
+                {props.readonlyForm && "Non "}
                 {"Attivo"}
               </b>
             </div>
@@ -142,6 +136,4 @@ const FormButtons: React.FC<Props> = (props: Props) => {
       </div>
     </div>
   );
-};
-
-export default FormButtons;
+}

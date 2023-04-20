@@ -5,6 +5,7 @@ import Validator from "../auth/validation.js";
 import { Request, Response } from "express";
 import errCheck from "../utils/errCheck.js";
 import { TAssegnaz } from "../types/enums.js";
+import PostazioniDao from "../dao/postazioni.dao.js";
 
 export default class BadgesController {
   static async apiGetBadges(req: Request, res: Response) {
@@ -12,7 +13,7 @@ export default class BadgesController {
     if (parsed.success === false) {
       return res
         .status(400)
-        .json({ success: false, msg: parsed.error.message });
+        .json({ success: false, msg: parsed.error.errors[0].message });
     }
 
     try {
@@ -40,7 +41,7 @@ export default class BadgesController {
       console.error("apiPostBadges | error:", parsed.error);
       return res.status(400).json({
         success: false,
-        msg: parsed.error.message,
+        msg: parsed.error.errors[0].message,
       });
     }
 
@@ -87,7 +88,7 @@ export default class BadgesController {
       console.error("apiPutBadges | error:", parsed.error);
       return res.status(400).json({
         success: false,
-        msg: parsed.error.message,
+        msg: parsed.error.errors[0].message,
         data: null,
       });
     }
@@ -108,7 +109,7 @@ export default class BadgesController {
       const fileUplResp = await FileManager.uploadPfp(
         req.files,
         barcode,
-        badgesResponse.tipoBadge,
+        badgesResponse.tipoBadge
       );
       if ("error" in fileUplResp) {
         return res
@@ -139,7 +140,7 @@ export default class BadgesController {
       console.error("apiDeleteBadges | error:", parsed.error);
       return res
         .status(400)
-        .json({ success: false, msg: parsed.error.message });
+        .json({ success: false, msg: parsed.error.errors[0].message });
     }
 
     const barcode = parsed.data.barcode.toUpperCase();
@@ -181,16 +182,30 @@ export default class BadgesController {
     }
   }
 
-  static async apiGetEnums(req: Request, res: Response) {
+  // static async apiGetEnums(req: Request, res: Response) {
+  //   try {
+  //     const enums = await EnumsDAO.getEnums();
+  //     res.json({
+  //       success: true,
+  //       data: enums,
+  //       msg: "Enums ottenuti con successo",
+  //     });
+  //   } catch (err) {
+  //     const { error } = errCheck(err, "apiGetEnums |");
+  //     res.status(500).json({ success: false, data: null, msg: error });
+  //   }
+  // }
+
+  static async apiGetAssegnazioni(req: Request, res: Response) {
     try {
-      const enums = await EnumsDAO.getEnums();
+      const assegnazioni = await EnumsDAO.getAssegnazioni();
       res.json({
         success: true,
-        data: enums,
-        msg: "Enums ottenuti con successo",
+        data: assegnazioni,
+        msg: "Assegnazioni ottenute con successo",
       });
     } catch (err) {
-      const { error } = errCheck(err, "apiGetEnums |");
+      const { error } = errCheck(err, "apiGetAssegnazioni |");
       res.status(500).json({ success: false, data: null, msg: error });
     }
   }
@@ -202,7 +217,7 @@ export default class BadgesController {
         console.error("apiPostAssegnazioni | error:", parsed.error);
         return res
           .status(400)
-          .json({ success: false, msg: parsed.error.message });
+          .json({ success: false, msg: parsed.error.errors[0].message });
       }
 
       const assegnazObj: TAssegnaz = {
@@ -236,7 +251,7 @@ export default class BadgesController {
         console.error("apiDeleteAssegnazioni | error:", parsed.error);
         return res
           .status(400)
-          .json({ success: false, msg: parsed.error.message });
+          .json({ success: false, msg: parsed.error.errors[0].message });
       }
 
       const assegnazObj: TAssegnaz = {
@@ -263,61 +278,158 @@ export default class BadgesController {
     }
   }
 
-  static async apiPostPostazione(req: Request, res: Response) {
+  static async apiGetPostazioni(req: Request, res: Response) {
+    // try {
+    //   const postazioni = await EnumsDAO.getPostazioni();
+    //   res.json({
+    //     success: true,
+    //     data: postazioni,
+    //     msg: "Postazioni ottenute con successo",
+    //   });
+    // } catch (err) {
+    //   const { error } = errCheck(err, "apiGetPostazioni |");
+    //   res.status(500).json({ success: false, data: null, msg: error });
+    // }
+    const parsed = Validator.getPostazioni(req.query);
+    if (parsed.success === false) {
+      console.error("apiGetPostazioni | error:", parsed.error);
+      return res
+        .status(400)
+        .json({ success: false, msg: parsed.error.errors[0].message });
+    }
+
     try {
-      const parsed = Validator.postazioni(req.body);
-      if (parsed.success === false) {
-        console.error("apiPostPostazione | error:", parsed.error);
-        return res
-          .status(400)
-          .json({ success: false, msg: parsed.error.message });
+      const postazioni = await PostazioniDao.getPostazioni(parsed.data);
+      res.json({
+        success: true,
+        data: postazioni,
+        msg: "Postazioni ottenuto con successo",
+      });
+    } catch (err) {
+      const { error } = errCheck(err, "apiGetPostazioni |");
+      res.status(500).json({ success: false, data: null, msg: error });
+    }
+  }
+
+  static async apiPostPostazione(req: Request, res: Response) {
+    // try {
+    //   const parsed = Validator.postazioni(req.body);
+    //   if (parsed.success === false) {
+    //     console.error("apiPostPostazione | error:", parsed.error);
+    //     return res
+    //       .status(400)
+    //       .json({ success: false, msg: parsed.error.message });
+    //   }
+
+    //   const enumResp = await EnumsDAO.pushPostazione(parsed.data);
+    //   if ("error" in enumResp) {
+    //     return res.status(400).json({ success: false, msg: enumResp.error });
+    //   } else if (enumResp.modifiedCount === 0) {
+    //     throw new Error(
+    //       `Non è stato possibile inserire postazione ${parsed.data.name} di cliente ${parsed.data.cliente}`
+    //     );
+    //   }
+    //   return res.json({
+    //     success: true,
+    //     msg: `Postazione di cliente ${parsed.data.cliente} inserita con successo`,
+    //     data: enumResp,
+    //   });
+    // } catch (err) {
+    //   const { error } = errCheck(err, "apiPostPostazione |");
+    //   res.status(500).json({ success: false, msg: error });
+    // }
+    const parsed = Validator.postPostazione(req.body);
+    if (parsed.success === false) {
+      console.error("apiPostPostazione | error:", parsed.error);
+      return res
+        .status(400)
+        .json({ success: false, msg: parsed.error.errors[0].message });
+    }
+
+    try {
+      const response = await PostazioniDao.addPostazione(parsed.data);
+      if ("error" in response) {
+        return res.status(400).json({ success: false, msg: response.error });
       }
 
-      const enumResp = await EnumsDAO.pushPostazione(parsed.data);
-      if ("error" in enumResp) {
-        return res.status(400).json({ success: false, msg: enumResp.error });
-      } else if (enumResp.modifiedCount === 0) {
-        throw new Error(
-          `Non è stato possibile inserire postazione ${parsed.data.name} di cliente ${parsed.data.cliente}`
-        );
-      }
-      return res.json({
+      res.json({
         success: true,
-        msg: `Postazione di cliente ${parsed.data.cliente} inserita con successo`,
-        data: enumResp,
+        data: response,
+        msg: "Postazione ottenuto con successo",
       });
     } catch (err) {
       const { error } = errCheck(err, "apiPostPostazione |");
-      res.status(500).json({ success: false, msg: error });
+      res.status(500).json({ success: false, data: null, msg: error });
     }
   }
 
   static async apiDeletePostazione(req: Request, res: Response) {
+    // try {
+    //   const parsed = Validator.postazioni(req.query);
+    //   if (parsed.success === false) {
+    //     console.error("apiDeletePostazione | error:", parsed.error);
+    //     return res
+    //       .status(400)
+    //       .json({ success: false, msg: parsed.error.message });
+    //   }
+
+    //   const enumResp = await EnumsDAO.pullPostazione(parsed.data);
+    //   if ("error" in enumResp) {
+    //     return res.status(400).json({ success: false, msg: enumResp.error });
+    //   } else if (enumResp.modifiedCount === 0) {
+    //     throw new Error(
+    //       `Non è stato possibile eliminare postazione ${parsed.data.name} di cliente ${parsed.data.cliente}`
+    //     );
+    //   }
+    //   return res.json({
+    //     success: true,
+    //     msg: `Postazione di cliente ${parsed.data.cliente} eliminata con successo`,
+    //     data: enumResp,
+    //   });
+    // } catch (err) {
+    //   const { error } = errCheck(err, "apiDeletePostazione |");
+    //   res.status(500).json({ success: false, msg: error });
+    // }
+    const parsed = Validator.deletePostazione(req.body);
+    if (parsed.success === false) {
+      console.error("apiDeletePostazione | error:", parsed.error);
+      return res
+        .status(400)
+        .json({ success: false, msg: parsed.error.errors[0].message });
+    }
+
     try {
-      const parsed = Validator.postazioni(req.query);
-      if (parsed.success === false) {
-        console.error("apiDeletePostazione | error:", parsed.error);
+      const response = await PostazioniDao.deletePostazione(parsed.data._id);
+      if ("error" in response) {
+        return res.status(400).json({ success: false, msg: response.error });
+      } else if (response.deletedCount === 0) {
         return res
           .status(400)
-          .json({ success: false, msg: parsed.error.message });
+          .json({ success: false, msg: "Impossibile eliminare postazione" });
       }
 
-      const enumResp = await EnumsDAO.pullPostazione(parsed.data);
-      if ("error" in enumResp) {
-        return res.status(400).json({ success: false, msg: enumResp.error });
-      } else if (enumResp.modifiedCount === 0) {
-        throw new Error(
-          `Non è stato possibile eliminare postazione ${parsed.data.name} di cliente ${parsed.data.cliente}`
-        );
-      }
-      return res.json({
+      res.json({
         success: true,
-        msg: `Postazione di cliente ${parsed.data.cliente} eliminata con successo`,
-        data: enumResp,
+        data: response,
+        msg: "Postazione eliminata con successo",
       });
     } catch (err) {
       const { error } = errCheck(err, "apiDeletePostazione |");
-      res.status(500).json({ success: false, msg: error });
+      res.status(500).json({ success: false, data: null, msg: error });
+    }
+  }
+
+  static async apiGetClienti(req: Request, res: Response) {
+    try {
+      const clienti = await EnumsDAO.getClienti();
+      res.json({
+        success: true,
+        data: clienti,
+        msg: "Clienti ottenute con successo",
+      });
+    } catch (err) {
+      const { error } = errCheck(err, "apiGetClienti |");
+      res.status(500).json({ success: false, data: null, msg: error });
     }
   }
 }

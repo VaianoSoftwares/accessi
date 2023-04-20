@@ -1,13 +1,11 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { TUser } from "../../types/TUser";
+import { TUser } from "../../types";
 import "./index.css";
 
-type Props = {
+export default function AccessiNavbar(props: {
   user: TUser | null;
   logout: () => Promise<void>;
-};
-
-export default function AccessiNavbar(props: Props) {
+}) {
   const navigate = useNavigate();
   let location = useLocation().pathname;
 

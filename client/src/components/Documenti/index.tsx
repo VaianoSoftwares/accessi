@@ -1,29 +1,79 @@
-import React from "react";
 import DocumentsDataService from "../../services/docs";
-import { TAlert } from "../../types/TAlert";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
-import { TDocumento } from "../../types/Documento";
 import BadgeTable from "../BadgeTable";
 import "./index.css";
-import Alert from "../Alert";
+import useImage from "../../hooks/useImage";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
+import { TDocFormState, TDocumento } from "../../types";
+import { toast } from "react-hot-toast";
 
-type Props = {
-  alert: TAlert | null;
-  openAlert: (alert: TAlert) => void;
-  closeAlert: () => void;
-  admin: boolean;
-};
+export default function Documenti(props: { admin: boolean }) {
+  const codiceRef = useRef<HTMLInputElement>(null);
+  const aziendaRef = useRef<HTMLInputElement>(null);
+  const nomeRef = useRef<HTMLInputElement>(null);
+  const cognomeRef = useRef<HTMLInputElement>(null);
+  const docimgRef = useRef<HTMLInputElement>(null);
 
-const Documenti: React.FC<Props> = (props: Props) => {
-  const [documenti, setDocumenti] = React.useState<TDocumento[]>([]);
-  const [docFindView, setDocFindView] = React.useState<TDocumento[]>([]);
-  const [docImgUrl, setDocImgUrl] = React.useState("");
+  const queryClient = useQueryClient();
 
-  const codiceRef = React.useRef<HTMLInputElement>(null);
-  const aziendaRef = React.useRef<HTMLInputElement>(null);
-  const nomeRef = React.useRef<HTMLInputElement>(null);
-  const cognomeRef = React.useRef<HTMLInputElement>(null);
-  const docimgRef = React.useRef<HTMLInputElement>(null);
+  const findDocumenti = useQuery({
+    queryKey: ["documenti", formToObj()],
+    queryFn: () =>
+      DocumentsDataService.find(formToObj()).then((response) => {
+        console.log("findDocumenti | response: ", response);
+
+        const result = response.data.data as TDocumento[];
+
+        if (result.length === 1) {
+          const { filename } = result[0];
+          updateImage(filename);
+
+          setForm(result[0]);
+        }
+
+        return result;
+      }),
+    enabled: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const insertDocumento = useMutation({
+    mutationFn: DocumentsDataService.insert,
+    onSuccess: async (response) => {
+      console.log("insertDocumento | response:", response);
+      await queryClient.invalidateQueries({ queryKey: ["documenti"] });
+      toast.success(response.data.msg);
+    },
+    onError: async (err) => axiosErrHandl(err, "insertDocumento"),
+    onSettled: async () => refreshPage(),
+  });
+
+  const updateDocumento = useMutation({
+    mutationFn: DocumentsDataService.update,
+    onSuccess: async (response) => {
+      console.log("updateDocumento | response:", response);
+      await queryClient.invalidateQueries({ queryKey: ["documenti"] });
+      toast.success(response.data.msg);
+    },
+    onError: async (err) => axiosErrHandl(err, "updateDocumento"),
+    onSettled: async () => refreshPage(),
+  });
+
+  const deleteDocumento = useMutation({
+    mutationFn: DocumentsDataService.delete,
+    onSuccess: async (response) => {
+      console.log("deleteDocumento | response:", response);
+      await queryClient.invalidateQueries({ queryKey: ["documenti"] });
+      toast.success(response.data.msg);
+    },
+    onError: async (err) => axiosErrHandl(err, "deleteDocumento"),
+    onSettled: async () => refreshPage(),
+  });
+
+  const [docImgUrl, { updateImage, setNoImage }] = useImage((filename) =>
+    filename ? `/api/v1/public/documenti/${filename}` : ""
+  );
 
   function clearForm() {
     codiceRef.current!.value = codiceRef.current!.defaultValue;
@@ -39,7 +89,7 @@ const Documenti: React.FC<Props> = (props: Props) => {
     data.append("azienda", aziendaRef.current!.value);
     data.append("nome", nomeRef.current!.value);
     data.append("cognome", cognomeRef.current!.value);
-    const doc = docimgRef.current?.files?.item(0)
+    const doc = docimgRef.current?.files?.item(0);
     doc && data.append("docimg", doc);
     return data;
   }
@@ -50,126 +100,23 @@ const Documenti: React.FC<Props> = (props: Props) => {
     nomeRef.current!.value = obj.nome;
     cognomeRef.current!.value = obj.cognome;
     docimgRef.current!.files = null;
+    docimgRef.current!.value = docimgRef.current!.defaultValue;
   }
 
-  function retriveDocumenti() {
-    DocumentsDataService.getAll()
-      .then(response => {
-        console.log("retriveDocumenti | response: ", response.data);
-        setDocumenti(response.data.data as TDocumento[]);
-      })
-      .catch(err => {
-        console.error("retriveDocumenti | error: ", err);
-      });
+  function formToObj(): TDocFormState {
+    return {
+      codice: codiceRef.current?.value || undefined,
+      azienda: aziendaRef.current?.value || undefined,
+      nome: nomeRef.current?.value || undefined,
+      cognome: nomeRef.current?.value || undefined,
+    };
   }
 
-  function findDocumenti() {
-    const filteredDocs = documentiFilter();
-    console.log("findDocumenti | filteredDocs: ", filteredDocs);
-
-    setDocFindView(filteredDocs);
-
-    if (filteredDocs.length === 1) {
-      const { filename } = filteredDocs[0];
-      const url = getDocImgUrlByCodice(filename);
-      setDocImgUrl(url);
-
-      setForm(filteredDocs[0]);
-    }
-
-    props.closeAlert();
-  }
-
-  function insertDocumento() {
-    DocumentsDataService.insert(createFormData())
-      .then(response => {
-        console.log("insertDocumento | response: ", response.data);
-
-        const addedDoc = response.data.data as TDocumento;
-        setDocumenti(prevState => [...prevState, addedDoc]);
-
-        const { success, msg } = response.data;
-        props.openAlert({ success, msg });
-      })
-      .catch(err => axiosErrHandl(err, props.openAlert, "insertDocumento | "))
-      .finally(() => refreshPage());
-  };
-
-  function updateDocumento() {
-    const confirmed = window.confirm("Procedere alla modifica del documento?");
-		if(!confirmed) return;
-
-    DocumentsDataService.update(createFormData())
-      .then(response => {
-        console.log("updateDocumento | response: ", response.data);
-
-        const updatedDoc = response.data.data as TDocumento;
-        setDocumenti((prevState) =>
-          prevState.map((doc) =>
-            doc.codice === updatedDoc.codice ? updatedDoc : doc
-          )
-        );
-
-        const { success, msg } = response.data;
-        props.openAlert({ success, msg });
-      })
-      .catch(err => axiosErrHandl(err, props.openAlert, "updateDocumento | "))
-      .finally(() => refreshPage());
-  };
-
-  function deleteDocumento() {
-    const confirmed = window.confirm("Procedere alla rimozione del documento?");
-		if(!confirmed) return;
-
-    DocumentsDataService.delete(codiceRef.current!.value)
-      .then(response => {
-        console.log("deleteDocumento | response: ", response.data);
-
-        const deletedDoc = response.data.data as TDocumento;
-        setDocumenti((prevState) =>
-          prevState.filter((doc) => doc.codice !== deletedDoc.codice)
-        );
-
-        const { success, msg } = response.data;
-        props.openAlert({ success, msg });
-      })
-      .catch(err => axiosErrHandl(err, props.openAlert, "deleteDocumento | "))
-      .finally(() => refreshPage());
-  }
-
-  function documentiFilter() {
-    return documenti.filter(
-      (doc) =>
-        (codiceRef.current!.value &&
-          doc.codice.includes(codiceRef.current!.value!.toUpperCase())) ||
-        (aziendaRef.current!.value &&
-          doc.azienda.includes(aziendaRef.current!.value!.toUpperCase())) ||
-        (nomeRef.current!.value &&
-          doc.nome.includes(nomeRef.current!.value!.toUpperCase())) ||
-        (cognomeRef.current!.value &&
-          doc.cognome.includes(cognomeRef.current!.value!.toUpperCase()))
-    );
-  }
-
-  function updateImgPreview(file: File) {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => setDocImgUrl(reader.result as string);
-  }
-
-  function getDocImgUrlByCodice(filename = "") {
-    return filename ? `/api/v1/public/documenti/${filename}` : "";
-  }
-
-  function refreshPage(closePopup = false) {
+  function refreshPage() {
     clearForm();
-    setDocImgUrl("");
-    setDocFindView([]);
-    if(closePopup)
-      props.closeAlert();
+    setNoImage();
+    queryClient.cancelQueries({ queryKey: ["documenti"] });
   }
-
-  React.useEffect(() => retriveDocumenti(), []);
 
   return (
     <div id="doc-wrapper">
@@ -191,8 +138,8 @@ const Documenti: React.FC<Props> = (props: Props) => {
                     id="docimg"
                     onChange={(e) => {
                       const file = e.target.files?.item(0);
-                      if(file) updateImgPreview(file);
-                      else setDocImgUrl("");
+                      if (file) updateImage(file);
+                      else setNoImage();
                     }}
                     disabled={props.admin === false}
                     autoComplete="off"
@@ -260,7 +207,7 @@ const Documenti: React.FC<Props> = (props: Props) => {
               <div className="col">
                 <button
                   className="btn btn-success home-form-btn"
-                  onClick={() => findDocumenti()}
+                  onClick={() => findDocumenti.refetch()}
                 >
                   Cerca
                 </button>
@@ -269,7 +216,7 @@ const Documenti: React.FC<Props> = (props: Props) => {
               <div className="col">
                 <button
                   className="btn btn-success home-form-btn"
-                  onClick={() => insertDocumento()}
+                  onClick={() => insertDocumento.mutate(createFormData())}
                   disabled={props.admin === false}
                 >
                   Aggiungi
@@ -279,7 +226,13 @@ const Documenti: React.FC<Props> = (props: Props) => {
               <div className="col">
                 <button
                   className="btn btn-success home-form-btn"
-                  onClick={() => updateDocumento()}
+                  onClick={() => {
+                    const confirmed = window.confirm(
+                      "Procedere alla modifica del documento?"
+                    );
+                    if (!confirmed) return;
+                    updateDocumento.mutate(createFormData());
+                  }}
                   disabled={props.admin === false}
                 >
                   Modifica
@@ -289,7 +242,13 @@ const Documenti: React.FC<Props> = (props: Props) => {
               <div className="col">
                 <button
                   className="btn btn-success home-form-btn"
-                  onClick={() => deleteDocumento()}
+                  onClick={() => {
+                    const confirmed = window.confirm(
+                      "Procedere alla rimozione del documento?"
+                    );
+                    if (!confirmed) return;
+                    deleteDocumento.mutate(codiceRef.current!.value);
+                  }}
                   disabled={props.admin === false}
                 >
                   Elimina
@@ -299,7 +258,7 @@ const Documenti: React.FC<Props> = (props: Props) => {
               <div className="col">
                 <button
                   className="btn btn-success home-form-btn"
-                  onClick={() => refreshPage(true)}
+                  onClick={refreshPage}
                 >
                   Clear
                 </button>
@@ -307,15 +266,10 @@ const Documenti: React.FC<Props> = (props: Props) => {
             </div>
           </div>
         </div>
-        <div className="doc-alert-wrapper">
-          <Alert alert={props.alert} closeAlert={props.closeAlert} />
-        </div>
       </div>
       <div id="doc-table-wrapper">
-        <BadgeTable content={docFindView} />
+        {findDocumenti.isSuccess && <BadgeTable content={findDocumenti.data} />}
       </div>
     </div>
   );
-};
-
-export default Documenti;
+}

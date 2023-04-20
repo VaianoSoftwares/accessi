@@ -1,73 +1,113 @@
 import React from "react";
-import { TUser } from "../../types/TUser";
+import {
+  MONTHS,
+  N_CALENDAR_COLS,
+  N_DATE_DIVS,
+  TPermesso,
+  TUser,
+  W100_POS,
+  WithId,
+} from "../../types";
 import UserDataService from "../../services/user";
 import "./index.css";
-import { TPermesso } from "../../types/TPermesso";
-import { Nullable } from "../../types/Nullable";
-import { TAlert } from "../../types/TAlert";
-import Alert from "../Alert";
 import dateFormat from "dateformat";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
-import { MONTHS, N_CALENDAR_COLS, N_DATE_DIVS, W100_POS } from "../../utils/calendario";
-
-type Props = {
-    user: TUser;
-    alert: Nullable<TAlert>;
-    openAlert: (alert: TAlert) => void;
-    closeAlert: () => void;
-}
+import useDate from "../../hooks/useDate";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const MAX_PERMESSI = 3;
 
-const Calendario: React.FC<Props> = (props) => {
-  const [currDate, setCurrDate] = React.useState(new Date());
-  const [permessi, setPermessi] = React.useState<TPermesso[]>([]);
+function getPrevMonthFirstDate(date: Date) {
+  const firstDate = new Date(date.getFullYear(), date.getMonth(), 1);
+  const firstDay = (firstDate.getDay() + 6) % 7;
+  return new Date(firstDate.setDate(firstDate.getDate() - firstDay));
+}
 
-  React.useEffect(() => {
-    retrivePermessi();
-  }, []);
+function w100Div(key: React.Key) {
+  return <div className="w-100" key={key} />;
+}
 
-  const availableDateDiv = (key: number, date: Date, disp: number) => (
-    <div className="col date-div" key={key}>
-      <p>{`${date.getDate()}`}</p>
-      <p>Disponibilità:{` ${disp}`}</p>
-      <input
-        type="checkbox"
-        value={dateFormat(date, "dd-mm-yyyy")}
-        onChange={checkboxEventHandl}
-      />
-    </div>
-  );
-  const notAvailableDateDiv = (key: number, date: Date) => (
+function notAvailableDateDiv(key: React.Key, date: Date) {
+  return (
     <div
       className="col date-div"
       key={key}
       data-not-available
     >{`${date.getDate()}`}</div>
   );
-  const prenotatoDateDiv = (key: number, date: Date) => (
+}
+
+function prenotatoDateDiv(key: React.Key, date: Date) {
+  return (
     <div className="col date-div" key={key} data-prenotato>
       <p>{`${date.getDate()}`}</p>
       <p>Prenotato</p>
     </div>
   );
-  const w100Div = (key: number) => <div className="w-100" key={key}/>;
-  const adminDateDiv = (key: number, date: Date) => {
-    const dateStr = dateFormat(date, "dd-mm-yyyy");
-    const prenotati = getUsersByDate(dateStr);
+}
+
+export default function Permessi({ user }: { user: TUser }) {
+  const queryClient = useQueryClient();
+
+  const [currDate, { incrDate, decrDate }] = useDate();
+
+  const queryPermessi = useQuery({
+    queryKey: ["permessi", { date: dateFormat(currDate, "dd-mm-yyyy") }],
+    queryFn: async (context) => {
+      const { date } = context.queryKey[1] as Partial<TPermesso>;
+      const response = await UserDataService.getPermessi({ date });
+      console.log("queryPermessi | response:", response);
+      const result = response.data.data as WithId<TPermesso>[];
+      return result;
+    },
+  });
+
+  const addPermesso = useMutation({
+    mutationFn: UserDataService.postPermesso,
+    onSuccess: async (response) => {
+      console.log("addPermesso | response:", response);
+      await queryClient.invalidateQueries({ queryKey: ["permessi"] });
+    },
+    onError: async (err) => axiosErrHandl(err, "addPermesso"),
+  });
+
+  const deletePermesso = useMutation({
+    mutationFn: UserDataService.deletePermesso,
+    onSuccess: async (response) => {
+      console.log("deletePermesso | response:", response);
+      await queryClient.invalidateQueries({ queryKey: ["permessi"] });
+    },
+    onError: async (err) => axiosErrHandl(err, "deletePermesso"),
+  });
+
+  function availableDateDiv(key: React.Key, date: Date, disp: number) {
+    return (
+      <div className="col date-div" key={key}>
+        <p>{`${date.getDate()}`}</p>
+        <p>Disponibilità:{` ${disp}`}</p>
+        <input
+          type="checkbox"
+          value={dateFormat(date, "dd-mm-yyyy")}
+          onChange={checkboxEventHandl}
+        />
+      </div>
+    );
+  }
+
+  function adminDateDiv(key: React.Key, date: Date) {
+    const prenotati = getPrenotazioniByDate(date);
 
     return (
       <div className="col date-div" key={key}>
         <p>{`${date.getDate()}`}</p>
         <p>Disponibilità:{` ${MAX_PERMESSI - prenotati.length}`}</p>
-        {prenotati.map((username, i) => (
+        {prenotati.map(({ _id, username }, i) => (
           <>
             <span key={i + 1000}>{`${username} `}</span>
             <input
               type="checkbox"
-              value={dateStr}
+              value={_id}
               onChange={checkBoxAdminEventHandl}
-              data-username={username}
               key={i}
               checked
             />
@@ -77,117 +117,37 @@ const Calendario: React.FC<Props> = (props) => {
     );
   }
 
-  const addMonthsToDate = (date: Date, months: number) =>
-    new Date(date.setMonth(date.getMonth() + months));
-  const incrCurrDate = () => setCurrDate(addMonthsToDate(currDate, 1));
-  const decrCurrDate = () => setCurrDate(addMonthsToDate(currDate, -1));
-  
-  const getPrevMonthFirstDate = (date: Date) => {
-    const firstDate = new Date(date.getFullYear(), date.getMonth(), 1);
-    const firstDay = (firstDate.getDay() + 6) % 7;
-    return new Date(firstDate.setDate(firstDate.getDate() - firstDay));
-  };
+  function checkboxEventHandl(e: React.ChangeEvent<HTMLInputElement>) {
+    const { value: date } = e.target;
+    const tmpPerm: TPermesso = { username: user.username, date };
+    addPermesso.mutate(tmpPerm);
+  }
 
-  const retrivePermessi = async (permesso?: TPermesso) => {
-    try {
-      const response = await UserDataService.getPermessi(permesso);
-      console.log("retrivePermessi | response.data: ", response.data);
-      setPermessi(response.data.data as TPermesso[]);
-      return response.data.data;
-    } catch(err) {
-      console.error("retrivePermessi | ", err);
-    }
-  };
+  function checkBoxAdminEventHandl(e: React.ChangeEvent<HTMLInputElement>) {
+    const { value: _id } = e.target;
+    deletePermesso.mutate(_id);
+  }
 
-  const insertPermesso = async (permToAdd: TPermesso) => {
-    try {
-      const response = await UserDataService.postPermesso(permToAdd);
-      console.log("insertPermesso | response.data: ", response.data);
+  function getPrenotazioniByDate(date: Date | string) {
+    date = dateFormat(date, "dd-mm-yyyy");
+    return queryPermessi!.data!.filter((p) => p.date === date);
+  }
 
-      setPermessi((prevState) => [...prevState, permToAdd]);
-    } catch (err) {
-      axiosErrHandl(err, props.openAlert, "insertPermessi | ");
-    }
-  };
+  function getPermNum(date: Date | string) {
+    date = dateFormat(date, "dd-mm-yyyy");
+    return (
+      MAX_PERMESSI - queryPermessi!.data!.filter((p) => p.date === date).length
+    );
+  }
 
-  const deletePermesso = async (permToDel: TPermesso) => {
-    try {
-      const response = await UserDataService.deletePermesso(permToDel);
-      console.log("deletePermesso | response.data: ", response.data);
-
-      setPermessi((prevState) =>
-        prevState.filter(
-          (perm) =>
-            perm.username !== permToDel.username || perm.date !== permToDel.date
-        )
-      );
-    } catch (err) {
-      axiosErrHandl(err, props.openAlert, "deletePermesso | ");
-    }
-  };
-  
-  const checkboxEventHandl = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value/*, parentElement*/ } = e.target;
-    const tmpPerm: TPermesso = { username: props.user.username, date: value };
-    insertPermesso(tmpPerm)/*.then(() =>
-      setDateDivToPrenotato(parentElement as HTMLDivElement)
-    )*/;
-  };
-
-  // const setDateDivToPrenotato = (element: HTMLDivElement) => {
-  //   if (element?.dataset) element.dataset.prenotato = "";
-  //   const { children } = element;
-  //   console.log(children);
-  //   element.lastChild?.remove();
-  //   const { lastChild } = element;
-  //   if (lastChild) lastChild.textContent = "Prenotato";
-  // };
-
-  const checkBoxAdminEventHandl = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value, /*parentElement,*/ dataset } = e.target;
-    const tmpPerm: TPermesso = { username: dataset?.username || "", date: value};
-    deletePermesso(tmpPerm)/*.then(() =>
-      updateAdminDayDiv(parentElement as HTMLDivElement, tmpPerm.username)
-    )*/;
-  };
-
-  const getUsersByDate = (date: Date | string) => {
-    if (date instanceof Date) date = dateFormat(date, "dd-mm-yyyy");
-    return permessi
-      .filter((p) => p.date === date)
-      .map((p) => p.username);
-  };
-
-  // const updateAdminDayDiv = (element: HTMLDivElement, username: string) => {
-  //   const { children } = element;
-  //   console.log(children);
-  //   for(let i=2; i<children.length; i++) {
-  //     if((children.item(i) as HTMLElement)?.dataset?.username === username) {
-  //       console.log(children.item(i), children.item(i - 1));
-  //       children.item(i)?.remove();
-  //       children.item(i - 1)?.remove();
-  //       break;
-  //     }
-  //   }
-    
-  //   const dispTxt = children.item(1);
-  //   if (dispTxt?.textContent)
-  //     dispTxt.textContent = `Disponibilità: ${MAX_PERMESSI - (children.length - 2) / 2 }`;
-  // };
-
-  const getPermNum = (date: Date | string) => {
-    if(date instanceof Date) date = dateFormat(date, "dd-mm-yyyy");
-    return MAX_PERMESSI - permessi.filter((p) => p.date === date).length;
-  };
-
-  const isPrenotato = (permesso: TPermesso) =>
-    permessi.find(
+  function isPrenotato(permesso: TPermesso) {
+    return queryPermessi!.data!.find(
       (p) => p.date === permesso.date && p.username === permesso.username
     );
-  
-  
-  const createCalendar = (date: Date) => {
-    console.log("creatCalendar | ", date, permessi);
+  }
+
+  function createCalendar(date: Date) {
+    console.log("creatCalendar |", date, queryPermessi.data);
 
     const now = new Date();
     const currMonth = date.getMonth();
@@ -195,55 +155,44 @@ const Calendario: React.FC<Props> = (props) => {
     let tmpDate = getPrevMonthFirstDate(date);
     tmpDate = new Date(tmpDate.setDate(tmpDate.getDate() - 1));
 
-    return [...Array(N_DATE_DIVS)].map((_v, i) => {
-      if (i % N_CALENDAR_COLS === W100_POS)
-        return w100Div(i);
+    return [...Array(N_DATE_DIVS)].map((_, i) => {
+      if (i % N_CALENDAR_COLS === W100_POS) return w100Div(i);
 
       tmpDate = new Date(tmpDate.setDate(tmpDate.getDate() + 1));
 
-      const isPastDate =
-        tmpDate.getMonth() !== currMonth || tmpDate <= now;
-      if (isPastDate)
-        return notAvailableDateDiv(i, tmpDate);
+      const isPastDate = tmpDate.getMonth() !== currMonth || tmpDate <= now;
+      if (isPastDate) return notAvailableDateDiv(i, tmpDate);
 
-      if (props.user.admin)
-        return adminDateDiv(i, tmpDate);
+      if (user.admin) return adminDateDiv(i, tmpDate);
 
       const tmpPerm: TPermesso = {
-        username: props.user.username,
+        username: user.username,
         date: dateFormat(tmpDate, "dd-mm-yyyy"),
       };
-      if (isPrenotato(tmpPerm))
-        return prenotatoDateDiv(i, tmpDate);
+      if (isPrenotato(tmpPerm)) return prenotatoDateDiv(i, tmpDate);
 
       const permCount = getPermNum(tmpDate);
       return permCount > 0
         ? availableDateDiv(i, tmpDate, permCount)
         : notAvailableDateDiv(i, tmpDate);
     });
-  };
+  }
 
   return (
     <div className="container-fluid mb-1">
       <div className="row justify-content-md-center align-items-center calendario-month">
         <div className="col-1">
-          <button
-            className="month-btn"
-            id="prev-month-btn"
-            onClick={decrCurrDate}
-          >
+          <button className="month-btn" id="prev-month-btn" onClick={decrDate}>
             <b>&lt;&lt;</b>
           </button>
         </div>
         <div className="col-2">
-          <h1 className="current-month">{`${MONTHS[currDate.getMonth()]} ${currDate.getFullYear()}`}</h1>
+          <h1 className="current-month">{`${
+            MONTHS[currDate.getMonth()]
+          } ${currDate.getFullYear()}`}</h1>
         </div>
         <div className="col-1">
-          <button
-            className="month-btn"
-            id="next-month-btn"
-            onClick={incrCurrDate}
-          >
+          <button className="month-btn" id="next-month-btn" onClick={incrDate}>
             <b>&gt;&gt;</b>
           </button>
         </div>
@@ -271,13 +220,8 @@ const Calendario: React.FC<Props> = (props) => {
           <b>Domenica</b>
         </div>
         <div className="w-100" />
-        {createCalendar(currDate)}
-      </div>
-      <div className="calendario-alert-wrapper">
-        <Alert alert={props.alert} closeAlert={props.closeAlert} />
+        {queryPermessi.isSuccess && createCalendar(currDate)}
       </div>
     </div>
   );
-};
-
-export default Calendario;
+}

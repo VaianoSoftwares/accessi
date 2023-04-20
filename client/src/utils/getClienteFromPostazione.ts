@@ -1,4 +1,4 @@
-import { TPostazione } from "../types/TPostazione";
+import { TPostazione } from "../types";
 
 export default function getClienteFromPostazione(
   postazione: string,

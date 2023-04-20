@@ -1,69 +1,86 @@
-import { TInPrestito, TPrestitoDataRes } from "../../types/PrestitoChiavi";
-import { TAlert } from "../../types/TAlert";
-import Alert from "../Alert";
+import { TInPrestito } from "../../types";
 import BadgeDataService from "../../services/badge";
 import "./index.css";
 import React from "react";
 import BadgeTable from "../BadgeTable";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { TableContentMapper } from "../../utils/tableContentMapper";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-type Props = {
+export default function Chiavi(props: {
   scannerConnected: boolean;
   runScanner: () => Promise<void>;
   scanValues: string[];
   addScanValue: (value: string) => void;
   removeScanValue: (value: string) => void;
   clearScanValues: () => void;
-  alert: TAlert | null;
-  openAlert: (alert: TAlert) => void;
-  closeAlert: () => void;
-};
-
-const Chiavi: React.FC<Props> = (props: Props) => {
-  const [inPrestito, setInPrestito] = React.useState<TInPrestito[]>([]);
-
+}) {
   const barcodeTxtInput = React.useRef<HTMLInputElement>(null);
 
-  function retriveInPrestito() {
-    BadgeDataService.getInPrestito()
-      .then((response) => {
-        console.log("retriveInPrestito |", response.data);
-        const dataResponse = response.data.data as TInPrestito[];
-        TableContentMapper.parseDate(dataResponse);
-        setInPrestito(dataResponse);
-      })
-      .catch((err) => {
-        console.log("retriveInPrestito |", err);
-      });
-  }
+  const queryClient = useQueryClient();
 
-  React.useEffect(() => {
-    retriveInPrestito();
-  }, []);
+  const queryInPrestito = useQuery({
+    queryKey: ["inPrestito"],
+    queryFn: () =>
+      BadgeDataService.getInPrestito().then((response) => {
+        console.log("retriveInPrestito | response:", response);
+        const result = response.data.data as TInPrestito[];
+        TableContentMapper.parseDate(result);
+        return result;
+      }),
+  });
 
-  const prestaChiavi = (barcodes: string[]) => {
-    const dataReq = {
-      barcodes,
-      cliente: sessionStorage.getItem("cliente") as string,
-      postazione: sessionStorage.getItem("postazione") as string,
-    };
+  const mutateInPrestito = useMutation({
+    mutationFn: BadgeDataService.prestaChiavi,
+    onSuccess: async (response) => {
+      console.log("prestaChiavi | response", response);
+      await queryClient.invalidateQueries({ queryKey: ["inPrestito"] });
+      props.clearScanValues();
+    },
+    onError: async (err) => axiosErrHandl(err, "prestaChiavi"),
+  });
 
-    BadgeDataService.prestaChiavi(dataReq)
-      .then((response) => {
-        console.log("prestaChiavi |", response.data);
+  // const [inPrestito, setInPrestito] = React.useState<TInPrestito[]>([]);
 
-        const { prestate, rese } = response.data.data as TPrestitoDataRes;
-        TableContentMapper.parseDate(prestate);
+  // function retriveInPrestito() {
+  //   BadgeDataService.getInPrestito()
+  //     .then((response) => {
+  //       console.log("retriveInPrestito |", response.data);
+  //       const dataResponse = response.data.data as TInPrestito[];
+  //       TableContentMapper.parseDate(dataResponse);
+  //       setInPrestito(dataResponse);
+  //     })
+  //     .catch((err) => {
+  //       console.log("retriveInPrestito |", err);
+  //     });
+  // }
 
-        setInPrestito((prevState) =>
-          [...prestate, ...prevState].filter((elem) => !rese.includes(elem.id))
-        );
+  // React.useEffect(() => {
+  //   retriveInPrestito();
+  // }, []);
 
-        props.clearScanValues();
-      })
-      .catch((err) => axiosErrHandl(err, props.openAlert, "prestaChiavi |"));
-  };
+  // const prestaChiavi = (barcodes: string[]) => {
+  //   const dataReq = {
+  //     barcodes,
+  //     cliente: sessionStorage.getItem("cliente") as string,
+  //     postazione: sessionStorage.getItem("postazione") as string,
+  //   };
+
+  //   BadgeDataService.prestaChiavi(dataReq)
+  //     .then((response) => {
+  //       console.log("prestaChiavi |", response.data);
+
+  //       const { prestate, rese } = response.data.data as TPrestitoDataRes;
+  //       TableContentMapper.parseDate(prestate);
+
+  //       setInPrestito((prevState) =>
+  //         [...prestate, ...prevState].filter((elem) => !rese.includes(elem.id))
+  //       );
+
+  //       props.clearScanValues();
+  //     })
+  //     .catch((err) => axiosErrHandl(err, openAlert, "prestaChiavi |"));
+  // };
 
   return (
     <div id="chiavi-wrapper">
@@ -126,20 +143,23 @@ const Chiavi: React.FC<Props> = (props: Props) => {
           <div className="col">
             <button
               className="btn btn-success"
-              onClick={() => prestaChiavi(props.scanValues)}
+              onClick={() =>
+                /*prestaChiavi(props.scanValues)*/ mutateInPrestito.mutate({
+                  barcodes: props.scanValues,
+                  cliente: sessionStorage.getItem("cliente") as string,
+                  postazione: sessionStorage.getItem("postazione") as string,
+                })
+              }
             >
               Invio
             </button>
           </div>
           <div className="col-5" />
-          <div className="chiavi-alert-wrapper col-auto">
-            <Alert alert={props.alert} closeAlert={props.closeAlert} />
-          </div>
         </div>
       </div>
-      <BadgeTable content={inPrestito} />
+      {queryInPrestito.isSuccess && (
+        <BadgeTable content={queryInPrestito.data} />
+      )}
     </div>
   );
-};
-
-export default Chiavi;
+}

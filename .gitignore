@@ -13,7 +13,7 @@ package-lock.json
 server/tmp/*
 
 # tsc server build files
-/build
+/dist
 
 # vscode configs
 /.vscode

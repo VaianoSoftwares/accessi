@@ -5,6 +5,9 @@ import { Routes, Route, Navigate } from "react-router-dom";
 // Style
 import "bootstrap/dist/css/bootstrap.min.css";
 
+// Types
+import { TUser } from "./types";
+
 // Components
 import Home from "./components/Home";
 import Login from "./components/Login";
@@ -17,88 +20,26 @@ import Calendario from "./components/Calendario";
 import Chiavi from "./components/Chiavi";
 import Archivio from "./components/Archivio";
 
-// Types
-import { TUser } from "./types/TUser";
-import { TAlert } from "./types/TAlert";
-import { TEnums } from "./types/TEnums";
-
-// Services
-import BadgeDataService from "./services/badge";
-
 // Utils
 import serialPortHandler from "./utils/scannerHandler";
-import SSHandler from "./utils/SSHandler";
-import { TAssegnazione } from "./types/TAssegnazione";
-import { TPostazione } from "./types/TPostazione";
-
-const enumsInitState: TEnums = {
-  badge: [],
-  stato: [],
-  documento: [],
-  assegnazione: [],
-  cliente: [],
-  postazione: [],
-};
+import useSessionStorage from "./hooks/useSessionStorage";
+import { Toaster } from "react-hot-toast";
 
 export default function App() {
-  const [enums, setEnums] = React.useState<TEnums>(enumsInitState);
+  // const postazioni = useQuery({
+  //   queryKey: ["postazioni"],
+  //   queryFn: async () =>
+  //     BadgeDataService.getPostazioni().then((response) => {
+  //       console.log("queryPostazioni | response:", response);
+  //       const result = response.data.data as TPostazione[];
+  //       return result;
+  //     }),
+  // });
 
-  React.useEffect(() => {
-    function retriveEnums() {
-      BadgeDataService.getEnums()
-        .then((response) => {
-          const enumsResp = response.data.data as TEnums;
-          console.log("retriveEnums |", enumsResp);
-          setEnums(enumsResp);
-        })
-        .catch((err) => {
-          console.error("retriveEnums |", err);
-        });
-    }
-
-    retriveEnums();
-  }, []);
-
-  const [user, setUser] = React.useState<TUser | null>(
-    SSHandler.getUserFromStorage()
-  );
-  const [alert, setAlert] = React.useState<TAlert | null>(null);
-
-  function addAssegnazione(assegnazione: TAssegnazione) {
-    setEnums((prev) => {
-      prev!.assegnazione.push(assegnazione);
-      return prev;
-    });
-  }
-
-  function removeAssegnazione(name: string) {
-    setEnums((prev) => {
-      prev!.assegnazione = prev!.assegnazione.filter((a) => a.name !== name);
-      return prev;
-    });
-  }
-
-  function addPostazione(postazione: TPostazione) {
-    setEnums((prev) => {
-      prev!.postazione.push(postazione);
-      return prev;
-    });
-  }
-
-  function removePostazione(name: string) {
-    setEnums((prev) => {
-      prev!.postazione = prev!.postazione.filter((a) => a.name !== name);
-      return prev;
-    });
-  }
-
-  function openAlert(alert: TAlert) {
-    setAlert(alert);
-  }
-
-  function closeAlert() {
-    setAlert(null);
-  }
+  // const [user, setUser] = React.useState<TUser | null>(
+  //   SSHandler.getUserFromStorage()
+  // );
+  const [user, setUser] = useSessionStorage<TUser | null>("user", null);
 
   const [accessiScanner, setAccessiScanner] = React.useState<SerialPort>();
   const [timbraVal, setTimbraVal] = React.useState("");
@@ -115,9 +56,13 @@ export default function App() {
   }
 
   async function login(user: TUser) {
-    SSHandler.setSessionStorage(user);
-    if (user.admin === true && enums.postazione[0])
-      SSHandler.setPostazione(enums.postazione[0].name);
+    // SSHandler.setSessionStorage(user);
+    // if (
+    //   user.admin === true &&
+    //   Array.isArray(postazioni.data) &&
+    //   postazioni.data[0]
+    // )
+    //   SSHandler.setPostazione(postazioni.data[0].name);
     setUser(user);
   }
 
@@ -129,13 +74,12 @@ export default function App() {
   async function runAccessiScanner() {
     await serialPortHandler(
       (value: string) => setTimbraVal(value),
-      setAccessiScanner,
-      openAlert
+      setAccessiScanner
     );
   }
 
   async function runChiaviScanner() {
-    await serialPortHandler(prestaArrAdd, setChiaviScanner, openAlert);
+    await serialPortHandler(prestaArrAdd, setChiaviScanner);
   }
 
   return (
@@ -149,12 +93,6 @@ export default function App() {
             user ? (
               <Home
                 user={user}
-                alert={alert}
-                openAlert={openAlert}
-                closeAlert={closeAlert}
-                assegnazioni={enums.assegnazione}
-                clienti={enums.cliente}
-                postazioni={enums.postazione}
                 scannedValue={timbraVal}
                 clearScannedValue={() => setTimbraVal("")}
                 scannerConnected={accessiScanner !== undefined}
@@ -178,9 +116,6 @@ export default function App() {
                 addScanValue={prestaArrAdd}
                 removeScanValue={prestaArrRemove}
                 clearScanValues={() => setPrestaArr([])}
-                alert={alert}
-                openAlert={openAlert}
-                closeAlert={closeAlert}
               />
             ) : (
               <Navigate replace to="/login" />
@@ -193,12 +128,6 @@ export default function App() {
             user ? (
               <Home
                 user={user}
-                alert={alert}
-                openAlert={openAlert}
-                closeAlert={closeAlert}
-                assegnazioni={enums.assegnazione}
-                clienti={enums.cliente}
-                postazioni={enums.postazione}
                 scannedValue={timbraVal}
                 clearScannedValue={() => setTimbraVal("")}
                 scannerConnected={accessiScanner !== undefined}
@@ -214,11 +143,7 @@ export default function App() {
           path="archivio"
           element={
             user && user.admin === true ? (
-              <Archivio
-                assegnazioni={enums.assegnazione}
-                clienti={enums.cliente}
-                postazioni={enums.postazione}
-              />
+              <Archivio tipoArchivio="BADGE" />
             ) : user ? (
               <Navigate replace to="/home" />
             ) : (
@@ -239,28 +164,14 @@ export default function App() {
         <Route
           path="permessi"
           element={
-            user ? (
-              <Permessi
-                user={user}
-                alert={alert}
-                openAlert={openAlert}
-                closeAlert={closeAlert}
-              />
-            ) : (
-              <Navigate replace to="/login" />
-            )
+            user ? <Permessi user={user} /> : <Navigate replace to="/login" />
           }
         />
         <Route
           path="documenti"
           element={
             user ? (
-              <Documenti
-                alert={alert}
-                openAlert={openAlert}
-                closeAlert={closeAlert}
-                admin={user.admin}
-              />
+              <Documenti admin={user.admin} />
             ) : (
               <Navigate replace to="/login" />
             )
@@ -270,20 +181,7 @@ export default function App() {
           path="admin/*"
           element={
             user && user.admin === true ? (
-              <AdminMenu
-                user={user}
-                logout={logout}
-                alert={alert}
-                openAlert={openAlert}
-                closeAlert={closeAlert}
-                assegnazioni={enums.assegnazione}
-                addAssegnazione={addAssegnazione}
-                removeAssegnazione={removeAssegnazione}
-                clienti={enums.cliente}
-                postazioni={enums.postazione}
-                addPostazione={addPostazione}
-                removePostazione={removePostazione}
-              />
+              <AdminMenu user={user} />
             ) : user ? (
               <Navigate replace to="/home" />
             ) : (
@@ -294,19 +192,11 @@ export default function App() {
         <Route
           path="login"
           element={
-            !user ? (
-              <Login
-                login={login}
-                alert={alert}
-                openAlert={openAlert}
-                closeAlert={closeAlert}
-              />
-            ) : (
-              <Navigate replace to="/home" />
-            )
+            !user ? <Login login={login} /> : <Navigate replace to="/home" />
           }
         />
       </Routes>
+      <Toaster />
     </div>
   );
 }

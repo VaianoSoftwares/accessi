@@ -1,5 +1,4 @@
-import { TBadge, TChiave } from "./badges";
-import { Nullable, Undefineable } from "./nullable"
+import { TBadge, TChiave } from "./badges.js";
 
 type TPartialArchivioChiave = {
     nominativo: TBadge,
@@ -9,13 +8,13 @@ type TPartialArchivioChiave = {
 };
 
 export type TPrestitoDataReq = {
-    [key: string]: Undefineable<string>,
+    [key: string]: string | undefined,
 } & Partial<TPartialArchivioChiave>;
 
 type TDatePrestito = { prestito: Date };
 export type TInPrestito = TPartialArchivioChiave & { id: string, data: TDatePrestito };
 
-type TDatePrestNReso = TDatePrestito & { reso: Nullable<Date> };
+type TDatePrestNReso = TDatePrestito & { reso: Date | null };
 export type TArchivioChiave = TPartialArchivioChiave & {
   ip: string;
   data: TDatePrestNReso;

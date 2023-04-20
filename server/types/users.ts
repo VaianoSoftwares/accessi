@@ -1,24 +1,26 @@
+import { ObjectId } from "mongodb";
+
 export type TUser = {
-    username: string,
-    password: string,
-    admin: boolean,
-    clienti: string[] | null,
-    postazioni: string[] | null,
-    device: boolean,
+  username: string;
+  password: string;
+  admin: boolean;
+  clienti: string[] | null;
+  postazioni: ObjectId[] | null;
+  device: boolean;
 };
 
 export type TUserReq = {
-    [key: string]: string | string[] | boolean | undefined,
-    username: string,
-    password: string,
-    admin?: boolean,
-    clienti?: string[],
-    postazioni?: string[],
+  [key: string]: string | string[] | boolean | undefined;
+  username: string;
+  password: string;
+  admin?: boolean;
+  clienti?: string[];
+  postazioni?: string[];
 };
 
 export type TPermesso = {
-    username: string,
-    date: string
+  username: string;
+  date: string;
 };
 
 export type TPermessoReq = {
