@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import errCheck from "../utils/errCheck.js";
-import { TUser } from "../types/users.js";
+import { TUser, TUserResp } from "../types/users.js";
 import { ObjectId } from "mongodb";
 
 export default class UsersController {
@@ -19,7 +19,7 @@ export default class UsersController {
         .json({ success: false, msg: parsed.error.errors[0].message });
     }
 
-    const { username, password, admin, clienti, postazioni, device } =
+    const { username, password, postazioni, pages, device, canLogout } =
       parsed.data;
 
     try {
@@ -29,11 +29,11 @@ export default class UsersController {
       const userDoc: TUser = {
         username,
         password: hashPsw,
-        admin,
-        clienti: admin || !clienti ? null : clienti,
-        postazioni:
-          admin || !postazioni ? null : postazioni.map((p) => new ObjectId(p)),
-        device: admin ? false : device,
+        admin: false,
+        postazioni: postazioni.map((p) => new ObjectId(p)),
+        pages,
+        device: !device ? null : device,
+        canLogout,
       };
 
       const response = await UsersDAO.addUser(userDoc);
@@ -51,6 +51,95 @@ export default class UsersController {
     } catch (err) {
       const { error } = errCheck(err, "apiRegister |");
       res.status(500).json({ success: false, msg: error });
+    }
+  }
+
+  static async apiGetUserById(req: Request, res: Response) {
+    const { userId } = req.params;
+
+    try {
+      const response = await UsersDAO.getUserById(userId);
+      res.json({
+        success: true,
+        msg: "Utente ottenuto con successo",
+        data: response,
+      });
+    } catch (err) {
+      const { error } = errCheck(err, "apiGetUserById |");
+      res.status(500).json({ success: false, msg: error });
+    }
+  }
+
+  static async apiUpdateUser(req: Request, res: Response) {
+    const { userId } = req.params;
+
+    const parsed = Validator.updateUser(req.body);
+
+    if (parsed.success === false) {
+      return res
+        .status(400)
+        .json({ success: false, msg: parsed.error.errors[0].message });
+    }
+
+    const user = parsed.data as Partial<TUser>;
+    user.postazioni =
+      parsed.data.postazioni &&
+      parsed.data.postazioni.map((p) => new ObjectId(p));
+    user.password = user.password || undefined;
+
+    try {
+      if (user.password) {
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+      }
+
+      const response = await UsersDAO.updateUser(userId, user);
+      if ("error" in response) {
+        return res.status(400).json({ success: false, msg: response.error });
+      }
+
+      res.json({
+        success: true,
+        msg: "Utente aggiornato con successo",
+        data: { updatedId: userId, ...response },
+      });
+    } catch (err) {
+      const { error } = errCheck(err, "apiUpdateUser |");
+      res.status(500).json({ success: false, msg: error });
+    }
+  }
+
+  static async apiDeleteUser(req: Request, res: Response) {
+    const { userId } = req.params;
+
+    try {
+      const response = await UsersDAO.deleteUser(userId);
+      if ("error" in response) {
+        return res.status(400).json({ success: false, msg: response.error });
+      }
+
+      res.json({
+        success: true,
+        msg: "Utente eliminato con successo",
+        data: response,
+      });
+    } catch (err) {
+      const { error } = errCheck(err, "apiDeleteUser |");
+      res.status(500).json({ success: false, msg: error });
+    }
+  }
+
+  static async apiGetAllUsers(req: Request, res: Response) {
+    try {
+      const response = await UsersDAO.getAllUsers();
+      res.json({
+        success: true,
+        msg: "Ottenuti utenti con successo",
+        data: response,
+      });
+    } catch (err) {
+      const { error } = errCheck(err, "apiGetAllUsers |");
+      res.status(500).json({ success: false, msg: error, data: [] });
     }
   }
 
@@ -94,9 +183,10 @@ export default class UsersController {
             id: userId,
             username: user.username,
             admin: user.admin,
-            clienti: user.clienti,
             postazioni: user.postazioni,
-          },
+            pages: user.pages,
+            canLogout: user.canLogout,
+          } satisfies TUserResp,
         });
       });
     } catch (err) {
@@ -106,12 +196,25 @@ export default class UsersController {
   }
 
   static async apiGetUserWithDevice(req: Request, res: Response) {
+    const { device, password } = req.body;
+    if (!device || !password) {
+      return res
+        .status(404)
+        .json({ success: false, msg: "Device/Password non validi." });
+    }
+
     try {
-      const user = await UsersDAO.getUserByNameWithDevice(
-        req.query.device as string
-      );
+      const user = await UsersDAO.getUserByDevice(device as string);
       if (!user) {
-        return res.status(404).json({ success: false, msg: "User not found" });
+        throw new Error("Device/Password non validi.");
+      }
+
+      const isPswValid = await bcrypt.compare(
+        password as string,
+        user.password
+      );
+      if (!isPswValid) {
+        throw new Error("Device/Password non validi.");
       }
 
       const secret = process.env.TOKEN_SECRET!;
@@ -127,9 +230,10 @@ export default class UsersController {
             id: user._id,
             username: user.username,
             admin: user.admin,
-            clienti: user.clienti,
             postazioni: user.postazioni,
-          },
+            pages: user.pages,
+            canLogout: user.canLogout,
+          } satisfies TUserResp,
         });
       });
     } catch (err) {

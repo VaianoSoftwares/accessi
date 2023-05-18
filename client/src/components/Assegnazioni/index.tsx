@@ -23,7 +23,8 @@ export default function Assegnazioni() {
   });
 
   const addAssegnazione = useMutation({
-    mutationFn: BadgeDataService.insertAssegnazione,
+    mutationFn: (data: TAssegnazione) =>
+      BadgeDataService.insertAssegnazione(data),
     onSuccess: async (response) => {
       console.log("addAssegnazione | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["assegnazioni"] });
@@ -33,7 +34,8 @@ export default function Assegnazioni() {
   });
 
   const deleteAssegnazione = useMutation({
-    mutationFn: BadgeDataService.deleteAssegnazione,
+    mutationFn: (data: TAssegnazione) =>
+      BadgeDataService.deleteAssegnazione(data),
     onSuccess: async (response) => {
       console.log("deleteAssegnazione | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["assegnazioni"] });
@@ -45,10 +47,9 @@ export default function Assegnazioni() {
   const nameRef = React.useRef<HTMLInputElement>(null);
 
   return (
-    <>
-      <div className="row">
-        <h2>Menù Assegnazioni</h2>
-        <div className="w-100 mb-2"></div>
+    <div className="container-fluid">
+      <h2>Menù Assegnazioni</h2>
+      <div className="row mb-3">
         <div className="form-floating col-sm-2">
           <select
             className="form-select form-select-sm"
@@ -77,7 +78,7 @@ export default function Assegnazioni() {
           />
           <label htmlFor="assegnazione">assegnazione</label>
         </div>
-        <div className="col-sm-3 mb-1">
+        <div className="col-sm-3 align-self-center">
           <button
             onClick={() =>
               addAssegnazione.mutate({
@@ -90,47 +91,45 @@ export default function Assegnazioni() {
             Aggiungi
           </button>
         </div>
-        <div className="w-100 mb-3"></div>
-        <div className="list-group list-assegnaz col-sm-3 assegnaz-list mx-3">
-          {queryAssegnazioni.data
-            ?.filter(({ name, badge }) => name && badge === currTBadge)
-            .map(({ name }, index) => (
-              <div
-                id={`list-assegnaz-entry-${index}`}
-                className="list-group-item"
-                key={index}
-              >
-                <div className="row justify-content-between align-items-center">
-                  <div className="col-10">
-                    <p>{name}</p>
-                  </div>
-                  <div className="col">
-                    <button
-                      value={name}
-                      type="button"
-                      className="close btn-del-assegnaz"
-                      aria-label="Close"
-                      onClick={(e) => {
-                        const confirmed = confirm(
-                          "Procede all'eliminazione della assegnazione?"
-                        );
-                        if (!confirmed) return;
+      </div>
+      <div className="list-group list-assegnaz col-sm-3 assegnaz-list mx-3">
+        {queryAssegnazioni.data
+          ?.filter(({ name, badge }) => name && badge === currTBadge)
+          .map(({ name }, index) => (
+            <div
+              id={`list-assegnaz-entry-${index}`}
+              className="list-group-item"
+              key={index}
+            >
+              <div className="row justify-content-between align-items-center">
+                <div className="col-10">
+                  <p>{name}</p>
+                </div>
+                <div className="col">
+                  <button
+                    value={name}
+                    type="button"
+                    className="close btn-del-assegnaz"
+                    aria-label="Close"
+                    onClick={(e) => {
+                      const confirmed = confirm(
+                        "Procede all'eliminazione della assegnazione?"
+                      );
+                      if (!confirmed) return;
 
-                        deleteAssegnazione.mutate({
-                          badge: currTBadge,
-                          name: e.currentTarget.value,
-                        });
-                      }}
-                    >
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
+                      deleteAssegnazione.mutate({
+                        badge: currTBadge,
+                        name: e.currentTarget.value,
+                      });
+                    }}
+                  >
+                    <span aria-hidden="true">&times;</span>
+                  </button>
                 </div>
               </div>
-            ))}
-        </div>
+            </div>
+          ))}
       </div>
-      <br />
-    </>
+    </div>
   );
 }

@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from "react";
-
-type TReturnValue<S> = [S, React.Dispatch<React.SetStateAction<S>>];
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 export default function useSessionStorage<S>(
   storageKey: string,
   fallbackState: S
-): TReturnValue<S> {
+): [S, Dispatch<SetStateAction<S>>] {
   const [value, setValue] = useState<S>(() => {
     const storageValue = sessionStorage.getItem(storageKey);
     return storageValue ? JSON.parse(storageValue) : fallbackState;

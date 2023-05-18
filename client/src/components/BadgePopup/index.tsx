@@ -1,7 +1,7 @@
 // Modules
 import Popup from "reactjs-popup";
 import { PopupPosition } from "reactjs-popup/dist/types";
-import BadgeTable from "./BadgeTable";
+import BadgeTable from "../BadgeTable";
 
 export default function BadgePopup(props: {
   content: object[];

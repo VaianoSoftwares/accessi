@@ -4,19 +4,21 @@ export type TUser = {
   username: string;
   password: string;
   admin: boolean;
-  clienti: string[] | null;
   postazioni: ObjectId[] | null;
-  device: boolean;
+  pages: string[] | null;
+  device: string | null;
+  canLogout: boolean;
 };
 
 export type TUserReq = {
   [key: string]: string | string[] | boolean | undefined;
-  username: string;
-  password: string;
-  admin?: boolean;
-  clienti?: string[];
-  postazioni?: string[];
-};
+} & Pick<TUser, "username" | "password"> &
+  Partial<Omit<TUser, "username" | "password">>;
+
+export type TUserResp = { id: string | ObjectId } & Omit<
+  TUser,
+  "password" | "device"
+>;
 
 export type TPermesso = {
   username: string;

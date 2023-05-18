@@ -39,7 +39,7 @@ export default function Documenti(props: { admin: boolean }) {
   });
 
   const insertDocumento = useMutation({
-    mutationFn: DocumentsDataService.insert,
+    mutationFn: (data: FormData) => DocumentsDataService.insert(data),
     onSuccess: async (response) => {
       console.log("insertDocumento | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["documenti"] });
@@ -50,7 +50,7 @@ export default function Documenti(props: { admin: boolean }) {
   });
 
   const updateDocumento = useMutation({
-    mutationFn: DocumentsDataService.update,
+    mutationFn: (data: FormData) => DocumentsDataService.update(data),
     onSuccess: async (response) => {
       console.log("updateDocumento | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["documenti"] });
@@ -61,7 +61,7 @@ export default function Documenti(props: { admin: boolean }) {
   });
 
   const deleteDocumento = useMutation({
-    mutationFn: DocumentsDataService.delete,
+    mutationFn: (data: string) => DocumentsDataService.delete(data),
     onSuccess: async (response) => {
       console.log("deleteDocumento | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["documenti"] });

@@ -14,8 +14,14 @@ export default function Login(props: {
   const passwordRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    function retriveUser(device: string) {
-      UserDataService.getUser(device)
+    function retriveUser({
+      device,
+      password,
+    }: {
+      device: string;
+      password: string;
+    }) {
+      UserDataService.deviceLogin({ device, password })
         .then((response) => {
           const dataResp = response.data.data as TPartialUser;
           console.log(dataResp.username, "logged In.");
@@ -32,7 +38,7 @@ export default function Login(props: {
     }
 
     if (window.location.hash) {
-      retriveUser(window.location.hash.slice(1));
+      retriveUser(JSON.parse(window.location.hash.slice(1)));
     }
 
     window.location.hash = "";

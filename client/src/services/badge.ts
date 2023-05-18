@@ -5,11 +5,12 @@ import {
   TAssegnazione,
   TimbraDoc,
   TPrestitoDataReq,
+  TGetPostazioniFilters,
+  TAddPostazioneData,
+  TDeletePostazioneData,
 } from "../types";
 
 class BadgesDataService extends DataServices {
-  baseUrl = "/api/v1/badges";
-
   getAll(signal?: GenericAbortSignal) {
     return super.request({ token: true, signal });
   }
@@ -75,32 +76,25 @@ class BadgesDataService extends DataServices {
     });
   }
 
-  getPostazioni(
-    query?: { ids?: string[]; names?: string[] },
-    signal?: GenericAbortSignal
-  ) {
+  getPostazioni(query?: TGetPostazioniFilters, signal?: GenericAbortSignal) {
     return super.request({ url: "/postazioni", data: query, signal });
   }
 
-  insertPostazione(
-    data: { cliente: string; name: string },
-    signal?: GenericAbortSignal
-  ) {
+  insertPostazione(data: TAddPostazioneData, signal?: GenericAbortSignal) {
     return super.request({
       method: "POST",
-      url: "/postazione",
+      url: "/postazioni",
       token: true,
       data,
       signal,
     });
   }
 
-  deletePostazione(data: { _id: string }, signal?: GenericAbortSignal) {
+  deletePostazione(data: TDeletePostazioneData, signal?: GenericAbortSignal) {
     return super.request({
       method: "DELETE",
-      url: "/postazione",
+      url: `/postazioni/${data._id}`,
       token: true,
-      data,
       signal,
     });
   }
@@ -168,4 +162,4 @@ class BadgesDataService extends DataServices {
   }
 }
 
-export default new BadgesDataService();
+export default new BadgesDataService("/api/v1/badges");

@@ -1,105 +1,96 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import { TUser } from "../../types";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { TUser, PAGES_INFO, ADMIN_PAGES_INFO } from "../../types";
+import capitalize from "../../utils/capitalize";
 import "./index.css";
 
-export default function AccessiNavbar(props: {
-  user: TUser | null;
+function trimLocation(pathname: string) {
+  const capitalized = capitalize(pathname.slice(1));
+  const endString = capitalized.indexOf("/");
+  return endString === -1 ? capitalized : capitalized.slice(0, endString);
+}
+
+export default function AccessiNavbar({
+  user,
+  ...props
+}: {
+  user: TUser;
   logout: () => Promise<void>;
 }) {
   const navigate = useNavigate();
   let location = useLocation().pathname;
 
-  const logout = async () => {
+  async function logout() {
     await props.logout();
     navigate("/login");
-  };
+  }
 
   return (
-    props.user && (
-      <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div className="navbar-brand">
-          <b className="b-navbar-brand">
-            {location === "/home" && "Gestione Badge"}
-            {location === "/chiavi" && "Gestione Chiavi"}
-            {location === "/veicoli" && "Gestione Veicoli"}
-            {location === "/archivio" && "Archivio"}
-            {location === "/calendario" && "Calendario"}
-            {location === "/permessi" && "Permessi"}
-            {location === "/documenti" && "Documenti"}
-            {location.includes("/admin") && "Admin Menu"}
-          </b>
-        </div>
-        <div className="navbar-nav mr-auto">
-          <li className="nav-item">
-            <button onClick={() => navigate("/home")} className="btn-nav">
-              Badge
-            </button>
-          </li>
-          {(props.user.admin === true ||
-            props.user.postazioni!.indexOf("Sala-Controllo") >= 0) && (
-            <li className="nav-item">
-              <button onClick={() => navigate("/chiavi")} className="btn-nav">
-                Chiavi
-              </button>
+    <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
+      <Link to="/home" className="navbar-brand">
+        <b className="b-navbar-brand">{trimLocation(location)}</b>
+      </Link>
+      <button
+        className="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span className="navbar-toggler-icon"></span>
+      </button>
+      <div className="collapse navbar-collapse" id="navbarNav">
+        <ul className="navbar-nav mr-auto">
+          {(user.admin || (user.pages && user.pages.length > 1)) && (
+            <li className="nav-item" key="home">
+              <Link to="/home" className="nav-link">
+                Home
+              </Link>
             </li>
           )}
-          {props.user.admin === true && (
-            <>
-              <li className="nav-item">
-                <button
-                  onClick={() => navigate("/veicoli")}
-                  className="btn-nav"
-                >
-                  Veicoli
-                </button>
+          {Array.from(PAGES_INFO.entries())
+            .filter(([page]) => user.admin || user.pages!.indexOf(page) >= 0)
+            .map(([page, pageInfo]) => (
+              <li className="nav-item" key={page}>
+                <Link to={pageInfo.pathname} className="nav-link">
+                  {pageInfo.name}
+                </Link>
               </li>
-              <li className="nav-item">
-                <button
-                  onClick={() => navigate("/archivio")}
-                  className="btn-nav"
-                >
-                  Archivio
-                </button>
-              </li>
-            </>
+            ))}
+          {user.admin && (
+            <li className="nav-item dropdown">
+              <Link
+                className="nav-link dropdown-toggle"
+                to="#"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Admin
+              </Link>
+              <ul className="dropdown-menu">
+                {Array.from(ADMIN_PAGES_INFO.entries()).map(
+                  ([page, pageInfo]) => (
+                    <li key={page}>
+                      <Link to={pageInfo.pathname} className="dropdown-item">
+                        {pageInfo.title}
+                      </Link>
+                    </li>
+                  )
+                )}
+              </ul>
+            </li>
           )}
-          <li className="nav-item">
-            <button onClick={() => navigate("/calendario")} className="btn-nav">
-              Calendario
-            </button>
-          </li>
-          {props.user.admin === true && (
-            <>
-              <li className="nav-item">
-                <button
-                  onClick={() => navigate("/permessi")}
-                  className="btn-nav"
-                >
-                  Permessi
-                </button>
-              </li>
-              <li className="nav-item">
-                <button
-                  onClick={() => navigate("/documenti")}
-                  className="btn-nav"
-                >
-                  Documenti
-                </button>
-              </li>
-              <li className="nav-item">
-                <button onClick={() => navigate("/admin")} className="btn-nav">
-                  Opzioni
-                </button>
-              </li>
-              <li className="nav-item">
-                <button onClick={() => logout()} className="btn-nav">
-                  Logout {props.user.username}
-                </button>
-              </li>
-            </>
+          {user.canLogout && (
+            <li className="nav-item">
+              <Link to="#" onClick={() => logout()} className="nav-link">
+                Logout {user.username}
+              </Link>
+            </li>
           )}
-        </div>
-      </nav>
-    )
+        </ul>
+      </div>
+    </nav>
   );
 }

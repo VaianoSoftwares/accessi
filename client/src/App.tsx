@@ -1,17 +1,18 @@
 //Modules
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 // Style
 import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 // Types
 import { TUser } from "./types";
 
 // Components
-import Home from "./components/Home";
+import Badge from "./components/Badge";
 import Login from "./components/Login";
-import AdminMenu from "./components/AdminMenu";
 import PageNotFound from "./components/PageNotFound";
 import Permessi from "./components/Permessi";
 import AccessiNavbar from "./components/AccessiNavbar";
@@ -19,26 +20,20 @@ import Documenti from "./components/Documenti";
 import Calendario from "./components/Calendario";
 import Chiavi from "./components/Chiavi";
 import Archivio from "./components/Archivio";
+import Home from "./components/Home";
+import Assegnazioni from "./components/Assegnazioni";
+import Postazioni from "./components/Postazioni";
+import Register from "./components/Register";
+import UserEdit from "./components/UserEdit";
+import UsersList from "./components/UsersList";
 
 // Utils
 import serialPortHandler from "./utils/scannerHandler";
 import useSessionStorage from "./hooks/useSessionStorage";
-import { Toaster } from "react-hot-toast";
+import { ErrorBoundary } from "react-error-boundary";
+import { axiosErrHandl } from "./utils/axiosErrHandl";
 
 export default function App() {
-  // const postazioni = useQuery({
-  //   queryKey: ["postazioni"],
-  //   queryFn: async () =>
-  //     BadgeDataService.getPostazioni().then((response) => {
-  //       console.log("queryPostazioni | response:", response);
-  //       const result = response.data.data as TPostazione[];
-  //       return result;
-  //     }),
-  // });
-
-  // const [user, setUser] = React.useState<TUser | null>(
-  //   SSHandler.getUserFromStorage()
-  // );
   const [user, setUser] = useSessionStorage<TUser | null>("user", null);
 
   const [accessiScanner, setAccessiScanner] = React.useState<SerialPort>();
@@ -56,13 +51,6 @@ export default function App() {
   }
 
   async function login(user: TUser) {
-    // SSHandler.setSessionStorage(user);
-    // if (
-    //   user.admin === true &&
-    //   Array.isArray(postazioni.data) &&
-    //   postazioni.data[0]
-    // )
-    //   SSHandler.setPostazione(postazioni.data[0].name);
     setUser(user);
   }
 
@@ -84,31 +72,50 @@ export default function App() {
 
   return (
     <div className="App">
-      <AccessiNavbar user={user} logout={logout} />
+      {user && <AccessiNavbar user={user} logout={logout} />}
       <Routes>
         <Route path="*" element={<PageNotFound />} />
         <Route
           path="home"
           element={
-            user ? (
-              <Home
-                user={user}
-                scannedValue={timbraVal}
-                clearScannedValue={() => setTimbraVal("")}
-                scannerConnected={accessiScanner !== undefined}
-                runScanner={runAccessiScanner}
-                tipoBadge={"BADGE"}
-              />
+            user ? <Home user={user} /> : <Navigate replace to="/login" />
+          }
+        />
+        <Route path="/" element={<Navigate replace to="/home" />} />
+        <Route
+          path="badge"
+          element={
+            user && (user.admin || user.pages?.includes("badge")) ? (
+              <ErrorBoundary
+                FallbackComponent={({ error, resetErrorBoundary }) => (
+                  <div role="alert">
+                    <p>Something went wrong:</p>
+                    <pre>{error.message}</pre>
+                    <button onClick={resetErrorBoundary}>Try again</button>
+                  </div>
+                )}
+                onError={(error) => axiosErrHandl(error, "Badge")}
+              >
+                <Badge
+                  user={user}
+                  scannedValue={timbraVal}
+                  clearScannedValue={() => setTimbraVal("")}
+                  scannerConnected={accessiScanner !== undefined}
+                  runScanner={runAccessiScanner}
+                  tipoBadge={"BADGE"}
+                />
+              </ErrorBoundary>
+            ) : user ? (
+              <Navigate replace to="/home" />
             ) : (
               <Navigate replace to="/login" />
             )
           }
         />
-        <Route path="/" element={<Navigate replace to="/home" />} />
         <Route
           path="chiavi"
           element={
-            user ? (
+            user && (user.admin || user.pages?.includes("chiavi")) ? (
               <Chiavi
                 scannerConnected={chiaviScanner !== undefined}
                 runScanner={runChiaviScanner}
@@ -117,6 +124,8 @@ export default function App() {
                 removeScanValue={prestaArrRemove}
                 clearScanValues={() => setPrestaArr([])}
               />
+            ) : user ? (
+              <Navigate replace to="/home" />
             ) : (
               <Navigate replace to="/login" />
             )
@@ -125,8 +134,8 @@ export default function App() {
         <Route
           path="veicoli"
           element={
-            user ? (
-              <Home
+            user && (user.admin || user.pages?.includes("veicoli")) ? (
+              <Badge
                 user={user}
                 scannedValue={timbraVal}
                 clearScannedValue={() => setTimbraVal("")}
@@ -134,6 +143,8 @@ export default function App() {
                 runScanner={runAccessiScanner}
                 tipoBadge={"VEICOLO"}
               />
+            ) : user ? (
+              <Navigate replace to="/home" />
             ) : (
               <Navigate replace to="/login" />
             )
@@ -142,7 +153,7 @@ export default function App() {
         <Route
           path="archivio"
           element={
-            user && user.admin === true ? (
+            user && (user.admin || user.pages?.includes("archivio")) ? (
               <Archivio tipoArchivio="BADGE" />
             ) : user ? (
               <Navigate replace to="/home" />
@@ -154,8 +165,10 @@ export default function App() {
         <Route
           path="calendario"
           element={
-            user ? (
+            user && (user.admin || user.pages?.includes("calendario")) ? (
               <Calendario admin={user.admin} />
+            ) : user ? (
+              <Navigate replace to="/home" />
             ) : (
               <Navigate replace to="/login" />
             )
@@ -164,24 +177,84 @@ export default function App() {
         <Route
           path="permessi"
           element={
-            user ? <Permessi user={user} /> : <Navigate replace to="/login" />
-          }
-        />
-        <Route
-          path="documenti"
-          element={
-            user ? (
-              <Documenti admin={user.admin} />
+            user && (user.admin || user.pages?.includes("permessi")) ? (
+              <Permessi user={user} />
+            ) : user ? (
+              <Navigate replace to="/home" />
             ) : (
               <Navigate replace to="/login" />
             )
           }
         />
         <Route
-          path="admin/*"
+          path="documenti"
+          element={
+            user && (user.admin || user.pages?.includes("documenti")) ? (
+              <Documenti admin={user.admin} />
+            ) : user ? (
+              <Navigate replace to="/home" />
+            ) : (
+              <Navigate replace to="/login" />
+            )
+          }
+        />
+        <Route
+          path="admin/register"
           element={
             user && user.admin === true ? (
-              <AdminMenu user={user} />
+              <Register />
+            ) : user ? (
+              <Navigate replace to="/home" />
+            ) : (
+              <Navigate replace to="/login" />
+            )
+          }
+        />
+        <Route
+          path="admin/"
+          element={<Navigate replace to="admin/register" />}
+        />
+        <Route
+          path="admin/users"
+          element={
+            user && user.admin === true ? (
+              <UsersList />
+            ) : user ? (
+              <Navigate replace to="/home" />
+            ) : (
+              <Navigate replace to="/login" />
+            )
+          }
+        />
+        <Route
+          path="admin/users/:userId"
+          element={
+            user && user.admin === true ? (
+              <UserEdit />
+            ) : user ? (
+              <Navigate replace to="/home" />
+            ) : (
+              <Navigate replace to="/login" />
+            )
+          }
+        />
+        <Route
+          path="admin/assegnazioni"
+          element={
+            user && user.admin === true ? (
+              <Assegnazioni />
+            ) : user ? (
+              <Navigate replace to="/home" />
+            ) : (
+              <Navigate replace to="/login" />
+            )
+          }
+        />
+        <Route
+          path="admin/postazioni"
+          element={
+            user && user.admin === true ? (
+              <Postazioni />
             ) : user ? (
               <Navigate replace to="/home" />
             ) : (

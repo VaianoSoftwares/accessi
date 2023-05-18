@@ -63,7 +63,7 @@ export default function Permessi({ user }: { user: TUser }) {
   });
 
   const addPermesso = useMutation({
-    mutationFn: UserDataService.postPermesso,
+    mutationFn: (data: TPermesso) => UserDataService.postPermesso(data),
     onSuccess: async (response) => {
       console.log("addPermesso | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["permessi"] });
@@ -72,7 +72,7 @@ export default function Permessi({ user }: { user: TUser }) {
   });
 
   const deletePermesso = useMutation({
-    mutationFn: UserDataService.deletePermesso,
+    mutationFn: (data: string) => UserDataService.deletePermesso(data),
     onSuccess: async (response) => {
       console.log("deletePermesso | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["permessi"] });

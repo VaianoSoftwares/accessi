@@ -17,7 +17,7 @@ const STR_MAX_LEN = 256;
 const ID_LEN = 24;
 const ID_LENGTH_ERR_MSG = `ID deve contenere esattamente ${ID_LEN} caratteri`;
 
-const UNAME_MIN_LEN = 6;
+const UNAME_MIN_LEN = 5;
 const UNAME_TOO_SHORT_ERR_MSG = ATTR_TOO_SHORT_ERR_MSG(
   "Username",
   UNAME_MIN_LEN
@@ -60,25 +60,10 @@ const REGISTER_SCHEMA = z.object({
     .string({ required_error: MISSING_ATTR_ERR_MSG("Password") })
     .min(PSW_MIN_LEN, PSW_TOO_SHORT_ERR_MSG)
     .max(PSW_MAX_LEN, PSW_TOO_LONG_ERR_MSG),
-  admin: z.coerce.boolean().default(false),
-  clienti: z.string().array().optional(),
-  postazioni: z.string().array().optional(),
-  device: z.coerce.boolean().default(false),
-});
-
-const GUEST_SCHEMA = z.object({
-  username: z
-    .string({ required_error: MISSING_ATTR_ERR_MSG("Username") })
-    .min(UNAME_MIN_LEN, UNAME_TOO_SHORT_ERR_MSG)
-    .max(UNAME_MAX_LEN, UNAME_TOO_LONG_ERR_MSG),
-  password: z
-    .string({ required_error: MISSING_ATTR_ERR_MSG("Password") })
-    .min(PSW_MIN_LEN, PSW_TOO_SHORT_ERR_MSG)
-    .max(PSW_MAX_LEN, PSW_TOO_LONG_ERR_MSG),
-  admin: z.literal(false),
-  clienti: z.string().array().nonempty(MISSING_ATTR_ERR_MSG("Clienti")),
   postazioni: z.string().array().nonempty(MISSING_ATTR_ERR_MSG("Postazioni")),
-  device: z.coerce.boolean().default(false),
+  pages: z.string().array().nonempty(MISSING_ATTR_ERR_MSG("Pagine")),
+  device: z.string().nullish(),
+  canLogout: z.coerce.boolean().default(false),
 });
 
 const GET_USER_SCHEMA = z.object({
@@ -87,12 +72,21 @@ const GET_USER_SCHEMA = z.object({
     .length(ID_LEN, ID_LENGTH_ERR_MSG),
 });
 
+const UPDATE_USER_SCHEMA = z.object({
+  username: z.string().optional(),
+  password: z.string().optional(),
+  postazioni: z.string().array().nonempty().nullish().default(null),
+  pages: z.string().array().nonempty().nullish().default(null),
+  device: z.string().optional(),
+  canLogout: z.boolean().optional(),
+});
+
 const FIND_BADGE_SCHEMA = z
   .object({
     barcode: z
       .string()
       .min(BARCODE_MIN_LEN, BARCODE_TOO_SHORT_ERR_MSG)
-      .max(BARCODE_MIN_LEN, BARCODE_TOO_LONG_ERR_MSG)
+      .max(BARCODE_MAX_LEN, BARCODE_TOO_LONG_ERR_MSG)
       .optional(),
     descrizione: z.string().optional(),
     tipo: z.enum(TIPI_BADGE).optional(),
@@ -118,7 +112,7 @@ const INSERT_BADGE_SCHEMA = z.object({
   barcode: z
     .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
     .min(BARCODE_MIN_LEN, BARCODE_TOO_SHORT_ERR_MSG)
-    .max(BARCODE_MIN_LEN, BARCODE_TOO_LONG_ERR_MSG),
+    .max(BARCODE_MAX_LEN, BARCODE_TOO_LONG_ERR_MSG),
   descrizione: z.string().default(""),
   tipo: z.enum(TIPI_BADGE).default("BADGE"),
   assegnazione: z.string().default(""),
@@ -142,7 +136,7 @@ const UPDATE_BADGE_SCHEMA = z.object({
   barcode: z
     .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
     .min(BARCODE_MIN_LEN, BARCODE_TOO_SHORT_ERR_MSG)
-    .max(BARCODE_MIN_LEN, BARCODE_TOO_LONG_ERR_MSG),
+    .max(BARCODE_MAX_LEN, BARCODE_TOO_LONG_ERR_MSG),
   descrizione: z.string().optional(),
   tipo: z.enum(TIPI_BADGE).optional(),
   assegnazione: z.string().optional(),
@@ -166,7 +160,7 @@ const DELETE_BADGE_SCHEMA = z.object({
   barcode: z
     .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
     .min(BARCODE_MIN_LEN, BARCODE_TOO_SHORT_ERR_MSG)
-    .max(BARCODE_MIN_LEN, BARCODE_TOO_LONG_ERR_MSG),
+    .max(BARCODE_MAX_LEN, BARCODE_TOO_LONG_ERR_MSG),
 });
 
 const ASSEGNAZIONE_SCHEMA = z.object({
@@ -208,17 +202,11 @@ const PUT_POSTAZIONE_SCHEMA = z.object({
     .optional(),
 });
 
-const DELETE_POSTAZIONE_SCHEMA = z.object({
-  _id: z
-    .string({ required_error: MISSING_ATTR_ERR_MSG("ID") })
-    .length(ID_LEN, ID_LENGTH_ERR_MSG),
-});
-
 const TIMBRA_SCHEMA = z.object({
   barcode: z
     .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
     .min(BARCODE_MIN_LEN, BARCODE_TOO_SHORT_ERR_MSG)
-    .max(BARCODE_MIN_LEN, BARCODE_TOO_LONG_ERR_MSG),
+    .max(BARCODE_MAX_LEN, BARCODE_TOO_LONG_ERR_MSG),
   cliente: z
     .string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") })
     .min(STR_MIN_LEN, ATTR_TOO_SHORT_ERR_MSG("Cliente", STR_MIN_LEN))
@@ -288,7 +276,7 @@ const PRESTITO_CHIAVE_SCHEMA = z.object({
   barcodes: z
     .string()
     .min(BARCODE_MIN_LEN, BARCODE_TOO_SHORT_ERR_MSG)
-    .max(BARCODE_MIN_LEN, BARCODE_TOO_SHORT_ERR_MSG)
+    .max(BARCODE_MAX_LEN, BARCODE_TOO_LONG_ERR_MSG)
     .array()
     .nonempty(MISSING_ATTR_ERR_MSG("Barcodes")),
   cliente: z
@@ -307,10 +295,7 @@ export default class Validator {
   }
 
   static register(input: unknown) {
-    const parsed = REGISTER_SCHEMA.safeParse(input);
-    if (parsed.success === false || parsed.data.admin === true) return parsed;
-
-    return GUEST_SCHEMA.safeParse(parsed.data);
+    return REGISTER_SCHEMA.safeParse(input);
   }
 
   static logout(input: unknown) {
@@ -319,6 +304,10 @@ export default class Validator {
 
   static getUser(input: unknown) {
     return GET_USER_SCHEMA.safeParse(input);
+  }
+
+  static updateUser(input: unknown) {
+    return UPDATE_USER_SCHEMA.safeParse(input);
   }
 
   static findBadge(input: unknown) {
@@ -351,10 +340,6 @@ export default class Validator {
 
   static putPostazione(input: unknown) {
     return PUT_POSTAZIONE_SCHEMA.safeParse(input);
-  }
-
-  static deletePostazione(input: unknown) {
-    return DELETE_POSTAZIONE_SCHEMA.safeParse(input);
   }
 
   static timbra(input: unknown) {

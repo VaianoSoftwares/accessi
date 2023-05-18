@@ -4,13 +4,16 @@ export type TPartialUser = {
   _id: string;
   username: string;
   admin: boolean;
-  clienti: string[] | null;
   postazioni: string[] | null;
+  pages: string[] | null;
+  canLogout: boolean;
 };
 
 export type TUser = TPartialUser & {
   token: string;
 };
+
+export type TFullUser = TPartialUser & { password: string; device: string };
 
 export type TPostazione = {
   _id: string;
@@ -151,10 +154,10 @@ export type LoginFormState = {
 export type RegisterFormState = {
   username: string;
   password: string;
-  admin: boolean;
-  device: boolean;
-  clienti: string[];
   postazioni: string[];
+  pages: string[];
+  device: string;
+  canLogout: boolean;
 };
 
 export type AssegnazFormState = {
@@ -293,3 +296,149 @@ export const N_CALENDAR_ROWS = 6;
 export const N_CALENDAR_COLS = 8;
 export const W100_POS = N_CALENDAR_COLS - 1;
 export const N_DATE_DIVS = N_CALENDAR_ROWS * N_CALENDAR_COLS - 1;
+
+export type TAddPostazioneData = Omit<TPostazione, "_id">;
+export type TDeletePostazioneData = Pick<TPostazione, "_id">;
+export type TGetPostazioniFilters = { ids?: string[]; names?: string[] };
+
+export type TPage =
+  | "badge"
+  | "chiavi"
+  | "veicoli"
+  | "archivio"
+  | "calendario"
+  | "permessi"
+  | "documenti";
+
+export const PAGES: ReadonlyArray<TPage> = [
+  "badge",
+  "chiavi",
+  "veicoli",
+  "archivio",
+  "calendario",
+  "permessi",
+  "documenti",
+];
+
+export type TAdminPage = "register" | "users" | "assegnazioni" | "postazioni";
+
+export const ADMIN_PAGES: ReadonlyArray<TAdminPage> = [
+  "register",
+  "users",
+  "assegnazioni",
+  "postazioni",
+];
+
+export interface IPageInfo {
+  readonly pathname: string;
+  readonly name: string;
+  readonly title: string;
+  readonly description: string;
+}
+
+export const PAGES_INFO: ReadonlyMap<TPage, IPageInfo> = new Map([
+  [
+    "badge",
+    {
+      pathname: "/badge",
+      name: "Badge",
+      title: "Gestione Badge",
+      description: "Pagina di gestione badge",
+    },
+  ],
+  [
+    "chiavi",
+    {
+      pathname: "/chiavi",
+      name: "Chiavi",
+      title: "Gestione Chiavi",
+      description: "Pagina di gestione chiavi",
+    },
+  ],
+  [
+    "veicoli",
+    {
+      pathname: "/veicoli",
+      name: "Veicoli",
+      title: "Gestione Veicoli",
+      description: "Pagina di gestione veicoli",
+    },
+  ],
+  [
+    "archivio",
+    {
+      pathname: "/archivio",
+      name: "Archivio",
+      title: "Archivio",
+      description: "Monitoraggio archivio resoconti",
+    },
+  ],
+  [
+    "calendario",
+    {
+      pathname: "/calendario",
+      name: "Calendario",
+      title: "Calendario",
+      description: "Pagina per condivisione documenti",
+    },
+  ],
+  [
+    "permessi",
+    {
+      pathname: "/permessi",
+      name: "Permessi",
+      title: "Permessi",
+      description: "Gestione ferie dipendenti",
+    },
+  ],
+  [
+    "documenti",
+    {
+      pathname: "/documenti",
+      name: "Documenti",
+      title: "Documenti",
+      description: "Gestione documenti di identità",
+    },
+  ],
+]);
+
+export const ADMIN_PAGES_INFO: ReadonlyMap<TAdminPage, IPageInfo> = new Map([
+  [
+    "register",
+    {
+      pathname: "/admin/register",
+      name: "Registra",
+      title: "Registra Account",
+      description: "Registrazione nuovo account",
+    },
+  ],
+  [
+    "users",
+    {
+      pathname: "/admin/users",
+      name: "Modifica Utenti",
+      title: "Modifica Utenti",
+      description: "Modifica account utenti",
+    },
+  ],
+  [
+    "assegnazioni",
+    {
+      pathname: "/admin/assegnazioni",
+      name: "Assegnazioni",
+      title: "Modifica Assegnazioni",
+      description: "Gestione delle assegnazioni",
+    },
+  ],
+  [
+    "postazioni",
+    {
+      pathname: "/admin/postazioni",
+      name: "Postazioni",
+      title: "Modifica Postazioni",
+      description: "Gestione delle postazioni",
+    },
+  ],
+]);
+
+export type TGenericPage = TPage | TAdminPage;

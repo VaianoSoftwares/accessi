@@ -1,6 +1,11 @@
 import DataServices from "./DataServices";
 import { GenericAbortSignal } from "axios";
-import { RegisterFormState, LoginFormState, TPermesso } from "../types";
+import {
+  RegisterFormState,
+  LoginFormState,
+  TPermesso,
+  TFullUser,
+} from "../types";
 
 class UserDataService extends DataServices {
   register(data: RegisterFormState, signal?: GenericAbortSignal) {
@@ -22,10 +27,51 @@ class UserDataService extends DataServices {
     });
   }
 
-  getUser(device: string, signal?: GenericAbortSignal) {
+  deviceLogin(
+    data: { device: string; password: string },
+    signal?: GenericAbortSignal
+  ) {
     return super.request({
-      url: "/user",
-      data: { device },
+      url: "/user/device",
+      method: "POST",
+      data,
+      signal,
+    });
+  }
+
+  getAllUsers(signal?: GenericAbortSignal) {
+    return super.request({
+      token: true,
+      signal,
+    });
+  }
+
+  getUser({ _id }: { _id: string }, signal?: GenericAbortSignal) {
+    return super.request({
+      url: `/user/${_id}`,
+      token: true,
+      signal,
+    });
+  }
+
+  updateUser(
+    { _id, user }: { _id: string; user: Partial<TFullUser> | FormData },
+    signal?: GenericAbortSignal
+  ) {
+    return super.request({
+      url: `/user/${_id}`,
+      method: "POST",
+      token: true,
+      data: user,
+      signal,
+    });
+  }
+
+  deleteUser({ _id }: { _id: string }, signal?: GenericAbortSignal) {
+    return super.request({
+      url: `/user/${_id}`,
+      method: "DELETE",
+      token: true,
       signal,
     });
   }

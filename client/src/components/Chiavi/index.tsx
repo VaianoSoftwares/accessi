@@ -1,4 +1,4 @@
-import { TInPrestito } from "../../types";
+import { TInPrestito, TPrestitoDataReq } from "../../types";
 import BadgeDataService from "../../services/badge";
 import "./index.css";
 import React from "react";
@@ -31,7 +31,7 @@ export default function Chiavi(props: {
   });
 
   const mutateInPrestito = useMutation({
-    mutationFn: BadgeDataService.prestaChiavi,
+    mutationFn: (data: TPrestitoDataReq) => BadgeDataService.prestaChiavi(data),
     onSuccess: async (response) => {
       console.log("prestaChiavi | response", response);
       await queryClient.invalidateQueries({ queryKey: ["inPrestito"] });

@@ -1,6 +1,6 @@
 .postazioni-list {
     max-height: 300px;
-    overflow: scroll;
+    overflow: auto;
 }
 
 .btn-del-postazioni {

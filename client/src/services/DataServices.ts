@@ -23,7 +23,7 @@ type TReqOptions = {
 };
 
 export default abstract class DataServices {
-  protected static baseUrl = "";
+  constructor(private readonly baseUrl: string) {}
 
   private static isFormDataMethod(method: string): method is TFormDataMethod {
     return ["POST", "PUT", "PATCH"].includes(method);
@@ -31,7 +31,10 @@ export default abstract class DataServices {
 
   private static getHeaders(token = false, files = false) {
     const headers: RawAxiosRequestHeaders = {};
-    token && (headers["x-access-token"] = JSON.parse(sessionStorage.getItem("user") || "{token:''}").token);
+    token &&
+      (headers["x-access-token"] = JSON.parse(
+        sessionStorage.getItem("user") || "{token:''}"
+      ).token);
     files && (headers["Content-Type"] = "multipart/form-data");
     return headers;
   }
@@ -62,9 +65,9 @@ export default abstract class DataServices {
 
     const completeUrl =
       data instanceof FormData || DataServices.isFormDataMethod(method)
-        ? `${DataServices.baseUrl}${url}`
-        : `${DataServices.baseUrl}${url}${DataServices.queryToString(data)}`;
-    
+        ? `${this.baseUrl}${url}`
+        : `${this.baseUrl}${url}${DataServices.queryToString(data)}`;
+
     switch (method) {
       case "GET":
         return await axios.get(completeUrl, { headers, signal });

@@ -12,10 +12,6 @@ Router.route("/")
   .put(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiPutBadges)
   .delete(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiDeleteBadges);
 
-// Router
-//     .route("/enums")
-//     .get(BadgesCtrl.apiGetEnums);
-
 Router.route("/assegnazioni")
   .get(BadgesCtrl.apiGetAssegnazioni)
   .post(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiPostAssegnazioni)
@@ -27,8 +23,12 @@ Router.route("/assegnazioni")
 
 Router.route("/postazioni")
   .get(BadgesCtrl.apiGetPostazioni)
-  .post(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiPostPostazione)
-  .delete(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiDeletePostazione);
+  .post(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiPostPostazione);
+Router.route("/postazioni/:idPostazione").delete(
+  JwtAuth.verifyToken,
+  JwtAuth.isAdmin,
+  BadgesCtrl.apiDeletePostazione
+);
 
 Router.route("/clienti").get(BadgesCtrl.apiGetClienti);
 
