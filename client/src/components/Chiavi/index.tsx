@@ -1,13 +1,20 @@
-import { TInPrestito, TPrestitoDataReq } from "../../types";
+import {
+  TInPrestito,
+  TInPrestitoDataReq,
+  TPostazione,
+  TPrestitoDataReq,
+  TUser,
+} from "../../types";
 import BadgeDataService from "../../services/badge";
 import "./index.css";
-import React from "react";
+import { useRef } from "react";
 import BadgeTable from "../BadgeTable";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { TableContentMapper } from "../../utils/tableContentMapper";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function Chiavi(props: {
+  user: TUser;
   scannerConnected: boolean;
   runScanner: () => Promise<void>;
   scanValues: string[];
@@ -15,14 +22,44 @@ export default function Chiavi(props: {
   removeScanValue: (value: string) => void;
   clearScanValues: () => void;
 }) {
-  const barcodeTxtInput = React.useRef<HTMLInputElement>(null);
+  const barcodeTxtInput = useRef<HTMLInputElement>(null);
+  const postazioneRef = useRef<HTMLSelectElement>(null);
+
+  function getCurrPostazioneData() {
+    return postazioneRef.current?.options.item(
+      postazioneRef.current.selectedIndex
+    )?.dataset;
+  }
+
+  function getQueryInPrestitoReq() {
+    return {
+      cliente: props.user.admin ? undefined : getCurrPostazioneData()?.cliente,
+      postazione: props.user.admin ? undefined : getCurrPostazioneData()?.name,
+    };
+  }
 
   const queryClient = useQueryClient();
 
+  const postazioni = useQuery({
+    queryKey: ["postazioni", props.user.postazioni],
+    queryFn: (context) =>
+      BadgeDataService.getPostazioni({
+        ids: context.queryKey[1]
+          ? (context.queryKey[1] as string[])
+          : undefined,
+      }).then((response) => {
+        console.log("queryPostazioni | response:", response);
+        const result = response.data.data as TPostazione[];
+        return result;
+      }),
+  });
+
   const queryInPrestito = useQuery({
-    queryKey: ["inPrestito"],
-    queryFn: () =>
-      BadgeDataService.getInPrestito().then((response) => {
+    queryKey: ["inPrestito", getQueryInPrestitoReq()],
+    queryFn: (context) =>
+      BadgeDataService.getInPrestito(
+        context.queryKey[1] as TInPrestitoDataReq
+      ).then((response) => {
         console.log("retriveInPrestito | response:", response);
         const result = response.data.data as TInPrestito[];
         TableContentMapper.parseDate(result);
@@ -39,48 +76,6 @@ export default function Chiavi(props: {
     },
     onError: async (err) => axiosErrHandl(err, "prestaChiavi"),
   });
-
-  // const [inPrestito, setInPrestito] = React.useState<TInPrestito[]>([]);
-
-  // function retriveInPrestito() {
-  //   BadgeDataService.getInPrestito()
-  //     .then((response) => {
-  //       console.log("retriveInPrestito |", response.data);
-  //       const dataResponse = response.data.data as TInPrestito[];
-  //       TableContentMapper.parseDate(dataResponse);
-  //       setInPrestito(dataResponse);
-  //     })
-  //     .catch((err) => {
-  //       console.log("retriveInPrestito |", err);
-  //     });
-  // }
-
-  // React.useEffect(() => {
-  //   retriveInPrestito();
-  // }, []);
-
-  // const prestaChiavi = (barcodes: string[]) => {
-  //   const dataReq = {
-  //     barcodes,
-  //     cliente: sessionStorage.getItem("cliente") as string,
-  //     postazione: sessionStorage.getItem("postazione") as string,
-  //   };
-
-  //   BadgeDataService.prestaChiavi(dataReq)
-  //     .then((response) => {
-  //       console.log("prestaChiavi |", response.data);
-
-  //       const { prestate, rese } = response.data.data as TPrestitoDataRes;
-  //       TableContentMapper.parseDate(prestate);
-
-  //       setInPrestito((prevState) =>
-  //         [...prestate, ...prevState].filter((elem) => !rese.includes(elem.id))
-  //       );
-
-  //       props.clearScanValues();
-  //     })
-  //     .catch((err) => axiosErrHandl(err, openAlert, "prestaChiavi |"));
-  // };
 
   return (
     <div id="chiavi-wrapper">
@@ -105,6 +100,32 @@ export default function Chiavi(props: {
             />
           </div>
           <div className="col-1" />
+          {postazioni.isSuccess && (
+            <div className="form-floating col-sm-2">
+              <select
+                className="form-select form-select-sm"
+                id="postazione"
+                placeholder="postazione"
+                ref={postazioneRef}
+                defaultValue={postazioni.data[0].name}
+              >
+                {postazioni.data
+                  .filter(({ cliente, name }) => cliente && name)
+                  .map(({ _id, cliente, name }) => (
+                    <option
+                      data-cliente={cliente}
+                      data-name={name}
+                      data-id={_id}
+                      value={name}
+                      key={_id}
+                    >
+                      {cliente} - {name}
+                    </option>
+                  ))}
+              </select>
+              <label htmlFor="postazione">postazione</label>
+            </div>
+          )}
           <div className="col-2">
             <button
               className="btn btn-outline-secondary"
@@ -144,10 +165,10 @@ export default function Chiavi(props: {
             <button
               className="btn btn-success"
               onClick={() =>
-                /*prestaChiavi(props.scanValues)*/ mutateInPrestito.mutate({
+                mutateInPrestito.mutate({
                   barcodes: props.scanValues,
-                  cliente: sessionStorage.getItem("cliente") as string,
-                  postazione: sessionStorage.getItem("postazione") as string,
+                  cliente: getCurrPostazioneData()!.cliente!,
+                  postazione: postazioneRef.current!.value,
                 })
               }
             >

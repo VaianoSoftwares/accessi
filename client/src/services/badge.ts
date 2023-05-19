@@ -8,6 +8,7 @@ import {
   TGetPostazioniFilters,
   TAddPostazioneData,
   TDeletePostazioneData,
+  TInPrestitoDataReq,
 } from "../types";
 
 class BadgesDataService extends DataServices {
@@ -132,7 +133,7 @@ class BadgesDataService extends DataServices {
   }
 
   getArchivioChiavi(
-    query: Record<string, string>,
+    query: Record<string, string | undefined>,
     signal?: GenericAbortSignal
   ) {
     return super.request({
@@ -143,11 +144,12 @@ class BadgesDataService extends DataServices {
     });
   }
 
-  getInPrestito(signal?: GenericAbortSignal) {
+  getInPrestito(query: TInPrestitoDataReq, signal?: GenericAbortSignal) {
     return super.request({
       url: "/archivio-chiavi/in-prestito",
       token: true,
       signal,
+      data: query,
     });
   }
 

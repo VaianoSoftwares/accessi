@@ -64,6 +64,8 @@ const REGISTER_SCHEMA = z.object({
   pages: z.string().array().nonempty(MISSING_ATTR_ERR_MSG("Pagine")),
   device: z.string().nullish(),
   canLogout: z.coerce.boolean().default(false),
+  excel: z.coerce.boolean().default(false),
+  provvisori: z.coerce.boolean().default(false),
 });
 
 const GET_USER_SCHEMA = z.object({
@@ -79,6 +81,8 @@ const UPDATE_USER_SCHEMA = z.object({
   pages: z.string().array().nonempty().nullish().default(null),
   device: z.string().optional(),
   canLogout: z.boolean().optional(),
+  excel: z.coerce.boolean().optional(),
+  provvisori: z.coerce.boolean().optional(),
 });
 
 const FIND_BADGE_SCHEMA = z

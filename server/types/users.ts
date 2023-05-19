@@ -8,6 +8,8 @@ export type TUser = {
   pages: string[] | null;
   device: string | null;
   canLogout: boolean;
+  excel: boolean;
+  provvisori: boolean;
 };
 
 export type TUserReq = {

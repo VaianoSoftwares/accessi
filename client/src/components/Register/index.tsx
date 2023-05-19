@@ -33,6 +33,8 @@ export default function Register() {
   const pagesRef = useRef<HTMLSelectElement>(null);
   const deviceRef = useRef<HTMLInputElement>(null);
   const canLogoutRef = useRef<HTMLInputElement>(null);
+  const excelRef = useRef<HTMLInputElement>(null);
+  const provvisoriRef = useRef<HTMLInputElement>(null);
 
   function formToObj(): RegisterFormState {
     return {
@@ -122,6 +124,32 @@ export default function Register() {
           id="canlogout"
           autoComplete="off"
           ref={canLogoutRef}
+          defaultChecked={false}
+        />
+      </div>
+      <div className="form-check col-sm-2 my-2">
+        <label htmlFor="excel" className="form-check-label">
+          excel
+        </label>
+        <input
+          type="checkbox"
+          className="form-check-input"
+          id="excel"
+          autoComplete="off"
+          ref={excelRef}
+          defaultChecked={false}
+        />
+      </div>
+      <div className="form-check col-sm-2 my-2">
+        <label htmlFor="provvisori" className="form-check-label">
+          provvisori
+        </label>
+        <input
+          type="checkbox"
+          className="form-check-input"
+          id="provvisori"
+          autoComplete="off"
+          ref={provvisoriRef}
           defaultChecked={false}
         />
       </div>

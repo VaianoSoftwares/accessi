@@ -873,6 +873,8 @@ export default function Badge({
               readonlyForm={readonlyForm}
               toggleReadOnlyForm={setReadonlyForm.setToggle}
               admin={props.user.admin}
+              excel={props.user.excel}
+              provvisori={props.user.provvisori}
               runScanner={props.runScanner}
               scannerConnected={props.scannerConnected}
               badges={findBadges.data || []}

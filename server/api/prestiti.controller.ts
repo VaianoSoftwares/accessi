@@ -38,27 +38,27 @@ export default class PrestitiController {
     }
 
     try {
-        const response = await PrestitiDAO.prestitoChiavi(
-            parsed.data.barcodes,
-            parsed.data.cliente,
-            parsed.data.postazione,
-            req.ip
-        );
-        if("error" in response) {
-            return res.status(400).json({
-                success: false,
-                msg: response.error
-            });
-        }
-
-        res.json({
-            success: true,
-            msg: "Prestito chiave avvenuto con successo",
-            data: response
+      const response = await PrestitiDAO.prestitoChiavi(
+        parsed.data.barcodes,
+        parsed.data.cliente,
+        parsed.data.postazione,
+        req.ip
+      );
+      if ("error" in response) {
+        return res.status(400).json({
+          success: false,
+          msg: response.error,
         });
-    } catch(err) {
-        const { error } = errCheck(err, "apiPostArchivioChiave |");
-        res.status(500).json({ success: false, msg: error });
+      }
+
+      res.json({
+        success: true,
+        msg: "Prestito chiave avvenuto con successo",
+        data: response,
+      });
+    } catch (err) {
+      const { error } = errCheck(err, "apiPostArchivioChiave |");
+      res.status(500).json({ success: false, msg: error });
     }
   }
 

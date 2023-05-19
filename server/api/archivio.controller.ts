@@ -31,13 +31,11 @@ export default class ArchivioController {
     const parsed = Validator.timbra(req.body);
     if (parsed.success === false) {
       console.error("apiPostArchivio | error:", parsed.error);
-      return res
-        .status(400)
-        .json({
-          success: false,
-          msg: parsed.error.errors[0].message,
-          data: null,
-        });
+      return res.status(400).json({
+        success: false,
+        msg: parsed.error.errors[0].message,
+        data: null,
+      });
     }
 
     try {
@@ -71,13 +69,11 @@ export default class ArchivioController {
     const parsed = Validator.getInStrutt(req.query);
     if (parsed.success === false) {
       console.error("apiGetinStruttura | error:", parsed.error);
-      return res
-        .status(400)
-        .json({
-          success: false,
-          msg: parsed.error.errors[0].message,
-          data: null,
-        });
+      return res.status(400).json({
+        success: false,
+        msg: parsed.error.errors[0].message,
+        data: null,
+      });
     }
 
     try {

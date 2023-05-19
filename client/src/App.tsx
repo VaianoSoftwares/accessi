@@ -117,6 +117,7 @@ export default function App() {
           element={
             user && (user.admin || user.pages?.includes("chiavi")) ? (
               <Chiavi
+                user={user}
                 scannerConnected={chiaviScanner !== undefined}
                 runScanner={runChiaviScanner}
                 scanValues={prestaArr}

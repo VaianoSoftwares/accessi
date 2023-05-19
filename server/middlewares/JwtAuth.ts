@@ -15,7 +15,6 @@ declare module "express-serve-static-core" {
   }
 }
 
-
 export default class JwtAuth {
   static verifyToken(req: Request, res: Response, next: NextFunction) {
     const token = req.headers["x-access-token"] as string;
@@ -44,21 +43,21 @@ export default class JwtAuth {
 
   static async isAdmin(req: Request, res: Response, next: NextFunction) {
     try {
-        const user = await UsersDAO.getUserById(req.userId!);
-        if(!user || user.admin === false) {
-            return res.status(401).json({
-                success: false,
-                msg: "Access denied.",
-            });
-        }
-
-        next();
-    } catch(err) {
-        const { error } = errCheck(err, "isAdmin |");
-        res.status(500).json({
-            success: false,
-            msg: error,
+      const user = await UsersDAO.getUserById(req.userId!);
+      if (!user || user.admin === false) {
+        return res.status(401).json({
+          success: false,
+          msg: "Access denied.",
         });
+      }
+
+      next();
+    } catch (err) {
+      const { error } = errCheck(err, "isAdmin |");
+      res.status(500).json({
+        success: false,
+        msg: error,
+      });
     }
   }
 }

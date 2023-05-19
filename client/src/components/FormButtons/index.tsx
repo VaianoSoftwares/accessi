@@ -13,6 +13,8 @@ export default function FormButtons(props: {
   readonlyForm: boolean;
   toggleReadOnlyForm: () => void;
   admin: boolean;
+  excel: boolean;
+  provvisori: boolean;
   runScanner: () => Promise<void>;
   scannerConnected: boolean;
   badges: TTableContent[];
@@ -116,23 +118,27 @@ export default function FormButtons(props: {
             <div className="w-100 mt-1" />
           </>
         )}
-        <div className="col">
-          <button
-            onClick={() => htmlTableToExcel("badge-table")}
-            className="btn btn-success home-form-btn"
-          >
-            Excel
-          </button>
-        </div>
+        {props.excel && (
+          <div className="col">
+            <button
+              onClick={() => htmlTableToExcel("badge-table")}
+              className="btn btn-success home-form-btn"
+            >
+              Excel
+            </button>
+          </div>
+        )}
         <div className="w-100 mt-1" />
-        <div className="col">
-          <button
-            onClick={props.openPopup}
-            className="btn btn-success home-form-btn"
-          >
-            Provvisori
-          </button>
-        </div>
+        {props.provvisori && (
+          <div className="col">
+            <button
+              onClick={props.openPopup}
+              className="btn btn-success home-form-btn"
+            >
+              Provvisori
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

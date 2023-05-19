@@ -70,9 +70,14 @@ export default class PrestitiDAO {
     }
   }
 
-  static async getInPrestito() {
+  static async getInPrestito(cliente?: string, postazione?: string) {
+    const arrFilters: object[] = [{ "data.uscita": { $eq: null } }];
+
+    if (cliente) arrFilters.push({ cliente });
+    if (postazione) arrFilters.push({ postazione });
+
     const query: Filter<unknown> = {
-      "data.reso": { $eq: null },
+      $and: arrFilters,
     };
 
     try {
@@ -88,7 +93,7 @@ export default class PrestitiDAO {
           prestito: "$data.prestito",
         },
       });
-      const displayCursor = cursor.limit(500).skip(0);
+      const displayCursor = cursor.sort({ _id: -1 }).limit(500).skip(0);
       const archivioList = await displayCursor.toArray();
       return archivioList;
     } catch (err) {

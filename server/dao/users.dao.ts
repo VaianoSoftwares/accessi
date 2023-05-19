@@ -67,7 +67,7 @@ export default class UsersDAO {
     try {
       return await users.findOne(
         { _id: new ObjectId(id) },
-        { projection: { password: "" } }
+        { projection: { password: 0 } }
       );
     } catch (err) {
       errCheck(err, "getUserById |");

@@ -7,6 +7,8 @@ export type TPartialUser = {
   postazioni: string[] | null;
   pages: string[] | null;
   canLogout: boolean;
+  excel: boolean;
+  provvisori: boolean;
 };
 
 export type TUser = TPartialUser & {
@@ -257,9 +259,12 @@ export type TDocumento = TPartialDoc & {
 
 export type TDocFormState = Partial<TPartialDoc>;
 
-export type TInStruttDataReq = {
+export type TInPrestitoDataReq = {
   cliente?: string;
   postazione?: string;
+};
+
+export type TInStruttDataReq = TInPrestitoDataReq & {
   tipi?: TBadgeTipo[];
 };
 

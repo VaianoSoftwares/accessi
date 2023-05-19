@@ -19,7 +19,7 @@ export default class UsersController {
         .json({ success: false, msg: parsed.error.errors[0].message });
     }
 
-    const { username, password, postazioni, pages, device, canLogout } =
+    const { username, password, postazioni, pages, device, canLogout, excel, provvisori } =
       parsed.data;
 
     try {
@@ -34,6 +34,8 @@ export default class UsersController {
         pages,
         device: !device ? null : device,
         canLogout,
+        excel,
+        provvisori,
       };
 
       const response = await UsersDAO.addUser(userDoc);
@@ -134,7 +136,7 @@ export default class UsersController {
       const response = await UsersDAO.getAllUsers();
       res.json({
         success: true,
-        msg: "Ottenuti utenti con successo",
+        msg: "Ottenuti utentsatisfiesi con successo",
         data: response,
       });
     } catch (err) {
@@ -186,6 +188,8 @@ export default class UsersController {
             postazioni: user.postazioni,
             pages: user.pages,
             canLogout: user.canLogout,
+            excel: user.excel,
+            provvisori: user.provvisori,
           } satisfies TUserResp,
         });
       });
@@ -233,6 +237,8 @@ export default class UsersController {
             postazioni: user.postazioni,
             pages: user.pages,
             canLogout: user.canLogout,
+            excel: user.excel,
+            provvisori: user.provvisori,
           } satisfies TUserResp,
         });
       });
