@@ -7,6 +7,7 @@
 
 # misc
 package-lock.json
+.env
 .env*
 
 # tmp upload files
