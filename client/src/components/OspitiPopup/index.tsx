@@ -1,10 +1,7 @@
-// Modules
 import React from "react";
 import Popup from "reactjs-popup";
 import Cf from "codice-fiscale-js";
-// Style
 import "./index.css";
-// Types
 import { TEventInput, TDOCS } from "../../types";
 
 export default function OspitiPopup(props: {

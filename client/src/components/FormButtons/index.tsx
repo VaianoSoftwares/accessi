@@ -15,33 +15,11 @@ export default function FormButtons(props: {
   admin: boolean;
   excel: boolean;
   provvisori: boolean;
-  runScanner: () => Promise<void>;
-  scannerConnected: boolean;
   badges: TTableContent[];
 }) {
   return (
     <div className="form-buttons">
       <div className="row align-items-center justify-content-start g-0">
-        <div className="col-auto">
-          <button
-            className="btn btn-outline-secondary home-form-btn"
-            id="serial-conn-btn"
-            onClick={async () => await props.runScanner()}
-          >
-            Scanner
-          </button>
-        </div>
-        <div className="col-auto mx-2 home-form-b">
-          <b
-            style={
-              props.scannerConnected ? { color: "green" } : { color: "red" }
-            }
-          >
-            {!props.scannerConnected && "Non "}
-            {"Connesso"}
-          </b>
-        </div>
-        <div className="w-100 mt-1" />
         {props.admin === true && (
           <>
             <div className="col-auto">

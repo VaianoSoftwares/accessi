@@ -104,6 +104,25 @@ class BadgesDataService extends DataServices {
     return super.request({ url: "/clienti", signal });
   }
 
+  insertCliente(data: { cliente: string }, signal?: GenericAbortSignal) {
+    return super.request({
+      url: "/clienti",
+      method: "POST",
+      token: true,
+      data,
+      signal,
+    });
+  }
+
+  deleteCliente(data: { cliente: string }, signal?: GenericAbortSignal) {
+    return super.request({
+      url: `/clienti/${data.cliente}`,
+      method: "DELETE",
+      token: true,
+      signal,
+    });
+  }
+
   getArchivio(query: Record<string, string>, signal?: GenericAbortSignal) {
     return super.request({
       url: "/archivio",

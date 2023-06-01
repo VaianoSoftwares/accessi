@@ -211,14 +211,9 @@ const TIMBRA_SCHEMA = z.object({
     .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
     .min(BARCODE_MIN_LEN, BARCODE_TOO_SHORT_ERR_MSG)
     .max(BARCODE_MAX_LEN, BARCODE_TOO_LONG_ERR_MSG),
-  cliente: z
-    .string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") })
-    .min(STR_MIN_LEN, ATTR_TOO_SHORT_ERR_MSG("Cliente", STR_MIN_LEN))
-    .max(STR_MAX_LEN, ATTR_TOO_LONG_ERR_MSG("Cliente", STR_MAX_LEN)),
-  postazione: z
-    .string({ required_error: MISSING_ATTR_ERR_MSG("Postazione") })
-    .min(STR_MIN_LEN, ATTR_TOO_SHORT_ERR_MSG("Postazione", STR_MIN_LEN))
-    .max(STR_MAX_LEN, ATTR_TOO_LONG_ERR_MSG("Postazione", STR_MAX_LEN)),
+  postazioneId: z
+    .string({ required_error: MISSING_ATTR_ERR_MSG("ID") })
+    .length(ID_LEN, ID_LENGTH_ERR_MSG),
 });
 
 const GET_INSTRUTT_SCHEMA = z
@@ -283,14 +278,9 @@ const PRESTITO_CHIAVE_SCHEMA = z.object({
     .max(BARCODE_MAX_LEN, BARCODE_TOO_LONG_ERR_MSG)
     .array()
     .nonempty(MISSING_ATTR_ERR_MSG("Barcodes")),
-  cliente: z
-    .string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") })
-    .min(STR_MIN_LEN, ATTR_TOO_SHORT_ERR_MSG("Cliente", STR_MIN_LEN))
-    .max(STR_MAX_LEN, ATTR_TOO_LONG_ERR_MSG("Cliente", STR_MAX_LEN)),
-  postazione: z
-    .string({ required_error: MISSING_ATTR_ERR_MSG("Postazione") })
-    .min(STR_MIN_LEN, ATTR_TOO_SHORT_ERR_MSG("Postazione", STR_MIN_LEN))
-    .max(STR_MAX_LEN, ATTR_TOO_LONG_ERR_MSG("Postazione", STR_MAX_LEN)),
+  postazioneId: z
+    .string({ required_error: MISSING_ATTR_ERR_MSG("ID") })
+    .length(ID_LEN, ID_LENGTH_ERR_MSG),
 });
 
 export default class Validator {

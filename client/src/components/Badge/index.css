@@ -18,13 +18,7 @@
 }
 
 .popup-table-wrapper {
-    overflow: scroll;
-    max-height: 250px;
-    max-width: 450px;
-}
-
-.popup-table-wrapper {
-    overflow: scroll;
+    overflow: auto;
     max-height: 250px;
     max-width: 450px;
 }
@@ -38,6 +32,8 @@
     border: 2px solid green;
     width: 150px;
     height: 150px;
+    max-width: 150px;
+    max-height: 150px;
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;

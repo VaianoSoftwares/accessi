@@ -9,3 +9,13 @@
     color: white;
     border: 1px solid;
 }
+
+#chiavi-wrapper .form-select {
+    height: 38px;
+    padding: 0 0 1px 4px;
+}
+
+#chiavi-wrapper .form-floating label {
+    font-size: 13px;
+    top: -20%;
+}

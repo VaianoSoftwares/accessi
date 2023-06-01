@@ -1,0 +1,14 @@
+.clienti-list {
+    max-height: 300px;
+    overflow: auto;
+}
+
+.btn-del-clienti {
+    background-color: red;
+    color: white;
+    border: 1px solid;
+}
+
+.btn-del-clienti:hover {
+    background-color: darkred;
+}

@@ -19,7 +19,8 @@
     "react-error-boundary": "^4.0.4",
     "react-hot-toast": "^2.4.0",
     "react-router-dom": "^6.8.2",
-    "reactjs-popup": "^2.0.5"
+    "reactjs-popup": "^2.0.5",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz"
   },
   "devDependencies": {
     "@tanstack/react-query-devtools": "^4.26.0",

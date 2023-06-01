@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Validator from "../auth/validation.js";
+import PostazioniDao from "../dao/postazioni.dao.js";
 import PrestitiDAO from "../dao/prestiti.dao.js";
 import errCheck from "../utils/errCheck.js";
 
@@ -38,10 +39,19 @@ export default class PrestitiController {
     }
 
     try {
+      const [{ name: postazione, cliente }] = await PostazioniDao.getPostazioni(
+        { _id: [parsed.data.postazioneId] }
+      );
+      if (!postazione || !cliente) {
+        return res
+          .status(400)
+          .json({ success: false, msg: "Postazione non valida", data: null });
+      }
+
       const response = await PrestitiDAO.prestitoChiavi(
         parsed.data.barcodes,
-        parsed.data.cliente,
-        parsed.data.postazione,
+        cliente,
+        postazione,
         req.ip
       );
       if ("error" in response) {

@@ -17,16 +17,6 @@ export default function Register() {
     },
   });
 
-  // const clienti = useQuery({
-  //   queryKey: ["clienti"],
-  //   queryFn: async () => {
-  //     const response = await BadgeDataService.getClienti();
-  //     console.log("queryClienti | response:", response);
-  //     const result = response.data.data as string[];
-  //     return result;
-  //   },
-  // });
-
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const postazioniRef = useRef<HTMLSelectElement>(null);

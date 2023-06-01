@@ -97,4 +97,12 @@ export default class PostazioniDao {
       return errCheck(err, "deletePostazione |");
     }
   }
+
+  static async deletePostazioniOfCliente(cliente: string) {
+    try {
+      return await postazioni.deleteMany({ cliente });
+    } catch (err) {
+      return errCheck(err, "deletePostazioniOfCliente |");
+    }
+  }
 }

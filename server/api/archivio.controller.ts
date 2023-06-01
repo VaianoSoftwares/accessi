@@ -2,6 +2,7 @@ import ArchivioDAO from "../dao/archivio.dao.js";
 import Validator from "../auth/validation.js";
 import { Request, Response } from "express";
 import errCheck from "../utils/errCheck.js";
+import PostazioniDao from "../dao/postazioni.dao.js";
 
 export default class ArchivioController {
   static async apiGetArchivio(req: Request, res: Response) {
@@ -39,10 +40,19 @@ export default class ArchivioController {
     }
 
     try {
+      const [{ name: postazione, cliente }] = await PostazioniDao.getPostazioni(
+        { _id: [parsed.data.postazioneId] }
+      );
+      if (!postazione || !cliente) {
+        return res
+          .status(400)
+          .json({ success: false, msg: "Postazione non valida", data: null });
+      }
+
       const archivioResponse = await ArchivioDAO.timbra(
         parsed.data.barcode.toUpperCase(),
-        parsed.data.cliente,
-        parsed.data.postazione,
+        cliente,
+        postazione,
         req.ip
       );
 

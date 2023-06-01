@@ -59,7 +59,7 @@ export default class BadgesDAO {
     if (exprList.length === 0) return [];
 
     const query: Filter<unknown> = { $and: exprList };
-    console.log(query);
+    console.log(exprList, query);
 
     try {
       const cursor = badges.find(query, {
@@ -86,7 +86,7 @@ export default class BadgesDAO {
       });
       const displayCursor = cursor.limit(50).skip(0);
       const badgesList = await displayCursor.toArray();
-      console.log(badgesList);
+      // console.log(badgesList);
       return badgesList;
     } catch (err) {
       errCheck(err, "getBadges |");
@@ -209,7 +209,7 @@ export default class BadgesDAO {
       }
 
       const badgeDoc = this.#createBadgeDoc(data);
-
+      console.log("addBadge | badgeDoc:", badgeDoc);
       return await badges.insertOne(badgeDoc);
     } catch (err) {
       return errCheck(err, "addBadge |");

@@ -304,7 +304,7 @@ export default class BadgesController {
       res.json({
         success: true,
         data: response,
-        msg: "Postazione ottenuto con successo",
+        msg: "Postazione inserita con successo",
       });
     } catch (err) {
       const { error } = errCheck(err, "apiPostPostazione |");
@@ -347,6 +347,54 @@ export default class BadgesController {
     } catch (err) {
       const { error } = errCheck(err, "apiGetClienti |");
       res.status(500).json({ success: false, data: null, msg: error });
+    }
+  }
+
+  static async apiPostCliente(req: Request, res: Response) {
+    const { cliente } = req.body;
+    if (!cliente)
+      return res
+        .status(400)
+        .json({ success: false, msg: "Campo Cliente mancante" });
+
+    try {
+      const response = await EnumsDAO.addCliente(cliente);
+      if ("error" in response) {
+        return res.status(400).json({ success: false, msg: response.error });
+      }
+
+      res.json({
+        success: true,
+        data: response,
+        msg: "Cliente inserito con successo",
+      });
+    } catch (err) {
+      const { error } = errCheck(err, "apiPostCliente |");
+      res.status(500).json({ success: false, msg: error });
+    }
+  }
+
+  static async apiDeleteCliente(req: Request, res: Response) {
+    const { cliente } = req.params;
+    if (!cliente)
+      return res
+        .status(400)
+        .json({ success: false, msg: "Campo Cliente mancante" });
+
+    try {
+      const response = await EnumsDAO.deleteCliente(cliente);
+      if ("error" in response) {
+        return res.status(400).json({ success: false, msg: response.error });
+      }
+
+      res.json({
+        success: true,
+        data: response,
+        msg: "Cliente eliminato con successo",
+      });
+    } catch (err) {
+      const { error } = errCheck(err, "apiDeleteCliente |");
+      res.status(500).json({ success: false, msg: error });
     }
   }
 }

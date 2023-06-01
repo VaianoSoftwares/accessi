@@ -1,20 +1,11 @@
-// Modules
 import { useEffect, useRef, useState } from "react";
 import dateFormat from "dateformat";
-
-// Style
 import "./index.css";
-
-// Services
 import BadgeDataService from "../../services/badge";
-
-// Components
 import BadgeTable from "../BadgeTable";
 import Clock from "../Clock";
 import FormButtons from "../FormButtons";
 import OspitiPopup from "../OspitiPopup";
-
-// Types
 import {
   TUser,
   TInStruttTableContent,
@@ -32,8 +23,6 @@ import {
   TTimbraResp,
   TimbraDoc,
 } from "../../types";
-
-// Utils
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { TableContentMapper } from "../../utils/tableContentMapper";
 import useBool from "../../hooks/useBool";
@@ -45,14 +34,15 @@ import { toast } from "react-hot-toast";
 export default function Badge({
   scannedValue,
   clearScannedValue,
+  currPostazione,
+  user,
   ...props
 }: {
   user: TUser;
   scannedValue: string;
   clearScannedValue: () => void;
-  scannerConnected: boolean;
-  runScanner: () => Promise<void>;
   tipoBadge: TBadgeTipo;
+  currPostazione: TPostazione | undefined;
 }) {
   const barcodeRef = useRef<HTMLInputElement>(null);
   const descrizioneRef = useRef<HTMLInputElement>(null);
@@ -72,15 +62,8 @@ export default function Badge({
   const targa2Ref = useRef<HTMLInputElement>(null);
   const targa3Ref = useRef<HTMLInputElement>(null);
   const targa4Ref = useRef<HTMLInputElement>(null);
-  const postazioneRef = useRef<HTMLSelectElement>(null);
 
   const queryClient = useQueryClient();
-
-  function getCurrPostazioneData() {
-    return postazioneRef.current?.options.item(
-      postazioneRef.current.selectedIndex
-    )?.dataset;
-  }
 
   const assegnazioni = useQuery({
     queryKey: ["assegnazioni"],
@@ -92,22 +75,14 @@ export default function Badge({
       }),
   });
 
-  const postazioni = useQuery({
-    queryKey: ["postazioni", props.user.postazioni],
-    queryFn: (context) =>
-      BadgeDataService.getPostazioni({
-        ids: context.queryKey[1]
-          ? (context.queryKey[1] as string[])
-          : undefined,
-      }).then((response) => {
-        console.log("queryPostazioni | response:", response);
-        const result = response.data.data as TPostazione[];
-        return result;
-      }),
-  });
-
   const queryInStrutt = useQuery({
-    queryKey: ["inStrutt", getQueryInStruttReq()],
+    queryKey: [
+      "inStrutt",
+      {
+        tipi: [props.tipoBadge, "PROVVISORIO"],
+        postazione: currPostazione?.name,
+      },
+    ],
     queryFn: (context) =>
       BadgeDataService.getInStrutt(
         context.queryKey[1] as TInStruttDataReq
@@ -117,16 +92,7 @@ export default function Badge({
         TableContentMapper.parseDate(result);
         return result;
       }),
-    enabled: postazioni.isSuccess,
   });
-
-  function getQueryInStruttReq(): TInStruttDataReq {
-    return {
-      tipi: [props.tipoBadge, "PROVVISORIO"],
-      cliente: props.user.admin ? undefined : getCurrPostazioneData()?.cliente,
-      postazione: props.user.admin ? undefined : getCurrPostazioneData()?.name,
-    };
-  }
 
   const mutateInStrutt = useMutation({
     mutationFn: (data: TimbraDoc) => BadgeDataService.timbra(data),
@@ -144,12 +110,7 @@ export default function Badge({
       else setDeletedRow(undefined);
 
       if (readonlyForm === true) {
-        setForm(
-          TableContentMapper.mapToAutoComplBadge(
-            rowTimbra.badge,
-            postazioneRef.current!.value
-          )
-        );
+        setForm(TableContentMapper.mapToAutoComplBadge(rowTimbra.badge));
 
         updateImage(rowTimbra.timbra.codice);
       }
@@ -186,6 +147,9 @@ export default function Badge({
     onSettled: async () => (timeoutRunning.current = false),
   });
 
+  const [currTipoBadge, setCurrTipoBadge] = useState<TBadgeTipo>(
+    props.tipoBadge
+  );
   const [deletedRow, setDeletedRow] = useState<TInStruttTableContent>();
   const [isShown, setIsShown] = useBool(false);
   const [readonlyForm, setReadonlyForm] = useReadonlyForm((condition) => {
@@ -234,7 +198,6 @@ export default function Badge({
       formData.append("targa3", targa3Ref.current.value);
     targa4Ref.current?.value &&
       formData.append("targa4", targa4Ref.current.value);
-    formData.append("postazione", postazioneRef.current!.value);
     return formData;
   }
 
@@ -273,10 +236,6 @@ export default function Badge({
       (targa3Ref.current.value = obj?.targa3 || targa3Ref.current.defaultValue);
     targa4Ref.current &&
       (targa4Ref.current.value = obj?.targa4 || targa4Ref.current.defaultValue);
-    // postazioneRef.current!.value =
-    //   obj?.postazione ||
-    //   postazioneRef.current?.options.item(0)?.value ||
-    //   SSHandler.getPostazione();
   }
 
   function clearForm() {
@@ -303,111 +262,8 @@ export default function Badge({
       targa2: targa2Ref.current?.value || undefined,
       targa3: targa3Ref.current?.value || undefined,
       targa4: targa4Ref.current?.value || undefined,
-      postazione: postazioneRef.current?.value || undefined,
     };
   }
-
-  // const retriveInStrutt = useCallback(() => {
-  //   const tipiArr: TBadgeTipo[] = [props.tipoBadge, "PROVVISORIO"];
-  //   const reqData = props.user.admin
-  //     ? { tipi: tipiArr }
-  //     : { ...SSHandler.getGuestClienteAndPostazione(), tipi: tipiArr };
-
-  //   BadgeDataService.getInStrutt(reqData)
-  //     .then((response) => {
-  //       console.log("retriveInStrutt |", response.data);
-  //       // setInStrutt(
-  //       //   TableContentMapper.mapArchivioToInStruttTableContent(
-  //       //     response.data.data as TInStruttResp[]
-  //       //   )
-  //       // );
-  //       const result = response.data.data as TInStruttResp[];
-  //       TableContentMapper.parseDate(result);
-  //       setInStrutt(result);
-  //     })
-  //     .catch((err) => {
-  //       console.error("retriveInStrutt | error:", err);
-  //     });
-  // }, [props.tipoBadge, props.user.admin]);
-
-  // useEffect(retriveInStrutt, [retriveInStrutt]);
-
-  // const timbra = useCallback(
-  //   (data: TimbraDoc) => {
-  //     if (timeoutRunning.current === false) retriveInStrutt();
-  //     BadgeDataService.timbra(data)
-  //       .then((response) => {
-  //         console.log("timbra | response:", response.data);
-  //         console.log("timbra | readonlyForm:", readonlyForm);
-
-  //         if (timeoutRunning.current === true) return;
-
-  //         timeoutRunning.current = true;
-
-  //         const rowTimbra = response.data.data as TTimbraResp;
-
-  //         if (readonlyForm === true) {
-  //           setForm(
-  //             TableContentMapper.mapToAutoComplBadge(
-  //               rowTimbra.badge,
-  //               postazioneRef.current!.value
-  //             )
-  //           );
-
-  //           updateImage(rowTimbra.timbra.codice);
-  //         }
-
-  //         const filteredInStrutt = inStrutt.filter(
-  //           ({ codice }) => codice !== rowTimbra.timbra.codice
-  //         );
-
-  //         // const mappedRowTimbra =
-  //         //   TableContentMapper.mapArchivioToInStruttTableContent([
-  //         //     rowTimbra.timbra,
-  //         //   ])[0];
-  //         setInStrutt([
-  //           /*mappedRowTimbra*/ rowTimbra.timbra,
-  //           ...filteredInStrutt,
-  //         ]);
-
-  //         const badgeTable = document.getElementById("badge-table");
-  //         const firstRow = badgeTable
-  //           ? (badgeTable as HTMLTableElement).tBodies[0].rows[0]
-  //           : null;
-  //         if (firstRow) {
-  //           switch (response.data.msg) {
-  //             case "Timbra Entra":
-  //               firstRow.style.backgroundColor = "green";
-  //               break;
-  //             case "Timbra Esce":
-  //               firstRow.style.backgroundColor = "red";
-  //               break;
-  //           }
-  //         }
-
-  //         setTimeout(() => {
-  //           if (firstRow) firstRow.style.backgroundColor = "white";
-  //           if (readonlyForm === true) {
-  //             clearForm();
-  //             setNoImage();
-  //           }
-
-  //           retriveInStrutt();
-  //           closeAlert();
-  //         }, 1000);
-  //       })
-  //       .catch((err) => axiosErrHandl(err, openAlert, "timbra |"))
-  //       .finally(() => (timeoutRunning.current = false));
-  //   },
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   [
-  //     // closeAlert,
-  //     inStrutt,
-  //     // openAlert,
-  //     readonlyForm,
-  //     retriveInStrutt,
-  //   ]
-  // );
 
   const findBadges = useQuery({
     queryKey: ["badges", formToObj()],
@@ -422,12 +278,7 @@ export default function Badge({
       const result = response.data.data as TBadgeResp[];
 
       if (result.length === 1) {
-        setForm(
-          TableContentMapper.mapToAutoComplBadge(
-            result[0],
-            postazioneRef.current!.value
-          )
-        );
+        setForm(TableContentMapper.mapToAutoComplBadge(result[0]));
 
         updateImage(result[0].barcode);
       }
@@ -481,18 +332,12 @@ export default function Badge({
   }
 
   useEffect(() => {
-    if (!scannedValue) return;
-
-    const cliente = getCurrPostazioneData()?.cliente;
-    const postazione = getCurrPostazioneData()?.name;
-
-    if (!cliente || !postazione) return;
+    if (!scannedValue || !currPostazione) return;
 
     console.log("Scanner accessi | scannedValue:", scannedValue);
     mutateInStrutt.mutate({
       barcode: scannedValue,
-      cliente,
-      postazione,
+      postazione: currPostazione._id,
     });
     clearScannedValue();
   }, [scannedValue]);
@@ -503,33 +348,6 @@ export default function Badge({
         <div className="row mt-2 justify-content-start align-items-start submit-form">
           <div className="col-8 badge-form">
             <div className="row mb-2">
-              {postazioni.isSuccess && (
-                <div className="form-floating col-sm-2">
-                  <select
-                    className="form-select form-select-sm"
-                    id="postazione"
-                    placeholder="postazione"
-                    ref={postazioneRef}
-                    defaultValue={postazioni.data[0].name}
-                  >
-                    {postazioni.data
-                      .filter(({ cliente, name }) => cliente && name)
-                      .map(({ _id, cliente, name }) => (
-                        <option
-                          data-cliente={cliente}
-                          data-name={name}
-                          data-id={_id}
-                          value={name}
-                          key={_id}
-                        >
-                          {cliente} - {name}
-                        </option>
-                      ))}
-                  </select>
-                  <label htmlFor="postazione">postazione</label>
-                </div>
-              )}
-              <div className="w-100 mb-1" />
               <div className="form-floating col-sm-2">
                 <input
                   type="text"
@@ -584,11 +402,14 @@ export default function Badge({
                   placeholder="assegnazione"
                   ref={assegnazioneRef}
                   defaultValue=""
+                  onChange={(e) =>
+                    setCurrTipoBadge(e.target.value as TBadgeTipo)
+                  }
                 >
                   <option value="" key="-1" disabled={readonlyForm === true} />
                   {assegnazioni.data
                     ?.filter(
-                      ({ name, badge }) => badge === props.tipoBadge && name
+                      ({ name, badge }) => badge === currTipoBadge && name
                     )
                     .map(({ name }, index) => (
                       <option
@@ -652,9 +473,7 @@ export default function Badge({
                     type="file"
                     className="custom-file-input"
                     id="pfp"
-                    disabled={
-                      readonlyForm === true || props.user.admin === false
-                    }
+                    disabled={readonlyForm === true || user.admin === false}
                     autoComplete="off"
                     ref={pfpRef}
                     defaultValue=""
@@ -772,7 +591,7 @@ export default function Badge({
                           className="form-control form-control-sm"
                           id="scadenza"
                           readOnly={
-                            readonlyForm === true || props.user.admin === false
+                            readonlyForm === true || user.admin === false
                           }
                           autoComplete="off"
                           ref={scadenzaRef}
@@ -844,42 +663,42 @@ export default function Badge({
               </div>
             </div>
           </div>
-          {postazioni.isSuccess && (
-            <FormButtons
-              findBadges={() => findBadges.refetch()}
-              timbra={() =>
-                mutateInStrutt.mutate({
-                  barcode: barcodeRef.current!.value,
-                  cliente: getCurrPostazioneData()!.cliente!,
-                  postazione: postazioneRef.current!.value,
-                })
+          <FormButtons
+            findBadges={() => findBadges.refetch()}
+            timbra={() => {
+              if (!currPostazione) {
+                toast.error("Campo Postazione mancante");
+                return;
               }
-              insertBadge={() => insertBadge.mutate(createFormData())}
-              updateBadge={() => {
-                const confirmed = window.confirm(
-                  "Procedere alla modifica del badge?"
-                );
-                if (!confirmed) return;
-                updateBadge.mutate(createFormData());
-              }}
-              deleteBadge={() => {
-                const confirmed = window.confirm(
-                  "Procedere alla rimozione del badge?"
-                );
-                if (!confirmed) return;
-                deleteBadge.mutate(barcodeRef.current!.value);
-              }}
-              openPopup={setIsShown.setTrue}
-              readonlyForm={readonlyForm}
-              toggleReadOnlyForm={setReadonlyForm.setToggle}
-              admin={props.user.admin}
-              excel={props.user.excel}
-              provvisori={props.user.provvisori}
-              runScanner={props.runScanner}
-              scannerConnected={props.scannerConnected}
-              badges={findBadges.data || []}
-            />
-          )}
+
+              mutateInStrutt.mutate({
+                barcode: barcodeRef.current!.value,
+                postazione: currPostazione._id,
+              });
+            }}
+            insertBadge={() => insertBadge.mutate(createFormData())}
+            updateBadge={() => {
+              const confirmed = window.confirm(
+                "Procedere alla modifica del badge?"
+              );
+              if (!confirmed) return;
+              updateBadge.mutate(createFormData());
+            }}
+            deleteBadge={() => {
+              const confirmed = window.confirm(
+                "Procedere alla rimozione del badge?"
+              );
+              if (!confirmed) return;
+              deleteBadge.mutate(barcodeRef.current!.value);
+            }}
+            openPopup={setIsShown.setTrue}
+            readonlyForm={readonlyForm}
+            toggleReadOnlyForm={setReadonlyForm.setToggle}
+            admin={user.admin}
+            excel={user.excel}
+            provvisori={user.provvisori}
+            badges={findBadges.data || []}
+          />
           <div className="col-4">
             <Clock />
           </div>

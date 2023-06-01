@@ -30,7 +30,14 @@ Router.route("/postazioni/:idPostazione").delete(
   BadgesCtrl.apiDeletePostazione
 );
 
-Router.route("/clienti").get(BadgesCtrl.apiGetClienti);
+Router.route("/clienti")
+  .get(BadgesCtrl.apiGetClienti)
+  .post(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiPostCliente);
+Router.route("/clienti/:cliente").delete(
+  JwtAuth.verifyToken,
+  JwtAuth.isAdmin,
+  BadgesCtrl.apiDeleteCliente
+);
 
 Router.route("/archivio")
   .get(JwtAuth.verifyToken, JwtAuth.isAdmin, ArchivioCtrl.apiGetArchivio)

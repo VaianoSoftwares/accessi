@@ -1,6 +1,7 @@
 import { Collection, MongoClient } from "mongodb";
 import errCheck from "../utils/errCheck.js";
 import { TAssegnaz, TEnums, TPostazione } from "../types/enums.js";
+import PostazioniDao from "./postazioni.dao.js";
 
 const COLLECTION_NAME = "enums";
 
@@ -117,6 +118,7 @@ export default class EnumsDAO {
 
   static async deleteCliente(cliente: string) {
     try {
+      await PostazioniDao.deletePostazioniOfCliente(cliente);
       return await enums.updateOne(
         {},
         { $pull: { cliente, postazione: { cliente } } }

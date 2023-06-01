@@ -35,7 +35,6 @@ export type TPermesso = {
 
 export type TimbraDoc = {
   barcode: string;
-  cliente: string;
   postazione: string;
 };
 
@@ -213,7 +212,8 @@ export type TFindArchChiaviDoc = TPartialArchivioChiave & {
 
 export type TPrestitoDataReq = {
   barcodes: string[];
-} & Pick<TArchivioChiave, "cliente" | "postazione">;
+  postazioneId: string;
+};
 
 export type TPrestitoDataRes = {
   rese: string[];
@@ -223,7 +223,6 @@ export type TPrestitoDataRes = {
 export type TBadgeFormState = Partial<
   TBadgeResp & {
     pfp: string;
-    postazione: string;
   }
 >;
 
@@ -260,7 +259,6 @@ export type TDocumento = TPartialDoc & {
 export type TDocFormState = Partial<TPartialDoc>;
 
 export type TInPrestitoDataReq = {
-  cliente?: string;
   postazione?: string;
 };
 
@@ -304,7 +302,7 @@ export const N_DATE_DIVS = N_CALENDAR_ROWS * N_CALENDAR_COLS - 1;
 
 export type TAddPostazioneData = Omit<TPostazione, "_id">;
 export type TDeletePostazioneData = Pick<TPostazione, "_id">;
-export type TGetPostazioniFilters = { ids?: string[]; names?: string[] };
+export type TGetPostazioniFilters = { _id?: string[]; names?: string[] };
 
 export type TPage =
   | "badge"
@@ -325,13 +323,19 @@ export const PAGES: ReadonlyArray<TPage> = [
   "documenti",
 ];
 
-export type TAdminPage = "register" | "users" | "assegnazioni" | "postazioni";
+export type TAdminPage =
+  | "register"
+  | "users"
+  | "assegnazioni"
+  | "postazioni"
+  | "clienti";
 
 export const ADMIN_PAGES: ReadonlyArray<TAdminPage> = [
   "register",
   "users",
   "assegnazioni",
   "postazioni",
+  "clienti",
 ];
 
 export interface IPageInfo {
@@ -442,6 +446,15 @@ export const ADMIN_PAGES_INFO: ReadonlyMap<TAdminPage, IPageInfo> = new Map([
       name: "Postazioni",
       title: "Modifica Postazioni",
       description: "Gestione delle postazioni",
+    },
+  ],
+  [
+    "clienti",
+    {
+      pathname: "/admin/clienti",
+      name: "Clienti",
+      title: "Modifica Clienti",
+      description: "Gestione dei clienti",
     },
   ],
 ]);
