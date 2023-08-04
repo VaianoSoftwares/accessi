@@ -80,7 +80,11 @@ export default function Badge({
       "inStrutt",
       {
         tipi: [props.tipoBadge, "PROVVISORIO"],
-        postazione: currPostazione?.name,
+        postazioniIds: currPostazione
+          ? [currPostazione?._id]
+          : user.admin
+          ? undefined
+          : user.postazioni,
       },
     ],
     queryFn: (context) =>
@@ -147,9 +151,6 @@ export default function Badge({
     onSettled: async () => (timeoutRunning.current = false),
   });
 
-  const [currTipoBadge, setCurrTipoBadge] = useState<TBadgeTipo>(
-    props.tipoBadge
-  );
   const [deletedRow, setDeletedRow] = useState<TInStruttTableContent>();
   const [isShown, setIsShown] = useBool(false);
   const [readonlyForm, setReadonlyForm] = useReadonlyForm((condition) => {
@@ -402,15 +403,10 @@ export default function Badge({
                   placeholder="assegnazione"
                   ref={assegnazioneRef}
                   defaultValue=""
-                  onChange={(e) =>
-                    setCurrTipoBadge(e.target.value as TBadgeTipo)
-                  }
                 >
                   <option value="" key="-1" disabled={readonlyForm === true} />
                   {assegnazioni.data
-                    ?.filter(
-                      ({ name, badge }) => badge === currTipoBadge && name
-                    )
+                    ?.filter(({ name }) => name)
                     .map(({ name }, index) => (
                       <option
                         value={name}

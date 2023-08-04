@@ -1,8 +1,9 @@
-import { Collection, Filter, MongoClient, ObjectId } from "mongodb";
+import { Collection, Filter, MongoClient, ObjectId, WithId } from "mongodb";
 import errCheck from "../utils/errCheck.js";
 import { TBadge, TChiave } from "../types/badges.js";
 import { TArchivioChiave } from "../types/prestiti.js";
 import BadgesDAO from "./badges.dao.js";
+import { TPostazione } from "../types/enums.js";
 
 const COLLECTION_NAME = "archivio-chiavi";
 
@@ -54,8 +55,8 @@ export default class PrestitiDAO {
           cognome: "$nominativo.cognome",
           chiave: "$chiave.barcode",
           descrizione: "$chiave.descrizione",
-          cliente: 1,
-          postazione: 1,
+          cliente: "$postazione.cliente",
+          postazione: "$postazione.name",
           ip: 1,
           prestito: "$data.prestito",
           reso: "$data.reso",
@@ -70,11 +71,11 @@ export default class PrestitiDAO {
     }
   }
 
-  static async getInPrestito(cliente?: string, postazione?: string) {
+  static async getInPrestito(postazioniIds?: string[]) {
     const arrFilters: object[] = [{ "data.uscita": { $eq: null } }];
 
-    if (cliente) arrFilters.push({ cliente });
-    if (postazione) arrFilters.push({ postazione });
+    if (postazioniIds)
+      arrFilters.push({ "postazione._id": { $in: postazioniIds } });
 
     const query: Filter<unknown> = {
       $and: arrFilters,
@@ -133,8 +134,7 @@ export default class PrestitiDAO {
 
   static async prestitoChiavi(
     barcodes: string[],
-    cliente: string,
-    postazione: string,
+    postazione: WithId<TPostazione>,
     ip: string
   ) {
     try {
@@ -164,7 +164,6 @@ export default class PrestitiDAO {
           const addResponse = await this.#prestaChiave(
             nominativo,
             chiave,
-            cliente,
             postazione,
             ip
           );
@@ -216,8 +215,7 @@ export default class PrestitiDAO {
   static async #prestaChiave(
     nominativo: TBadge,
     chiave: TChiave,
-    cliente: string,
-    postazione: string,
+    postazione: WithId<TPostazione>,
     ip: string
   ) {
     const archivioDoc: TArchivioChiave = {
@@ -227,7 +225,6 @@ export default class PrestitiDAO {
         prestito: new Date(new Date().toISOString()),
         reso: null,
       },
-      cliente,
       postazione,
       ip,
     };

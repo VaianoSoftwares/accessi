@@ -1,8 +1,9 @@
 import BadgesDAO from "./badges.dao.js";
-import { MongoClient, ObjectId, Collection, Filter } from "mongodb";
+import { MongoClient, ObjectId, Collection, Filter, WithId } from "mongodb";
 import errCheck from "../utils/errCheck.js";
 import { TBadgeTipo, TGenericBadge, TGenericNom } from "../types/badges.js";
 import { TArchivio } from "../types/archivio.js";
+import { TPostazione } from "../types/enums.js";
 
 const COLLECTION_NAME = "archivio1";
 
@@ -77,8 +78,8 @@ export default class ArchivioDAO {
           _id: 0,
           codice: "$badge.barcode",
           tipo: "$badge.tipo",
-          cliente: 1,
-          postazione: 1,
+          cliente: "$postazione.cliente",
+          postazione: "$postazione.name",
           ip: 1,
           assegnaz: "$badge.assegnazione",
           nome: { $ifNull: ["$badge.nominativo.nome", ""] },
@@ -108,8 +109,8 @@ export default class ArchivioDAO {
             _id: 0,
             timbra: {
               codice: "$badge.barcode",
-              cliente: 1,
-              postazione: 1,
+              cliente: "$postazione.cliente",
+              postazione: "$postazione.name",
               tipo: "$badge.tipo",
               assegnaz: "$badge.assegnazione",
               nome: { $ifNull: ["$badge.nominativo.nome", ""] },
@@ -148,8 +149,7 @@ export default class ArchivioDAO {
 
   static async timbra(
     barcode: string,
-    cliente: string,
-    postazione: string,
+    postazione: WithId<TPostazione>,
     ip: string
   ) {
     // check if barcode is a "tessera universitario" document number
@@ -204,10 +204,7 @@ export default class ArchivioDAO {
       let msgTimbra = "";
 
       if (inStrutt) {
-        if (
-          inStrutt.cliente !== cliente ||
-          inStrutt.postazione !== postazione
-        ) {
+        if (inStrutt.postazione._id !== postazione._id) {
           throw new Error(`Impossibile timbrare l'uscita del badge ${barcode}`);
         }
 
@@ -232,7 +229,6 @@ export default class ArchivioDAO {
       } else {
         const timbraEntraResp = await this.#timbraEntra(
           badgeTimbra,
-          cliente,
           postazione,
           ip
         );
@@ -439,27 +435,16 @@ export default class ArchivioDAO {
 
   static async #timbraEntra(
     badgeDoc: TGenericBadge,
-    cliente: string,
-    postazione: string,
+    postazione: WithId<TPostazione>,
     ip: string
   ) {
     try {
       const archivioDoc: TArchivio = {
         badge: badgeDoc,
         data: {
-          // const inStrutt = await archivio.findOne(
-          //   {
-          //     $and: [
-          //       { "badge.barcode": barcode },
-          //       { "data.uscita": { $eq: null } },
-          //     ],
-          //   },
-          //   { projection: { _id: 1 } }
-          // );
           entrata: new Date(new Date().toISOString()),
           uscita: null,
         },
-        cliente,
         postazione,
         ip,
       };
@@ -499,8 +484,8 @@ export default class ArchivioDAO {
         {
           projection: {
             _id: 1,
-            cliente: 1,
-            postazione: 1,
+            cliente: "$postazione.cliente",
+            postazione: "$postazione.name",
           },
         }
       );
@@ -510,15 +495,11 @@ export default class ArchivioDAO {
     }
   }
 
-  static async getInStrutt(
-    cliente?: string,
-    postazione?: string,
-    tipi?: TBadgeTipo[]
-  ) {
+  static async getInStrutt(postazioniIds?: string[], tipi?: TBadgeTipo[]) {
     const arrFilters: object[] = [{ "data.uscita": { $eq: null } }];
 
-    if (cliente) arrFilters.push({ cliente });
-    if (postazione) arrFilters.push({ postazione });
+    if (postazioniIds)
+      arrFilters.push({ "postazione._id": { $in: postazioniIds } });
     if (tipi) arrFilters.push({ "badge.tipo": { $in: tipi } });
 
     const query: Filter<unknown> = {
@@ -530,8 +511,8 @@ export default class ArchivioDAO {
         projection: {
           _id: 0,
           codice: "$badge.barcode",
-          cliente: 1,
-          postazione: 1,
+          cliente: "$postazione.cliente",
+          postazione: "$postazione.name",
           tipo: "$badge.tipo",
           assegnaz: "$badge.assegnazione",
           nome: { $ifNull: ["$badge.nominativo.nome", ""] },

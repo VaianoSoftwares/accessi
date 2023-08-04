@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { TUser, PAGES_INFO, ADMIN_PAGES_INFO, TPostazione } from "../../types";
 import "./index.css";
 import BadgeDataService from "../../services/badge";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 
 export default function AccessiNavbar({
   user,
@@ -27,6 +27,8 @@ export default function AccessiNavbar({
   const navigate = useNavigate();
   let location = useLocation().pathname;
 
+  const [currCliente, setCurrCliente] = useState<string>();
+
   const postazioni = useQuery({
     queryKey: ["postazioni", user.postazioni],
     queryFn: (context) =>
@@ -37,7 +39,20 @@ export default function AccessiNavbar({
       }).then((response) => {
         console.log("queryPostazioni | response:", response);
         const result = response.data.data as TPostazione[];
-        setCurrPostazione(result[0]);
+        setCurrPostazione(result.length === 1 ? result[0] : undefined);
+        return result;
+      }),
+  });
+
+  const clienti = useQuery({
+    queryKey: ["clienti"],
+    queryFn: () =>
+      BadgeDataService.getClienti().then((response) => {
+        console.log("queryClienti | response:", response);
+        const result = response.data.data as string[];
+        setCurrCliente(
+          result.length === 1 ? currPostazione?.cliente : undefined
+        );
         return result;
       }),
   });
@@ -122,6 +137,26 @@ export default function AccessiNavbar({
               </li>
             )}
           </ul>
+          {clienti.isSuccess && (
+            <div className="d-flex">
+              <select
+                className="form-select me-2"
+                id="currCliente"
+                name="currCliente"
+                onChange={(event) => {
+                  setCurrCliente(event.target.value || undefined);
+                  setCurrPostazione(undefined);
+                }}
+              >
+                {user.admin && <option>Tutti i clienti</option>}
+                {clienti.data.map((cliente) => (
+                  <option value={cliente} key={cliente}>
+                    {cliente}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           {postazioni.isSuccess && (
             <div className="d-flex">
               <select
@@ -143,6 +178,7 @@ export default function AccessiNavbar({
                   console.log(currPostazione);
                 }}
               >
+                {user.admin && <option>Tutte le postazioni</option>}
                 {postazioni.data
                   .filter(({ cliente, name }) => cliente && name)
                   .map(({ _id, cliente, name }) => (
@@ -156,7 +192,6 @@ export default function AccessiNavbar({
                       {cliente} - {name}
                     </option>
                   ))}
-                {user.admin && <option>Tutte le postazioni</option>}
               </select>
             </div>
           )}

@@ -259,7 +259,7 @@ export type TDocumento = TPartialDoc & {
 export type TDocFormState = Partial<TPartialDoc>;
 
 export type TInPrestitoDataReq = {
-  postazione?: string;
+  postazioniIds?: string[];
 };
 
 export type TInStruttDataReq = TInPrestitoDataReq & {

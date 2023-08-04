@@ -39,10 +39,10 @@ export default class PrestitiController {
     }
 
     try {
-      const [{ name: postazione, cliente }] = await PostazioniDao.getPostazioni(
-        { _id: [parsed.data.postazioneId] }
-      );
-      if (!postazione || !cliente) {
+      const [postazione] = await PostazioniDao.getPostazioni({
+        _id: [parsed.data.postazioneId],
+      });
+      if (!postazione) {
         return res
           .status(400)
           .json({ success: false, msg: "Postazione non valida", data: null });
@@ -50,7 +50,6 @@ export default class PrestitiController {
 
       const response = await PrestitiDAO.prestitoChiavi(
         parsed.data.barcodes,
-        cliente,
         postazione,
         req.ip
       );

@@ -113,10 +113,11 @@ const FIND_BADGE_SCHEMA = z
 export type TFindBadgeReq = z.infer<typeof FIND_BADGE_SCHEMA>;
 
 const INSERT_BADGE_SCHEMA = z.object({
-  barcode: z
-    .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-    .min(BARCODE_MIN_LEN, BARCODE_TOO_SHORT_ERR_MSG)
-    .max(BARCODE_MAX_LEN, BARCODE_TOO_LONG_ERR_MSG),
+  // barcode: z
+  //   .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
+  //   .min(BARCODE_MIN_LEN, BARCODE_TOO_SHORT_ERR_MSG)
+  //   .max(BARCODE_MAX_LEN, BARCODE_TOO_LONG_ERR_MSG),
+  barcode: z.string().length(12).default(""),
   descrizione: z.string().default(""),
   tipo: z.enum(TIPI_BADGE).default("BADGE"),
   assegnazione: z.string().default(""),
@@ -218,8 +219,11 @@ const TIMBRA_SCHEMA = z.object({
 
 const GET_INSTRUTT_SCHEMA = z
   .object({
-    cliente: z.string().optional(),
-    postazione: z.string().optional(),
+    postazioniIds: z
+      .string()
+      .length(ID_LEN, ID_LENGTH_ERR_MSG)
+      .array()
+      .optional(),
     tipi: z.enum(TIPI_BADGE).array().nonempty().optional(),
   })
   .optional();

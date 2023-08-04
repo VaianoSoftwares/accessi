@@ -6,6 +6,7 @@ import { Request, Response } from "express";
 import errCheck from "../utils/errCheck.js";
 import { TAssegnaz } from "../types/enums.js";
 import PostazioniDao from "../dao/postazioni.dao.js";
+import hash from "../utils/barcodeGen.js";
 
 export default class BadgesController {
   static async apiGetBadges(req: Request, res: Response) {
@@ -46,6 +47,8 @@ export default class BadgesController {
     }
 
     try {
+      if (!parsed.data.barcode) parsed.data.barcode = hash(parsed.data);
+
       const badgesResponse = await BadgesDAO.addBadge(parsed.data);
 
       if ("error" in badgesResponse) {
@@ -104,11 +107,9 @@ export default class BadgesController {
         });
       }
 
-      const barcode = parsed.data.barcode.toUpperCase();
-
       const fileUplResp = await FileManager.uploadPfp(
         req.files,
-        barcode,
+        parsed.data.barcode,
         badgesResponse.tipoBadge
       );
       if ("error" in fileUplResp) {
@@ -117,11 +118,13 @@ export default class BadgesController {
           .json({ success: false, msg: fileUplResp.error, data: null });
       } else if (badgesResponse.modifiedCount === 0 && !fileUplResp.fileName) {
         throw new Error(
-          `Badge ${barcode} non aggiornato. Nessun campo inserito.`
+          `Badge ${parsed.data.barcode} non aggiornato. Nessun campo inserito.`
         );
       }
 
-      console.log(`apiPutBadge | Aggiornato badge ${barcode} con successo`);
+      console.log(
+        `apiPutBadge | Aggiornato badge ${parsed.data.barcode} con successo`
+      );
 
       res.json({
         success: true,
@@ -143,33 +146,33 @@ export default class BadgesController {
         .json({ success: false, msg: parsed.error.errors[0].message });
     }
 
-    const barcode = parsed.data.barcode.toUpperCase();
-
     try {
-      const badgesResponse = await BadgesDAO.deleteBadge(barcode);
+      const badgesResponse = await BadgesDAO.deleteBadge(parsed.data.barcode);
 
       if ("error" in badgesResponse) {
         throw new Error(
-          `Badge ${barcode} non eliminato - ${badgesResponse.error}`
+          `Badge ${parsed.data.barcode} non eliminato - ${badgesResponse.error}`
         );
       } else if (
         "deletedCount" in badgesResponse &&
         badgesResponse.deletedCount === 0
       ) {
         throw new Error(
-          `Badge ${barcode} non eliminato - Barcode non esistente`
+          `Badge ${parsed.data.barcode} non eliminato - Barcode non esistente`
         );
       }
 
-      const delPfpResp = await FileManager.deletePfp(barcode);
+      const delPfpResp = await FileManager.deletePfp(parsed.data.barcode);
 
       if (delPfpResp?.error) {
         throw new Error(
-          `Badge ${barcode} - Non e' stato possibile eliminare pfp`
+          `Badge ${parsed.data.barcode} - Non e' stato possibile eliminare pfp`
         );
       }
 
-      console.log(`apiDeleteBadge | Rimosso badge ${barcode} con successo`);
+      console.log(
+        `apiDeleteBadge | Rimosso badge ${parsed.data.barcode} con successo`
+      );
 
       res.json({
         success: true,

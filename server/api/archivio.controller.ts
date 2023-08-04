@@ -28,7 +28,6 @@ export default class ArchivioController {
   }
 
   static async apiPostArchivio(req: Request, res: Response) {
-    // barcode, tipo, cliente, postazione are REQUIRED in order to execute a "timbratura"
     const parsed = Validator.timbra(req.body);
     if (parsed.success === false) {
       console.error("apiPostArchivio | error:", parsed.error);
@@ -40,10 +39,10 @@ export default class ArchivioController {
     }
 
     try {
-      const [{ name: postazione, cliente }] = await PostazioniDao.getPostazioni(
-        { _id: [parsed.data.postazioneId] }
-      );
-      if (!postazione || !cliente) {
+      const [postazione] = await PostazioniDao.getPostazioni({
+        _id: [parsed.data.postazioneId],
+      });
+      if (!postazione) {
         return res
           .status(400)
           .json({ success: false, msg: "Postazione non valida", data: null });
@@ -51,7 +50,6 @@ export default class ArchivioController {
 
       const archivioResponse = await ArchivioDAO.timbra(
         parsed.data.barcode.toUpperCase(),
-        cliente,
         postazione,
         req.ip
       );
@@ -88,8 +86,7 @@ export default class ArchivioController {
 
     try {
       const archivioList = await ArchivioDAO.getInStrutt(
-        parsed?.data?.cliente,
-        parsed?.data?.postazione,
+        parsed?.data?.postazioniIds,
         parsed?.data?.tipi
       );
 

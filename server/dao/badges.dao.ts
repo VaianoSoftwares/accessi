@@ -105,7 +105,7 @@ export default class BadgesDAO {
 
   static #getBadgeDoc(data: TInsertBadgeReq): TBadge {
     return {
-      barcode: data.barcode.toUpperCase(),
+      barcode: data.barcode,
       descrizione: data.descrizione.toUpperCase(),
       tipo: "BADGE",
       assegnazione: data.assegnazione.toUpperCase(),
@@ -129,7 +129,7 @@ export default class BadgesDAO {
 
   static #getVeicoloDoc(data: TInsertBadgeReq): TVeicolo {
     return {
-      barcode: data.barcode.toUpperCase(),
+      barcode: data.barcode,
       descrizione: data.descrizione.toUpperCase(),
       tipo: "VEICOLO",
       assegnazione: data.assegnazione.toUpperCase(),
@@ -155,7 +155,7 @@ export default class BadgesDAO {
 
   static #getChiaveDoc(data: TInsertBadgeReq): TChiave {
     return {
-      barcode: data.barcode.toUpperCase(),
+      barcode: data.barcode,
       descrizione: data.descrizione.toUpperCase(),
       tipo: "CHIAVE",
       assegnazione: data.assegnazione.toUpperCase(),
@@ -167,7 +167,7 @@ export default class BadgesDAO {
 
   static #getProvvisorioDoc(data: TInsertBadgeReq): TProvvisorio {
     return {
-      barcode: data.barcode.toUpperCase(),
+      barcode: data.barcode,
       descrizione: data.descrizione.toUpperCase(),
       tipo: "PROVVISORIO",
       assegnazione: data.assegnazione.toUpperCase(),
@@ -201,11 +201,9 @@ export default class BadgesDAO {
 
   static async addBadge(data: TInsertBadgeReq) {
     try {
-      const barcode = data.barcode.toUpperCase();
-
-      const badge = await this.findBadgeByBarcode(barcode);
+      const badge = await this.findBadgeByBarcode(data.barcode);
       if (badge) {
-        throw new Error(`Barcode ${barcode} già esistente.`);
+        throw new Error(`Barcode ${data.barcode} già esistente.`);
       }
 
       const badgeDoc = this.#createBadgeDoc(data);
@@ -217,13 +215,12 @@ export default class BadgesDAO {
   }
 
   static async updateBadge(data: TUpdateBadgeReq) {
-    const barcode = data.barcode.toUpperCase();
     const paramsToUpdate: Record<string, unknown> = {};
 
     try {
-      const badge = await this.findBadgeByBarcode(barcode);
+      const badge = await this.findBadgeByBarcode(data.barcode);
       if (!badge) {
-        throw new Error(`Barcode ${barcode} non esistente.`);
+        throw new Error(`Barcode ${data.barcode} non esistente.`);
       }
 
       Object.entries(data)
@@ -258,9 +255,7 @@ export default class BadgesDAO {
 
   static async deleteBadge(barcode: string) {
     try {
-      return await badges.deleteOne({
-        barcode: barcode.toUpperCase(),
-      });
+      return await badges.deleteOne({ barcode });
     } catch (err) {
       return errCheck(err, "deleteBadge |");
     }
