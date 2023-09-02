@@ -29,22 +29,18 @@ int main(int argc, char *argv[])
     memset(coms, 0, sizeof(coms));
 
     // guest token must be specified as cmd arg
-    if (argc < 2)
-        throw_err("main | invalid arguments: token is missing");
+    if (argc < 3)
+        throw_err("usage: %s <token> <postazioneId> <hostname> <port>");
 
     // get cmd args
     const char *token = argv[1];
+    const char *postazione_id = argv[2];
 
-    const char *hostname = (argc >= 3 && strlen(argv[2]) > 0) ? argv[2] : DEFAULT_HOSTNAME;
-    int port = (argc >= 6 && atoi(argv[5]) > 0) ? atoi(argv[6]) : DEFAULT_PORT;
-
-    body_args_t ba = { NULL };
-    ba.postazione = (argc >= 4 && strlen(argv[3]) > 0) ? argv[4] : DEFAULT_POST;
-    ba.cliente = (argc >= 3 && strlen(argv[4]) > 0) ? argv[3] : DEFAULT_CLIENTE;
-    ba.barcode = NULL;
+    const char *hostname = (argc >= 4 && strlen(argv[3]) > 0) ? argv[3] : DEFAULT_HOSTNAME;
+    int port = (argc >= 5 && atoi(argv[4]) > 0) ? atoi(argv[4]) : DEFAULT_PORT;
 
     int body_len = strlen(BODY_FORMAT) +
-                   strlen(ba.cliente) + strlen(ba.postazione) + SCAN_BUF_SIZE;
+                   strlen(postazione_id) + SCAN_BUF_SIZE;
     int req_len =
         strlen(MSG_FORMAT) + body_len + strlen(hostname) + strlen(token);
 
@@ -75,13 +71,13 @@ int main(int argc, char *argv[])
     start_mutex = CreateMutexW(NULL, FALSE, NULL);
 
     // params for threads
-    tparams_t tparams = { NULL };
-    tparams.ba = &ba;
+    tparams_t tparams = {NULL};
     tparams.body_len = body_len;
     tparams.hostname = hostname;
     tparams.req_len = req_len;
     tparams.ssl = ssl;
     tparams.token = token;
+    tparams.postazione_id = postazione_id;
     tparams.n_thread = 0;
 
     // init serial coms array
@@ -89,7 +85,7 @@ int main(int argc, char *argv[])
 
     /*#################################################################################################################*/
 
-    HANDLE h_threads[NDEVS] = { NULL };
+    HANDLE h_threads[NDEVS] = {NULL};
 
     // create threads
     create_threads(h_threads, &tparams);
@@ -110,7 +106,7 @@ int main(int argc, char *argv[])
         CloseHandle(com_mutex);
     if (req_mutex)
         CloseHandle(req_mutex);
-    if(start_mutex)
+    if (start_mutex)
         CloseHandle(start_mutex);
 
     puts("MAIN | Execution terminated.");
@@ -118,7 +114,8 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 
-void create_threads(HANDLE *h_threads, tparams_t *tparams) {
+void create_threads(HANDLE *h_threads, tparams_t *tparams)
+{
     WaitForSingleObject(start_mutex, 0L);
     // create NDEVS threads
     for (int i = 0; i < NDEVS; i++)
@@ -127,7 +124,7 @@ void create_threads(HANDLE *h_threads, tparams_t *tparams) {
         h_threads[i] = (HANDLE)_beginthread(send_timbra_req, 0, (void *)tparams);
         if (!h_threads[i] || h_threads[i] == INVALID_HANDLE_VALUE)
             throw_err("main | _beginthread");
-        
+
         printf("MAIN | Created THREAD %d.\n", i);
         WaitForSingleObject(start_mutex, INFINITE);
     }
@@ -143,9 +140,9 @@ void send_timbra_req(void *thread_params)
 
     ReleaseMutex(start_mutex);
 
-    body_args_t *ba = tparams->ba;
-
     const char *token = tparams->token;
+    const char *postazione_id = tparams->postazione_id;
+
     const char *hostname = tparams->hostname;
 
     SSL *ssl = tparams->ssl;
@@ -172,7 +169,8 @@ void send_timbra_req(void *thread_params)
             {
                 // print_err("send_timbra_req | open_serial_port");
 
-                if (h_comm) CloseHandle(h_comm);
+                if (h_comm)
+                    CloseHandle(h_comm);
                 coms[n_thread] = 0;
 
                 ReleaseMutex(com_mutex);
@@ -190,17 +188,17 @@ void send_timbra_req(void *thread_params)
         if (!read_scanner(h_comm, event_mask, scan_buf, sizeof(scan_buf)))
         {
             print_err("send_timbra_req | read_scanner");
-            if (h_comm) CloseHandle(h_comm);
+            if (h_comm)
+                CloseHandle(h_comm);
             coms[n_thread] = 0;
             Sleep(5000);
             continue;
         }
 
         // create msg request
-        _snprintf_s(body_msg, sizeof(body_msg), sizeof(body_msg), BODY_FORMAT, scan_buf, ba->cliente, ba->postazione /*,
-                 ba->tipo*/);
+        _snprintf_s(body_msg, sizeof(body_msg), sizeof(body_msg), BODY_FORMAT, scan_buf, postazione_id);
         _snprintf_s(request, sizeof(request), sizeof(request), MSG_FORMAT, hostname, token,
-                 strlen(body_msg), body_msg);
+                    strlen(body_msg), body_msg);
 
         WaitForSingleObject(req_mutex, INFINITE);
 
@@ -232,19 +230,21 @@ void send_timbra_req(void *thread_params)
         ReleaseMutex(req_mutex);
     }
 
-    if (h_comm) CloseHandle(h_comm);
+    if (h_comm)
+        CloseHandle(h_comm);
     coms[n_thread] = 0;
 
     printf("THREAD %d | Execution terminated.\n", n_thread);
 }
 
-DWORD __print_err(const char *msg, va_list argptr) {
+DWORD __print_err(const char *msg, va_list argptr)
+{
     DWORD err_code = GetLastError();
-    
+
     if (!err_code)
     {
         vfprintf(stderr, msg, argptr);
-        fprintf(stderr,"\n");
+        fprintf(stderr, "\n");
         return EXIT_FAILURE;
     }
 
@@ -254,10 +254,11 @@ DWORD __print_err(const char *msg, va_list argptr) {
                       FORMAT_MESSAGE_IGNORE_INSERTS,
                   NULL, err_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                   (LPTSTR)&lp_err_descr_buf, 0, NULL);
-    
-    if(!lp_err_descr_buf) {
+
+    if (!lp_err_descr_buf)
+    {
         vfprintf(stderr, msg, argptr);
-        fprintf(stderr,"\n");
+        fprintf(stderr, "\n");
         return EXIT_FAILURE;
     }
 
@@ -273,7 +274,8 @@ DWORD __print_err(const char *msg, va_list argptr) {
     return err_code;
 }
 
-void print_err(const char *msg, ...) {
+void print_err(const char *msg, ...)
+{
     va_list argptr;
     va_start(argptr, msg);
     __print_err(msg, argptr);
@@ -340,15 +342,17 @@ BOOL open_serial_port(int n_thread, HANDLE *h_comm, DWORD *event_mask)
     if (!find_serial_port(n_thread, h_comm))
     {
         coms[n_thread] = 0;
-        if(*h_comm) CloseHandle(*h_comm);
+        if (*h_comm)
+            CloseHandle(*h_comm);
         // print_err("open_serial_port | find_serial_port");
         return FALSE;
     }
-    
+
     if (!FlushFileBuffers(*h_comm))
     {
         coms[n_thread] = 0;
-        if(*h_comm) CloseHandle(*h_comm);
+        if (*h_comm)
+            CloseHandle(*h_comm);
         print_err("open_serial_port | FlushFileBuffer");
         return FALSE;
     }
@@ -359,7 +363,8 @@ BOOL open_serial_port(int n_thread, HANDLE *h_comm, DWORD *event_mask)
     if (!GetCommState(*h_comm, &dcb_serial_params))
     {
         coms[n_thread] = 0;
-        if(*h_comm) CloseHandle(*h_comm);
+        if (*h_comm)
+            CloseHandle(*h_comm);
         print_err("init_scanner | GetComState");
         return FALSE;
     }
@@ -372,7 +377,8 @@ BOOL open_serial_port(int n_thread, HANDLE *h_comm, DWORD *event_mask)
     if (!SetCommState(*h_comm, &dcb_serial_params))
     {
         coms[n_thread] = 0;
-        if(*h_comm) CloseHandle(*h_comm);
+        if (*h_comm)
+            CloseHandle(*h_comm);
         print_err("init_scanner | SetComState");
         return FALSE;
     }
@@ -387,7 +393,8 @@ BOOL open_serial_port(int n_thread, HANDLE *h_comm, DWORD *event_mask)
     if (!SetCommTimeouts(*h_comm, &timeouts))
     {
         coms[n_thread] = 0;
-        if(*h_comm) CloseHandle(*h_comm);
+        if (*h_comm)
+            CloseHandle(*h_comm);
         print_err("init_scanner | SetComTimeouts");
         return FALSE;
     }
@@ -396,7 +403,8 @@ BOOL open_serial_port(int n_thread, HANDLE *h_comm, DWORD *event_mask)
     if (!SetCommMask(*h_comm, *event_mask))
     {
         coms[n_thread] = 0;
-        if(*h_comm) CloseHandle(*h_comm);
+        if (*h_comm)
+            CloseHandle(*h_comm);
         print_err("init_scanner | SetCommMask");
         return FALSE;
     }

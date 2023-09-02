@@ -79,8 +79,8 @@ export default function AccessiNavbar({
         >
           <span className="navbar-toggler-icon"></span>
         </button>
-        <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+        <div className="collapse navbar-collapse flex-column" id="navbarNav">
+          <ul className="navbar-nav me-auto mb-2 mb-lg-0 w-100 my-1">
             {(user.admin || (user.pages && user.pages.length > 1)) && (
               <li className="nav-item" key="home">
                 <Link
@@ -137,100 +137,104 @@ export default function AccessiNavbar({
               </li>
             )}
           </ul>
-          {clienti.isSuccess && (
-            <div className="d-flex">
-              <select
-                className="form-select me-2"
-                id="currCliente"
-                name="currCliente"
-                onChange={(event) => {
-                  setCurrCliente(event.target.value || undefined);
-                  setCurrPostazione(undefined);
-                }}
-              >
-                {user.admin && <option>Tutti i clienti</option>}
-                {clienti.data.map((cliente) => (
-                  <option value={cliente} key={cliente}>
-                    {cliente}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          {postazioni.isSuccess && (
-            <div className="d-flex">
-              <select
-                className="form-select me-2"
-                id="currPostazione"
-                name="currPostazione"
-                onChange={(event) => {
-                  const { selectedIndex } = event.target.options;
-                  const { id, cliente, name } =
-                    event.target.options[selectedIndex].dataset;
-
-                  if (!id || !cliente || !name) setCurrPostazione(undefined);
-                  else
-                    setCurrPostazione({
-                      _id: id!,
-                      cliente: cliente!,
-                      name: name!,
-                    } satisfies TPostazione);
-                  console.log(currPostazione);
-                }}
-              >
-                {user.admin && <option>Tutte le postazioni</option>}
-                {postazioni.data
-                  .filter(({ cliente, name }) => cliente && name)
-                  .map(({ _id, cliente, name }) => (
-                    <option
-                      value={name}
-                      data-cliente={cliente}
-                      data-name={name}
-                      data-id={_id}
-                      key={_id}
-                    >
-                      {cliente} - {name}
+          <ul className="navbar-nav me-auto mb-2 mb-lg-0 w-100 m-1">
+            {clienti.isSuccess && (
+              <div className="d-flex">
+                <select
+                  className="form-select me-2"
+                  id="currCliente"
+                  name="currCliente"
+                  onChange={(event) => {
+                    setCurrCliente(event.target.value || undefined);
+                    setCurrPostazione(undefined);
+                  }}
+                >
+                  {user.admin && <option>Tutti i clienti</option>}
+                  {clienti.data.map((cliente) => (
+                    <option value={cliente} key={cliente}>
+                      {cliente}
                     </option>
                   ))}
-              </select>
+                </select>
+              </div>
+            )}
+            {postazioni.isSuccess && (
+              <div className="d-flex">
+                <select
+                  className="form-select me-2"
+                  id="currPostazione"
+                  name="currPostazione"
+                  onChange={(event) => {
+                    const { selectedIndex } = event.target.options;
+                    const { id, cliente, name } =
+                      event.target.options[selectedIndex].dataset;
+
+                    if (!id || !cliente || !name) setCurrPostazione(undefined);
+                    else
+                      setCurrPostazione({
+                        _id: id!,
+                        cliente: cliente!,
+                        name: name!,
+                      } satisfies TPostazione);
+                    console.log(currPostazione);
+                  }}
+                >
+                  {user.admin && <option>Tutte le postazioni</option>}
+                  {postazioni.data
+                    .filter(
+                      ({ cliente }) => !currCliente || cliente === currCliente
+                    )
+                    .map(({ _id, cliente, name }) => (
+                      <option
+                        value={name}
+                        data-cliente={cliente}
+                        data-name={name}
+                        data-id={_id}
+                        key={_id}
+                      >
+                        {cliente} - {name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            )}
+            <div className="d-flex mx-1">
+              <button
+                className="btn btn-light mx-1 scan-btn"
+                onClick={async () => await runBadgeScanner()}
+                type="button"
+              >
+                Badge Scanner
+              </button>{" "}
+              <b
+                className="navbar-text scan-status-txt"
+                style={
+                  badgeScannerConnected ? { color: "green" } : { color: "red" }
+                }
+              >
+                {!badgeScannerConnected && "Non "}
+                {"Connesso"}
+              </b>
             </div>
-          )}
-          <div className="d-flex mx-1">
-            <button
-              className="btn btn-light mx-1"
-              onClick={async () => await runBadgeScanner()}
-              type="button"
-            >
-              Badge Scanner
-            </button>{" "}
-            <b
-              className="navbar-text"
-              style={
-                badgeScannerConnected ? { color: "green" } : { color: "red" }
-              }
-            >
-              {!badgeScannerConnected && "Non "}
-              {"Connesso"}
-            </b>
-          </div>
-          <div className="d-flex">
-            <button
-              className="btn btn-light mx-1"
-              onClick={async () => await runChiaviScanner()}
-              type="button"
-            >
-              Chiavi Scanner
-            </button>{" "}
-            <b
-              className="navbar-text"
-              style={
-                chiaviScannerConnected ? { color: "green" } : { color: "red" }
-              }
-            >
-              {!chiaviScannerConnected && "Non "}
-              {"Connesso"}
-            </b>
-          </div>
+            <div className="d-flex">
+              <button
+                className="btn btn-light mx-1 scan-btn"
+                onClick={async () => await runChiaviScanner()}
+                type="button"
+              >
+                Chiavi Scanner
+              </button>{" "}
+              <b
+                className="navbar-text scan-status-txt"
+                style={
+                  chiaviScannerConnected ? { color: "green" } : { color: "red" }
+                }
+              >
+                {!chiaviScannerConnected && "Non "}
+                {"Connesso"}
+              </b>
+            </div>
+          </ul>
         </div>
       </div>
     </nav>

@@ -2,6 +2,7 @@
 vcpkg
 
 token.txt
+postazione.txt
 login-req.sh
 login.sh
 timbra-req.sh

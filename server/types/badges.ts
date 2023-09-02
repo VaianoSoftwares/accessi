@@ -52,6 +52,7 @@ type TPartialBadge = {
   assegnazione: string;
   ubicazione: string;
   stato: TBadgeStato;
+  cliente: string;
 };
 
 export type TGenericBadge = TPartialBadge & {
@@ -129,6 +130,7 @@ const BADGE_ALL_KEYS: KeysOf<TBadgeReqAllKeys> = {
   targa2: null,
   targa3: null,
   targa4: null,
+  cliente: null,
 };
 
 type TProvvReqKeys = keyof TPartialBadge;
@@ -139,6 +141,7 @@ const PROVV_KEYS: KeysOf<TProvvReqKeys> = {
   assegnazione: null,
   ubicazione: null,
   stato: null,
+  cliente: null,
 };
 
 type TNomReqKeys = keyof TBadgeNomReq;

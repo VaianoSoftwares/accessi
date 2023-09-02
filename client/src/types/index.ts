@@ -83,6 +83,7 @@ export type TPartialBadge = {
   assegnazione: string;
   stato: TBadgeStato;
   ubicazione: string;
+  cliente: string;
 };
 
 export type TPartialNom = {

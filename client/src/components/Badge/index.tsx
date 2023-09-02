@@ -50,6 +50,7 @@ export default function Badge({
   const assegnazioneRef = useRef<HTMLSelectElement>(null);
   const statoRef = useRef<HTMLSelectElement>(null);
   const ubicazioneRef = useRef<HTMLInputElement>(null);
+  const clienteRef = useRef<HTMLSelectElement>(null);
   const nomeRef = useRef<HTMLInputElement>(null);
   const cognomeRef = useRef<HTMLInputElement>(null);
   const telefonoRef = useRef<HTMLInputElement>(null);
@@ -71,6 +72,16 @@ export default function Badge({
       BadgeDataService.getAssegnazioni().then((response) => {
         console.log("queryAssegnazioni | response:", response);
         const result = response.data.data as TAssegnazione[];
+        return result;
+      }),
+  });
+
+  const clienti = useQuery({
+    queryKey: ["clienti"],
+    queryFn: () =>
+      BadgeDataService.getClienti().then((response) => {
+        console.log("queryClienti | response:", response);
+        const result = response.data.data as string[];
         return result;
       }),
   });
@@ -179,6 +190,8 @@ export default function Badge({
     statoRef.current?.value && formData.append("stato", statoRef.current.value);
     ubicazioneRef.current?.value &&
       formData.append("ubicazione", ubicazioneRef.current.value);
+    clienteRef.current?.value &&
+      formData.append("cliente", clienteRef.current.value);
     nomeRef.current?.value && formData.append("nome", nomeRef.current.value);
     cognomeRef.current?.value &&
       formData.append("cognome", cognomeRef.current.value);
@@ -215,6 +228,8 @@ export default function Badge({
       obj?.stato || statoRef.current!.options.item(0)!.value;
     ubicazioneRef.current!.value =
       obj?.ubicazione || ubicazioneRef.current!.defaultValue;
+    clienteRef.current!.value =
+      obj?.stato || clienteRef.current!.options.item(0)!.value;
     nomeRef.current!.value = obj?.nome || nomeRef.current!.defaultValue;
     cognomeRef.current!.value =
       obj?.cognome || cognomeRef.current!.defaultValue;
@@ -251,6 +266,7 @@ export default function Badge({
       assegnazione: assegnazioneRef.current?.value || undefined,
       stato: (statoRef.current?.value as TBadgeStato) || undefined,
       ubicazione: ubicazioneRef.current?.value || undefined,
+      cliente: clienteRef.current?.value || undefined,
       nome: nomeRef.current?.value || undefined,
       cognome: cognomeRef.current?.value || undefined,
       telefono: telefonoRef.current?.value || undefined,
@@ -454,6 +470,34 @@ export default function Badge({
                 />
                 <label htmlFor="ubicazione">ubicazione</label>
               </div>
+              <div className="w-100" />
+              {clienti.isSuccess && (
+                <div className="form-floating col-sm-2">
+                  <select
+                    className="form-select form-select-sm"
+                    id="cliente"
+                    placeholder="cliente"
+                    ref={clienteRef}
+                    defaultValue=""
+                  >
+                    <option
+                      value=""
+                      key="-1"
+                      disabled={readonlyForm === true}
+                    />
+                    {clienti.data.map((cliente) => (
+                      <option
+                        value={cliente}
+                        key={cliente}
+                        disabled={readonlyForm === true}
+                      >
+                        {cliente}
+                      </option>
+                    ))}
+                  </select>
+                  <label htmlFor="cliente">cliente</label>
+                </div>
+              )}
             </div>
             <div className="row mt-2">
               <div className="col-2">

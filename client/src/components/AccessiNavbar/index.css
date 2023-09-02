@@ -11,3 +11,13 @@
     max-height: 35px;
     max-width: 350px;
 }
+
+.scan-btn {
+    max-height: 30px;
+    font-size: small;
+    white-space: nowrap;
+}
+
+.scan-status-txt {
+    font-size: small;
+}

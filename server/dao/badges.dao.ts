@@ -71,6 +71,7 @@ export default class BadgesDAO {
           assegnazione: 1,
           ubicazione: 1,
           stato: 1,
+          cliente: 1,
           nome: { $ifNull: ["$nominativo.nome", ""] },
           cognome: { $ifNull: ["$nominativo.cognome", ""] },
           ditta: { $ifNull: ["$nominativo.ditta", ""] },
@@ -111,6 +112,7 @@ export default class BadgesDAO {
       assegnazione: data.assegnazione.toUpperCase(),
       ubicazione: data.ubicazione.toUpperCase(),
       stato: data.stato,
+      cliente: data.cliente,
       nominativo: {
         nome: data.nome.toUpperCase(),
         cognome: data.cognome.toUpperCase(),
@@ -135,6 +137,7 @@ export default class BadgesDAO {
       assegnazione: data.assegnazione.toUpperCase(),
       ubicazione: data.ubicazione.toUpperCase(),
       stato: data.stato,
+      cliente: data.cliente,
       nominativo: {
         nome: data.nome.toUpperCase(),
         cognome: data.cognome.toUpperCase(),
@@ -161,6 +164,7 @@ export default class BadgesDAO {
       assegnazione: data.assegnazione.toUpperCase(),
       ubicazione: data.ubicazione.toUpperCase(),
       stato: data.stato,
+      cliente: data.cliente,
       nominativo: null,
     };
   }
@@ -173,6 +177,7 @@ export default class BadgesDAO {
       assegnazione: data.assegnazione.toUpperCase(),
       ubicazione: data.ubicazione.toUpperCase(),
       stato: data.stato,
+      cliente: data.cliente,
       nominativo: {
         nome: data.nome.toUpperCase(),
         cognome: data.cognome.toUpperCase(),

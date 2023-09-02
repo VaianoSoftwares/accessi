@@ -46,7 +46,7 @@ export default abstract class DataServices {
             .filter(([, value]) => value)
             .map(([key, value]) =>
               Array.isArray(value)
-                ? `${key}=${value.join(`&${key}=`)}`
+                ? `${key}[]=${value.join(`&${key}=`)}`
                 : `${key}=${value}`
             )
             .join("&")
