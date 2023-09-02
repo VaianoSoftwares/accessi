@@ -167,6 +167,7 @@ export default class ArchivioDAO {
           assegnazione: "UNIVERSITARIO",
           stato: "VALIDO",
           ubicazione: "",
+          cliente: postazione.cliente,
           nominativo: {
             tdoc: "TESSERA STUDENTE",
             ndoc: barcode,
