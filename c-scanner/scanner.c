@@ -180,20 +180,10 @@ void *thread_run(void *targs)
 
     while (true)
     {
+        pthread_mutex_lock(&scan_mutexes[n_thread]);
+
         if (!od[n_thread].open)
         {
-            pthread_mutex_lock(&scan_mutex);
-
-            // search for an available scanner device
-            if (!find_scanner(n_thread))
-            {
-                od[n_thread].open = false;
-                // fprintf(stderr, RED "THREAD %d | Scanner not found.\n" RESET, n_thread);
-                pthread_mutex_unlock(&scan_mutex);
-                sleep(5);
-                continue;
-            }
-
             printf("THREAD %d | Available scanner device %s has been found.\n", n_thread, od[n_thread].pathname);
 
             // connetc serial scanner
@@ -202,14 +192,12 @@ void *thread_run(void *targs)
                 print_err("THREAD %d | Failed to open scanner %s.", n_thread, od[n_thread].pathname);
                 close(scan_fd);
                 od[n_thread].open = false;
-                pthread_mutex_unlock(&scan_mutex);
-                sleep(5);
                 continue;
             }
 
-            printf("THREAD %d | Scanner %s has been connected.\n", n_thread, od[n_thread].pathname);
+            od[n_thread].open = true;
 
-            pthread_mutex_unlock(&scan_mutex);
+            printf("THREAD %d | Scanner %s has been connected.\n", n_thread, od[n_thread].pathname);
         }
 
         // get barcode
