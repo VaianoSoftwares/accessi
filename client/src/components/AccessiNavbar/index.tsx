@@ -39,7 +39,8 @@ export default function AccessiNavbar({
       }).then((response) => {
         console.log("queryPostazioni | response:", response);
         const result = response.data.data as TPostazione[];
-        setCurrPostazione(result.length === 1 ? result[0] : undefined);
+        !currPostazione &&
+          setCurrPostazione(result.length === 1 ? result[0] : undefined);
         return result;
       }),
   });
@@ -146,10 +147,12 @@ export default function AccessiNavbar({
                   name="currCliente"
                   onChange={(event) => {
                     setCurrCliente(event.target.value || undefined);
-                    setCurrPostazione(undefined);
+                    // setCurrPostazione(undefined);
                   }}
                 >
-                  {user.admin && <option>Tutti i clienti</option>}
+                  {user.admin && (
+                    <option label="Tutti i clienti" value={undefined} />
+                  )}
                   {clienti.data.map((cliente) => (
                     <option value={cliente} key={cliente}>
                       {cliente}
@@ -176,7 +179,6 @@ export default function AccessiNavbar({
                         cliente: cliente!,
                         name: name!,
                       } satisfies TPostazione);
-                    console.log(currPostazione);
                   }}
                 >
                   {user.admin && <option>Tutte le postazioni</option>}

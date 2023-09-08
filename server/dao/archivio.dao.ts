@@ -5,7 +5,7 @@ import { TBadgeTipo, TGenericBadge, TGenericNom } from "../types/badges.js";
 import { TArchivio } from "../types/archivio.js";
 import { TPostazione } from "../types/enums.js";
 
-const COLLECTION_NAME = "archivio1";
+const COLLECTION_NAME = "archivio";
 
 let archivio: Collection<TArchivio>;
 
@@ -205,8 +205,10 @@ export default class ArchivioDAO {
       let msgTimbra = "";
 
       if (inStrutt) {
-        if (inStrutt.postazione._id !== postazione._id) {
-          throw new Error(`Impossibile timbrare l'uscita del badge ${barcode}`);
+        if (!inStrutt.postazione._id.equals(postazione._id)) {
+          throw new Error(
+            `Postazione non valida, impossibile timbrare l'uscita del badge ${barcode}`
+          );
         }
 
         const timbraEsceResp = await this.#timbraEsce(inStrutt._id);
@@ -485,8 +487,7 @@ export default class ArchivioDAO {
         {
           projection: {
             _id: 1,
-            cliente: "$postazione.cliente",
-            postazione: "$postazione.name",
+            postazione: 1,
           },
         }
       );
@@ -500,7 +501,11 @@ export default class ArchivioDAO {
     const arrFilters: object[] = [{ "data.uscita": { $eq: null } }];
 
     if (postazioniIds)
-      arrFilters.push({ "postazione._id": { $in: postazioniIds } });
+      arrFilters.push({
+        "postazione._id": {
+          $in: postazioniIds.map((id) => new ObjectId(id)),
+        },
+      });
     if (tipi) arrFilters.push({ "badge.tipo": { $in: tipi } });
 
     const query: Filter<unknown> = {
@@ -524,7 +529,7 @@ export default class ArchivioDAO {
       });
       const displayCursor = cursor.sort({ _id: -1 }).limit(500).skip(0);
       const archivioList = await displayCursor.toArray();
-      // console.log(archivioList);
+
       return archivioList;
     } catch (err) {
       errCheck(err, "getInStrutt |");

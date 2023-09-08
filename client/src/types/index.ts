@@ -35,7 +35,7 @@ export type TPermesso = {
 
 export type TimbraDoc = {
   barcode: string;
-  postazione: string;
+  postazioneId: string;
 };
 
 export type TEventInput = React.ChangeEvent<HTMLInputElement>;

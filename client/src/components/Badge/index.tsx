@@ -349,12 +349,13 @@ export default function Badge({
   }
 
   useEffect(() => {
+    console.log("scannerEvent", scannedValue, currPostazione);
     if (!scannedValue || !currPostazione) return;
 
     console.log("Scanner accessi | scannedValue:", scannedValue);
     mutateInStrutt.mutate({
       barcode: scannedValue,
-      postazione: currPostazione._id,
+      postazioneId: currPostazione._id,
     });
     clearScannedValue();
   }, [scannedValue]);
@@ -706,14 +707,16 @@ export default function Badge({
           <FormButtons
             findBadges={() => findBadges.refetch()}
             timbra={() => {
-              if (!currPostazione) {
+              if (!currPostazione?._id) {
                 toast.error("Campo Postazione mancante");
                 return;
               }
 
+              console.log("badge", currPostazione?._id);
+
               mutateInStrutt.mutate({
                 barcode: barcodeRef.current!.value,
-                postazione: currPostazione._id,
+                postazioneId: currPostazione?._id,
               });
             }}
             insertBadge={() => insertBadge.mutate(createFormData())}

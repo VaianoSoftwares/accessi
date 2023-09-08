@@ -26,7 +26,7 @@ async function readScanner(
     try {
       while (true) {
         const { value, done } = await reader.read();
-        // console.log("readScanner | value:", value, "- done:", done);
+        console.log("readScanner | value:", value, "- done:", done);
 
         if (done) break;
 

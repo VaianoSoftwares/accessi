@@ -75,7 +75,9 @@ export default class PrestitiDAO {
     const arrFilters: object[] = [{ "data.uscita": { $eq: null } }];
 
     if (postazioniIds)
-      arrFilters.push({ "postazione._id": { $in: postazioniIds } });
+      arrFilters.push({
+        "postazione._id": { $in: postazioniIds.map((id) => new ObjectId(id)) },
+      });
 
     const query: Filter<unknown> = {
       $and: arrFilters,

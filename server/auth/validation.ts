@@ -216,7 +216,7 @@ const TIMBRA_SCHEMA = z.object({
     .min(BARCODE_MIN_LEN, BARCODE_TOO_SHORT_ERR_MSG)
     .max(BARCODE_MAX_LEN, BARCODE_TOO_LONG_ERR_MSG),
   postazioneId: z
-    .string({ required_error: MISSING_ATTR_ERR_MSG("ID") })
+    .string({ required_error: MISSING_ATTR_ERR_MSG("Postazione") })
     .length(ID_LEN, ID_LENGTH_ERR_MSG),
 });
 
@@ -286,7 +286,7 @@ const PRESTITO_CHIAVE_SCHEMA = z.object({
     .array()
     .nonempty(MISSING_ATTR_ERR_MSG("Barcodes")),
   postazioneId: z
-    .string({ required_error: MISSING_ATTR_ERR_MSG("ID") })
+    .string({ required_error: MISSING_ATTR_ERR_MSG("Postazione") })
     .length(ID_LEN, ID_LENGTH_ERR_MSG),
 });
 

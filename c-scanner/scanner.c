@@ -20,7 +20,7 @@ static struct termios original_term;
 
 static open_devs_t od;
 
-static pthread_mutex_t scan_mutex = PTHREAD_MUTEX_INITIALIZER;
+// static pthread_mutex_t scan_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t req_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t start_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t scan_mutexes[NDEVS];
@@ -34,6 +34,10 @@ int conn_to_server(const char *hostname, uint16_t port);
 void __print_err(const char *msg, va_list args);
 void select_scan_menu(void);
 void print_menu_opts(void);
+char read_key(void);
+void enable_raw_mode(void);
+void print_dev_opts(char pathnames[NDEVS][DEVNAME_LEN], int size);
+int get_dev_pathnames(char pathnames[NDEVS][DEVNAME_LEN]);
 
 int main(int argc, char *argv[])
 {
@@ -492,7 +496,7 @@ void select_scan_menu(void)
         case '7':
         case '8':
         case '9':
-            n_thread = atio(&key_pressed) - 1;
+            n_thread = atoi(&key_pressed) - 1;
             if (n_thread < 0 || n_thread > NDEVS)
                 continue;
             break;
@@ -518,7 +522,7 @@ void select_scan_menu(void)
         case '7':
         case '8':
         case '9':
-            n_str = atio(&key_pressed) - 1;
+            n_str = atoi(&key_pressed) - 1;
             if (n_str < 0 || n_str > NDEVS)
                 continue;
             break;

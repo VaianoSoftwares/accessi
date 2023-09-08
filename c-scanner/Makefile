@@ -20,7 +20,7 @@ scanner-win.exe:
 	${cc_win} -Wall -DSCAN_WIN -o $@ scanner-win.c ${win_incl_path} ${win_lib_path} ${libs_win}
 
 clean:
-	rm scanner scanner-win.exe
+	rm scanner scanner-win.exe &> /dev/null
 
 run: scanner
 	sudo ./scanner ${run_args}
