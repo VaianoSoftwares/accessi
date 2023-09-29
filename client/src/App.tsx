@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -15,9 +15,8 @@ import Loader from "./components/Loader";
 const Badge = lazy(() => import("./components/Badge"));
 const Chiavi = lazy(() => import("./components/Chiavi"));
 const Archivio = lazy(() => import("./components/Archivio"));
-const Permessi = lazy(() => import("./components/Permessi"));
+const Protocollo = lazy(() => import("./components/Protocollo"));
 const Documenti = lazy(() => import("./components/Documenti"));
-const Calendario = lazy(() => import("./components/Calendario"));
 const Register = lazy(() => import("./components/Register"));
 const UserEdit = lazy(() => import("./components/UserEdit"));
 const UsersList = lazy(() => import("./components/UsersList"));
@@ -155,23 +154,11 @@ export default function App() {
           }
         />
         <Route
-          path="calendario"
+          path="protocollo"
           element={
-            user && (user.admin || user.pages?.includes("calendario")) ? (
+            user && (user.admin || user.pages?.includes("protocollo")) ? (
               <Suspense fallback={<Loader />}>
-                <Calendario admin={user.admin} />
-              </Suspense>
-            ) : (
-              <PageNotFound />
-            )
-          }
-        />
-        <Route
-          path="permessi"
-          element={
-            user && (user.admin || user.pages?.includes("permessi")) ? (
-              <Suspense fallback={<Loader />}>
-                <Permessi user={user} />
+                <Protocollo user={user} currPostazione={currPostazione} />
               </Suspense>
             ) : (
               <PageNotFound />

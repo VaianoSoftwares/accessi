@@ -267,6 +267,20 @@ export type TInStruttDataReq = TInPrestitoDataReq & {
   tipi?: TBadgeTipo[];
 };
 
+export type ProtocolloFile = {
+  _id: string;
+  filename: string;
+  descrizione: string;
+  data: Date | string;
+  visibileDa: string[];
+};
+export type ProtocolloFindReq = Partial<
+  Omit<ProtocolloFile, "data" | "_id">
+> & {
+  dataInzio?: Date | string;
+  dataFine?: Date | string;
+};
+
 type TMonths =
   | "Gennaio"
   | "Febbraio"
@@ -310,8 +324,7 @@ export type TPage =
   | "chiavi"
   | "veicoli"
   | "archivio"
-  | "calendario"
-  | "permessi"
+  | "protocollo"
   | "documenti";
 
 export const PAGES: ReadonlyArray<TPage> = [
@@ -319,8 +332,7 @@ export const PAGES: ReadonlyArray<TPage> = [
   "chiavi",
   "veicoli",
   "archivio",
-  "calendario",
-  "permessi",
+  "protocollo",
   "documenti",
 ];
 
@@ -384,21 +396,12 @@ export const PAGES_INFO: ReadonlyMap<TPage, IPageInfo> = new Map([
     },
   ],
   [
-    "calendario",
+    "protocollo",
     {
-      pathname: "/calendario",
-      name: "Calendario",
-      title: "Calendario",
+      pathname: "/protocollo",
+      name: "Protocollo",
+      title: "Protocollo Elettronico",
       description: "Pagina per condivisione documenti",
-    },
-  ],
-  [
-    "permessi",
-    {
-      pathname: "/permessi",
-      name: "Permessi",
-      title: "Permessi",
-      description: "Gestione ferie dipendenti",
     },
   ],
   [

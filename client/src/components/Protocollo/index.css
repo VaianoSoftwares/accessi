@@ -1,0 +1,25 @@
+.file-list-link {
+    text-decoration: none;
+    color: black;
+    cursor: pointer;
+}
+
+.btn-del-file {
+    background-color: red;
+    color: white;
+    border: 1px solid;
+}
+
+.protocollo-file-list {
+    overflow: auto;
+    max-height: 200px;
+}
+
+.protocollo-form .form-control {
+    height: 35px;
+}
+
+.protocollo-form .form-floating label {
+    font-size: 13px;
+    top: -25%;
+}

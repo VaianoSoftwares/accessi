@@ -260,22 +260,33 @@ const UPDATE_DOCUMENTO_SCHEMA = z.object({
   azienda: z.string().optional(),
 });
 
-const POST_CALENDARIO_SCHEMA = z.object({
-  date: z
-    .string({ required_error: MISSING_ATTR_ERR_MSG("Data") })
-    .min(STR_MIN_LEN, ATTR_TOO_SHORT_ERR_MSG("Data", STR_MIN_LEN))
-    .max(STR_MAX_LEN, ATTR_TOO_LONG_ERR_MSG("Data", STR_MAX_LEN)),
+const FIND_PROTOCOLLO_SCHEMA = z.object({
+  filename: z.string().optional(),
+  descrizione: z.string().optional(),
+  visibileDa: z
+    .string({ required_error: MISSING_ATTR_ERR_MSG("visibileDa") })
+    .length(ID_LEN, ID_LENGTH_ERR_MSG)
+    .array()
+    .optional(),
+  dataInizio: z.string().optional(),
+  dataFine: z.string().optional(),
 });
 
-const DELETE_CALENDARIO_SCHEMA = z.object({
-  date: z
-    .string({ required_error: MISSING_ATTR_ERR_MSG("Data") })
-    .min(STR_MIN_LEN, ATTR_TOO_SHORT_ERR_MSG("Data", STR_MIN_LEN))
-    .max(STR_MAX_LEN, ATTR_TOO_LONG_ERR_MSG("Data", STR_MAX_LEN)),
-  filename: z
-    .string({ required_error: MISSING_ATTR_ERR_MSG("Nome file") })
-    .min(STR_MIN_LEN, ATTR_TOO_SHORT_ERR_MSG("Nome file", STR_MIN_LEN))
-    .max(STR_MAX_LEN, ATTR_TOO_LONG_ERR_MSG("Nome file", STR_MAX_LEN)),
+const POST_PROTOCOLLO_SCHEMA = z.object({
+  filename: z.string().optional(),
+  descrizione: z.string().optional(),
+  visibileDa: z
+    .string({ required_error: MISSING_ATTR_ERR_MSG("visibileDa") })
+    .length(ID_LEN, ID_LENGTH_ERR_MSG)
+    .array()
+    .nonempty(MISSING_ATTR_ERR_MSG("visibileDa")),
+});
+
+const DELETE_PROTOCOLLO_SCHEMA = z.object({
+  id: z
+    .string({ required_error: MISSING_ATTR_ERR_MSG("ID") })
+    .length(ID_LEN, ID_LENGTH_ERR_MSG),
+  filename: z.string({ required_error: MISSING_ATTR_ERR_MSG("filename") }),
 });
 
 const PRESTITO_CHIAVE_SCHEMA = z.object({
@@ -359,12 +370,16 @@ export default class Validator {
     return UPDATE_DOCUMENTO_SCHEMA.safeParse(input);
   }
 
-  static postCalendario(input: unknown) {
-    return POST_CALENDARIO_SCHEMA.safeParse(input);
+  static findProtocollo(input: unknown) {
+    return FIND_PROTOCOLLO_SCHEMA.safeParse(input);
   }
 
-  static deleteCalendario(input: unknown) {
-    return DELETE_CALENDARIO_SCHEMA.safeParse(input);
+  static postProtocollo(input: unknown) {
+    return POST_PROTOCOLLO_SCHEMA.safeParse(input);
+  }
+
+  static deleteProtocollo(input: unknown) {
+    return DELETE_PROTOCOLLO_SCHEMA.safeParse(input);
   }
 
   static prestitoChiave(input: unknown) {

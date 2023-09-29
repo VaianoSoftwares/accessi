@@ -13,8 +13,8 @@
     "enable-https": "sudo setcap 'cap_net_bind_service=+ep' /usr/bin/node",
     "enable-scanner": "sudo chmod 777 /dev/ttyACM0",
     "scan:make": "cd c-scanner && make clean; make",
-    "scan:run": "cd c-scanner && make clean; make && make run",
-    "scan:win-run": "cd c-scanner && make clean; make && make run-win"
+    "scan:run": "npm run scan:make && make run",
+    "scan:run-win": "npm run scan:make && make run-win"
   },
   "keywords": [],
   "author": "",

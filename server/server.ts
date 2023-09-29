@@ -7,7 +7,7 @@ import fileUpload from "express-fileupload";
 import authRoutes from "./auth/auth.routes.js";
 import badgesRoutes from "./api/badges.routes.js";
 import documentiRoutes from "./api/documenti.routes.js";
-import calendarioRoutes from "./api/calendario.routes.js";
+import protocolloRoutes from "./api/protocollo.routes.js";
 import reqLogger from "./middlewares/reqLogger.js";
 import IgnoredReqs from "./middlewares/IgnoredReqs.js";
 
@@ -46,16 +46,13 @@ app.use(
 );
 
 // public route
-app.use(
-  "/api/v1/public",
-  express.static(path.resolve("server", "public"))
-);
+app.use("/api/v1/public", express.static(path.resolve("server", "public")));
 
 // routes
 app.use("/api/v1/users", authRoutes);
 app.use("/api/v1/badges", badgesRoutes);
 app.use("/api/v1/documenti", documentiRoutes);
-app.use("/api/v1/calendario", calendarioRoutes);
+app.use("/api/v1/protocollo", protocolloRoutes);
 
 // backend make public and get compiled react app
 if (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "staging") {

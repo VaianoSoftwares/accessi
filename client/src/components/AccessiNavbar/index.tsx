@@ -138,7 +138,7 @@ export default function AccessiNavbar({
               </li>
             )}
           </ul>
-          <ul className="navbar-nav me-auto mb-2 mb-lg-0 w-100 m-1">
+          <ul className="navbar-nav me-auto mb-2 mb-lg-0 w-100 m-1 secondary-nav">
             {clienti.isSuccess && (
               <div className="d-flex">
                 <select

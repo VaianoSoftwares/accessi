@@ -18,7 +18,7 @@ const COLLECTION_NAME = "postazioni";
 
 let postazioni: Collection<TPostazione>;
 
-export default class PostazioniDao {
+export default class PostazioniDAO {
   static async injectDB(conn: MongoClient) {
     if (postazioni) return;
 
