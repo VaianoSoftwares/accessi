@@ -14,7 +14,10 @@
 #include <pthread.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <stdatomic.h>
 #include "scanner.h"
+
+static atomic_int exit_thread = false;
 
 static struct termios original_term;
 
@@ -26,7 +29,8 @@ static pthread_mutex_t start_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t scan_mutexes[NDEVS];
 
 void create_threads(pthread_t *threads, int *irets, tparams_t *tparams);
-void *thread_run(void *targs);
+void *timbratura_badge(void *targs);
+void *prestito_chiave(void *targs);
 void wait_threads(pthread_t *threads, int *irets);
 bool find_scanner(int n_thread);
 int connect_scanner(char *dev_name, struct termios *tio);
@@ -36,6 +40,7 @@ void select_scan_menu(void);
 void print_menu_opts(void);
 char read_key(void);
 void enable_raw_mode(void);
+void disable_raw_mode(void);
 void print_dev_opts(char pathnames[NDEVS][DEVNAME_LEN], int size);
 int get_dev_pathnames(char pathnames[NDEVS][DEVNAME_LEN]);
 
@@ -112,6 +117,8 @@ int main(int argc, char *argv[])
 
     select_scan_menu();
 
+    exit_thread = true;
+
     // wait for threads to terminate
     puts("MAIN | Wait for threads to terminate.");
     wait_threads(threads, irets);
@@ -132,7 +139,10 @@ void create_threads(pthread_t *threads, int *irets, tparams_t *tparams)
     pthread_mutex_lock(&start_mutex);
     for (int i = 0; i < NDEVS; i++)
     {
-        if ((irets[i] = pthread_create(&threads[i], NULL, thread_run, (void *)tparams)))
+        if ((irets[i] = pthread_create(&threads[i],
+                                       NULL,
+                                       timbratura_badge,
+                                       (void *)tparams)))
             throw_err("create_threads | pthread_create");
         printf("MAIN | Created THREAD %d.\n", i);
         pthread_mutex_lock(&start_mutex);
@@ -149,7 +159,7 @@ void wait_threads(pthread_t *threads, int *irets)
     }
 }
 
-void *thread_run(void *targs)
+void *timbratura_badge(void *targs)
 {
     // gather thread params
     tparams_t *tparams = (tparams_t *)targs;
@@ -182,7 +192,7 @@ void *thread_run(void *targs)
     char request[req_len], response[MSG_LEN], body_msg[body_len], scan_buf[SCAN_BUF_SIZE];
     int nbytes;
 
-    while (true)
+    while (!exit_thread)
     {
         pthread_mutex_lock(&scan_mutexes[n_thread]);
 
@@ -586,30 +596,33 @@ void print_dev_opts(char pathnames[NDEVS][DEVNAME_LEN], int size)
 
 void disable_raw_mode(void)
 {
-    if ((tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_term)) == -1)
+    if ((tcsetattr(STDIN_FILENO, TCSANOW, &original_term)) == -1)
         throw_err("disable_raw_mode | tcsetattr");
 }
 
 void enable_raw_mode(void)
 {
+    if (!isatty(STDIN_FILENO))
+        throw_err("enable_raw_mode | STDIN is not a TTY");
+
     if ((tcgetattr(STDIN_FILENO, &original_term)) == -1)
-        throw_err("enable_raw_mode | tcsetattr");
+        throw_err("enable_raw_mode | tcgetattr");
 
     atexit(disable_raw_mode);
 
     struct termios raw_term = original_term;
-    raw_term.c_cflag &= ~(ECHO | ICANON);
+    raw_term.c_lflag &= ~(ECHO | ICANON);
     raw_term.c_cc[VMIN] = 1;
     raw_term.c_cc[VTIME] = 0;
 
-    if ((tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw_term)) == -1)
+    if ((tcsetattr(STDIN_FILENO, TCSANOW, &raw_term)) == -1)
         throw_err("enable_raw_mode | tcsetattr");
 }
 
 char read_key(void)
 {
-    int nread;
-    char c;
+    int nread = 0;
+    char c = 0;
     while ((nread = read(STDIN_FILENO, &c, 1)) != 1)
     {
         if (nread == -1 && errno != EAGAIN)
@@ -618,7 +631,7 @@ char read_key(void)
     return c;
 }
 
-void prestito_chiave(void *targs)
+void *prestito_chiave(void *targs)
 {
     // gather thread params
     tparams_t *tparams = (tparams_t *)targs;
@@ -656,7 +669,7 @@ void prestito_chiave(void *targs)
     scan_buf.size = 0;
     scan_buf.array = malloc(scan_buf.max_size * sizeof(*(scan_buf.array)));
 
-    while (true)
+    while (!exit_thread)
     {
         pthread_mutex_lock(&scan_mutexes[n_thread]);
 
@@ -714,7 +727,7 @@ void prestito_chiave(void *targs)
         }
 
         // create msg request
-        snprintf(body_msg, sizeof(body_msg), BODY_FORMAT, scan_buf, postazione_id);
+        snprintf(body_msg, sizeof(body_msg), BODY_FORMAT, scan_buf.array, postazione_id);
         snprintf(request, sizeof(request), MSG_FORMAT, hostname, token,
                  strlen(body_msg), body_msg);
 
