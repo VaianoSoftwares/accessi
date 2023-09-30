@@ -7,6 +7,7 @@ import {
   TGenericPage,
   TUser,
 } from "../../types";
+import "../../../public/home_wallpaper.jpg";
 import "./index.css";
 
 export default function Home({ user }: { user: TUser }) {
@@ -22,7 +23,7 @@ export default function Home({ user }: { user: TUser }) {
           <div className="row g-0">
             <div className="col-sm-4">
               <img
-                src={pageInfo.imagePath}
+                src={pageInfo.imagePath && require(pageInfo.imagePath)}
                 className="img-fluid rounder-start home-card-img"
                 alt=""
               ></img>

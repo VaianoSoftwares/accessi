@@ -1,4 +1,5 @@
 import UserDataService from "../../services/user";
+import "../../../public/login_wallpaper.jpg";
 import "./index.css";
 import { useNavigate } from "react-router-dom";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
