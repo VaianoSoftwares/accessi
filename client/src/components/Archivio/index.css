@@ -1,6 +1,15 @@
+.archivio-container {
+    height: 25%;
+}
+
 .archivio-table-wrapper {
-    max-height: 600px;
+    height: 75%;
     overflow: auto;
+}
+
+.archivio-form {
+    border: 2px solid green;
+    background-color: azure;
 }
 
 .archivio-form .form-control {
@@ -15,8 +24,4 @@
 .archivio-form .form-floating label {
     font-size: 13px;
     top: -25%;
-}
-
-.archivio-form .form-floating input[type="date"] {
-    height: 48px;
 }

@@ -12,6 +12,7 @@ import {
   TArchTableContent,
   TArchivioChiave,
 } from "../../types";
+import Clock from "../Clock";
 
 type TArchForm = {
   cliente?: string;
@@ -134,11 +135,11 @@ export default function Archivio({
 
   return (
     <div className="archivio-wrapper">
-      <div className="container-fluid mb-5 chiavi-container">
-        <div className="row mt-2 archivio-form">
-          <div className="col">
+      <div className="container-fluid m-1 archivio-container">
+        <div className="row mt-2">
+          <div className="col-6 archivio-form">
             <div className="row">
-              <div className="form-floating col-sm-2">
+              <div className="form-floating col-sm">
                 <input
                   type="date"
                   className="form-control form-control-sm"
@@ -152,7 +153,7 @@ export default function Archivio({
                 />
                 <label htmlFor="dataInizio">resoconto inizio</label>
               </div>
-              <div className="form-floating col-sm-2">
+              <div className="form-floating col-sm">
                 <input
                   type="date"
                   className="form-control form-control-sm"
@@ -168,7 +169,7 @@ export default function Archivio({
                 <label htmlFor="dataFine">resoconto fine</label>
               </div>
               <div className="w-100 mb-1" />
-              <div className="form-floating col-sm-2">
+              <div className="form-floating col-sm">
                 <select
                   className="form-select form-select-sm"
                   id="cliente"
@@ -187,7 +188,7 @@ export default function Archivio({
                 </select>
                 <label htmlFor="cliente">cliente</label>
               </div>
-              <div className="form-floating col-sm-2">
+              <div className="form-floating col-sm">
                 <select
                   className="form-select form-select-sm"
                   id="postazione"
@@ -207,7 +208,7 @@ export default function Archivio({
                 <label htmlFor="postazione">postazione</label>
               </div>
               <div className="w-100 mb-1" />
-              <div className="form-floating col-sm-2">
+              <div className="form-floating col-sm">
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -218,7 +219,7 @@ export default function Archivio({
                 />
                 <label htmlFor="nominativo">badge</label>
               </div>
-              <div className="form-floating col-sm-2">
+              <div className="form-floating col-sm">
                 <select
                   className="form-select form-select-sm"
                   id="assegnazione"
@@ -240,7 +241,7 @@ export default function Archivio({
               <div className="w-100 mb-1" />
               {tipoArchivio === "CHIAVE" && (
                 <>
-                  <div className="form-floating col-sm-2">
+                  <div className="form-floating col-sm">
                     <input
                       type="text"
                       className="form-control form-control-sm"
@@ -251,7 +252,7 @@ export default function Archivio({
                     />
                     <label htmlFor="nome">nome</label>
                   </div>
-                  <div className="form-floating col-sm-2">
+                  <div className="form-floating col-sm">
                     <input
                       type="text"
                       className="form-control form-control-sm"
@@ -263,7 +264,7 @@ export default function Archivio({
                     <label htmlFor="cognome">cognome</label>
                   </div>
                   <div className="w-100 mb-1" />
-                  <div className="form-floating col-sm-2">
+                  <div className="form-floating col-sm">
                     <input
                       type="text"
                       className="form-control form-control-sm"
@@ -274,7 +275,7 @@ export default function Archivio({
                     />
                     <label htmlFor="chiave">chiave</label>
                   </div>
-                  <div className="form-floating col-sm-2">
+                  <div className="form-floating col-sm">
                     <input
                       type="text"
                       className="form-control form-control-sm"
@@ -314,9 +315,12 @@ export default function Archivio({
               </div>
             </div>
           </div>
+          <div className="col">
+            <Clock></Clock>
+          </div>
         </div>
       </div>
-      <div className="archivio-table-wrapper">
+      <div className="archivio-table-wrapper mt-3">
         {tipoArchivio === "BADGE" && queryArchivioBadge.isSuccess && (
           <BadgeTable content={queryArchivioBadge.data} tableId={TABLE_ID} />
         )}

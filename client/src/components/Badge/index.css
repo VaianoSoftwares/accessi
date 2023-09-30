@@ -7,14 +7,14 @@
 
 .in-strutt-count {
     position: absolute;
-    left: 53%;
-    top: 40%;
+    left: 60%;
+    top: 43%;
     font-size: 20px;
 }
 
 .home-container {
-    height: 400px;
-    max-height: 400px;
+    height: 40%;
+    max-height: 40%;
 }
 
 .popup-table-wrapper {
@@ -25,7 +25,8 @@
 
 .badge-table-wrapper {
     overflow: auto;
-    height: 450px;
+    height: 60%;
+    background-color: white;
 }
 
 .pfp-container {
@@ -37,6 +38,12 @@
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
+    background-color: white;
+}
+
+.badge-form {
+    border: 2px solid green;
+    background-color: azure;
 }
 
 .badge-form .form-control {
@@ -53,10 +60,6 @@
     top: -25%;
 }
 
-.badge-form .form-floating input[type="date"] {
-    height: 48px;
-}
-
 .badge-form input[type="file"] {
-    font-size: 13.5px
+    font-size: 11px;
 }

@@ -1,3 +1,12 @@
+.doc-table-wrapper {
+    height: 60%;
+}
+
+.doc-form {
+    border: 2px solid green;
+    background-color: azure;
+}
+
 .doc-img-container {
     border: 2px solid green;
     width: 180px;
@@ -7,6 +16,7 @@
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
+    background-color: white;
 }
 
 .doc-form .form-control {
@@ -20,10 +30,4 @@
 
 input[type="file"] {
     font-size: 12px
-}
-
-.doc-alert-wrapper {
-    position: absolute;
-    left: 55%;
-    top: 20%;
 }

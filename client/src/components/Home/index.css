@@ -1,3 +1,19 @@
 .home-card:hover {
     cursor: pointer;
+    background-color: rgb(195, 224, 228);
+    border-color: black;
+}
+
+.home-wrapper {
+    width: 100vw;
+    height: 100vh;
+    background-image: url("/home_wallpaper.jpg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.home-card-img {
+    max-width: 100px;
+    max-height: 100px;
 }

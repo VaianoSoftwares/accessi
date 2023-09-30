@@ -1,7 +1,22 @@
+.chiavi-container {
+    height: 40%;
+    max-height: 40%;
+}
+
+.chiavi-table-wrapper {
+    height: 60%;
+    max-height: 60%;
+}
+
+.chiavi-form {
+    border: 2px solid green;
+    background-color: azure;
+}
+
 .barcode-list {
     overflow: auto;
-    max-height: 200px;
-    height: 200px;
+    height: 150px;
+    max-height: 150px;
 }
 
 .btn-del-barcode {

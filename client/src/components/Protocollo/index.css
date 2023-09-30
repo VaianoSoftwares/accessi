@@ -15,6 +15,11 @@
     max-height: 200px;
 }
 
+.protocollo-form {
+    border: 2px solid green;
+    background-color: azure;
+}
+
 .protocollo-form .form-control {
     height: 35px;
 }

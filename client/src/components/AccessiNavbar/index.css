@@ -20,12 +20,9 @@
 
 .scan-status-txt {
     font-size: small;
+    text-shadow: 0 0 2px black;
 }
 
-/* .navbar-brand {
-    background-color: aquamarine;
+.scan-status-txt:hover {
+    cursor: default;
 }
-
-.secondary-nav {
-    background-color: rgb(42, 34, 34);
-} */

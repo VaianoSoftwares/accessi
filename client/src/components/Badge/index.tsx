@@ -362,11 +362,11 @@ export default function Badge({
 
   return (
     <div id="home-wrapper">
-      <div className="container-fluid mb-1 home-container">
-        <div className="row mt-2 justify-content-start align-items-start submit-form">
-          <div className="col-8 badge-form">
+      <div className="container-fluid m-1 home-container">
+        <div className="row justify-content-start align-items-start submit-form">
+          <div className="col-6 badge-form">
             <div className="row mb-2">
-              <div className="form-floating col-sm-2">
+              <div className="form-floating col-sm-6">
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -378,7 +378,7 @@ export default function Badge({
                 />
                 <label htmlFor="barcode">barcode</label>
               </div>
-              <div className="form-floating col-sm-5">
+              <div className="form-floating col-sm-6">
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -392,7 +392,7 @@ export default function Badge({
                 <label htmlFor="descrizione">descrizione</label>
               </div>
               <div className="w-100"></div>
-              <div className="form-floating col-sm-2">
+              <div className="form-floating col-sm-6">
                 <select
                   className="form-select form-select-sm"
                   id="tipo"
@@ -413,7 +413,7 @@ export default function Badge({
                 </select>
                 <label htmlFor="tipo">tipo</label>
               </div>
-              <div className="form-floating col-sm-2">
+              <div className="form-floating col-sm-6">
                 <select
                   className="form-select form-select-sm"
                   id="assegnazione"
@@ -436,8 +436,8 @@ export default function Badge({
                 </select>
                 <label htmlFor="assegnazione">assegnazione</label>
               </div>
-              <div className="w-100" />
-              <div className="form-floating col-sm-2">
+              <div className="w-100"></div>
+              <div className="form-floating col-sm-6">
                 <select
                   className="form-select form-select-sm"
                   id="stato"
@@ -458,7 +458,7 @@ export default function Badge({
                 </select>
                 <label htmlFor="stato">stato</label>
               </div>
-              <div className="form-floating col-sm-5">
+              <div className="form-floating col-sm-6">
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -471,9 +471,9 @@ export default function Badge({
                 />
                 <label htmlFor="ubicazione">ubicazione</label>
               </div>
-              <div className="w-100" />
+              <div className="w-100"></div>
               {clienti.isSuccess && (
-                <div className="form-floating col-sm-2">
+                <div className="form-floating col-sm-6">
                   <select
                     className="form-select form-select-sm"
                     id="cliente"
@@ -501,7 +501,7 @@ export default function Badge({
               )}
             </div>
             <div className="row mt-2">
-              <div className="col-2">
+              <div className="col-3">
                 <div
                   className="pfp-container"
                   style={{
@@ -526,9 +526,9 @@ export default function Badge({
                   />
                 </div>
               </div>
-              <div className="col-10">
+              <div className="col-9">
                 <div className="row">
-                  <div className="form-floating col-sm-3">
+                  <div className="form-floating col-sm">
                     <input
                       type="text"
                       className="form-control form-control-sm"
@@ -541,7 +541,7 @@ export default function Badge({
                     />
                     <label htmlFor="nome">nome</label>
                   </div>
-                  <div className="form-floating col-sm-3">
+                  <div className="form-floating col-sm-6">
                     <input
                       type="text"
                       className="form-control form-control-sm"
@@ -555,7 +555,7 @@ export default function Badge({
                     <label htmlFor="cognome">cognome</label>
                   </div>
                   <div className="w-100" />
-                  <div className="form-floating col-sm-3">
+                  <div className="form-floating col-sm-6">
                     <input
                       type="text"
                       className="form-control form-control-sm"
@@ -568,7 +568,7 @@ export default function Badge({
                     />
                     <label htmlFor="ditta">ditta</label>
                   </div>
-                  <div className="form-floating col-sm-3">
+                  <div className="form-floating col-sm-6">
                     <input
                       type="text"
                       className="form-control form-control-sm"
@@ -582,7 +582,7 @@ export default function Badge({
                     <label htmlFor="telefono">telefono</label>
                   </div>
                   <div className="w-100" />
-                  <div className="form-floating col-sm-3">
+                  <div className="form-floating col-sm-6">
                     <select
                       className="form-select form-select-sm"
                       id="tdoc"
@@ -609,7 +609,7 @@ export default function Badge({
                     </select>
                     <label htmlFor="tdoc">tipo documento</label>
                   </div>
-                  <div className="form-floating col-sm-3">
+                  <div className="form-floating col-sm-6">
                     <input
                       type="text"
                       className="form-control form-control-sm"
@@ -625,7 +625,7 @@ export default function Badge({
                   <div className="w-100" />
                   {props.tipoBadge === "BADGE" ? (
                     <>
-                      <div className="form-floating col-sm-3">
+                      <div className="form-floating col-sm-6">
                         <input
                           type="date"
                           min={dateFormat(new Date(), "yyyy-mm-dd")}
@@ -645,7 +645,7 @@ export default function Badge({
                   ) : (
                     props.tipoBadge === "VEICOLO" && (
                       <>
-                        <div className="form-floating col-sm-3">
+                        <div className="form-floating col-sm-6">
                           <input
                             type="text"
                             className="form-control form-control-sm"
@@ -658,7 +658,7 @@ export default function Badge({
                           />
                           <label htmlFor="targa1">targa1</label>
                         </div>
-                        <div className="form-floating col-sm-3">
+                        <div className="form-floating col-sm-6">
                           <input
                             type="text"
                             className="form-control form-control-sm"
@@ -671,7 +671,7 @@ export default function Badge({
                           <label htmlFor="targa2">targa2</label>
                         </div>
                         <div className="w-100" />
-                        <div className="form-floating col-sm-3">
+                        <div className="form-floating col-sm-6">
                           <input
                             type="text"
                             className="form-control form-control-sm"
@@ -684,7 +684,7 @@ export default function Badge({
                           />
                           <label htmlFor="targa3">targa3</label>
                         </div>
-                        <div className="form-floating col-sm-3">
+                        <div className="form-floating col-sm-6">
                           <input
                             type="text"
                             className="form-control form-control-sm"
@@ -704,44 +704,46 @@ export default function Badge({
               </div>
             </div>
           </div>
-          <FormButtons
-            findBadges={() => findBadges.refetch()}
-            timbra={() => {
-              if (!currPostazione?._id) {
-                toast.error("Campo Postazione mancante");
-                return;
-              }
+          <div className="col-sm-2">
+            <FormButtons
+              findBadges={() => findBadges.refetch()}
+              timbra={() => {
+                if (!currPostazione?._id) {
+                  toast.error("Campo Postazione mancante");
+                  return;
+                }
 
-              console.log("badge", currPostazione?._id);
+                console.log("badge", currPostazione?._id);
 
-              mutateInStrutt.mutate({
-                barcode: barcodeRef.current!.value,
-                postazioneId: currPostazione?._id,
-              });
-            }}
-            insertBadge={() => insertBadge.mutate(createFormData())}
-            updateBadge={() => {
-              const confirmed = window.confirm(
-                "Procedere alla modifica del badge?"
-              );
-              if (!confirmed) return;
-              updateBadge.mutate(createFormData());
-            }}
-            deleteBadge={() => {
-              const confirmed = window.confirm(
-                "Procedere alla rimozione del badge?"
-              );
-              if (!confirmed) return;
-              deleteBadge.mutate(barcodeRef.current!.value);
-            }}
-            openPopup={setIsShown.setTrue}
-            readonlyForm={readonlyForm}
-            toggleReadOnlyForm={setReadonlyForm.setToggle}
-            admin={user.admin}
-            excel={user.excel}
-            provvisori={user.provvisori}
-            badges={findBadges.data || []}
-          />
+                mutateInStrutt.mutate({
+                  barcode: barcodeRef.current!.value,
+                  postazioneId: currPostazione?._id,
+                });
+              }}
+              insertBadge={() => insertBadge.mutate(createFormData())}
+              updateBadge={() => {
+                const confirmed = window.confirm(
+                  "Procedere alla modifica del badge?"
+                );
+                if (!confirmed) return;
+                updateBadge.mutate(createFormData());
+              }}
+              deleteBadge={() => {
+                const confirmed = window.confirm(
+                  "Procedere alla rimozione del badge?"
+                );
+                if (!confirmed) return;
+                deleteBadge.mutate(barcodeRef.current!.value);
+              }}
+              openPopup={setIsShown.setTrue}
+              readonlyForm={readonlyForm}
+              toggleReadOnlyForm={setReadonlyForm.setToggle}
+              admin={user.admin}
+              excel={user.excel}
+              provvisori={user.provvisori}
+              badges={findBadges.data || []}
+            />
+          </div>
           <div className="col-4">
             <Clock />
           </div>

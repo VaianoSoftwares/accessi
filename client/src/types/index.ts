@@ -356,6 +356,7 @@ export interface IPageInfo {
   readonly name: string;
   readonly title: string;
   readonly description: string;
+  readonly imagePath?: string;
 }
 
 export const PAGES_INFO: ReadonlyMap<TPage, IPageInfo> = new Map([
@@ -366,6 +367,7 @@ export const PAGES_INFO: ReadonlyMap<TPage, IPageInfo> = new Map([
       name: "Badge",
       title: "Gestione Badge",
       description: "Pagina di gestione badge",
+      imagePath: "/badge_icon_128.png",
     },
   ],
   [
@@ -375,6 +377,7 @@ export const PAGES_INFO: ReadonlyMap<TPage, IPageInfo> = new Map([
       name: "Chiavi",
       title: "Gestione Chiavi",
       description: "Pagina di gestione chiavi",
+      imagePath: "/key_icon_128.png",
     },
   ],
   [
@@ -384,6 +387,7 @@ export const PAGES_INFO: ReadonlyMap<TPage, IPageInfo> = new Map([
       name: "Veicoli",
       title: "Gestione Veicoli",
       description: "Pagina di gestione veicoli",
+      imagePath: "/car_icon_128.png",
     },
   ],
   [
@@ -393,6 +397,7 @@ export const PAGES_INFO: ReadonlyMap<TPage, IPageInfo> = new Map([
       name: "Archivio",
       title: "Archivio",
       description: "Monitoraggio archivio resoconti",
+      imagePath: "/archive_icon_128.png",
     },
   ],
   [
@@ -402,6 +407,7 @@ export const PAGES_INFO: ReadonlyMap<TPage, IPageInfo> = new Map([
       name: "Protocollo",
       title: "Protocollo Elettronico",
       description: "Pagina per condivisione documenti",
+      imagePath: "/document_icon_128.png",
     },
   ],
   [
@@ -411,6 +417,7 @@ export const PAGES_INFO: ReadonlyMap<TPage, IPageInfo> = new Map([
       name: "Documenti",
       title: "Documenti",
       description: "Gestione documenti di identità",
+      imagePath: "/id_icon_128.png",
     },
   ],
 ]);
@@ -423,6 +430,7 @@ export const ADMIN_PAGES_INFO: ReadonlyMap<TAdminPage, IPageInfo> = new Map([
       name: "Registra",
       title: "Registra Account",
       description: "Registrazione nuovo account",
+      imagePath: "/user_icon_128.png",
     },
   ],
   [
@@ -432,6 +440,7 @@ export const ADMIN_PAGES_INFO: ReadonlyMap<TAdminPage, IPageInfo> = new Map([
       name: "Modifica Utenti",
       title: "Modifica Utenti",
       description: "Modifica account utenti",
+      imagePath: "/user_icon_128.png",
     },
   ],
   [
@@ -441,6 +450,7 @@ export const ADMIN_PAGES_INFO: ReadonlyMap<TAdminPage, IPageInfo> = new Map([
       name: "Assegnazioni",
       title: "Modifica Assegnazioni",
       description: "Gestione delle assegnazioni",
+      imagePath: "/user_icon_128.png",
     },
   ],
   [
@@ -450,6 +460,7 @@ export const ADMIN_PAGES_INFO: ReadonlyMap<TAdminPage, IPageInfo> = new Map([
       name: "Postazioni",
       title: "Modifica Postazioni",
       description: "Gestione delle postazioni",
+      imagePath: "/user_icon_128.png",
     },
   ],
   [
@@ -459,6 +470,7 @@ export const ADMIN_PAGES_INFO: ReadonlyMap<TAdminPage, IPageInfo> = new Map([
       name: "Clienti",
       title: "Modifica Clienti",
       description: "Gestione dei clienti",
+      imagePath: "/user_icon_128.png",
     },
   ],
 ]);

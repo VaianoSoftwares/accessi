@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import { TDocFormState, TDocumento } from "../../types";
 import { toast } from "react-hot-toast";
+import Clock from "../Clock";
 
 export default function Documenti(props: { admin: boolean }) {
   const codiceRef = useRef<HTMLInputElement>(null);
@@ -120,154 +121,160 @@ export default function Documenti(props: { admin: boolean }) {
 
   return (
     <div id="doc-wrapper">
-      <div className="container-fluid mb-3">
-        <div className="row mt-2 mx-1 justify-content-start align-items-start submit-form">
-          <div className="col-2 p-0">
-            <div className="row">
-              <div
-                className="col doc-img-container"
-                style={{ backgroundImage: `url(${docImgUrl})` }}
-              />
-              <div className="w-100 mb-1" />
-              <div className="col">
-                <div className="input-group input-group-sm">
-                  <input
-                    accept="image/*"
-                    type="file"
-                    className="custom-file-input"
-                    id="docimg"
-                    onChange={(e) => {
-                      const file = e.target.files?.item(0);
-                      if (file) updateImage(file);
-                      else setNoImage();
-                    }}
-                    disabled={props.admin === false}
-                    autoComplete="off"
-                    ref={docimgRef}
+      <div className="container-fluid m-1">
+        <div className="row justify-content-start align-items-start submit-form">
+          <div className="col-5 doc-form">
+            <div className="row m-1">
+              <div className="col-4">
+                <div className="row">
+                  <div
+                    className="col doc-img-container"
+                    style={{ backgroundImage: `url(${docImgUrl})` }}
                   />
+                  <div className="w-100 mb-1" />
+                  <div className="col">
+                    <div className="input-group input-group-sm">
+                      <input
+                        accept="image/*"
+                        type="file"
+                        className="custom-file-input"
+                        id="docimg"
+                        onChange={(e) => {
+                          const file = e.target.files?.item(0);
+                          if (file) updateImage(file);
+                          else setNoImage();
+                        }}
+                        disabled={props.admin === false}
+                        autoComplete="off"
+                        ref={docimgRef}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="col-8 p-0">
+                <div className="row mb-1">
+                  <div className="form-floating col-sm-6">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="codice"
+                      placeholder="numero documento"
+                      autoComplete="off"
+                      ref={codiceRef}
+                      defaultValue=""
+                    />
+                    <label htmlFor="codice">ndoc</label>
+                  </div>
+                  <div className="form-floating col-sm-6">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="azienda"
+                      placeholder="azienda"
+                      autoComplete="off"
+                      ref={aziendaRef}
+                      defaultValue=""
+                    />
+                    <label htmlFor="azienda">azienda</label>
+                  </div>
+                  <div className="w-100 mb-1" />
+                  <div className="form-floating col-sm-6">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="nome"
+                      placeholder="nome"
+                      autoComplete="off"
+                      ref={nomeRef}
+                      defaultValue=""
+                    />
+                    <label htmlFor="nome">nome</label>
+                  </div>
+                  <div className="form-floating col-sm-6">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="cognome"
+                      placeholder="cognome"
+                      autoComplete="off"
+                      ref={cognomeRef}
+                      defaultValue=""
+                    />
+                    <label htmlFor="cognome">cognome</label>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="col-8 p-0 doc-form">
-            <div className="row mb-1">
-              <div className="form-floating col-sm-3">
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
-                  id="codice"
-                  placeholder="numero documento"
-                  autoComplete="off"
-                  ref={codiceRef}
-                  defaultValue=""
-                />
-                <label htmlFor="codice">ndoc</label>
-              </div>
-              <div className="form-floating col-sm-3">
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
-                  id="azienda"
-                  placeholder="azienda"
-                  autoComplete="off"
-                  ref={aziendaRef}
-                  defaultValue=""
-                />
-                <label htmlFor="azienda">azienda</label>
-              </div>
-              <div className="w-100 mb-1" />
-              <div className="form-floating col-sm-3">
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
-                  id="nome"
-                  placeholder="nome"
-                  autoComplete="off"
-                  ref={nomeRef}
-                  defaultValue=""
-                />
-                <label htmlFor="nome">nome</label>
-              </div>
-              <div className="form-floating col-sm-3">
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
-                  id="cognome"
-                  placeholder="cognome"
-                  autoComplete="off"
-                  ref={cognomeRef}
-                  defaultValue=""
-                />
-                <label htmlFor="cognome">cognome</label>
-              </div>
+          <div className="col-1">
+            <div className="col">
+              <button
+                className="btn btn-success home-form-btn"
+                onClick={() => findDocumenti.refetch()}
+              >
+                Cerca
+              </button>
+            </div>
+            <div className="w-100 mb-1" />
+            <div className="col">
+              <button
+                className="btn btn-success home-form-btn"
+                onClick={() => insertDocumento.mutate(createFormData())}
+                disabled={props.admin === false}
+              >
+                Aggiungi
+              </button>
+            </div>
+            <div className="w-100 mb-1" />
+            <div className="col">
+              <button
+                className="btn btn-success home-form-btn"
+                onClick={() => {
+                  const confirmed = window.confirm(
+                    "Procedere alla modifica del documento?"
+                  );
+                  if (!confirmed) return;
+                  updateDocumento.mutate(createFormData());
+                }}
+                disabled={props.admin === false}
+              >
+                Modifica
+              </button>
+            </div>
+            <div className="w-100 mb-1" />
+            <div className="col p-0">
+              <button
+                className="btn btn-success home-form-btn"
+                onClick={() => {
+                  const confirmed = window.confirm(
+                    "Procedere alla rimozione del documento?"
+                  );
+                  if (!confirmed) return;
+                  deleteDocumento.mutate(codiceRef.current!.value);
+                }}
+                disabled={props.admin === false}
+              >
+                Elimina
+              </button>
+            </div>
+            <div className="w-100 mb-1" />
+            <div className="col">
+              <button
+                className="btn btn-success home-form-btn"
+                onClick={refreshPage}
+              >
+                Clear
+              </button>
             </div>
           </div>
-          <div className="col-1 p-0">
-            <div className="row align-items-center justify-content-start g-0">
-              <div className="col">
-                <button
-                  className="btn btn-success home-form-btn"
-                  onClick={() => findDocumenti.refetch()}
-                >
-                  Cerca
-                </button>
-              </div>
-              <div className="w-100 mb-1" />
-              <div className="col">
-                <button
-                  className="btn btn-success home-form-btn"
-                  onClick={() => insertDocumento.mutate(createFormData())}
-                  disabled={props.admin === false}
-                >
-                  Aggiungi
-                </button>
-              </div>
-              <div className="w-100 mb-1" />
-              <div className="col">
-                <button
-                  className="btn btn-success home-form-btn"
-                  onClick={() => {
-                    const confirmed = window.confirm(
-                      "Procedere alla modifica del documento?"
-                    );
-                    if (!confirmed) return;
-                    updateDocumento.mutate(createFormData());
-                  }}
-                  disabled={props.admin === false}
-                >
-                  Modifica
-                </button>
-              </div>
-              <div className="w-100 mb-1" />
-              <div className="col">
-                <button
-                  className="btn btn-success home-form-btn"
-                  onClick={() => {
-                    const confirmed = window.confirm(
-                      "Procedere alla rimozione del documento?"
-                    );
-                    if (!confirmed) return;
-                    deleteDocumento.mutate(codiceRef.current!.value);
-                  }}
-                  disabled={props.admin === false}
-                >
-                  Elimina
-                </button>
-              </div>
-              <div className="w-100 mb-1" />
-              <div className="col">
-                <button
-                  className="btn btn-success home-form-btn"
-                  onClick={refreshPage}
-                >
-                  Clear
-                </button>
-              </div>
-            </div>
+          <div className="col-2"></div>
+          <div className="col-4">
+            <Clock></Clock>
           </div>
         </div>
       </div>
-      <div id="doc-table-wrapper">
+      <div className="doc-table-wrapper">
         {findDocumenti.isSuccess && <BadgeTable content={findDocumenti.data} />}
       </div>
     </div>

@@ -11,6 +11,7 @@ import ProtocolloDataService from "../../services/protocollo";
 import toast from "react-hot-toast";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import "./index.css";
+import Clock from "../Clock";
 
 const ON_PROD_MODE = process.env.NODE_ENV === "production";
 
@@ -129,9 +130,9 @@ export default function Protocollo({
   return (
     <div className="container-fluid m-1">
       <div className="row">
-        <div className="col protocollo-form">
+        <div className="col-5 protocollo-form">
           <div className="row mb-2">
-            <div className="form-floating col-sm-3">
+            <div className="form-floating col-sm-6">
               <input
                 className="form-control form-control-sm"
                 type="text"
@@ -143,7 +144,7 @@ export default function Protocollo({
               />
               <label htmlFor="filename">Nome File</label>
             </div>
-            <div className="form-floating col-sm-3">
+            <div className="form-floating col-sm-6">
               <input
                 className="form-control form-control-sm"
                 type="text"
@@ -155,9 +156,8 @@ export default function Protocollo({
               />
               <label htmlFor="descrizione">Descrizione</label>
             </div>
-          </div>
-          <div className="row mb-2">
-            <div className="form-group form-group-sm col-sm-3">
+            <div className="w-100 my-1"></div>
+            <div className="form-group form-group-sm col-sm-6">
               <input
                 type="file"
                 className="custom-file-input"
@@ -167,7 +167,7 @@ export default function Protocollo({
                 defaultValue=""
               />
             </div>
-            <div className="form-group col-sm-3">
+            <div className="form-group col-sm-6">
               <label htmlFor="visibileDa">Visibile Da</label>
               <select
                 className="form-select form-select-sm"
@@ -185,9 +185,8 @@ export default function Protocollo({
                   ))}
               </select>
             </div>
-          </div>
-          <div className="row mb-2">
-            <div className="form-floating col-sm-3">
+            <div className="w-100 my-1"></div>
+            <div className="form-floating col-sm-6">
               <input
                 className="form-control form-control-sm"
                 type="date"
@@ -199,7 +198,7 @@ export default function Protocollo({
               />
               <label htmlFor="dataInizio">Data Inizio</label>
             </div>
-            <div className="form-floating col-sm-3">
+            <div className="form-floating col-sm-6">
               <input
                 className="form-control form-control-sm"
                 type="date"
@@ -212,8 +211,10 @@ export default function Protocollo({
               <label htmlFor="dataFine">Data Fine</label>
             </div>
           </div>
-          <div className="row mb-2">
-            <div className="col-sm-1">
+        </div>
+        <div className="col-2">
+          <div className="row align-items-center justify-content-start g-0">
+            <div className="col">
               <button
                 className="btn btn-success"
                 onClick={() => findProtocollo.refetch()}
@@ -221,7 +222,8 @@ export default function Protocollo({
                 Cerca
               </button>
             </div>
-            <div className="col-sm-1">
+            <div className="w-100 my-1"></div>
+            <div className="col">
               <button
                 className="btn btn-success"
                 onClick={() => insertProtocollo.mutate(createFormData())}
@@ -231,6 +233,11 @@ export default function Protocollo({
             </div>
           </div>
         </div>
+        <div className="col">
+          <Clock></Clock>
+        </div>
+      </div>
+      <div className="row my-1">
         <div className="col-3 protocollo-file-list border">
           <ul className="list-group list-group-flush">
             {queryProtocollo.isSuccess
@@ -275,7 +282,6 @@ export default function Protocollo({
               : "Nessun File Trovato"}
           </ul>
         </div>
-        <div className="col-1"></div>
       </div>
     </div>
   );

@@ -19,9 +19,20 @@ export default function Home({ user }: { user: TUser }) {
           className="card home-card"
           onClick={() => navigate(pageInfo.pathname)}
         >
-          <div className="card-body">
-            <h5 className="card-title">{pageInfo.title}</h5>
-            <p className="card-text">{pageInfo.description}</p>
+          <div className="row g-0">
+            <div className="col-sm-4">
+              <img
+                src={pageInfo.imagePath}
+                className="img-fluid rounder-start home-card-img"
+                alt=""
+              ></img>
+            </div>
+            <div className="col-sm">
+              <div className="card-body">
+                <h5 className="card-title">{pageInfo.title}</h5>
+                <p className="card-text">{pageInfo.description}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -33,12 +44,14 @@ export default function Home({ user }: { user: TUser }) {
   }, [user]);
 
   return (
-    <div className="row m-1">
-      {Array.from(PAGES_INFO.entries())
-        .filter(([page]) => user.admin || user.pages?.includes(page))
-        .map((page) => homeCard(page))}
-      {user.admin &&
-        Array.from(ADMIN_PAGES_INFO.entries()).map((page) => homeCard(page))}
+    <div className="home-wrapper">
+      <div className="row mx-1">
+        {Array.from(PAGES_INFO.entries())
+          .filter(([page]) => user.admin || user.pages?.includes(page))
+          .map((page) => homeCard(page))}
+        {user.admin &&
+          Array.from(ADMIN_PAGES_INFO.entries()).map((page) => homeCard(page))}
+      </div>
     </div>
   );
 }
