@@ -1,12 +1,17 @@
 .vscode
 vcpkg
 
-token.txt
-postazione.txt
-login-req.sh
+*.txt
+*.sh
+
 login.sh
-timbra-req.sh
+timbra.sh
+postazioni-get.sh
+user-get.sh
+login-dev.sh
 
 *.exe
 *.o
 scanner
+
+.env*

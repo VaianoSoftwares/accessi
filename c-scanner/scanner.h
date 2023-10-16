@@ -1,21 +1,35 @@
 #define DEFAULT_HOSTNAME "127.0.0.1"
 #define DEFAULT_PORT 4316
 #define MSG_LEN 4096
+#define TOKEN_MAX_LEN 1024
 
-#define MSG_FORMAT "POST /api/v1/badges/archivio HTTP/1.1\r\n"         \
-                   "Host: %s\r\n"                                      \
-                   "x-access-token: %s\r\n"                            \
-                   "Content-Type: application/json; charset=utf-8\r\n" \
-                   "Content-Length: %zd\r\n\r\n"                       \
-                   "%s"
+#define LOGIN_MSG_FMT "POST /api/v1/users/user/login HTTP/1.1\r\n"        \
+                      "Host: %s\r\n"                                      \
+                      "Content-Type: application/json; charset=utf-8\r\n" \
+                      "Content-Length: %d\r\n\r\n"                        \
+                      "%s"
 
-#define BODY_FORMAT "{\"barcode\":\"%s\"," \
-                    "\"postazioneId\":\"%s\"}"
+#define LOGIN_BODY_FMT "{\"device\":\"%s\",\"password\":\"%s\"}"
+
+#define TIMBRA_MSG_FMT "POST /api/v1/badges/archivio HTTP/1.1\r\n"         \
+                       "Host: %s\r\n"                                      \
+                       "x-access-token: %s\r\n"                            \
+                       "Content-Type: application/json; charset=utf-8\r\n" \
+                       "Content-Length: %zd\r\n\r\n"                       \
+                       "%s"
+
+#define TIMBRA_BODY_FMT "{\"barcode\":\"%s\",\"postazioneId\":\"%s\"}"
 
 #define SCAN_BUF_SIZE 32
 #define N_SCAN_TIMBRA 2
 #define N_SCAN_CHIAVI 1
 #define NDEVS (N_SCAN_TIMBRA + N_SCAN_CHIAVI)
+
+typedef struct login_req_t
+{
+    char *username;
+    char *password;
+} login_req_t;
 
 typedef struct scan_buf_t
 {

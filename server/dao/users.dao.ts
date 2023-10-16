@@ -46,9 +46,7 @@ export default class UsersDAO {
 
   static async getAllUsers() {
     try {
-      return await users
-        .find({ admin: false }, { projection: { password: 0 } })
-        .toArray();
+      return await users.find({ admin: false }).toArray();
     } catch (err) {
       errCheck(err, "getAllUsers |");
       return [];
@@ -65,20 +63,9 @@ export default class UsersDAO {
 
   static async getUserById(id: string | ObjectId) {
     try {
-      return await users.findOne(
-        { _id: new ObjectId(id) },
-        { projection: { password: 0 } }
-      );
+      return await users.findOne({ _id: new ObjectId(id) });
     } catch (err) {
       errCheck(err, "getUserById |");
-    }
-  }
-
-  static async getUserByDevice(device: string) {
-    try {
-      return await users.findOne({ device });
-    } catch (err) {
-      errCheck(err, "getUserByDevice |");
     }
   }
 }

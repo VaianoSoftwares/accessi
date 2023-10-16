@@ -4,10 +4,10 @@ import "./index.css";
 import { useNavigate } from "react-router-dom";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { useRef, useEffect } from "react";
-import { TPartialUser, TUser } from "../../types";
+import { TLoggedUser, TUser } from "../../types";
 
 export default function Login(props: {
-  login: (user: TUser) => Promise<void>;
+  login: (user: TLoggedUser) => Promise<void>;
 }) {
   const navigate = useNavigate();
 
@@ -15,16 +15,10 @@ export default function Login(props: {
   const passwordRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    function retriveUser({
-      device,
-      password,
-    }: {
-      device: string;
-      password: string;
-    }) {
-      UserDataService.deviceLogin({ device, password })
+    function retriveUser() {
+      UserDataService.deviceLogin()
         .then((response) => {
-          const dataResp = response.data.data as TPartialUser;
+          const dataResp = response.data.data as TUser;
           console.log(dataResp.username, "logged In.");
 
           props.login({
@@ -39,10 +33,12 @@ export default function Login(props: {
     }
 
     if (window.location.hash) {
-      retriveUser(JSON.parse(window.location.hash.slice(1)));
+      sessionStorage.setItem(
+        "user",
+        JSON.stringify({ token: window.location.hash.slice(1) })
+      );
+      retriveUser();
     }
-
-    window.location.hash = "";
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -57,7 +53,7 @@ export default function Login(props: {
           return;
         }
 
-        const dataResp = response.data.data as TPartialUser;
+        const dataResp = response.data.data as TUser;
         console.log(dataResp.username, "logged In.");
 
         props.login({

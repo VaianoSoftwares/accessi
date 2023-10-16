@@ -6,7 +6,7 @@ export type TUser = {
   admin: boolean;
   postazioni: ObjectId[] | null;
   pages: string[] | null;
-  device: string | null;
+  device: boolean;
   canLogout: boolean;
   excel: boolean;
   provvisori: boolean;
@@ -16,11 +16,6 @@ export type TUserReq = {
   [key: string]: string | string[] | boolean | undefined;
 } & Pick<TUser, "username" | "password"> &
   Partial<Omit<TUser, "username" | "password">>;
-
-export type TUserResp = { id: string | ObjectId } & Omit<
-  TUser,
-  "password" | "device"
->;
 
 export type TPermesso = {
   username: string;

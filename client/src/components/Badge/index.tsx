@@ -7,7 +7,6 @@ import Clock from "../Clock";
 import FormButtons from "../FormButtons";
 import OspitiPopup from "../OspitiPopup";
 import {
-  TUser,
   TInStruttTableContent,
   TBadgeFormState,
   TPostazione,
@@ -22,6 +21,7 @@ import {
   TAssegnazione,
   TTimbraResp,
   TimbraDoc,
+  TLoggedUser,
 } from "../../types";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { TableContentMapper } from "../../utils/tableContentMapper";
@@ -38,7 +38,7 @@ export default function Badge({
   user,
   ...props
 }: {
-  user: TUser;
+  user: TLoggedUser;
   scannedValue: string;
   clearScannedValue: () => void;
   tipoBadge: TBadgeTipo;

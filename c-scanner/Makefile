@@ -9,7 +9,7 @@ win_lib_path = -L/usr/x86_64-w64-mingw32/lib/openssl-1.1
 
 wine_dll_path = /usr/x86_64-w64-mingw32/bin
 
-run_args = `cat token.txt` `cat postazione.txt`
+run_args = `cat args.txt`
 
 all: scanner scanner-win.exe
 

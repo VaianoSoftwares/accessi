@@ -1,21 +1,21 @@
 export type WithId<T> = T & { _id: string };
 
-export type TPartialUser = {
+export type TUser = {
   _id: string;
   username: string;
   admin: boolean;
   postazioni: string[] | null;
   pages: string[] | null;
+  device: boolean;
   canLogout: boolean;
   excel: boolean;
   provvisori: boolean;
+  password: string;
 };
 
-export type TUser = TPartialUser & {
+export type TLoggedUser = TUser & {
   token: string;
 };
-
-export type TFullUser = TPartialUser & { password: string; device: string };
 
 export type TPostazione = {
   _id: string;

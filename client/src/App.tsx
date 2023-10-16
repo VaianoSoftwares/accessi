@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import { TPostazione, TUser } from "./types";
+import { TLoggedUser, TPostazione, TUser } from "./types";
 import Login from "./components/Login";
 import PageNotFound from "./components/PageNotFound";
 import AccessiNavbar from "./components/AccessiNavbar";
@@ -25,7 +25,7 @@ const Postazioni = lazy(() => import("./components/Postazioni"));
 const Clienti = lazy(() => import("./components/Clienti"));
 
 export default function App() {
-  const [user, setUser] = useSessionStorage<TUser | null>("user", null);
+  const [user, setUser] = useSessionStorage<TLoggedUser | null>("user", null);
 
   const [currPostazione, setCurrPostazione] = useState<TPostazione>();
 
@@ -43,7 +43,7 @@ export default function App() {
     setPrestaArr((prevState) => prevState.filter((elem) => elem !== value));
   }
 
-  async function login(user: TUser) {
+  async function login(user: TLoggedUser) {
     setUser(user);
   }
 

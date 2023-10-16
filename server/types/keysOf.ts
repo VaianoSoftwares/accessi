@@ -1,1 +1,1 @@
-export type KeysOf<T extends PropertyKey> = { [key in T]: null };
+export type KeysOf<T extends PropertyKey> = { [key in T]: any };

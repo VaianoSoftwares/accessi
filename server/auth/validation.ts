@@ -17,7 +17,7 @@ const STR_MAX_LEN = 256;
 const ID_LEN = 24;
 const ID_LENGTH_ERR_MSG = `ID deve contenere esattamente ${ID_LEN} caratteri`;
 
-const UNAME_MIN_LEN = 5;
+const UNAME_MIN_LEN = 3;
 const UNAME_TOO_SHORT_ERR_MSG = ATTR_TOO_SHORT_ERR_MSG(
   "Username",
   UNAME_MIN_LEN
@@ -62,7 +62,7 @@ const REGISTER_SCHEMA = z.object({
     .max(PSW_MAX_LEN, PSW_TOO_LONG_ERR_MSG),
   postazioni: z.string().array().nonempty(MISSING_ATTR_ERR_MSG("Postazioni")),
   pages: z.string().array().nonempty(MISSING_ATTR_ERR_MSG("Pagine")),
-  device: z.string().nullish(),
+  device: z.coerce.boolean().default(false),
   canLogout: z.coerce.boolean().default(false),
   excel: z.coerce.boolean().default(false),
   provvisori: z.coerce.boolean().default(false),
@@ -79,7 +79,7 @@ const UPDATE_USER_SCHEMA = z.object({
   password: z.string().optional(),
   postazioni: z.string().array().nonempty().nullish().default(null),
   pages: z.string().array().nonempty().nullish().default(null),
-  device: z.string().optional(),
+  device: z.boolean().optional(),
   canLogout: z.boolean().optional(),
   excel: z.coerce.boolean().optional(),
   provvisori: z.coerce.boolean().optional(),
@@ -308,10 +308,6 @@ export default class Validator {
 
   static register(input: unknown) {
     return REGISTER_SCHEMA.safeParse(input);
-  }
-
-  static logout(input: unknown) {
-    return GET_USER_SCHEMA.safeParse(input);
   }
 
   static getUser(input: unknown) {

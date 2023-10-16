@@ -35,6 +35,7 @@ void wait_threads(pthread_t *threads, int *irets);
 bool find_scanner(int n_thread);
 int connect_scanner(char *dev_name, struct termios *tio);
 int conn_to_server(const char *hostname, uint16_t port);
+char *log_to_server(SSL *ssl, const char *hostname, login_req_t *login_data);
 void __print_err(const char *msg, va_list args);
 void select_scan_menu(void);
 void print_menu_opts(void);
@@ -43,6 +44,9 @@ void enable_raw_mode(void);
 void disable_raw_mode(void);
 void print_dev_opts(char pathnames[NDEVS][DEVNAME_LEN], int size);
 int get_dev_pathnames(char pathnames[NDEVS][DEVNAME_LEN]);
+SSL_CTX *init_CTX(void);
+void show_certs(SSL *ssl);
+void clearScreen(void);
 
 int main(int argc, char *argv[])
 {
@@ -51,18 +55,19 @@ int main(int argc, char *argv[])
     enable_raw_mode();
 
     if (argc < 3)
-        throw_err("usage: %s <token> <postazioneId> <hostname> <port>", argv[0]);
+        throw_err("usage: %s <password> <postazioneId> <hostname> <port>", argv[0]);
 
     // get cmd args
-    char *token = argv[1];
-    char *postazione_id = argv[2];
+    login_req_t login_data = {
+        .username = NULL,
+        .password = argv[1],
+    };
 
-    char *hostname = (argc >= 4 && strlen(argv[3]) > 0) ? argv[3] : DEFAULT_HOSTNAME;
+    const char *postazione_id = argv[2];
+    const char *hostname = (argc >= 4 && strlen(argv[3]) > 0) ? argv[3] : DEFAULT_HOSTNAME;
     uint16_t port = (argc >= 5 && atoi(argv[4]) > 0) ? atoi(argv[4]) : DEFAULT_PORT;
 
-    int body_len = strlen(BODY_FORMAT) + SCAN_BUF_SIZE + strlen(postazione_id);
-    int req_len = strlen(MSG_FORMAT) + body_len +
-                  strlen(hostname) + strlen(token);
+    int body_len = strlen(TIMBRA_BODY_FMT) + SCAN_BUF_SIZE + strlen(postazione_id);
 
     /*#################################################################################################################*/
 
@@ -85,7 +90,20 @@ int main(int argc, char *argv[])
 
     puts("MAIN | SSL connection enstablished.");
 
-    show_certs(ssl);
+    // show_certs(ssl);
+
+    // get computer name
+    char computer_name[HOST_NAME_MAX + 1];
+    if (gethostname(computer_name, sizeof(computer_name)))
+        throw_err("MAIN | gethostname");
+    login_data.username = computer_name;
+
+    // get token
+    char *token = log_to_server(ssl, hostname, &login_data);
+    if (!token)
+        throw_err("MAIN | Login has failed.");
+    int req_len = strlen(TIMBRA_MSG_FMT) + body_len +
+                  strlen(hostname) + strlen(token);
 
     /*#################################################################################################################*/
 
@@ -125,6 +143,7 @@ int main(int argc, char *argv[])
 
     /*#################################################################################################################*/
 
+    free(token);
     SSL_free(ssl);
     close(client_fd);
     SSL_CTX_free(ctx);
@@ -194,10 +213,10 @@ void *timbratura_badge(void *targs)
 
     while (!exit_thread)
     {
-        pthread_mutex_lock(&scan_mutexes[n_thread]);
-
         if (!od[n_thread].open)
         {
+            pthread_mutex_lock(&scan_mutexes[n_thread]);
+
             printf("THREAD %d | Available scanner device %s has been found.\n", n_thread, od[n_thread].pathname);
 
             // connetc serial scanner
@@ -227,8 +246,8 @@ void *timbratura_badge(void *targs)
         }
 
         // create msg request
-        snprintf(body_msg, sizeof(body_msg), BODY_FORMAT, scan_buf, postazione_id);
-        snprintf(request, sizeof(request), MSG_FORMAT, hostname, token,
+        snprintf(body_msg, sizeof(body_msg), TIMBRA_BODY_FMT, scan_buf, postazione_id);
+        snprintf(request, sizeof(request), TIMBRA_MSG_FMT, hostname, token,
                  strlen(body_msg), body_msg);
 
         pthread_mutex_lock(&req_mutex);
@@ -433,7 +452,88 @@ int conn_to_server(const char *hostname, uint16_t port)
     return sd;
 }
 
-SSL_CTX *init_CTX()
+char *log_to_server(SSL *ssl, const char *hostname, login_req_t *login_data)
+{
+    const int body_size = sizeof(LOGIN_BODY_FMT) +
+                          strlen(login_data->username) +
+                          strlen(login_data->password);
+    char *body_msg = malloc(body_size * sizeof(char));
+    if (!body_msg)
+        throw_err("log_to_server | malloc");
+    snprintf(body_msg, body_size, LOGIN_BODY_FMT, login_data->username, login_data->password);
+
+    int body_len = strlen(body_msg);
+    const int req_size = sizeof(LOGIN_MSG_FMT) + body_len + strlen(hostname) + 10;
+    char *request = malloc(req_size * sizeof(char));
+    if (!request)
+        throw_err("log_to_server | malloc");
+    snprintf(request, req_size, LOGIN_MSG_FMT, hostname, body_len, body_msg);
+
+    char *response = malloc(MSG_LEN);
+    if (!response)
+        throw_err("log_to_server | malloc");
+    int nbytes;
+
+    if (SSL_write(ssl, request, strlen(request)) <= 0)
+    {
+        ERR_print_errors_fp(stderr);
+        fprintf(stderr, RED "login | SSL_write: Unable to send request.\n" RESET);
+        return NULL;
+    }
+
+    if ((nbytes = SSL_read(ssl, response, MSG_LEN)) <= 0)
+    {
+        ERR_print_errors_fp(stderr);
+        fprintf(stderr, RED "login | SSL_read: No response.\n" RESET);
+        return NULL;
+    }
+    response[nbytes] = '\0';
+
+    puts(response);
+
+    uint16_t response_status;
+    if (sscanf(response, "HTTP/1.1 %d", &response_status) != 1)
+        throw_err("login | Bad response");
+    else if (response_status < 200 || response_status > 299)
+        throw_err("login | Access denied");
+
+    static const char *token_header = "x-access-token: ";
+    int tkhd_len = strlen(token_header), token_len;
+    char *curr_line = response, *next_line = NULL, *token = NULL;
+    while (curr_line)
+    {
+        next_line = strchr(curr_line, '\n');
+        if (next_line)
+            *next_line = '\0';
+
+        if (!strncmp(token_header, curr_line, tkhd_len))
+        {
+            curr_line += tkhd_len;
+            token_len = strlen(curr_line);
+            token = malloc(token_len * sizeof(char));
+            if (!token)
+                throw_err("log_to_server | malloc");
+            strncpy(token, curr_line, token_len + 1);
+            token[token_len - 1] = '\0';
+            break;
+        }
+
+        if (next_line)
+            *next_line = '\n';
+
+        curr_line = next_line ? next_line + 1 : NULL;
+    }
+
+    puts(token);
+
+    free(body_msg);
+    free(request);
+    free(response);
+
+    return token;
+}
+
+SSL_CTX *init_CTX(void)
 {
     OpenSSL_add_all_algorithms(); /* Load cryptos, et.al. */
     SSL_load_error_strings();     /* Bring in and register error messages */
@@ -490,6 +590,7 @@ void select_scan_menu(void)
 
     while (true)
     {
+        // clearScreen();
         print_menu_opts();
         key_pressed = read_key();
 
@@ -516,6 +617,7 @@ void select_scan_menu(void)
 
         n_available_devs = get_dev_pathnames(dev_pathnames);
 
+        // clearScreen();
         print_dev_opts(dev_pathnames, n_available_devs);
         key_pressed = read_key();
 
@@ -545,7 +647,6 @@ void select_scan_menu(void)
             if (od[i].open && !strcmp(dev_pathnames[n_str], od[i].pathname))
             {
                 od[i].open = false;
-                pthread_mutex_lock(&scan_mutexes[i]);
                 break;
             }
         }
@@ -560,6 +661,8 @@ int get_dev_pathnames(char pathnames[NDEVS][DEVNAME_LEN])
     int count = 0;
     struct dirent *dir = {0};
     DIR *dp = {0};
+    if (!(dp = opendir(SERIAL_DIR)))
+        throw_err("get_dev_pathnames | opendir");
 
     while ((dir = readdir(dp)) != NULL)
     {
@@ -568,7 +671,8 @@ int get_dev_pathnames(char pathnames[NDEVS][DEVNAME_LEN])
             continue;
 
         // get device full path
-        snprintf(pathnames[count++], sizeof(pathnames[count]), "%s/%s", SERIAL_DIR, dir->d_name);
+        snprintf(pathnames[count], sizeof(pathnames[count]), "%s/%s", SERIAL_DIR, dir->d_name);
+        ++count;
     }
 
     closedir(dp);
@@ -596,7 +700,7 @@ void print_dev_opts(char pathnames[NDEVS][DEVNAME_LEN], int size)
 
 void disable_raw_mode(void)
 {
-    if ((tcsetattr(STDIN_FILENO, TCSANOW, &original_term)) == -1)
+    if ((tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_term)) == -1)
         throw_err("disable_raw_mode | tcsetattr");
 }
 
@@ -615,7 +719,7 @@ void enable_raw_mode(void)
     raw_term.c_cc[VMIN] = 1;
     raw_term.c_cc[VTIME] = 0;
 
-    if ((tcsetattr(STDIN_FILENO, TCSANOW, &raw_term)) == -1)
+    if ((tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw_term)) == -1)
         throw_err("enable_raw_mode | tcsetattr");
 }
 
@@ -671,10 +775,10 @@ void *prestito_chiave(void *targs)
 
     while (!exit_thread)
     {
-        pthread_mutex_lock(&scan_mutexes[n_thread]);
-
         if (!od[n_thread].open)
         {
+            pthread_mutex_lock(&scan_mutexes[n_thread]);
+
             printf("THREAD %d | Available scanner device %s has been found.\n", n_thread, od[n_thread].pathname);
 
             // connetc serial scanner
@@ -727,8 +831,8 @@ void *prestito_chiave(void *targs)
         }
 
         // create msg request
-        snprintf(body_msg, sizeof(body_msg), BODY_FORMAT, scan_buf.array, postazione_id);
-        snprintf(request, sizeof(request), MSG_FORMAT, hostname, token,
+        snprintf(body_msg, sizeof(body_msg), TIMBRA_BODY_FMT, scan_buf.array, postazione_id);
+        snprintf(request, sizeof(request), TIMBRA_MSG_FMT, hostname, token,
                  strlen(body_msg), body_msg);
 
         pthread_mutex_lock(&req_mutex);
@@ -768,4 +872,10 @@ void *prestito_chiave(void *targs)
     printf("THREAD %d | Execution terminated.\n", n_thread);
 
     return NULL;
+}
+
+void clearScreen(void)
+{
+    write(STDOUT_FILENO, "\x1b[2J", 4);
+    write(STDOUT_FILENO, "\x1b[H", 3);
 }

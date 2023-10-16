@@ -33,7 +33,7 @@ export default abstract class DataServices {
     const headers: RawAxiosRequestHeaders = {};
     token &&
       (headers["x-access-token"] = JSON.parse(
-        sessionStorage.getItem("user") || "{token:''}"
+        sessionStorage.getItem("user") || '{"token":""}'
       ).token);
     files && (headers["Content-Type"] = "multipart/form-data");
     return headers;

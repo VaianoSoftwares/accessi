@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import UserDataService from "../../services/user";
-import { TFullUser } from "../../types";
+import { TUser } from "../../types";
 import "./index.css";
 
 export default function UsersList() {
@@ -10,7 +10,7 @@ export default function UsersList() {
     queryFn: async () => {
       const response = await UserDataService.getAllUsers();
       console.log("usersQuery |", response);
-      const result = response.data.data as TFullUser[];
+      const result = response.data.data as TUser[];
       return result;
     },
   });

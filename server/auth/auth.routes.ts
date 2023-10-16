@@ -10,7 +10,14 @@ Router.route("/register").post(
   JwtAuth.isAdmin,
   UsersCtrl.apiRegister
 );
+
 Router.route("/login").post(UsersCtrl.apiLogin);
+
+Router.route("/login/tmp").post(UsersCtrl.apiTmpLogin);
+Router.route("/login/refresh").get(
+  JwtAuth.verifyToken,
+  UsersCtrl.apiRefreshLogin
+);
 
 Router.route("/").get(
   JwtAuth.verifyToken,
@@ -22,8 +29,6 @@ Router.route("/user/:userId")
   .get(JwtAuth.verifyToken, JwtAuth.isAdmin, UsersCtrl.apiGetUserById)
   .put(JwtAuth.verifyToken, JwtAuth.isAdmin, UsersCtrl.apiUpdateUser)
   .delete(JwtAuth.verifyToken, JwtAuth.isAdmin, UsersCtrl.apiDeleteUser);
-
-Router.route("/user/device").post(UsersCtrl.apiGetUserWithDevice);
 
 Router.route("/permessi")
   .get(JwtAuth.verifyToken, PermessiCtrl.apiGetPermessi)

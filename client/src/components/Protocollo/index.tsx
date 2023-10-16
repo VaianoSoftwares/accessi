@@ -3,7 +3,7 @@ import {
   ProtocolloFile,
   ProtocolloFindReq,
   TPostazione,
-  TUser,
+  TLoggedUser,
 } from "../../types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import BadgeDataService from "../../services/badge";
@@ -19,7 +19,7 @@ export default function Protocollo({
   user,
   currPostazione,
 }: {
-  user: TUser;
+  user: TLoggedUser;
   currPostazione: TPostazione | undefined;
 }) {
   const filenameRef = useRef<HTMLInputElement>(null);

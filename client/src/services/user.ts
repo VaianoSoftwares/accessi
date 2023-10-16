@@ -1,11 +1,6 @@
 import DataServices from "./DataServices";
 import { GenericAbortSignal } from "axios";
-import {
-  RegisterFormState,
-  LoginFormState,
-  TPermesso,
-  TFullUser,
-} from "../types";
+import { RegisterFormState, LoginFormState, TPermesso, TUser } from "../types";
 
 class UserDataService extends DataServices {
   register(data: RegisterFormState, signal?: GenericAbortSignal) {
@@ -27,14 +22,10 @@ class UserDataService extends DataServices {
     });
   }
 
-  deviceLogin(
-    data: { device: string; password: string },
-    signal?: GenericAbortSignal
-  ) {
+  deviceLogin(signal?: GenericAbortSignal) {
     return super.request({
-      url: "/user/device",
-      method: "POST",
-      data,
+      url: "/login/refresh",
+      token: true,
       signal,
     });
   }
@@ -55,7 +46,7 @@ class UserDataService extends DataServices {
   }
 
   updateUser(
-    { _id, user }: { _id: string; user: Partial<TFullUser> | FormData },
+    { _id, user }: { _id: string; user: Partial<TUser> | FormData },
     signal?: GenericAbortSignal
   ) {
     return super.request({

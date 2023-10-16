@@ -1,6 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { TUser, PAGES_INFO, ADMIN_PAGES_INFO, TPostazione } from "../../types";
+import {
+  TLoggedUser,
+  PAGES_INFO,
+  ADMIN_PAGES_INFO,
+  TPostazione,
+} from "../../types";
 import "./index.css";
 import BadgeDataService from "../../services/badge";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -15,7 +20,7 @@ export default function AccessiNavbar({
   runChiaviScanner,
   ...props
 }: {
-  user: TUser;
+  user: TLoggedUser;
   currPostazione: TPostazione | undefined;
   setCurrPostazione: Dispatch<SetStateAction<TPostazione | undefined>>;
   logout: () => Promise<void>;

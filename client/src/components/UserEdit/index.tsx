@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import UserDataService from "../../services/user";
 import BadgeDataService from "../../services/badge";
-import { PAGES, TFullUser, TPostazione } from "../../types";
+import { PAGES, TUser, TPostazione } from "../../types";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { useRef } from "react";
 import { useNavigate } from "react-router";
@@ -39,7 +39,7 @@ export default function UserEdit() {
     queryFn: async () => {
       const response = await UserDataService.getUser({ _id: userId! });
       console.log("userQuery | response:", response);
-      const result = response.data.data as TFullUser;
+      const result = response.data.data as TUser;
       return result;
     },
   });
@@ -73,7 +73,8 @@ export default function UserEdit() {
       formData.append("username", usernameRef.current.value);
     passwordRef.current &&
       formData.append("password", passwordRef.current.value);
-    deviceRef.current && formData.append("device", deviceRef.current.value);
+    deviceRef.current &&
+      formData.append("devAccess", String(deviceRef.current.checked));
     canLogoutRef.current &&
       formData.append("canLogout", String(canLogoutRef.current.checked));
     postazioniRef.current &&
@@ -102,7 +103,7 @@ export default function UserEdit() {
       {postazioni.isSuccess && userQuery.isSuccess && (
         <>
           <h2>Modifica Account: {userQuery.data.username}</h2>
-          <div className="row mb-1">
+          <div className="row mb-3">
             <div className="form-group col-sm-3">
               <label htmlFor="username">Username</label>
               <input
@@ -127,19 +128,18 @@ export default function UserEdit() {
               />
             </div>
           </div>
-          <div className="row mb-3">
-            <div className="form-group col-sm-3">
-              <label htmlFor="device">Dispositivo</label>
-              <input
-                className="form-control form-control-sm"
-                type="text"
-                id="device"
-                ref={deviceRef}
-                defaultValue={userQuery.data.device}
-                required
-                autoComplete="off"
-              />
-            </div>
+          <div className="form-check col-sm-2 my-2">
+            <label htmlFor="devAccess" className="form-check-label">
+              devAccess
+            </label>
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id="devAccess"
+              autoComplete="off"
+              ref={deviceRef}
+              defaultChecked={userQuery.data.device}
+            />
           </div>
           <div className="form-check col-sm-2 my-2">
             <label htmlFor="canlogout" className="form-check-label">

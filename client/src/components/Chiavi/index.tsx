@@ -3,7 +3,7 @@ import {
   TInPrestitoDataReq,
   TPostazione,
   TPrestitoDataReq,
-  TUser,
+  TLoggedUser,
 } from "../../types";
 import BadgeDataService from "../../services/badge";
 import "./index.css";
@@ -19,7 +19,7 @@ export default function Chiavi({
   currPostazione,
   ...props
 }: {
-  user: TUser;
+  user: TLoggedUser;
   scanValues: string[];
   addScanValue: (value: string) => void;
   removeScanValue: (value: string) => void;

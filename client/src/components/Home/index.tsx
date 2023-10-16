@@ -5,12 +5,11 @@ import {
   IPageInfo,
   PAGES_INFO,
   TGenericPage,
-  TUser,
+  TLoggedUser,
 } from "../../types";
-import "../../../public/home_wallpaper.jpg";
 import "./index.css";
 
-export default function Home({ user }: { user: TUser }) {
+export default function Home({ user }: { user: TLoggedUser }) {
   const navigate = useNavigate();
 
   function homeCard([page, pageInfo]: [TGenericPage, IPageInfo]) {
@@ -23,7 +22,7 @@ export default function Home({ user }: { user: TUser }) {
           <div className="row g-0">
             <div className="col-sm-4">
               <img
-                src={pageInfo.imagePath && require(pageInfo.imagePath)}
+                src={pageInfo.imagePath}
                 className="img-fluid rounder-start home-card-img"
                 alt=""
               ></img>
