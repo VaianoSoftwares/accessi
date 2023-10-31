@@ -7,6 +7,16 @@ import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { PAGES, RegisterFormState, TPostazione } from "../../types";
 
 export default function Register() {
+  const clienti = useQuery({
+    queryKey: ["clienti"],
+    queryFn: async () => {
+      const response = await BadgeDataService.getClienti();
+      console.log("getClienti | response:", response);
+      const result = response.data.data as string[];
+      return result;
+    },
+  });
+
   const postazioni = useQuery({
     queryKey: ["postazioni"],
     queryFn: async () => {
@@ -20,6 +30,7 @@ export default function Register() {
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const postazioniRef = useRef<HTMLSelectElement>(null);
+  const clientiRef = useRef<HTMLSelectElement>(null);
   const pagesRef = useRef<HTMLSelectElement>(null);
   const deviceRef = useRef<HTMLInputElement>(null);
   const canLogoutRef = useRef<HTMLInputElement>(null);
@@ -34,12 +45,18 @@ export default function Register() {
         postazioniRef.current!.selectedOptions,
         (option) => option.value
       ),
+      clienti: Array.from(
+        clientiRef.current!.selectedOptions,
+        (option) => option.value
+      ),
       pages: Array.from(
         pagesRef.current!.selectedOptions,
         (option) => option.value
       ),
-      device: deviceRef.current!.value,
+      device: deviceRef.current!.checked,
       canLogout: canLogoutRef.current!.checked,
+      excel: excelRef.current!.checked,
+      provvisori: provvisoriRef.current!.checked,
     };
   }
 
@@ -47,9 +64,12 @@ export default function Register() {
     usernameRef.current!.value = usernameRef.current!.defaultValue;
     passwordRef.current!.value = passwordRef.current!.defaultValue;
     postazioniRef.current!.selectedIndex = -1;
+    clientiRef.current!.selectedIndex = -1;
     pagesRef.current!.selectedIndex = -1;
     deviceRef.current!.value = deviceRef.current!.defaultValue;
     canLogoutRef.current!.checked = canLogoutRef.current!.defaultChecked;
+    excelRef.current!.value = excelRef.current!.defaultValue;
+    provvisoriRef.current!.value = provvisoriRef.current!.defaultValue;
   }
 
   function register() {
@@ -91,18 +111,18 @@ export default function Register() {
           />
         </div>
       </div>
-      <div className="row mb-3">
-        <div className="form-group col-sm-3">
-          <label htmlFor="device">Dispositivo</label>
-          <input
-            className="form-control form-control-sm"
-            type="text"
-            id="device"
-            ref={deviceRef}
-            defaultValue=""
-            autoComplete="off"
-          />
-        </div>
+      <div className="form-check col-sm-2 my-2">
+        <label htmlFor="device" className="form-check-label">
+          Dispositivo
+        </label>
+        <input
+          type="checkbox"
+          className="form-check-input"
+          id="device"
+          autoComplete="off"
+          ref={deviceRef}
+          defaultChecked={false}
+        />
       </div>
       <div className="form-check col-sm-2 my-2">
         <label htmlFor="canlogout" className="form-check-label">
@@ -145,6 +165,22 @@ export default function Register() {
       </div>
       <div className="row mb-1">
         <div className="form-group col-sm-3">
+          <label htmlFor="clienti">Clienti</label>
+          <select
+            className="form-control form-control-sm"
+            id="clienti"
+            ref={clientiRef}
+            multiple
+            required
+          >
+            {clienti.data?.map((cliente) => (
+              <option key={cliente} value={cliente}>
+                {cliente}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="form-group col-sm-3">
           <label htmlFor="postazioni">Postazioni</label>
           <select
             className="form-control form-control-sm"
@@ -162,6 +198,8 @@ export default function Register() {
               ))}
           </select>
         </div>
+      </div>
+      <div className="row mb-1">
         <div className="form-group col-sm-3">
           <label htmlFor="pages">Pagine</label>
           <select

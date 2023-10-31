@@ -1,5 +1,4 @@
 import UserDataService from "../../services/user";
-import "../../../public/login_wallpaper.jpg";
 import "./index.css";
 import { useNavigate } from "react-router-dom";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
@@ -72,6 +71,7 @@ export default function Login(props: {
   return (
     <div className="login-wrapper">
       <div className="submit-form login-form login-center">
+        <img className="login-logo" src="/logo.png" />
         <div className="form-group col-sm-8 login-child">
           <label htmlFor="username" className="col-form-label">
             Username

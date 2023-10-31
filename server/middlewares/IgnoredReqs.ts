@@ -18,10 +18,7 @@ export default class IgnoredReqs {
   }
 
   static home(req: Request, res: Response, next: NextFunction) {
-    if (
-      req.originalUrl &&
-      req.originalUrl.includes("/home")
-    ) {
+    if (req.originalUrl && req.originalUrl.includes("/home")) {
       return res.sendStatus(204);
     }
 

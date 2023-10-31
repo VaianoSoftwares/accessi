@@ -146,7 +146,7 @@ export default function App() {
           element={
             user && (user.admin || user.pages?.includes("archivio")) ? (
               <Suspense fallback={<Loader />}>
-                <Archivio tipoArchivio="BADGE" />
+                <Archivio tipoArchivio="BADGE" user={user} />
               </Suspense>
             ) : (
               <PageNotFound />

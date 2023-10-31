@@ -61,6 +61,7 @@ const REGISTER_SCHEMA = z.object({
     .min(PSW_MIN_LEN, PSW_TOO_SHORT_ERR_MSG)
     .max(PSW_MAX_LEN, PSW_TOO_LONG_ERR_MSG),
   postazioni: z.string().array().nonempty(MISSING_ATTR_ERR_MSG("Postazioni")),
+  clienti: z.string().array().nonempty(MISSING_ATTR_ERR_MSG("Clienti")),
   pages: z.string().array().nonempty(MISSING_ATTR_ERR_MSG("Pagine")),
   device: z.coerce.boolean().default(false),
   canLogout: z.coerce.boolean().default(false),
@@ -78,6 +79,7 @@ const UPDATE_USER_SCHEMA = z.object({
   username: z.string().optional(),
   password: z.string().optional(),
   postazioni: z.string().array().nonempty().nullish().default(null),
+  clienti: z.string().array().nonempty().nullish().default(null),
   pages: z.string().array().nonempty().nullish().default(null),
   device: z.boolean().optional(),
   canLogout: z.boolean().optional(),

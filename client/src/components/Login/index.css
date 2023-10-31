@@ -23,7 +23,7 @@
 .login-alert-wrapper {
   margin: 0;
   position: absolute;
-  top: 63%;
+  top: 50%;
   left: 50%;
   -ms-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
@@ -37,4 +37,9 @@
   background-repeat: no-repeat;
   background-size: cover;
   overflow: hidden;
+}
+
+.login-logo {
+  max-width: 307px;
+  max-height: 57px;
 }

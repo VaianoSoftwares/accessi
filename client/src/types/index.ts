@@ -5,6 +5,7 @@ export type TUser = {
   username: string;
   admin: boolean;
   postazioni: string[] | null;
+  clienti: string[] | null;
   pages: string[] | null;
   device: boolean;
   canLogout: boolean;
@@ -157,9 +158,12 @@ export type RegisterFormState = {
   username: string;
   password: string;
   postazioni: string[];
+  clienti: string[];
   pages: string[];
-  device: string;
+  device: boolean;
   canLogout: boolean;
+  excel: boolean;
+  provvisori: boolean;
 };
 
 export type AssegnazFormState = {

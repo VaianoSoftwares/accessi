@@ -11,6 +11,7 @@ import {
   TPostazione,
   TArchTableContent,
   TArchivioChiave,
+  TLoggedUser,
 } from "../../types";
 import Clock from "../Clock";
 
@@ -31,8 +32,10 @@ const TABLE_ID = "archivio-table";
 
 export default function Archivio({
   tipoArchivio,
+  user,
 }: {
   tipoArchivio: "BADGE" | "CHIAVE";
+  user: TLoggedUser;
 }) {
   const clienteRef = React.useRef<HTMLSelectElement>(null);
   const postazioneRef = React.useRef<HTMLSelectElement>(null);
@@ -46,6 +49,7 @@ export default function Archivio({
   const dataFineRef = React.useRef<HTMLInputElement>(null);
 
   function formToObj(): TArchForm {
+    console.log(dataInizioRef.current?.value);
     return {
       cliente: clienteRef.current?.value || undefined,
       postazione: postazioneRef.current?.value || undefined,
@@ -71,9 +75,15 @@ export default function Archivio({
   });
 
   const postazioni = useQuery({
-    queryKey: ["postazioni"],
-    queryFn: async () => {
-      const response = await BadgeDataService.getPostazioni();
+    queryKey: user.postazioni
+      ? ["postazioni", user.postazioni]
+      : ["postazioni"],
+    queryFn: async (context) => {
+      const response = await BadgeDataService.getPostazioni(
+        context.queryKey[1]
+          ? { _id: context.queryKey[1] as string[] }
+          : undefined
+      );
       console.log("queryPostazioni | response:", response);
       const result = response.data.data as TPostazione[];
       return result;
@@ -91,33 +101,29 @@ export default function Archivio({
   });
 
   const queryArchivioBadge = useQuery({
-    queryKey: ["archivioBadge", formToObj()],
-    queryFn: async (context) => {
-      const response = await BadgeDataService.getArchivio(
-        context.queryKey[1] as TArchForm
-      );
+    queryKey: ["archivioBadge"],
+    queryFn: async () => {
+      const response = await BadgeDataService.getArchivio(formToObj());
       console.log("findArchivioBadge | response: ", response);
       const result = response.data.data as TArchTableContent[];
       TableContentMapper.parseDate(result);
       return result;
     },
     refetchOnWindowFocus: false,
-    enabled: tipoArchivio === "BADGE",
+    enabled: false,
   });
 
   const queryArchivioChiavi = useQuery({
-    queryKey: ["archivioChiavi", formToObj()],
-    queryFn: async (context) => {
-      const response = await BadgeDataService.getArchivioChiavi(
-        context.queryKey[1] as TArchForm
-      );
+    queryKey: ["archivioChiavi"],
+    queryFn: async () => {
+      const response = await BadgeDataService.getArchivioChiavi(formToObj());
       console.log("findArchivioChiavi | response: ", response);
       const result = response.data.data as TArchivioChiave[];
       TableContentMapper.parseDate(result);
       return result;
     },
     refetchOnWindowFocus: false,
-    enabled: tipoArchivio === "CHIAVE",
+    enabled: false,
   });
 
   // function clearForm() {
@@ -146,10 +152,7 @@ export default function Archivio({
                   id="dataInizio"
                   autoComplete="off"
                   ref={dataInizioRef}
-                  defaultValue={dateFormat(
-                    new Date(new Date().setDate(new Date().getDate() - 1)),
-                    "yyyy-mm-dd"
-                  )}
+                  defaultValue={dateFormat(new Date(), "yyyy-mm-dd")}
                 />
                 <label htmlFor="dataInizio">resoconto inizio</label>
               </div>
@@ -160,10 +163,7 @@ export default function Archivio({
                   id="dataFine"
                   autoComplete="off"
                   ref={dataFineRef}
-                  defaultValue={dateFormat(
-                    new Date(new Date().setDate(new Date().getDate() + 1)),
-                    "yyyy-mm-dd"
-                  )}
+                  defaultValue={dateFormat(new Date(), "yyyy-mm-dd")}
                   min={dataInizioRef.current?.value}
                 />
                 <label htmlFor="dataFine">resoconto fine</label>
@@ -179,7 +179,11 @@ export default function Archivio({
                 >
                   <option value="" key="-1"></option>
                   {clienti.data
-                    ?.filter((cliente) => cliente)
+                    ?.filter(
+                      (cliente) =>
+                        cliente &&
+                        (user.admin || user.clienti?.includes(cliente))
+                    )
                     .map((cliente, index) => (
                       <option value={cliente} key={index}>
                         {cliente}

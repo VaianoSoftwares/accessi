@@ -22,6 +22,7 @@ export default function UserEdit() {
   const excelRef = useRef<HTMLInputElement>(null);
   const provvisoriRef = useRef<HTMLInputElement>(null);
   const postazioniRef = useRef<HTMLSelectElement>(null);
+  const clientiRef = useRef<HTMLSelectElement>(null);
   const pagesRef = useRef<HTMLSelectElement>(null);
 
   const postazioni = useQuery({
@@ -30,6 +31,16 @@ export default function UserEdit() {
       const response = await BadgeDataService.getPostazioni();
       console.log("getPostazioni | response:", response);
       const result = response.data.data as TPostazione[];
+      return result;
+    },
+  });
+
+  const clienti = useQuery({
+    queryKey: ["clienti"],
+    queryFn: async () => {
+      const response = await BadgeDataService.getClienti();
+      console.log("getClienti | response:", response);
+      const result = response.data.data as string[];
       return result;
     },
   });
@@ -87,6 +98,16 @@ export default function UserEdit() {
           )
         )
       );
+    clientiRef.current &&
+      formData.append(
+        "clienti",
+        JSON.stringify(
+          Array.from(
+            clientiRef.current.selectedOptions,
+            (option) => option.value
+          )
+        )
+      );
     pagesRef.current &&
       formData.append(
         "pages",
@@ -100,7 +121,7 @@ export default function UserEdit() {
 
   return (
     <div className="user-edit-wrapper submit-form container-fluid">
-      {postazioni.isSuccess && userQuery.isSuccess && (
+      {postazioni.isSuccess && clienti.isSuccess && userQuery.isSuccess && (
         <>
           <h2>Modifica Account: {userQuery.data.username}</h2>
           <div className="row mb-3">
@@ -182,6 +203,25 @@ export default function UserEdit() {
           </div>
           <div className="row mb-1">
             <div className="form-group col-sm-3">
+              <label htmlFor="clienti">Clienti</label>
+              <select
+                className="form-control form-control-sm"
+                id="clienti"
+                ref={clientiRef}
+                multiple
+                required
+                value={clienti.data.filter((cliente) =>
+                  userQuery.data.clienti?.includes(cliente)
+                )}
+              >
+                {clienti.data.map((cliente) => (
+                  <option key={cliente} value={cliente}>
+                    {cliente}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group col-sm-3">
               <label htmlFor="postazioni">Postazioni</label>
               <select
                 className="form-control form-control-sm"
@@ -202,6 +242,8 @@ export default function UserEdit() {
                   ))}
               </select>
             </div>
+          </div>
+          <div className="row mb-1">
             <div className="form-group col-sm-3">
               <label htmlFor="pages">Pagine</label>
               <select

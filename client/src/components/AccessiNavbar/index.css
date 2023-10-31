@@ -26,3 +26,12 @@
 .scan-status-txt:hover {
     cursor: default;
 }
+
+.navbar-img-brand {
+    max-width: 213px;
+    min-height: 23px;
+}
+
+.navbar-brand:hover {
+    cursor: default;
+}

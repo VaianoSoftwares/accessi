@@ -283,10 +283,10 @@ export default function Badge({
   }
 
   const findBadges = useQuery({
-    queryKey: ["badges", formToObj()],
-    queryFn: async (context) => {
+    queryKey: ["badges"],
+    queryFn: async () => {
       const response = await BadgeDataService.find({
-        ...(context.queryKey[1] as TBadgeFormState),
+        ...formToObj(),
         pfp: "",
         postazione: "",
       });
@@ -486,15 +486,20 @@ export default function Badge({
                       key="-1"
                       disabled={readonlyForm === true}
                     />
-                    {clienti.data.map((cliente) => (
-                      <option
-                        value={cliente}
-                        key={cliente}
-                        disabled={readonlyForm === true}
-                      >
-                        {cliente}
-                      </option>
-                    ))}
+                    {clienti.data
+                      .filter(
+                        (cliente) =>
+                          user.admin || user.clienti?.includes(cliente)
+                      )
+                      .map((cliente) => (
+                        <option
+                          value={cliente}
+                          key={cliente}
+                          disabled={readonlyForm === true}
+                        >
+                          {cliente}
+                        </option>
+                      ))}
                   </select>
                   <label htmlFor="cliente">cliente</label>
                 </div>

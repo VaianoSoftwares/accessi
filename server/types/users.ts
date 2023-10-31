@@ -5,6 +5,7 @@ export type TUser = {
   password: string;
   admin: boolean;
   postazioni: ObjectId[] | null;
+  clienti: string[] | null;
   pages: string[] | null;
   device: boolean;
   canLogout: boolean;

@@ -31,7 +31,6 @@ app.use(
 
 // serve ignored reqs
 app.use(IgnoredReqs.optionsMethod);
-app.use(IgnoredReqs.favicon);
 app.use(IgnoredReqs.home);
 
 // use bodyparser middlewares

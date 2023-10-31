@@ -72,7 +72,11 @@ export default function AccessiNavbar({
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container-fluid">
         <Link to="#" className="navbar-brand">
-          <b className="b-navbar-brand">Accessi</b>
+          <img
+            className="navbar-img-brand"
+            src="/logo.png"
+            alt="Vero Open"
+          ></img>
         </Link>
         <button
           className="navbar-toggler"
@@ -158,11 +162,15 @@ export default function AccessiNavbar({
                   {user.admin && (
                     <option label="Tutti i clienti" value={undefined} />
                   )}
-                  {clienti.data.map((cliente) => (
-                    <option value={cliente} key={cliente}>
-                      {cliente}
-                    </option>
-                  ))}
+                  {clienti.data
+                    .filter(
+                      (cliente) => user.admin || user.clienti?.includes(cliente)
+                    )
+                    .map((cliente) => (
+                      <option value={cliente} key={cliente}>
+                        {cliente}
+                      </option>
+                    ))}
                 </select>
               </div>
             )}
@@ -205,42 +213,50 @@ export default function AccessiNavbar({
                 </select>
               </div>
             )}
-            <div className="d-flex mx-1">
-              <button
-                className="btn btn-light mx-1 scan-btn"
-                onClick={async () => await runBadgeScanner()}
-                type="button"
-              >
-                Badge Scanner
-              </button>{" "}
-              <b
-                className="navbar-text scan-status-txt"
-                style={
-                  badgeScannerConnected ? { color: "green" } : { color: "red" }
-                }
-              >
-                {!badgeScannerConnected && "Non "}
-                {"Connesso"}
-              </b>
-            </div>
-            <div className="d-flex">
-              <button
-                className="btn btn-light mx-1 scan-btn"
-                onClick={async () => await runChiaviScanner()}
-                type="button"
-              >
-                Chiavi Scanner
-              </button>{" "}
-              <b
-                className="navbar-text scan-status-txt"
-                style={
-                  chiaviScannerConnected ? { color: "green" } : { color: "red" }
-                }
-              >
-                {!chiaviScannerConnected && "Non "}
-                {"Connesso"}
-              </b>
-            </div>
+            {(user.admin || user.pages?.includes("badge")) && (
+              <div className="d-flex mx-1">
+                <button
+                  className="btn btn-light mx-1 scan-btn"
+                  onClick={async () => await runBadgeScanner()}
+                  type="button"
+                >
+                  Badge Scanner
+                </button>{" "}
+                <b
+                  className="navbar-text scan-status-txt"
+                  style={
+                    badgeScannerConnected
+                      ? { color: "green" }
+                      : { color: "red" }
+                  }
+                >
+                  {!badgeScannerConnected && "Non "}
+                  {"Connesso"}
+                </b>
+              </div>
+            )}
+            {(user.admin || user.pages?.includes("chiavi")) && (
+              <div className="d-flex">
+                <button
+                  className="btn btn-light mx-1 scan-btn"
+                  onClick={async () => await runChiaviScanner()}
+                  type="button"
+                >
+                  Chiavi Scanner
+                </button>{" "}
+                <b
+                  className="navbar-text scan-status-txt"
+                  style={
+                    chiaviScannerConnected
+                      ? { color: "green" }
+                      : { color: "red" }
+                  }
+                >
+                  {!chiaviScannerConnected && "Non "}
+                  {"Connesso"}
+                </b>
+              </div>
+            )}
           </ul>
         </div>
       </div>

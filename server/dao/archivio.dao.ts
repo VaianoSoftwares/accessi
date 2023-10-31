@@ -60,6 +60,12 @@ export default class ArchivioDAO {
           case "ndoc":
             filterName = `badge.nominativo.${key}`;
             break;
+          case "cliente":
+            filterName = `postazione.${key}`;
+            break;
+          case "postazione":
+            filterName = "postazione.name";
+            break;
           default:
             return;
         }
@@ -70,7 +76,7 @@ export default class ArchivioDAO {
       });
 
     const query = { $and: archivioFilter };
-    // console.log("getArchivio | query: ", query);
+    // console.log("getArchivio | query:", archivioFilter);
 
     try {
       const cursor = archivio.find(query, {
