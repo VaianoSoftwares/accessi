@@ -99,10 +99,10 @@ export default function FormButtons(props: {
         {props.excel && (
           <div className="col">
             <button
-              onClick={() => htmlTableToExcel("badge-table")}
+              onClick={() => htmlTableToExcel("badge-table", "in-struttura")}
               className="btn btn-success home-form-btn"
             >
-              Excel
+              Esporta
             </button>
           </div>
         )}

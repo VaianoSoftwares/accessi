@@ -1,4 +1,4 @@
-import { Binary, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 
 export type ProtocolloFile = {
   filename: string;

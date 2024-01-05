@@ -312,7 +312,12 @@ export default function Archivio({
               <div className="col">
                 <button
                   className="btn btn-success"
-                  onClick={() => htmlTableToExcel(TABLE_ID)}
+                  onClick={() =>
+                    htmlTableToExcel(
+                      TABLE_ID,
+                      `archivio-${tipoArchivio}`.toLocaleLowerCase()
+                    )
+                  }
                 >
                   Excel
                 </button>
