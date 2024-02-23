@@ -133,22 +133,20 @@ CREATE TABLE IF NOT EXISTS postazioni(
 CREATE TABLE IF NOT EXISTS archivio_badge(
     id SERIAL PRIMARY KEY,
     badge CHAR(9) REFERENCES badges (codice),
-    postazione SERIAL,
+    postazione SERIAL REFERENCES postazioni (id),
     data_in TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP),
     data_out TIMESTAMP,
     ip VARCHAR(32) CHECK (ip != ''),
-    FOREIGN KEY (postazione) REFERENCES postazioni (id),
     CONSTRAINT data_in_is_bigger_than_data_out CHECK (data_out IS NULL OR data_out > data_in)
 );
 
 CREATE TABLE IF NOT EXISTS archivio_veicoli(
     id SERIAL PRIMARY KEY,
     badge CHAR(9) REFERENCES veicoli (codice),
-    postazione SERIAL,
+    postazione SERIAL REFERENCES postazioni (id),
     data_in TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP),
     data_out TIMESTAMP,
     ip VARCHAR(32) CHECK (ip != ''),
-    FOREIGN KEY (postazione) REFERENCES postazioni (id),
     CONSTRAINT data_in_is_bigger_than_data_out CHECK (data_out IS NULL OR data_out > data_in)
 );
 
@@ -336,18 +334,18 @@ CREATE VIEW all_badges AS
 
 CREATE VIEW full_archivio AS
     SELECT * FROM
-    ((SELECT a.badge, NULL AS chiave, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
-    FROM archivio_badge AS a
-    JOIN badges AS b ON a.badge = b.codice
+    ((SELECT b.codice AS badge, NULL AS chiave, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
+    FROM badges AS b
+    JOIN archivio_badge AS a ON badge = a.badge
     JOIN postazioni AS p ON a.postazione = p.id)
     UNION
     (SELECT a.badge, NULL AS chiave, 'PROVVISORIO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, a.nome, a.cognome, a.ditta, a.telefono, a.ndoc, a.tdoc, 'ospite' AS assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano 
     FROM archivio_provvisori AS a
     JOIN postazioni AS p ON a.postazione = p.id)
     UNION
-    (SELECT a.badge, NULL AS chiave, 'VEICOLO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, v.nome, v.cognome, v.ditta, v.telefono, v.ndoc, v.tdoc, NULL::assegnazione as assegnazione, v.tveicolo, v.targa1, v.targa2, v.targa3, v.targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano 
-    FROM archivio_veicoli AS a
-    JOIN veicoli AS v ON a.badge = v.codice
+    (SELECT v.codice AS badge, NULL AS chiave, 'VEICOLO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, v.nome, v.cognome, v.ditta, v.telefono, v.ndoc, v.tdoc, NULL::assegnazione as assegnazione, v.tveicolo, v.targa1, v.targa2, v.targa3, v.targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano 
+    FROM veicoli AS v
+    JOIN archivio_veicoli AS a ON badge = a.badge
     JOIN postazioni AS p ON a.postazione = p.id)
     UNION
     (SELECT a.badge, a.chiave, 'CHIAVE' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, c.indirizzo, c.citta, c.edificio, c.piano 
@@ -359,18 +357,18 @@ CREATE VIEW full_archivio AS
 
 CREATE VIEW in_strutt AS
     SELECT * FROM
-    ((SELECT a.badge AS codice, b.descrizione, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4
-    FROM archivio_badge AS a
-    JOIN badges AS b ON codice = b.codice
+    ((SELECT b.codice, b.descrizione, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4
+    FROM badges AS b
+    JOIN archivio_badge AS a ON b.codice = a.badge
     JOIN postazioni AS p ON a.postazione = p.id)
     UNION
     (SELECT a.badge AS codice, NULL AS descrizione, 'PROVVISORIO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, a.nome, a.cognome, a.ditta, a.telefono, a.ndoc, a.tdoc, 'ospite' AS assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4
     FROM archivio_provvisori AS a
     JOIN postazioni AS p ON a.postazione = p.id)
     UNION
-    (SELECT a.badge AS codice, v.descrizione, 'VEICOLO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, v.nome, v.cognome, v.ditta, v.telefono, v.ndoc, v.tdoc, NULL::assegnazione AS assegnazione, v.tveicolo, v.targa1, v.targa2, v.targa3, v.targa4
-    FROM archivio_veicoli AS a
-    JOIN veicoli AS v ON codice = v.codice
+    (SELECT v.codice, v.descrizione, 'VEICOLO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, v.nome, v.cognome, v.ditta, v.telefono, v.ndoc, v.tdoc, NULL::assegnazione AS assegnazione, v.tveicolo, v.targa1, v.targa2, v.targa3, v.targa4
+    FROM veicoli AS v
+    JOIN archivio_veicoli AS a ON v.codice = a.badge
     JOIN postazioni AS p ON a.postazione = p.id))
     WHERE data_in IS NOT NULL AND data_out IS NULL;
 
@@ -432,9 +430,9 @@ CREATE VIEW full_protocolli AS
 
 -- SELECT * FROM enums WHERE enum_name = 'cliente';
 
-SELECT * FROM full_users;
+-- SELECT * FROM full_users;
 
-SELECT * FROM full_protocolli;
+-- SELECT * FROM full_protocolli;
 
 -- queryInStrutt
 SELECT codice, tipo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in
@@ -443,20 +441,20 @@ WHERE tipo = 'NOMINATIVO' OR tipo = 'PROVVISORIO'
 ORDER BY data_in DESC;
 
 -- findInStrutt
-SELECT codice, tipo, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, telefono, ndoc, tdoc, data_in
-FROM in_strutt
-WHERE tipo = 'NOMINATIVO' OR tipo = 'PROVVISORIO' AND postazione_id = 1 OR postazione_id = 2
-ORDER BY data_in DESC;
+-- SELECT codice, tipo, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, telefono, ndoc, tdoc, data_in
+-- FROM in_strutt
+-- WHERE tipo = 'NOMINATIVO' OR tipo = 'PROVVISORIO' AND postazione_id = 1 OR postazione_id = 2
+-- ORDER BY data_in DESC;
 
 -- queryInPrestito
-SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, indirizzo, citta, edificio, piano, data_in
-FROM in_prestito
-ORDER BY data_in DESC;
+-- SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, indirizzo, citta, edificio, piano, data_in
+-- FROM in_prestito
+-- ORDER BY data_in DESC;
 
 -- findInPrestito
-SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, telefono, ndoc, tdoc, indirizzo, citta, edificio, piano, data_in
-FROM in_prestito
-ORDER BY data_in DESC;
+-- SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, telefono, ndoc, tdoc, indirizzo, citta, edificio, piano, data_in
+-- FROM in_prestito
+-- ORDER BY data_in DESC;
 
 /*######################################################################################################################################################*/
 

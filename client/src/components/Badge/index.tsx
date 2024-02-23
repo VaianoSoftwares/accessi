@@ -352,6 +352,11 @@ export default function Badge({
                     />
                     <label htmlFor="ndoc">num documento</label>
                   </div>
+                  <div className="w-100 my-1" />
+                  <div className="col-sm-8" />
+                  <div className="in-strutt-count col-sm-4">
+                    <b># in struttura:</b> {queryInStrutt.data?.length || 0}
+                  </div>
                 </div>
               </div>
             </div>
@@ -447,9 +452,6 @@ export default function Badge({
           <div className="col-4">
             <Clock />
           </div>
-          <div className="in-strutt-count">
-            <b># in struttura:</b> {queryInStrutt.data?.length || 0}
-          </div>
         </div>
       </div>
       <OspitiPopup
@@ -468,6 +470,7 @@ export default function Badge({
             }
             tableId={TABLE_NAME}
             omitedParams={["_id", "id"]}
+            dateParams={["data_in", "data_out"]}
             // obfuscatedParams={
             //   props.user.admin === true ? undefined : ["codice", "data_in"]
             // }

@@ -80,10 +80,10 @@ export const PAGES_INFO: ReadonlyMap<TPages, IPageInfo> = new Map([
   [
     TPages.anagrafico,
     {
-      pathname: "/documenti",
-      name: "Documenti",
-      title: "Documenti",
-      description: "Gestione documenti di identità",
+      pathname: "/anagrafico",
+      name: "Anagrafico",
+      title: "Anagrafico",
+      description: "Gestione personale e badge",
       imagePath: "/id_icon_128.png",
     },
   ],

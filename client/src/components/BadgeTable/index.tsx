@@ -5,7 +5,17 @@ export default function BadgeTable(props: {
   tableId?: string;
   omitedParams?: string[];
   obfuscatedParams?: string[];
+  dateParams?: string[];
 }) {
+  function displayTableRowValue({ key, value }: { key: string; value: any }) {
+    if (props?.obfuscatedParams?.includes?.(key)) return "XXXXX";
+    else if (props?.dateParams?.includes?.(key))
+      return new Date(value).toLocaleString("it-IT", {
+        timeZone: "Europe/Rome",
+      });
+    else return value || "";
+  }
+
   return (
     <>
       {props.content.length > 0 && (
@@ -29,9 +39,7 @@ export default function BadgeTable(props: {
               <tr key={i} className="badge-table-tr">
                 {Object.entries(elem).map(([key, value], j) => (
                   <td className="badge-table-td" key={j}>
-                    {props?.obfuscatedParams?.includes?.(key)
-                      ? "XXXXX"
-                      : value || ""}
+                    {displayTableRowValue({ key, value })}
                   </td>
                 ))}
               </tr>

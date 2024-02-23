@@ -6,9 +6,6 @@
 }
 
 .in-strutt-count {
-    position: absolute;
-    left: 60%;
-    top: 43%;
     font-size: 20px;
 }
 
@@ -32,10 +29,10 @@
 
 .pfp-container {
     border: 2px solid green;
-    width: 150px;
-    height: 150px;
-    max-width: 150px;
-    max-height: 150px;
+    width: 200px;
+    height: 200px;
+    max-width: 200px;
+    max-height: 200px;
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
@@ -45,6 +42,7 @@
 .badge-form {
     border: 2px solid green;
     background-color: azure;
+    padding-bottom: 12px;
 }
 
 .badge-form .form-control {
@@ -63,4 +61,13 @@
 
 .badge-form input[type="file"] {
     font-size: 11px;
+}
+
+.home-form-btn {
+    width: 95px;
+    height: 35px;
+}
+
+.home-form-b {
+    font-size: 14px;
 }
