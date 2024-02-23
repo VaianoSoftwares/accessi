@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import UserDataService from "../../services/user";
-import { TUser } from "../../types";
 import "./index.css";
 
 export default function UsersList() {
@@ -10,7 +9,10 @@ export default function UsersList() {
     queryFn: async () => {
       const response = await UserDataService.getAllUsers();
       console.log("usersQuery |", response);
-      const result = response.data.data as TUser[];
+      if (response.data.success === false) {
+        throw response.data.error;
+      }
+      const result = response.data.result;
       return result;
     },
   });
@@ -22,11 +24,11 @@ export default function UsersList() {
         {usersQuery.isSuccess &&
           usersQuery.data.map((user) => (
             <Link
-              to={`/admin/users/${user._id}`}
-              key={user._id}
+              to={`/admin/users/${user.id}`}
+              key={user.id}
               className="list-group-item list-group-item-action"
             >
-              {user.username}
+              {user.name}
             </Link>
           ))}
       </div>

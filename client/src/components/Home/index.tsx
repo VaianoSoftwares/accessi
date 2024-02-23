@@ -1,13 +1,19 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import "./index.css";
 import {
-  ADMIN_PAGES_INFO,
+  TGenericPage,
   IPageInfo,
   PAGES_INFO,
-  TGenericPage,
+  ADMIN_PAGES_INFO,
+} from "../../types/pages";
+import {
   TLoggedUser,
-} from "../../types";
-import "./index.css";
+  canAccessPage,
+  getFirstPage,
+  getPagesNum,
+  isAdmin,
+} from "../../types/users";
 
 export default function Home({ user }: { user: TLoggedUser }) {
   const navigate = useNavigate();
@@ -40,16 +46,17 @@ export default function Home({ user }: { user: TLoggedUser }) {
   }
 
   useEffect(() => {
-    if (user.pages?.length === 1) navigate(`/${user.pages[0]}`);
+    if (getPagesNum(user) === 1)
+      navigate(PAGES_INFO.get(getFirstPage(user))!.pathname);
   }, [user]);
 
   return (
     <div className="home-wrapper">
       <div className="row mx-1">
         {Array.from(PAGES_INFO.entries())
-          .filter(([page]) => user.admin || user.pages?.includes(page))
+          .filter(([page]) => canAccessPage(user, page))
           .map((page) => homeCard(page))}
-        {user.admin &&
+        {isAdmin(user) &&
           Array.from(ADMIN_PAGES_INFO.entries()).map((page) => homeCard(page))}
       </div>
     </div>

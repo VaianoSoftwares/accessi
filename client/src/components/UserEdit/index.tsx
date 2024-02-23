@@ -1,13 +1,48 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import UserDataService from "../../services/user";
-import BadgeDataService from "../../services/badge";
-import { PAGES, TUser, TPostazione } from "../../types";
+import PostazioniDataService from "../../services/postazioni";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { useRef } from "react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router";
+import { PERMESSI_INFO, UpdateUserData } from "../../types/users";
+import { PAGES_INFO } from "../../types/pages";
+import { UpdateUserForm } from "../../types/forms";
+import { FormRef } from "../../types";
+
+const formRefDefaultState: Record<keyof UpdateUserForm, null> = {
+  name: null,
+  password: null,
+  postazioni: null,
+  pages: null,
+  permessi: null,
+};
+
+function selectPermessiOptions(disabled = false) {
+  const options = [];
+  for (const [key, value] of PERMESSI_INFO.entries()) {
+    options.push(
+      <option key={key} value={key} disabled={disabled}>
+        {value}
+      </option>
+    );
+  }
+  return options;
+}
+
+function selectPagesOptions(disabled = false) {
+  const options = [];
+  for (const [key, { name }] of PAGES_INFO.entries()) {
+    options.push(
+      <option key={key} value={key} disabled={disabled}>
+        {name}
+      </option>
+    );
+  }
+  return options;
+}
 
 export default function UserEdit() {
   const { userId } = useParams();
@@ -15,32 +50,18 @@ export default function UserEdit() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const usernameRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-  const deviceRef = useRef<HTMLInputElement>(null);
-  const canLogoutRef = useRef<HTMLInputElement>(null);
-  const excelRef = useRef<HTMLInputElement>(null);
-  const provvisoriRef = useRef<HTMLInputElement>(null);
-  const postazioniRef = useRef<HTMLSelectElement>(null);
-  const clientiRef = useRef<HTMLSelectElement>(null);
-  const pagesRef = useRef<HTMLSelectElement>(null);
+  const formRef = useRef<FormRef<UpdateUserForm>>(formRefDefaultState);
+  const readonlyFormRef = useRef<FormRef<UpdateUserForm>>(formRefDefaultState);
 
   const postazioni = useQuery({
     queryKey: ["postazioni"],
     queryFn: async () => {
-      const response = await BadgeDataService.getPostazioni();
+      const response = await PostazioniDataService.getAll();
       console.log("getPostazioni | response:", response);
-      const result = response.data.data as TPostazione[];
-      return result;
-    },
-  });
-
-  const clienti = useQuery({
-    queryKey: ["clienti"],
-    queryFn: async () => {
-      const response = await BadgeDataService.getClienti();
-      console.log("getClienti | response:", response);
-      const result = response.data.data as string[];
+      if (response.data.success === false) {
+        throw response.data.error;
+      }
+      const result = response.data.result;
       return result;
     },
   });
@@ -48,198 +69,150 @@ export default function UserEdit() {
   const userQuery = useQuery({
     queryKey: ["users", userId],
     queryFn: async () => {
-      const response = await UserDataService.getUser({ _id: userId! });
+      const response = await UserDataService.getUser({ id: userId! });
       console.log("userQuery | response:", response);
-      const result = response.data.data as TUser;
+      if (response.data.success === false) {
+        throw response.data.error;
+      }
+      const result = response.data.result;
       return result;
     },
   });
 
   const updateUser = useMutation({
-    mutationFn: (data: FormData) =>
-      UserDataService.updateUser({ _id: userId!, user: data }),
+    mutationFn: (data: UpdateUserData) =>
+      UserDataService.updateUser({ id: userId!, user: data }),
     onSuccess: async (response) => {
       console.log("updateUser | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["users", userId] });
-      toast.success(response.data.msg);
+      toast.success("Utente aggiornato con successo");
     },
     onError: async (err) => axiosErrHandl(err, "updateUser"),
   });
 
   const deleteUser = useMutation({
-    mutationFn: () => UserDataService.deleteUser({ _id: userId! }),
+    mutationFn: () => UserDataService.deleteUser({ id: userId! }),
     onSuccess: async (response) => {
       console.log("deleteUser | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success(response.data.msg);
+      toast.success("Utente eliminato con successo");
       navigate("/admin/users");
     },
     onError: async (err) => axiosErrHandl(err, "deleteUser"),
   });
 
-  function createFormData() {
-    const formData = new FormData();
+  function formToObj() {
+    const obj: Record<PropertyKey, any> = {};
+    Object.entries(formRef.current)
+      .filter(([, el]) => el !== null)
+      .forEach(([key, el]) => {
+        switch (key) {
+          case "postazioni":
+            if (!(el instanceof HTMLSelectElement)) return;
+            obj[key] = Array.from(el.selectedOptions, (option) =>
+              Number.parseInt(option.value)
+            ).filter((v) => !Number.isNaN(v));
+            break;
+          case "permessi":
+          case "pages":
+            if (!(el instanceof HTMLSelectElement)) return;
+            obj[key] = Array.from(el.selectedOptions, (option) =>
+              Number.parseInt(option.value)
+            )
+              .filter((v) => !Number.isNaN(v))
+              .reduce((acc, curr) => acc | curr, 0);
+            break;
+          default:
+            obj[key] = el!.value;
+        }
+      });
+    return obj as UpdateUserData;
+  }
 
-    usernameRef.current &&
-      formData.append("username", usernameRef.current.value);
-    passwordRef.current &&
-      formData.append("password", passwordRef.current.value);
-    deviceRef.current &&
-      formData.append("devAccess", String(deviceRef.current.checked));
-    canLogoutRef.current &&
-      formData.append("canLogout", String(canLogoutRef.current.checked));
-    postazioniRef.current &&
-      formData.append(
-        "postazioni",
-        JSON.stringify(
-          Array.from(
-            postazioniRef.current.selectedOptions,
-            (option) => option.value
-          )
-        )
-      );
-    clientiRef.current &&
-      formData.append(
-        "clienti",
-        JSON.stringify(
-          Array.from(
-            clientiRef.current.selectedOptions,
-            (option) => option.value
-          )
-        )
-      );
-    pagesRef.current &&
-      formData.append(
-        "pages",
-        JSON.stringify(
-          Array.from(pagesRef.current.selectedOptions, (option) => option.value)
-        )
-      );
-
-    return formData;
+  function selectPostazioniOptions(disabled = false) {
+    return postazioni.isSuccess
+      ? postazioni.data
+          .filter(({ cliente, name }) => cliente && name)
+          .map(({ id, cliente, name }) => (
+            <option key={id} value={id} disabled={disabled}>
+              {cliente}-{name}
+            </option>
+          ))
+      : [];
   }
 
   return (
     <div className="user-edit-wrapper submit-form container-fluid">
-      {postazioni.isSuccess && clienti.isSuccess && userQuery.isSuccess && (
+      {userQuery.isSuccess && (
         <>
-          <h2>Modifica Account: {userQuery.data.username}</h2>
-          <div className="row mb-3">
+          <h2>Modifica Account: {userQuery.data.name}</h2>
+          <div className="row mb-1">
             <div className="form-group col-sm-3">
               <label htmlFor="username">Username</label>
               <input
                 className="form-control form-control-sm"
                 type="text"
                 id="username"
-                ref={usernameRef}
-                defaultValue={userQuery.data.username}
-                required
+                ref={(el) => (readonlyFormRef.current.name = el)}
+                autoComplete="off"
+                readOnly
+              />
+            </div>
+            <div className="form-group col-sm-3">
+              <label htmlFor="new-username">Nuovo Username</label>
+              <input
+                className="form-control form-control-sm"
+                type="text"
+                id="new-username"
+                ref={(el) => (formRef.current.name = el)}
                 autoComplete="off"
               />
             </div>
+          </div>
+          <div className="row mb-1">
             <div className="form-group col-sm-3">
               <label htmlFor="password">Password</label>
               <input
                 className="form-control form-control-sm"
                 type="password"
                 id="password"
-                ref={passwordRef}
-                defaultValue={userQuery.data.password}
+                ref={(el) => (readonlyFormRef.current.password = el)}
+                autoComplete="off"
+                readOnly
+              />
+            </div>
+            <div className="form-group col-sm-3">
+              <label htmlFor="new-password">Nuova Password</label>
+              <input
+                className="form-control form-control-sm"
+                type="password"
+                id="new-password"
+                ref={(el) => (formRef.current.password = el)}
                 autoComplete="off"
               />
             </div>
           </div>
-          <div className="form-check col-sm-2 my-2">
-            <label htmlFor="devAccess" className="form-check-label">
-              devAccess
-            </label>
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="devAccess"
-              autoComplete="off"
-              ref={deviceRef}
-              defaultChecked={userQuery.data.device}
-            />
-          </div>
-          <div className="form-check col-sm-2 my-2">
-            <label htmlFor="canlogout" className="form-check-label">
-              canLogout
-            </label>
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="canlogout"
-              autoComplete="off"
-              ref={canLogoutRef}
-              defaultChecked={userQuery.data.canLogout}
-            />
-          </div>
-          <div className="form-check col-sm-2 my-2">
-            <label htmlFor="excel" className="form-check-label">
-              excel
-            </label>
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="excel"
-              autoComplete="off"
-              ref={excelRef}
-              defaultChecked={userQuery.data.excel}
-            />
-          </div>
-          <div className="form-check col-sm-2 my-2">
-            <label htmlFor="provvisori" className="form-check-label">
-              provvisori
-            </label>
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="provvisori"
-              autoComplete="off"
-              ref={provvisoriRef}
-              defaultChecked={userQuery.data.provvisori}
-            />
-          </div>
           <div className="row mb-1">
             <div className="form-group col-sm-3">
-              <label htmlFor="clienti">Clienti</label>
+              <label htmlFor="permessi">Permessi</label>
               <select
                 className="form-control form-control-sm"
-                id="clienti"
-                ref={clientiRef}
+                id="permessi"
+                ref={(el) => (readonlyFormRef.current.permessi = el)}
                 multiple
-                required
-                value={clienti.data.filter((cliente) =>
-                  userQuery.data.clienti?.includes(cliente)
-                )}
               >
-                {clienti.data.map((cliente) => (
-                  <option key={cliente} value={cliente}>
-                    {cliente}
-                  </option>
-                ))}
+                {selectPermessiOptions(true)}
               </select>
             </div>
             <div className="form-group col-sm-3">
-              <label htmlFor="postazioni">Postazioni</label>
+              <label htmlFor="new-permessi">Nuovi Permessi</label>
               <select
                 className="form-control form-control-sm"
-                id="postazioni"
-                ref={postazioniRef}
+                id="new-permessi"
+                ref={(el) => (formRef.current.permessi = el)}
                 multiple
-                required
-                value={postazioni.data
-                  .map(({ _id }) => _id)
-                  .filter((id) => userQuery.data.postazioni?.includes(id))}
               >
-                {postazioni.data
-                  ?.filter(({ cliente, name }) => cliente && name)
-                  .map(({ _id, cliente, name }) => (
-                    <option key={_id} value={_id}>
-                      {cliente}-{name}
-                    </option>
-                  ))}
+                {selectPermessiOptions()}
               </select>
             </div>
           </div>
@@ -249,18 +222,46 @@ export default function UserEdit() {
               <select
                 className="form-control form-control-sm"
                 id="pages"
-                ref={pagesRef}
+                ref={(el) => (readonlyFormRef.current.pages = el)}
                 multiple
-                required
-                value={PAGES.filter((page) =>
-                  userQuery.data.pages?.includes(page)
-                )}
               >
-                {PAGES.map((page) => (
-                  <option key={page} value={page}>
-                    {page}
-                  </option>
-                ))}
+                {selectPagesOptions(true)}
+              </select>
+            </div>
+            <div className="form-group col-sm-3">
+              <label htmlFor="pages">Nuove Pagine</label>
+              <select
+                className="form-control form-control-sm"
+                id="pages"
+                ref={(el) => (formRef.current.pages = el)}
+                multiple
+              >
+                {selectPagesOptions()}
+              </select>
+            </div>
+          </div>
+          <div className="row mb-1">
+            <div className="form-group col-sm-3">
+              <label htmlFor="postazioni">Postazioni</label>
+              <select
+                className="form-control form-control-sm"
+                id="postazioni"
+                ref={(el) => (readonlyFormRef.current.postazioni = el)}
+                multiple
+                value={userQuery.data.postazioni.map((p) => String(p))}
+              >
+                {selectPostazioniOptions(true)}
+              </select>
+            </div>
+            <div className="form-group col-sm-3">
+              <label htmlFor="new-postazioni">Nuove Postazioni</label>
+              <select
+                className="form-control form-control-sm"
+                id="new-postazioni"
+                ref={(el) => (formRef.current.postazioni = el)}
+                multiple
+              >
+                {selectPostazioniOptions()}
               </select>
             </div>
           </div>
@@ -272,7 +273,7 @@ export default function UserEdit() {
                 "Procedere alla modifica dell'utente?"
               );
               if (!confirm) return;
-              updateUser.mutate(createFormData());
+              updateUser.mutate(formToObj());
             }}
           >
             Applica Modifiche

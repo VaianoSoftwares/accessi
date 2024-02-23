@@ -1,16 +1,10 @@
 import { useRef, useState } from "react";
-
 import "./index.css";
-
-import BadgeDataService from "../../services/badge";
-
+import ClientiDataService from "../../services/clienti";
+import PostazioniDataService from "../../services/postazioni";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
-import {
-  TAddPostazioneData,
-  TDeletePostazioneData,
-  TPostazione,
-} from "../../types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { InsertPostazioneData } from "../../types/badges";
 
 export default function Postazioni() {
   const queryClient = useQueryClient();
@@ -18,9 +12,12 @@ export default function Postazioni() {
   const clienti = useQuery({
     queryKey: ["clienti"],
     queryFn: () =>
-      BadgeDataService.getClienti().then((response) => {
+      ClientiDataService.getAll().then((response) => {
         console.log("queryClienti | response:", response);
-        const result = response.data.data as string[];
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        const result = response.data.result;
         return result;
       }),
   });
@@ -28,16 +25,19 @@ export default function Postazioni() {
   const queryPostazioni = useQuery({
     queryKey: ["assegnazioni"],
     queryFn: () =>
-      BadgeDataService.getPostazioni().then((response) => {
+      PostazioniDataService.getAll().then((response) => {
         console.log("queryPostazioni | response:", response);
-        const result = response.data.data as TPostazione[];
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        const result = response.data.result;
         return result;
       }),
   });
 
   const addPostazione = useMutation({
-    mutationFn: (data: TAddPostazioneData) =>
-      BadgeDataService.insertPostazione(data),
+    mutationFn: (data: InsertPostazioneData) =>
+      PostazioniDataService.insert(data),
     onSuccess: async (response) => {
       console.log("addPostazione | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["postazioni"] });
@@ -47,8 +47,7 @@ export default function Postazioni() {
   });
 
   const deletePostazione = useMutation({
-    mutationFn: (data: TDeletePostazioneData) =>
-      BadgeDataService.deletePostazione(data),
+    mutationFn: (data: number) => PostazioniDataService.delete(data),
     onSuccess: async (response) => {
       console.log("deletePostazione | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["postazioni"] });
@@ -112,11 +111,11 @@ export default function Postazioni() {
       <div className="list-group list-postazioni col-sm-3 postazioni-list mx-3">
         {queryPostazioni.data
           ?.filter(({ name, cliente }) => name && cliente === currTCliente)
-          .map(({ _id, name }) => (
+          .map(({ id, name }) => (
             <div
-              id={`list-postazioni-entry-${_id}`}
+              id={`list-postazioni-entry-${id}`}
               className="list-group-item"
-              key={_id}
+              key={id}
             >
               <div className="row justify-content-between align-items-center">
                 <div className="col-10">
@@ -124,7 +123,7 @@ export default function Postazioni() {
                 </div>
                 <div className="col">
                   <button
-                    value={_id}
+                    value={id}
                     type="button"
                     className="close btn-del-postazioni"
                     aria-label="Close"
@@ -133,10 +132,9 @@ export default function Postazioni() {
                         "Procede all'eliminazione della postazione?"
                       );
                       if (!confirmed) return;
-
-                      deletePostazione.mutate({
-                        _id: e.currentTarget.value,
-                      });
+                      deletePostazione.mutate(
+                        Number.parseInt(e.currentTarget.value)
+                      );
                     }}
                   >
                     <span aria-hidden="true">&times;</span>

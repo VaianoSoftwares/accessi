@@ -1,17 +1,15 @@
 import { useRef } from "react";
-import {
-  ProtocolloFile,
-  ProtocolloFindReq,
-  TPostazione,
-  TLoggedUser,
-} from "../../types";
+import { FormRef, ProtocolloFile, ProtocolloFindReq } from "../../types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import BadgeDataService from "../../services/badge";
+import PostazioniDataService from "../../services/postazioni";
 import ProtocolloDataService from "../../services/protocollo";
 import toast from "react-hot-toast";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import "./index.css";
 import Clock from "../Clock";
+import { Postazione } from "../../types/badges";
+import { TLoggedUser, isAdmin } from "../../types/users";
+import { ProtocolloForm } from "../../types/forms";
 
 const ON_PROD_MODE = process.env.NODE_ENV === "production";
 
@@ -20,46 +18,62 @@ export default function Protocollo({
   currPostazione,
 }: {
   user: TLoggedUser;
-  currPostazione: TPostazione | undefined;
+  currPostazione: Postazione | undefined;
 }) {
-  const filenameRef = useRef<HTMLInputElement>(null);
-  const descrizioneRef = useRef<HTMLInputElement>(null);
-  const dataInizioRef = useRef<HTMLInputElement>(null);
-  const dataFineRef = useRef<HTMLInputElement>(null);
-  const fileDataRef = useRef<HTMLInputElement>(null);
-  const visibileDaRef = useRef<HTMLSelectElement>(null);
+  const formRef = useRef<FormRef<ProtocolloForm>>({
+    filename: null,
+    descrizione: null,
+    data_in: null,
+    data_out: null,
+    fileData: null,
+    visibileDa: null,
+  });
 
   const queryClient = useQueryClient();
 
-  function formToObj(): ProtocolloFindReq {
-    return {
-      filename: filenameRef.current?.value,
-      descrizione: descrizioneRef.current?.value,
-      dataInzio: dataInizioRef.current?.value,
-      dataFine: dataFineRef.current?.value,
-      visibileDa:
-        visibileDaRef.current?.selectedOptions &&
-        Array.from(
-          visibileDaRef.current.selectedOptions,
-          (option) => option.value
-        ),
-    } satisfies ProtocolloFindReq;
+  function formToObj() {
+    const obj: Record<PropertyKey, any> = {};
+    Object.entries(formRef.current)
+      .filter(([key, el]) => el?.value && key !== "fileData")
+      .forEach(([key, el]) => {
+        switch (key) {
+          case "visibileDa":
+            obj[key] = Array.from(
+              (el as HTMLSelectElement).selectedOptions,
+              (option) => option.value
+            );
+            break;
+          default:
+            obj[key] = el!.value;
+        }
+      });
+    return obj;
   }
 
   function createFormData() {
     const formData = new FormData();
 
-    filenameRef.current?.value &&
-      formData.append("filename", filenameRef.current.value);
-    descrizioneRef.current?.value &&
-      formData.append("descrizione", descrizioneRef.current.value);
-    fileDataRef.current?.files?.item(0) &&
-      formData.append("fileData", fileDataRef.current.files.item(0)!);
-    visibileDaRef.current?.selectedOptions.length &&
-      Array.from(
-        visibileDaRef.current.selectedOptions,
-        (option) => option.value
-      ).forEach((option) => formData.append("visibileDa", option));
+    Object.entries(formRef.current)
+      .filter(([, el]) => el !== null)
+      .forEach(([key, el]) => {
+        switch (key) {
+          case "visibileDa":
+            Array.from(
+              (el as HTMLSelectElement).selectedOptions,
+              (option) => option.value
+            ).forEach((option) => formData.append(key, option));
+            break;
+          case "fileData":
+            el = el as HTMLInputElement;
+            el.files &&
+              Array.from(el.files).forEach((file) =>
+                formData.append(key, file)
+              );
+            break;
+          case "descrizione":
+            formData.append(key, el!.value);
+        }
+      });
 
     return formData;
   }
@@ -67,19 +81,20 @@ export default function Protocollo({
   const postazioni = useQuery({
     queryKey: ["postazioni", user.postazioni],
     queryFn: (context) =>
-      BadgeDataService.getPostazioni({
-        _id: context.queryKey[1]
-          ? (context.queryKey[1] as string[])
-          : undefined,
+      PostazioniDataService.get({
+        ids: context.queryKey[1] as number[],
       }).then((response) => {
         console.log("queryPostazioni | response:", response);
-        const result = response.data.data as TPostazione[];
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        const result = response.data.result;
         return result;
       }),
   });
 
   const queryProtocollo = useQuery({
-    queryKey: ["protocollo", currPostazione?._id],
+    queryKey: ["protocollo", currPostazione?.id],
     queryFn: (context) =>
       ProtocolloDataService.find({
         visibileDa: context.queryKey[1]
@@ -87,7 +102,10 @@ export default function Protocollo({
           : undefined,
       }).then((response) => {
         console.log("queryProtocollo | response:", response);
-        const result = response.data.data as ProtocolloFile[];
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        const result = response.data.result as ProtocolloFile[];
         return result;
       }),
   });
@@ -98,7 +116,10 @@ export default function Protocollo({
       ProtocolloDataService.find(context.queryKey[1] as ProtocolloFindReq).then(
         (response) => {
           console.log("queryProtocollo | response:", response);
-          const result = response.data.data as ProtocolloFile[];
+          if (response.data.success === false) {
+            throw response.data.error;
+          }
+          const result = response.data.result as ProtocolloFile[];
           return result;
         }
       ),
@@ -111,18 +132,17 @@ export default function Protocollo({
     onSuccess: async (response) => {
       console.log("insertProtocolloFile | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["protocollo"] });
-      toast.success(response.data.msg);
+      toast.success("Protocollo inserito con successo");
     },
     onError: async (err) => axiosErrHandl(err, "insertProtocolloFile"),
   });
 
   const deleteProtocollo = useMutation({
-    mutationFn: (data: { id: string; filename: string }) =>
-      ProtocolloDataService.delete(data),
+    mutationFn: (id: number) => ProtocolloDataService.delete(id),
     onSuccess: async (response) => {
       console.log("deleteProtocolloFile | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["protocollo"] });
-      toast.success(response.data.msg);
+      toast.success("Protocollo eliminato con successo");
     },
     onError: async (err) => axiosErrHandl(err, "deleteProtocolloFile"),
   });
@@ -137,8 +157,7 @@ export default function Protocollo({
                 className="form-control form-control-sm"
                 type="text"
                 id="filename"
-                ref={filenameRef}
-                defaultValue=""
+                ref={(el) => (formRef.current.filename = el)}
                 autoComplete="off"
                 placeholder="Nome File"
               />
@@ -149,8 +168,7 @@ export default function Protocollo({
                 className="form-control form-control-sm"
                 type="text"
                 id="descrizione"
-                ref={descrizioneRef}
-                defaultValue=""
+                ref={(el) => (formRef.current.descrizione = el)}
                 autoComplete="off"
                 placeholder="Descrizione"
               />
@@ -163,8 +181,8 @@ export default function Protocollo({
                 className="custom-file-input"
                 id="fileData"
                 autoComplete="off"
-                ref={fileDataRef}
-                defaultValue=""
+                ref={(el) => (formRef.current.fileData = el)}
+                multiple
               />
             </div>
             <div className="form-group col-sm-6">
@@ -172,17 +190,18 @@ export default function Protocollo({
               <select
                 className="form-select form-select-sm"
                 id="visibileDa"
-                ref={visibileDaRef}
+                ref={(el) => (formRef.current.visibileDa = el)}
                 placeholder="Visibile Da"
                 multiple
               >
-                {postazioni.data
-                  ?.filter(({ cliente, name }) => cliente && name)
-                  .map(({ _id, cliente, name }) => (
-                    <option key={_id} value={_id}>
-                      {cliente}-{name}
-                    </option>
-                  ))}
+                {postazioni.isSuccess &&
+                  postazioni.data
+                    .filter(({ cliente, name }) => cliente && name)
+                    .map(({ id, cliente, name }) => (
+                      <option key={id} value={id}>
+                        {cliente}-{name}
+                      </option>
+                    ))}
               </select>
             </div>
             <div className="w-100 my-1"></div>
@@ -191,8 +210,7 @@ export default function Protocollo({
                 className="form-control form-control-sm"
                 type="date"
                 id="dataInizio"
-                ref={dataInizioRef}
-                defaultValue=""
+                ref={(el) => (formRef.current.data_in = el)}
                 autoComplete="off"
                 placeholder="Data Inizio"
               />
@@ -203,8 +221,7 @@ export default function Protocollo({
                 className="form-control form-control-sm"
                 type="date"
                 id="dataFine"
-                ref={dataFineRef}
-                defaultValue=""
+                ref={(el) => (formRef.current.data_out = el)}
                 autoComplete="off"
                 placeholder="Data Fine"
               />
@@ -243,7 +260,7 @@ export default function Protocollo({
             {queryProtocollo.isSuccess
               ? queryProtocollo.data.map(({ filename, _id }) => (
                   <li className="list-group-item" key={_id}>
-                    {user.admin === true && (
+                    {isAdmin(user) === true && (
                       <button
                         data-filename={filename}
                         data-id={_id}
@@ -253,13 +270,11 @@ export default function Protocollo({
                         onClick={(
                           event: React.MouseEvent<HTMLButtonElement, MouseEvent>
                         ) => {
-                          const id =
-                            event.currentTarget.getAttribute("data-id");
-                          const filename =
-                            event.currentTarget.getAttribute("data-filename");
-                          id &&
-                            filename &&
-                            deleteProtocollo.mutate({ id, filename });
+                          const id = Number.parseInt(
+                            event.currentTarget.getAttribute("data-id") || ""
+                          );
+                          if (Number.isNaN(id)) return;
+                          deleteProtocollo.mutate(id);
                         }}
                       >
                         <span aria-hidden="true">&times;</span>

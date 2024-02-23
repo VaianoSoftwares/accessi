@@ -1,82 +1,100 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 import UserDataService from "../../services/user";
-import BadgeDataService from "../../services/badge";
+import PostazioniDataService from "../../services/postazioni";
 import { toast } from "react-hot-toast";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
-import { PAGES, RegisterFormState, TPostazione } from "../../types";
+import { FormRef } from "../../types";
+import { PAGES_INFO } from "../../types/pages";
+import { RegisterForm } from "../../types/forms";
+import { InsertUserData, PERMESSI_INFO } from "../../types/users";
+
+function selectPermessiOptions() {
+  const options = [];
+  for (const [key, value] of PERMESSI_INFO.entries()) {
+    options.push(
+      <option key={key} value={key}>
+        {value}
+      </option>
+    );
+  }
+  return options;
+}
+
+function selectPagesOptions() {
+  const options = [];
+  for (const [key, { name }] of PAGES_INFO.entries()) {
+    options.push(
+      <option key={key} value={key}>
+        {name}
+      </option>
+    );
+  }
+  return options;
+}
 
 export default function Register() {
-  const clienti = useQuery({
-    queryKey: ["clienti"],
-    queryFn: async () => {
-      const response = await BadgeDataService.getClienti();
-      console.log("getClienti | response:", response);
-      const result = response.data.data as string[];
-      return result;
-    },
+  const formRef = useRef<FormRef<RegisterForm>>({
+    name: null,
+    password: null,
+    postazioni: null,
+    pages: null,
+    permessi: null,
   });
 
   const postazioni = useQuery({
     queryKey: ["postazioni"],
     queryFn: async () => {
-      const response = await BadgeDataService.getPostazioni();
+      const response = await PostazioniDataService.getAll();
       console.log("queryPostazioni | response:", response);
-      const result = response.data.data as TPostazione[];
+      if (response.data.success === false) {
+        throw response.data.error;
+      }
+      const result = response.data.result;
       return result;
     },
   });
 
-  const usernameRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-  const postazioniRef = useRef<HTMLSelectElement>(null);
-  const clientiRef = useRef<HTMLSelectElement>(null);
-  const pagesRef = useRef<HTMLSelectElement>(null);
-  const deviceRef = useRef<HTMLInputElement>(null);
-  const canLogoutRef = useRef<HTMLInputElement>(null);
-  const excelRef = useRef<HTMLInputElement>(null);
-  const provvisoriRef = useRef<HTMLInputElement>(null);
-
-  function formToObj(): RegisterFormState {
-    return {
-      username: usernameRef.current!.value,
-      password: passwordRef.current!.value,
-      postazioni: Array.from(
-        postazioniRef.current!.selectedOptions,
-        (option) => option.value
-      ),
-      clienti: Array.from(
-        clientiRef.current!.selectedOptions,
-        (option) => option.value
-      ),
-      pages: Array.from(
-        pagesRef.current!.selectedOptions,
-        (option) => option.value
-      ),
-      device: deviceRef.current!.checked,
-      canLogout: canLogoutRef.current!.checked,
-      excel: excelRef.current!.checked,
-      provvisori: provvisoriRef.current!.checked,
-    };
+  function formToObj() {
+    const obj: Record<PropertyKey, any> = {};
+    Object.entries(formRef.current)
+      .filter(([, el]) => el !== null)
+      .forEach(([key, el]) => {
+        switch (key) {
+          case "postazioni":
+            if (!(el instanceof HTMLSelectElement)) return;
+            obj[key] = Array.from(el.selectedOptions, (option) =>
+              Number.parseInt(option.value)
+            ).filter((v) => !Number.isNaN(v));
+            break;
+          case "permessi":
+          case "pages":
+            if (!(el instanceof HTMLSelectElement)) return;
+            obj[key] = Array.from(el.selectedOptions, (option) =>
+              Number.parseInt(option.value)
+            )
+              .filter((v) => !Number.isNaN(v))
+              .reduce((acc, curr) => acc | curr, 0);
+            break;
+          default:
+            obj[key] = el!.value;
+        }
+      });
+    return obj as InsertUserData;
   }
 
   function clearForm() {
-    usernameRef.current!.value = usernameRef.current!.defaultValue;
-    passwordRef.current!.value = passwordRef.current!.defaultValue;
-    postazioniRef.current!.selectedIndex = -1;
-    clientiRef.current!.selectedIndex = -1;
-    pagesRef.current!.selectedIndex = -1;
-    deviceRef.current!.value = deviceRef.current!.defaultValue;
-    canLogoutRef.current!.checked = canLogoutRef.current!.defaultChecked;
-    excelRef.current!.value = excelRef.current!.defaultValue;
-    provvisoriRef.current!.value = provvisoriRef.current!.defaultValue;
+    Object.entries(formRef.current).forEach(([, el]) => {
+      if (el instanceof HTMLInputElement) el.value = el.defaultValue;
+      else if (el instanceof HTMLSelectElement) el.selectedIndex = -1;
+    });
   }
 
   function register() {
     UserDataService.register(formToObj())
       .then((response) => {
         console.log("register |", response.data);
-        toast.success(response.data.msg);
+        toast.success("Utente registrato con successo");
       })
       .catch((err) => axiosErrHandl(err, "register"))
       .finally(() => clearForm());
@@ -92,8 +110,7 @@ export default function Register() {
             className="form-control form-control-sm"
             type="text"
             id="username"
-            ref={usernameRef}
-            defaultValue=""
+            ref={(el) => (formRef.current.name = el)}
             required
             autoComplete="off"
           />
@@ -104,116 +121,56 @@ export default function Register() {
             className="form-control form-control-sm"
             type="password"
             id="password"
-            ref={passwordRef}
-            defaultValue=""
+            ref={(el) => (formRef.current.password = el)}
             required
             autoComplete="off"
           />
         </div>
       </div>
-      <div className="form-check col-sm-2 my-2">
-        <label htmlFor="device" className="form-check-label">
-          Dispositivo
-        </label>
-        <input
-          type="checkbox"
-          className="form-check-input"
-          id="device"
-          autoComplete="off"
-          ref={deviceRef}
-          defaultChecked={false}
-        />
-      </div>
-      <div className="form-check col-sm-2 my-2">
-        <label htmlFor="canlogout" className="form-check-label">
-          canLogout
-        </label>
-        <input
-          type="checkbox"
-          className="form-check-input"
-          id="canlogout"
-          autoComplete="off"
-          ref={canLogoutRef}
-          defaultChecked={false}
-        />
-      </div>
-      <div className="form-check col-sm-2 my-2">
-        <label htmlFor="excel" className="form-check-label">
-          excel
-        </label>
-        <input
-          type="checkbox"
-          className="form-check-input"
-          id="excel"
-          autoComplete="off"
-          ref={excelRef}
-          defaultChecked={false}
-        />
-      </div>
-      <div className="form-check col-sm-2 my-2">
-        <label htmlFor="provvisori" className="form-check-label">
-          provvisori
-        </label>
-        <input
-          type="checkbox"
-          className="form-check-input"
-          id="provvisori"
-          autoComplete="off"
-          ref={provvisoriRef}
-          defaultChecked={false}
-        />
-      </div>
       <div className="row mb-1">
         <div className="form-group col-sm-3">
-          <label htmlFor="clienti">Clienti</label>
+          <label htmlFor="permessi">Permessi</label>
           <select
             className="form-control form-control-sm"
-            id="clienti"
-            ref={clientiRef}
+            id="permessi"
+            ref={(el) => (formRef.current.permessi = el)}
             multiple
             required
           >
-            {clienti.data?.map((cliente) => (
-              <option key={cliente} value={cliente}>
-                {cliente}
-              </option>
-            ))}
+            {selectPermessiOptions()}
           </select>
         </div>
-        <div className="form-group col-sm-3">
-          <label htmlFor="postazioni">Postazioni</label>
-          <select
-            className="form-control form-control-sm"
-            id="postazioni"
-            ref={postazioniRef}
-            multiple
-            required
-          >
-            {postazioni.data
-              ?.filter(({ cliente, name }) => cliente && name)
-              .map(({ _id, cliente, name }) => (
-                <option key={_id} value={_id}>
-                  {cliente}-{name}
-                </option>
-              ))}
-          </select>
-        </div>
-      </div>
-      <div className="row mb-1">
         <div className="form-group col-sm-3">
           <label htmlFor="pages">Pagine</label>
           <select
             className="form-control form-control-sm"
             id="pages"
-            ref={pagesRef}
+            ref={(el) => (formRef.current.pages = el)}
             multiple
             required
           >
-            {PAGES.map((page) => (
-              <option key={page} value={page}>
-                {page}
-              </option>
-            ))}
+            {selectPagesOptions()}
+          </select>
+        </div>
+      </div>
+      <div className="row mb-1">
+        <div className="form-group col-sm-3">
+          <label htmlFor="postazioni">Postazioni</label>
+          <select
+            className="form-control form-control-sm"
+            id="postazioni"
+            ref={(el) => (formRef.current.postazioni = el)}
+            multiple
+            required
+          >
+            {postazioni.isSuccess &&
+              postazioni.data
+                .filter(({ cliente, name }) => cliente && name)
+                .map(({ id, cliente, name }) => (
+                  <option key={id} value={id}>
+                    {cliente}-{name}
+                  </option>
+                ))}
           </select>
         </div>
       </div>

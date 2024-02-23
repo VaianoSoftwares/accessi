@@ -1,14 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import {
-  TLoggedUser,
-  PAGES_INFO,
-  ADMIN_PAGES_INFO,
-  TPostazione,
-} from "../../types";
 import "./index.css";
 import BadgeDataService from "../../services/badge";
+import PostazioniDataService from "../../services/postazioni";
+import ClientiDataService from "../../services/clienti";
 import { Dispatch, SetStateAction, useState } from "react";
+import { PAGES_INFO, ADMIN_PAGES_INFO, TPages } from "../../types/pages";
+import {
+  TLoggedUser,
+  TPermessi,
+  canAccessPage,
+  getPagesNum,
+  hasPerm,
+  isAdmin,
+} from "../../types/users";
+import { Postazione } from "../../types/badges";
 
 export default function AccessiNavbar({
   user,
@@ -21,8 +27,8 @@ export default function AccessiNavbar({
   ...props
 }: {
   user: TLoggedUser;
-  currPostazione: TPostazione | undefined;
-  setCurrPostazione: Dispatch<SetStateAction<TPostazione | undefined>>;
+  currPostazione: Postazione | undefined;
+  setCurrPostazione: Dispatch<SetStateAction<Postazione | undefined>>;
   logout: () => Promise<void>;
   badgeScannerConnected: boolean;
   runBadgeScanner: () => Promise<void>;
@@ -37,13 +43,14 @@ export default function AccessiNavbar({
   const postazioni = useQuery({
     queryKey: ["postazioni", user.postazioni],
     queryFn: (context) =>
-      BadgeDataService.getPostazioni({
-        _id: context.queryKey[1]
-          ? (context.queryKey[1] as string[])
-          : undefined,
+      PostazioniDataService.get({
+        ids: context.queryKey[1] as number[],
       }).then((response) => {
         console.log("queryPostazioni | response:", response);
-        const result = response.data.data as TPostazione[];
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        const result = response.data.result;
         !currPostazione &&
           setCurrPostazione(result.length === 1 ? result[0] : undefined);
         return result;
@@ -53,9 +60,12 @@ export default function AccessiNavbar({
   const clienti = useQuery({
     queryKey: ["clienti"],
     queryFn: () =>
-      BadgeDataService.getClienti().then((response) => {
+      ClientiDataService.getAll().then((response) => {
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
         console.log("queryClienti | response:", response);
-        const result = response.data.data as string[];
+        const result = response.data.result;
         setCurrCliente(
           result.length === 1 ? currPostazione?.cliente : undefined
         );
@@ -91,7 +101,7 @@ export default function AccessiNavbar({
         </button>
         <div className="collapse navbar-collapse flex-column" id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0 w-100 my-1">
-            {(user.admin || (user.pages && user.pages.length > 1)) && (
+            {getPagesNum(user) > 1 && (
               <li className="nav-item" key="home">
                 <Link
                   to="/home"
@@ -102,7 +112,7 @@ export default function AccessiNavbar({
               </li>
             )}
             {Array.from(PAGES_INFO.entries())
-              .filter(([page]) => user.admin || user.pages!.indexOf(page) >= 0)
+              .filter(([page]) => canAccessPage(user, page))
               .map(([page, pageInfo]) => (
                 <li className="nav-item" key={page}>
                   <Link
@@ -115,7 +125,7 @@ export default function AccessiNavbar({
                   </Link>
                 </li>
               ))}
-            {user.admin && (
+            {isAdmin(user) && (
               <li className="nav-item dropdown">
                 <Link
                   className="nav-link dropdown-toggle"
@@ -139,10 +149,10 @@ export default function AccessiNavbar({
                 </ul>
               </li>
             )}
-            {user.canLogout && (
+            {hasPerm(user, TPermessi.canLogout) && (
               <li className="nav-item">
                 <Link to="#" onClick={() => logout()} className="nav-link">
-                  Logout {user.username}
+                  Logout {user.name}
                 </Link>
               </li>
             )}
@@ -159,13 +169,11 @@ export default function AccessiNavbar({
                     // setCurrPostazione(undefined);
                   }}
                 >
-                  {user.admin && (
+                  {isAdmin(user) && (
                     <option label="Tutti i clienti" value={undefined} />
                   )}
                   {clienti.data
-                    .filter(
-                      (cliente) => user.admin || user.clienti?.includes(cliente)
-                    )
+                    .filter((cliente) => user.clienti.includes(cliente))
                     .map((cliente) => (
                       <option value={cliente} key={cliente}>
                         {cliente}
@@ -188,24 +196,24 @@ export default function AccessiNavbar({
                     if (!id || !cliente || !name) setCurrPostazione(undefined);
                     else
                       setCurrPostazione({
-                        _id: id!,
+                        id: Number.parseInt(id),
                         cliente: cliente!,
                         name: name!,
-                      } satisfies TPostazione);
+                      } satisfies Postazione);
                   }}
                 >
-                  {user.admin && <option>Tutte le postazioni</option>}
+                  {isAdmin(user) && <option>Tutte le postazioni</option>}
                   {postazioni.data
                     .filter(
                       ({ cliente }) => !currCliente || cliente === currCliente
                     )
-                    .map(({ _id, cliente, name }) => (
+                    .map(({ id, cliente, name }) => (
                       <option
-                        value={name}
+                        value={id}
+                        data-id={id}
                         data-cliente={cliente}
                         data-name={name}
-                        data-id={_id}
-                        key={_id}
+                        key={id}
                       >
                         {cliente} - {name}
                       </option>
@@ -213,7 +221,7 @@ export default function AccessiNavbar({
                 </select>
               </div>
             )}
-            {(user.admin || user.pages?.includes("badge")) && (
+            {canAccessPage(user, TPages.badge) && (
               <div className="d-flex mx-1">
                 <button
                   className="btn btn-light mx-1 scan-btn"
@@ -235,7 +243,7 @@ export default function AccessiNavbar({
                 </b>
               </div>
             )}
-            {(user.admin || user.pages?.includes("chiavi")) && (
+            {canAccessPage(user, TPages.chiavi) && (
               <div className="d-flex">
                 <button
                   className="btn btn-light mx-1 scan-btn"

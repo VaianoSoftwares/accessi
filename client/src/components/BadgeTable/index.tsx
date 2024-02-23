@@ -17,8 +17,8 @@ export default function BadgeTable(props: {
                   (key) =>
                     !(props.omitedParams && props.omitedParams.includes(key))
                 )
-                .map((key, i) => (
-                  <th scope="col" key={i} className="badge-table-th">
+                .map((key) => (
+                  <th scope="col" key={key} className="badge-table-th">
                     {key}
                   </th>
                 ))}

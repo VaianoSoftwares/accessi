@@ -21,11 +21,11 @@ class ProtocolloDataServices extends DataServices {
     });
   }
 
-  delete(data: { id: string; filename: string }, signal?: GenericAbortSignal) {
+  delete(id: number, signal?: GenericAbortSignal) {
     return super.request({
       method: "DELETE",
       token: true,
-      data,
+      url: `/${id}`,
       signal,
     });
   }

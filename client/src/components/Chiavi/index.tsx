@@ -1,11 +1,4 @@
-import {
-  TInPrestito,
-  TInPrestitoDataReq,
-  TPostazione,
-  TPrestitoDataReq,
-  TLoggedUser,
-} from "../../types";
-import BadgeDataService from "../../services/badge";
+import ArchivioDataService from "../../services/archivio";
 import "./index.css";
 import { useRef } from "react";
 import BadgeTable from "../BadgeTable";
@@ -14,6 +7,9 @@ import { TableContentMapper } from "../../utils/tableContentMapper";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import Clock from "../Clock";
+import { TLoggedUser } from "../../types/users";
+import { Postazione } from "../../types/badges";
+import { FindInPrestitoData, PrestitoChiaviData } from "../../types/archivio";
 
 export default function Chiavi({
   currPostazione,
@@ -24,7 +20,7 @@ export default function Chiavi({
   addScanValue: (value: string) => void;
   removeScanValue: (value: string) => void;
   clearScanValues: () => void;
-  currPostazione: TPostazione | undefined;
+  currPostazione: Postazione | undefined;
 }) {
   const barcodeTxtInput = useRef<HTMLInputElement>(null);
 
@@ -34,22 +30,26 @@ export default function Chiavi({
     queryKey: [
       "inPrestito",
       {
-        postazione: currPostazione?.name,
+        postazioni: currPostazione ? [currPostazione] : props.user.postazioni,
       },
     ],
     queryFn: (context) =>
-      BadgeDataService.getInPrestito(
-        context.queryKey[1] as TInPrestitoDataReq
+      ArchivioDataService.getInPrestito(
+        context.queryKey[1] as FindInPrestitoData
       ).then((response) => {
         console.log("retriveInPrestito | response:", response);
-        const result = response.data.data as TInPrestito[];
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        const result = response.data.result;
         TableContentMapper.parseDate(result);
         return result;
       }),
   });
 
   const mutateInPrestito = useMutation({
-    mutationFn: (data: TPrestitoDataReq) => BadgeDataService.prestaChiavi(data),
+    mutationFn: (data: PrestitoChiaviData) =>
+      ArchivioDataService.prestaChiavi(data),
     onSuccess: async (response) => {
       console.log("prestaChiavi | response", response);
       await queryClient.invalidateQueries({ queryKey: ["inPrestito"] });
@@ -114,7 +114,7 @@ export default function Chiavi({
 
                 mutateInPrestito.mutate({
                   barcodes: props.scanValues,
-                  postazioneId: currPostazione._id,
+                  postazione: currPostazione.id,
                 });
               }}
             >

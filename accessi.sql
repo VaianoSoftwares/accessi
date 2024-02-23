@@ -1,226 +1,247 @@
+\c postgres;
+
 DROP DATABASE IF EXISTS accessi;
 CREATE DATABASE accessi;
---USE accessi;
 \c accessi;
 
 CREATE FUNCTION set_bit(n INT, k INT) RETURNS INT
     LANGUAGE SQL
     IMMUTABLE
+    PARALLEL SAFE
     RETURN (n | (1 << (k - 1)));
 
 CREATE FUNCTION clear_bit(n INT, k INT) RETURNS INT
     LANGUAGE SQL
     IMMUTABLE
+    PARALLEL SAFE
     RETURN (n & (~(1 << (k - 1))));
 
 CREATE FUNCTION toggle_bit(n INT, k INT) RETURNS INT
     LANGUAGE SQL
     IMMUTABLE
+    PARALLEL SAFE
     RETURN (n # (1 << (k - 1)));
 
 CREATE FUNCTION check_bit(n INT, k INT) RETURNS BOOLEAN
     LANGUAGE SQL
     IMMUTABLE
+    PARALLEL SAFE
     RETURN ((n & ~(n # (1 << (k - 1)))) >> (k - 1))::bool;
 
 CREATE FUNCTION admin_flags() RETURNS INT
     LANGUAGE SQL
     IMMUTABLE
+    PARALLEL SAFE
     RETURN -1;
 
-CREATE TYPE tdoc AS ENUM ('carta identita', 'patente', 'tessera studente');
-CREATE TYPE badge_state AS ENUM ('valido', 'scaduto', 'revocato', 'riconsegnato');
-CREATE TYPE cliente AS ENUM ('Corte d''Appello', 'Montedomini');
+CREATE TYPE tdoc AS ENUM ('CARTA IDENTITA', 'PATENTE', 'TESSERA STUDENTE');
+CREATE TYPE badge_state AS ENUM ('VALIDO', 'SCADUTO', 'REVOCATO', 'RICONSEGNATO');
 CREATE TYPE assegnazione as ENUM ('ospite', 'utente', 'giornalista', 'manutenzione', 'associazione', 'cooperativa', 'collaboratore', 'pulizie', 'portineria', 'facchinaggio', 'corriere', 'universitario');
 CREATE TYPE edificio as ENUM ('appartamento', 'villetta', 'capannone', 'fondo', 'clinica', 'ufficio');
 CREATE TYPE veicolo as ENUM ('auto', 'moto', 'bicicletta', 'generico');
+CREATE TYPE tbadge as ENUM ('NOMINATIVO', 'PROVVISORIO', 'CHIAVE', 'VEICOLO', 'PERSONA');
+
+CREATE TABLE IF NOT EXISTS clienti(
+    name VARCHAR(64) PRIMARY KEY CHECK (name != '')
+);
 
 CREATE TABLE IF NOT EXISTS persone(
-    nome VARCHAR(32),
-    cognome VARCHAR(32),
-    ditta VARCHAR(64),
-    telefono VARCHAR(32),
-    ndoc VARCHAR(32),
-    tdoc tdoc DEFAULT 'carta identita',
-    documento VARCHAR(128) NOT NULL,
+    nome VARCHAR(32) CHECK (nome != ''),
+    cognome VARCHAR(32) CHECK (cognome != ''),
+    ditta VARCHAR(64) CHECK (ditta != ''),
+    telefono VARCHAR(32) CHECK (telefono != ''),
+    ndoc VARCHAR(32) CHECK (ndoc != ''),
+    tdoc tdoc DEFAULT 'CARTA IDENTITA',
+    cliente VARCHAR(64) NOT NULL,
+    FOREIGN KEY (cliente) REFERENCES clienti (name),
     PRIMARY KEY (ndoc, tdoc)
 );
 
 CREATE TABLE IF NOT EXISTS badges(
-    codice VARCHAR(16) PRIMARY KEY,
-    descrizione TEXT,
-    stato badge_state DEFAULT 'valido',
+    codice CHAR(9) PRIMARY KEY CHECK (codice != ''),
+    descrizione TEXT CHECK (descrizione != ''),
+    stato badge_state DEFAULT 'VALIDO',
     assegnazione assegnazione DEFAULT 'utente',
-    cliente cliente NOT NULL,
-    pfp VARCHAR(64),
+    cliente VARCHAR(64) NOT NULL,
     scadenza DATE,
-    privacy VARCHAR(128),
-    nome VARCHAR(32),
-    cognome VARCHAR(32),
-    ditta VARCHAR(64),
-    telefono VARCHAR(32),
-    ndoc VARCHAR(32) NOT NULL,
-    tdoc tdoc DEFAULT 'carta identita',
-    CONSTRAINT expired_badge_is_valid CHECK (stato != 'valido' OR scadenza > current_date)
+    nome VARCHAR(32) CHECK (nome != ''),
+    cognome VARCHAR(32) CHECK (cognome != ''),
+    ditta VARCHAR(64) CHECK (ditta != ''),
+    telefono VARCHAR(32) CHECK (telefono != ''),
+    ndoc VARCHAR(32) NOT NULL CHECK (ndoc != ''),
+    tdoc tdoc DEFAULT 'CARTA IDENTITA',
+    FOREIGN KEY (cliente) REFERENCES clienti (name),
+    CONSTRAINT expired_badge_is_valid CHECK (stato != 'VALIDO' OR scadenza > current_date)
 );
 
 CREATE TABLE IF NOT EXISTS provvisori(
-    codice VARCHAR(16) PRIMARY KEY,
-    descrizione TEXT,
-    stato badge_state DEFAULT 'valido',
-    ubicazione VARCHAR(32),
-    cliente cliente NOT NULL
+    codice CHAR(9) PRIMARY KEY CHECK (codice != ''),
+    descrizione TEXT CHECK (descrizione != ''),
+    stato badge_state DEFAULT 'VALIDO',
+    ubicazione VARCHAR(32) CHECK (ubicazione != ''),
+    cliente VARCHAR(64) NOT NULL,
+    FOREIGN KEY (cliente) REFERENCES clienti (name)
 );
 
 CREATE TABLE IF NOT EXISTS veicoli(
-    codice VARCHAR(16) PRIMARY KEY,
-    descrizione TEXT,
-    stato badge_state DEFAULT 'valido',
-    assegnazione veicolo DEFAULT 'generico',
-    cliente cliente NOT NULL,
-    nome VARCHAR(32),
-    cognome VARCHAR(32),
-    ditta VARCHAR(64),
-    telefono VARCHAR(32),
-    ndoc VARCHAR(32) NOT NULL,
-    tdoc tdoc DEFAULT 'carta identita',
-    targa1 VARCHAR(32),
-    targa2 VARCHAR(32),
-    targa3 VARCHAR(32),
-    targa4 VARCHAR(32)
+    codice CHAR(9) PRIMARY KEY CHECK (codice != ''),
+    descrizione TEXT CHECK (descrizione != ''),
+    stato badge_state DEFAULT 'VALIDO',
+    cliente VARCHAR(64) NOT NULL,
+    nome VARCHAR(32) CHECK (nome != ''),
+    cognome VARCHAR(32) CHECK (cognome != ''),
+    ditta VARCHAR(64) CHECK (ditta != ''),
+    telefono VARCHAR(32) CHECK (telefono != ''),
+    ndoc VARCHAR(32) NOT NULL CHECK (ndoc != ''),
+    tdoc tdoc DEFAULT 'CARTA IDENTITA',
+    tveicolo veicolo DEFAULT 'generico',
+    targa1 VARCHAR(32) CHECK (targa1 != ''),
+    targa2 VARCHAR(32) CHECK (targa2 != ''),
+    targa3 VARCHAR(32) CHECK (targa3 != ''),
+    targa4 VARCHAR(32) CHECK (targa4 != ''),
+    FOREIGN KEY (cliente) REFERENCES clienti (name)
 );
 
 CREATE TABLE IF NOT EXISTS chiavi(
-    codice VARCHAR(16) PRIMARY KEY,
-    descrizione TEXT,
-    ubicazione VARCHAR(32),
-    indirizzo VARCHAR(128),
-    citta VARCHAR(64),
+    codice CHAR(9) PRIMARY KEY CHECK (codice != ''),
+    descrizione TEXT CHECK (descrizione != ''),
+    ubicazione VARCHAR(32) CHECK (ubicazione != ''),
+    cliente VARCHAR(64) NOT NULL,
+    indirizzo VARCHAR(128) CHECK (indirizzo != ''),
+    citta VARCHAR(64) CHECK (citta != ''),
     edificio edificio,
-    piano VARCHAR(16),
-    cliente cliente NOT NULL
+    piano VARCHAR(16) CHECK (piano != ''),
+    FOREIGN KEY (cliente) REFERENCES clienti (name)
 );
 
 CREATE TABLE IF NOT EXISTS users(
     id SERIAL PRIMARY KEY,
-    name VARCHAR(64) UNIQUE NOT NULL,
-    password VARCHAR(64) NOT NULL,
+    name VARCHAR(64) UNIQUE NOT NULL CHECK (name != ''),
+    password VARCHAR(64) NOT NULL CHECK (password != ''),
     permessi INT DEFAULT 0,
     pages INT DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS postazioni(
-    cliente cliente,
-    name VARCHAR(64),
-    PRIMARY KEY (cliente, name)
+    id SERIAL PRIMARY KEY,
+    cliente VARCHAR(64),
+    name VARCHAR(64) CHECK (name != ''),
+    FOREIGN KEY (cliente) REFERENCES clienti (name),
+    UNIQUE (cliente, name)
 );
 
 CREATE TABLE IF NOT EXISTS archivio_badge(
     id SERIAL PRIMARY KEY,
-    badge VARCHAR(16) REFERENCES badges (codice),
-    cliente cliente,
-    postazione VARCHAR(64),
-    data_in TIMESTAMP NOT NULL,
+    badge CHAR(9) REFERENCES badges (codice),
+    postazione SERIAL,
+    data_in TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP),
     data_out TIMESTAMP,
-    ip VARCHAR(32),
-    FOREIGN KEY (cliente, postazione) REFERENCES postazioni (cliente, name),
+    ip VARCHAR(32) CHECK (ip != ''),
+    FOREIGN KEY (postazione) REFERENCES postazioni (id),
     CONSTRAINT data_in_is_bigger_than_data_out CHECK (data_out IS NULL OR data_out > data_in)
 );
 
 CREATE TABLE IF NOT EXISTS archivio_veicoli(
     id SERIAL PRIMARY KEY,
-    badge VARCHAR(16) REFERENCES veicoli (codice),
-    cliente cliente,
-    postazione VARCHAR(64),
-    data_in TIMESTAMP NOT NULL,
+    badge CHAR(9) REFERENCES veicoli (codice),
+    postazione SERIAL,
+    data_in TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP),
     data_out TIMESTAMP,
-    ip VARCHAR(32),
-    FOREIGN KEY (cliente, postazione) REFERENCES postazioni (cliente, name),
+    ip VARCHAR(32) CHECK (ip != ''),
+    FOREIGN KEY (postazione) REFERENCES postazioni (id),
     CONSTRAINT data_in_is_bigger_than_data_out CHECK (data_out IS NULL OR data_out > data_in)
 );
 
 CREATE TABLE IF NOT EXISTS archivio_chiavi(
     id SERIAL PRIMARY KEY,
-    badge VARCHAR(16) REFERENCES badges (codice),
-    chiave VARCHAR(16) REFERENCES chiavi (codice),
-    cliente cliente,
-    postazione VARCHAR(64),
-    data_prestito TIMESTAMP NOT NULL,
-    data_reso TIMESTAMP,
-    ip VARCHAR(32),
-    FOREIGN KEY (cliente, postazione) REFERENCES postazioni (cliente, name),
-    CONSTRAINT data_prestito_is_bigger_than_data_reso CHECK (data_reso IS NULL OR data_reso > data_prestito)
+    badge CHAR(9) REFERENCES badges (codice),
+    chiave CHAR(9) REFERENCES chiavi (codice),
+    postazione SERIAL,
+    data_in TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP),
+    data_out TIMESTAMP,
+    ip VARCHAR(32) CHECK (ip != ''),
+    FOREIGN KEY (postazione) REFERENCES postazioni (id),
+    CONSTRAINT data_in_is_bigger_than_data_out CHECK (data_out IS NULL OR data_out > data_in)
 );
 
 CREATE TABLE IF NOT EXISTS archivio_provvisori(
     id SERIAL PRIMARY KEY,
-    badge VARCHAR(16) REFERENCES provvisori (codice),
-    cliente cliente,
-    postazione VARCHAR(64),
+    badge CHAR(9) REFERENCES provvisori (codice),
+    postazione SERIAL,
     data_in TIMESTAMP,
     data_out TIMESTAMP,
-    ip VARCHAR(32),
-    nome VARCHAR(32),
-    cognome VARCHAR(32),
-    ditta VARCHAR(64),
-    telefono VARCHAR(32),
-    ndoc VARCHAR(32) NOT NULL,
-    tdoc tdoc DEFAULT 'carta identita',
-    FOREIGN KEY (cliente, postazione) REFERENCES postazioni (cliente, name),
+    ip VARCHAR(32) CHECK (ip != ''),
+    nome VARCHAR(32) CHECK (nome != ''),
+    cognome VARCHAR(32) CHECK (cognome != ''),
+    ditta VARCHAR(64) CHECK (ditta != ''),
+    telefono VARCHAR(32) CHECK (telefono != ''),
+    ndoc VARCHAR(32) NOT NULL CHECK (ndoc != ''),
+    tdoc tdoc DEFAULT 'CARTA IDENTITA',
+    FOREIGN KEY (postazione) REFERENCES postazioni (id),
     CONSTRAINT data_in_is_bigger_than_data_out CHECK (data_out IS NULL OR data_out > data_in)
 );
 
 CREATE TABLE IF NOT EXISTS postazioni_user(
     user_id SERIAL,
-    cliente cliente,
-    postazione VARCHAR(64),
+    postazione SERIAL,
     FOREIGN KEY (user_id) REFERENCES users (id),
-    FOREIGN KEY (cliente, postazione) REFERENCES postazioni (cliente, name),
-    PRIMARY KEY (user_id, cliente, postazione)
+    FOREIGN KEY (postazione) REFERENCES postazioni (id),
+    PRIMARY KEY (user_id, postazione)
+);
+
+CREATE TABLE IF NOT EXISTS protocolli(
+    id SERIAL PRIMARY KEY,
+    date TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP),
+    descrizione TEXT CHECK (descrizione != '')
+);
+
+CREATE TABLE IF NOT EXISTS documenti(
+    filename VARCHAR(256),
+    descrizione TEXT,
+    prot_id SERIAL,
+    FOREIGN KEY (prot_id) REFERENCES protocolli (id),
+    PRIMARY KEY (filename, prot_id)
+);
+
+CREATE TABLE IF NOT EXISTS prot_visibile_da(
+    prot_id SERIAL,
+    user_id SERIAL,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (prot_id) REFERENCES protocolli (id),
+    PRIMARY KEY (prot_id, user_id)
 );
 
 /*######################################################################################################################################################*/
 
--- PERMESSI
--- device       1
--- canLogout    2
--- excel        4
--- provvisori   8
+INSERT INTO clienti (name) VALUES
+    ('Corte d''Appello'),
+    ('Montedomini');
 
--- PAGES
--- badge        1
--- chiavi       2
--- veicoli      4
--- archivio     8
--- protocollo   16
--- anagrafico   32
 
-/*######################################################################################################################################################*/
+INSERT INTO persone (nome, cognome, ditta, telefono, ndoc, tdoc, cliente) VALUES 
+    ('Marco', 'Pierattini', 'GanzoSoft', '055-420-69', 'AU0069420', 'CARTA IDENTITA', 'Corte d''Appello'),
+    ('Luca', 'Cecchi', 'GTAExpertIndustries', DEFAULT, 'AU0042069', 'PATENTE', 'Corte d''Appello'),
+    ('Giorgio', 'Paolo Coda', DEFAULT, '055-420-420', 'AU006969', 'CARTA IDENTITA', 'Montedomini'),
+    (DEFAULT, DEFAULT, DEFAULT, DEFAULT, 'AU00420420', 'TESSERA STUDENTE', 'Corte d''Appello');
 
-INSERT INTO persone (nome, cognome, ditta, telefono, ndoc, tdoc, documento) VALUES 
-    ('Marco', 'Pierattini', 'GanzoSoft', '055-420-69', 'AU0069420', 'carta identita', 'marco.jpeg'),
-    ('Luca', 'Cecchi', 'GTAExpertIndustries', DEFAULT, 'AU0042069', 'patente', 'luca.png'),
-    ('Giorgio', 'Paolo Coda', DEFAULT, '055-420-420', 'AU006969', 'carta identita', 'giorgio_coda.png'),
-    (DEFAULT, DEFAULT, DEFAULT, DEFAULT, 'AU00420420', 'tessera studente', 'doc-AU00420420.jpeg');
-
-INSERT INTO badges (codice, descrizione, stato, assegnazione, cliente, pfp, scadenza, privacy, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
-    ('0123456789', 'marco :-.)', 'valido', 'utente', 'Corte d''Appello', 'pfp-0123456789.jpeg', '2025-03-15', 'privacy-0123456789.pdf', 'Marco', 'Pierattini', 'GanzoSoft', '055-420-69', 'AU0069420', 'carta identita'),
-    ('0123456790', DEFAULT, 'valido', 'portineria', 'Corte d''Appello', DEFAULT, '2024-10-12', DEFAULT, 'Luca', 'Cecchi', 'GTAExpertIndustries', '055-69-420', 'AU0042069', 'patente'),
-    ('0123456791', DEFAULT, 'scaduto', 'corriere', 'Corte d''Appello', DEFAULT, '2024-01-01', 'panza.pdf', 'Giovanni', 'Panza', DEFAULT, DEFAULT, '1020301', 'tessera studente'),
-    ('0123456792', DEFAULT, 'valido', 'portineria', 'Montedomini', '0123456791.jpeg', '2025-07-09', '0123456791.pdf', DEFAULT, DEFAULT, 'GanzoSoft', DEFAULT, 'AU006969', 'carta identita');
+INSERT INTO badges (codice, descrizione, stato, assegnazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
+    ('028212345', 'marco :-.)', 'VALIDO', 'utente', 'Corte d''Appello', '2025-03-15', 'Marco', 'Pierattini', 'GanzoSoft', '055-420-69', 'AU0069420', 'CARTA IDENTITA'),
+    ('028212346', DEFAULT, 'VALIDO', 'portineria', 'Corte d''Appello', '2024-10-12', 'Luca', 'Cecchi', 'GTAExpertIndustries', '055-69-420', 'AU0042069', 'PATENTE'),
+    ('028212347', DEFAULT, 'SCADUTO', 'corriere', 'Corte d''Appello', '2024-01-01', 'Giovanni', 'Panza', DEFAULT, DEFAULT, '1020301', 'TESSERA STUDENTE'),
+    ('091712345', DEFAULT, 'VALIDO', 'portineria', 'Montedomini', '2025-07-09', DEFAULT, DEFAULT, 'GanzoSoft', DEFAULT, 'AU006969', 'CARTA IDENTITA');
 
 INSERT INTO provvisori (codice, descrizione, stato, ubicazione, cliente) VALUES
-    ('1123456789', DEFAULT, DEFAULT, DEFAULT, 'Corte d''Appello'),
-    ('1123456790', DEFAULT, DEFAULT, DEFAULT, 'Corte d''Appello'),
-    ('1123456791', DEFAULT, DEFAULT, DEFAULT, 'Montedomini'),
-    ('1123456792', DEFAULT, DEFAULT, DEFAULT, 'Montedomini');
+    ('128212345', DEFAULT, DEFAULT, DEFAULT, 'Corte d''Appello'),
+    ('128212346', DEFAULT, DEFAULT, DEFAULT, 'Corte d''Appello'),
+    ('191712345', DEFAULT, DEFAULT, DEFAULT, 'Montedomini'),
+    ('191712346', DEFAULT, DEFAULT, DEFAULT, 'Montedomini');
 
-INSERT INTO chiavi (codice, descrizione, ubicazione, indirizzo, citta, edificio, piano, cliente) VALUES
-    ('2123456789', DEFAULT, DEFAULT, 'Via Calcinaia 69', 'Kekistan', 'capannone', '0', 'Corte d''Appello'),
-    ('2123456790', DEFAULT, DEFAULT, 'Piazza Shrek III 88', 'Scandicci', 'ufficio', 'B2', 'Montedomini');
+INSERT INTO chiavi (codice, descrizione, ubicazione, cliente, indirizzo, citta, edificio, piano) VALUES
+    ('228212345', DEFAULT, DEFAULT, 'Corte d''Appello', 'Via Calcinaia 69', 'Kekistan', 'capannone', '0'),
+    ('291712345', DEFAULT, DEFAULT, 'Montedomini', 'Piazza Shrek III 88', 'Scandicci', 'ufficio', 'B2');
 
-INSERT INTO veicoli (codice, descrizione, stato, assegnazione, cliente, targa1, targa2, targa3, targa4, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
-    ('3123456789', DEFAULT, DEFAULT, DEFAULT, 'Corte d''Appello', 'XYZ-GTA5', '88LUKE88', DEFAULT , DEFAULT, 'Gianluca', 'Causio', DEFAULT, DEFAULT, 'AU420420', 'patente');
+INSERT INTO veicoli (codice, descrizione, stato, cliente, tveicolo, targa1, targa2, targa3, targa4, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
+    ('328212345', DEFAULT, DEFAULT, 'Corte d''Appello', DEFAULT, 'XYZ-GTA5', '88LUKE88', DEFAULT , DEFAULT, 'Gianluca', 'Causio', DEFAULT, DEFAULT, 'AU420420', 'PATENTE');
 
 INSERT INTO users (name, password, permessi, pages) VALUES
     ('admin', '$2a$10$cLLMrZEMQCU44vy7Sqsb/uQJDo3vCXV/kUR5Zgm7CvaOQQw08Q6Yu', admin_flags(), admin_flags()),
@@ -242,56 +263,201 @@ INSERT INTO postazioni (cliente, name) VALUES
     ('Corte d''Appello', 'Uffici'),
     ('Montedomini', 'Desk');
 
-INSERT INTO postazioni_user (user_id, cliente, postazione) VALUES
-    (5, 'Montedomini', 'Desk'),
-    (2, 'Corte d''Appello', 'Sala-controllo'),
-    (2, 'Corte d''Appello', 'Tornelli-S.Donato'),
-    (3, 'Corte d''Appello', 'Parcheggio-Peretola'),
-    (4, 'Corte d''Appello', 'Tornelli-S.Donato');
+INSERT INTO postazioni_user (user_id, postazione) VALUES
+    (5, 11),
+    (2, 1),
+    (2, 2),
+    (3, 5),
+    (4, 2);
 
-INSERT INTO archivio_badge (badge, cliente, postazione, data_in, data_out, ip) VALUES
-    ('0123456789', 'Corte d''Appello', 'Sala-controllo', '2023-12-19 8:04:55', '2023-12-19 16:15:03', '192.168.1.169'),
-    ('0123456789', 'Corte d''Appello', 'Parcheggio-Peretola', '2023-12-20 21:29:40', '2023-12-21 5:30:10', '192.168.1.170'),
-    ('0123456789', 'Corte d''Appello', 'Sala-controllo', '2023-12-22 7:58:30', '2023-12-22 16:14:58', '192.168.1.169'),
-    ('0123456792', 'Montedomini', 'Desk', '2023-12-21 9:01:20', '2023-12-21 17:32:45', '85.67.108.11'),
-    ('0123456791', 'Corte d''Appello', 'Sala-controllo', '2023-12-20 8:32:35', '2023-12-20 17:05:15', '192.168.1.169'),
-    ('0123456789', 'Corte d''Appello', 'Parcheggio-Peretola', '2024-01-04 8:00:00', DEFAULT, '192.168.1.170'),
-    ('0123456790', 'Corte d''Appello', 'Parcheggio-Peretola', '2024-01-04 8:30:00', DEFAULT, '192.168.1.170'),
-    ('0123456792', 'Montedomini', 'Desk', '2024-01-04 8:00:00', DEFAULT, '85.67.108.11');
+INSERT INTO archivio_badge (badge, postazione, data_in, data_out, ip) VALUES
+    ('028212345', 1, '2023-12-19 8:04:55', '2023-12-19 16:15:03', '192.168.1.169'),
+    ('028212345', 3, '2023-12-20 21:29:40', '2023-12-21 5:30:10', '192.168.1.170'),
+    ('028212345', 1, '2023-12-22 7:58:30', '2023-12-22 16:14:58', '192.168.1.169'),
+    ('091712345', 11, '2023-12-21 9:01:20', '2023-12-21 17:32:45', '85.67.108.11'),
+    ('028212347', 1, '2023-12-20 8:32:35', '2023-12-20 17:05:15', '192.168.1.169'),
+    ('028212345', 3, '2024-01-04 8:00:00', DEFAULT, '192.168.1.170'),
+    ('028212346', 3, '2024-01-04 8:30:00', DEFAULT, '192.168.1.170'),
+    ('091712345', 11, '2024-01-04 8:00:00', DEFAULT, '85.67.108.11');
 
-INSERT INTO archivio_provvisori (badge, cliente, postazione, data_in, data_out, ip, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
-    ('1123456789', 'Corte d''Appello', 'Parcheggio-Peretola', '2023-12-20 21:28:50', '2023-12-21 23:16:15', '192.168.1.170', 'Luke', 'Smith', DEFAULT, DEFAULT, 'AU8842088', 'carta identita'),
-    (DEFAULT, 'Corte d''Appello', 'Sala-controllo', '2023-12-20 20:28:50', '2023-12-21 21:16:15', '192.168.1.169', DEFAULT, DEFAULT, DEFAULT, DEFAULT, '8842088', 'tessera studente'),
-    ('1123456789', 'Montedomini', 'Desk', '2024-01-04 10:30:00', DEFAULT, '192.168.1.170', 'Lyon', 'Gamer', DEFAULT, DEFAULT, 'AU8842069', 'patente'),
-    (DEFAULT, 'Corte d''Appello', 'Sala-controllo', '2024-01-04 11:00:00', DEFAULT, '85.67.108.11', DEFAULT, DEFAULT, DEFAULT, DEFAULT, '8842069', 'tessera studente');
+INSERT INTO archivio_provvisori (badge, postazione, data_in, data_out, ip, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
+    ('128212345', 3, '2023-12-20 21:28:50', '2023-12-21 23:16:15', '192.168.1.170', 'Luke', 'Smith', DEFAULT, DEFAULT, 'AU8842088', 'CARTA IDENTITA'),
+    (DEFAULT, 1, '2023-12-20 20:28:50', '2023-12-21 21:16:15', '192.168.1.169', DEFAULT, DEFAULT, DEFAULT, DEFAULT, '8842088', 'TESSERA STUDENTE'),
+    ('191712345', 11, '2024-01-04 10:30:00', DEFAULT, '192.168.1.170', 'Lyon', 'Gamer', DEFAULT, DEFAULT, 'AU8842069', 'PATENTE'),
+    (DEFAULT, 1, '2024-01-04 11:00:00', DEFAULT, '85.67.108.11', DEFAULT, DEFAULT, DEFAULT, DEFAULT, '8842069', 'TESSERA STUDENTE');
 
-INSERT INTO archivio_chiavi (badge, chiave, cliente, postazione, data_prestito, data_reso, ip) VALUES
-    ('0123456789', '2123456789', 'Corte d''Appello', 'Sala-controllo', '2023-12-21 10:25:10', '2023-12-21 11:30:20', '192.168.1.169'),
-    ('0123456789', '2123456790', 'Corte d''Appello', 'Sala-controllo', '2023-12-21 10:25:10', '2023-12-21 11:45:05', '192.168.1.169'),
-    ('0123456789', '2123456790', 'Corte d''Appello', 'Sala-controllo', '2023-12-22 18:07:15', '2023-12-22 20:05:20', '192.168.1.169'),
-    ('0123456789', '2123456789', 'Corte d''Appello', 'Parcheggio-Peretola', '2023-01-04 9:30:00', DEFAULT, '192.168.1.170');
+INSERT INTO archivio_chiavi (badge, chiave, postazione, data_in, data_out, ip) VALUES
+    ('028212345', '228212345', 1, '2023-12-21 10:25:10', '2023-12-21 11:30:20', '192.168.1.169'),
+    ('028212345', '228212345', 1, '2023-12-21 10:25:10', '2023-12-21 11:45:05', '192.168.1.169'),
+    ('028212345', '228212345', 1, '2023-12-22 18:07:15', '2023-12-22 20:05:20', '192.168.1.169'),
+    ('028212345', '228212345', 3, '2023-01-04 9:30:00', DEFAULT, '192.168.1.170');
 
-INSERT INTO archivio_veicoli (badge, cliente, postazione, data_in, data_out, ip) VALUES
-    ('3123456789', 'Corte d''Appello', 'Parcheggio-Peretola', '2023-12-21 7:46:12', '2023-12-21 13:03:10', '192.168.1.170');
+INSERT INTO archivio_veicoli (badge, postazione, data_in, data_out, ip) VALUES
+    ('328212345', 3, '2023-12-21 7:46:12', '2023-12-21 13:03:10', '192.168.1.170');
+
+INSERT INTO protocolli (date, descrizione) VALUES
+    (DEFAULT, 'prot1'),
+    ('2023-12-21 13:45:00', 'prot2'),
+    (DEFAULT, DEFAULT);
+
+INSERT INTO documenti (filename, descrizione, prot_id) VALUES
+    ('fattura.pdf', 'fattura per Marco Pierattini', 1),
+    ('mail.pdf', 'mail Luca Cecchi', 1),
+    ('bilanci.xlsn', DEFAULT, 1),
+    ('bilanci.xlsn', 'bilanci scorso semestre', 3),
+    ('script.bat', 'lancio web app', 2),
+    ('documento.jpeg', 'patente Aldo Fedonni', 2);
+
+INSERT INTO prot_visibile_da (prot_id, user_id) VALUES
+    (1, 3),
+    (1, 4),
+    (1, 5),
+    (2, 3),
+    (3, 3),
+    (3, 5);
 
 /*######################################################################################################################################################*/
 
-(SELECT a.badge, a.cliente, b.assegnazione, b.nome, b.cognome, b.ditta, b.ndoc, b.tdoc, a.data_in FROM archivio_badge AS a
-JOIN badges AS b ON a.badge = b.codice
-WHERE a.data_out IS NULL) 
-UNION
-(SELECT badge, cliente, 'ospite' as assegnazione, nome, cognome, ditta, ndoc, tdoc, data_in FROM archivio_provvisori
-WHERE data_out IS NULL);
+CREATE VIEW all_badges AS
+    (SELECT codice, 'PROVVISORIO' AS tipo, descrizione, stato, 'ospite' AS assegnazione, ubicazione, cliente, NULL AS scadenza, NULL AS nome, NULL AS cognome, NULL AS ditta, NULL AS telefono, NULL AS ndoc, NULL AS tdoc, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
+    FROM provvisori)
+    UNION
+    (SELECT codice, 'NOMINATIVO' AS tipo, descrizione, stato, assegnazione, NULL AS ubicazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
+    FROM badges)
+    UNION
+    (SELECT codice, 'CHIAVE' AS tipo, descrizione, 'VALIDO' AS stato, NULL AS assegnazione, ubicazione, cliente, NULL AS scadenza, NULL AS nome, NULL AS cognome, NULL AS ditta, NULL AS telefono, NULL AS ndoc, NULL AS tdoc, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, indirizzo, citta, edificio, piano
+    FROM chiavi)
+    UNION
+    (SELECT codice, 'VEICOLO' AS tipo, descrizione, stato, NULL AS assegnazione, NULL AS ubicazione, cliente, NULL AS scadenza, nome, cognome, ditta, telefono, ndoc, tdoc, tveicolo, targa1, targa2, targa3, targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
+    FROM veicoli)
+    UNION
+    (SELECT NULL AS codice, 'PERSONA' AS tipo, NULL AS descrizione, 'VALIDO' AS stato, NULL AS assegnazione, NULL AS ubicazione, cliente, NULL AS scadenza, nome, cognome, ditta, telefono, ndoc, tdoc, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
+    FROM persone);
 
-(SELECT * FROM persone)
-UNION
-(SELECT nome, cognome, ditta, telefono, ndoc, tdoc, NULL as documento FROM badges)
-UNION
-(SELECT nome, cognome, ditta, telefono, ndoc, tdoc, NULL as documento FROM veicoli);
+CREATE VIEW full_archivio AS
+    SELECT * FROM
+    ((SELECT a.badge, NULL AS chiave, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
+    FROM archivio_badge AS a
+    JOIN badges AS b ON a.badge = b.codice
+    JOIN postazioni AS p ON a.postazione = p.id)
+    UNION
+    (SELECT a.badge, NULL AS chiave, 'PROVVISORIO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, a.nome, a.cognome, a.ditta, a.telefono, a.ndoc, a.tdoc, 'ospite' AS assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano 
+    FROM archivio_provvisori AS a
+    JOIN postazioni AS p ON a.postazione = p.id)
+    UNION
+    (SELECT a.badge, NULL AS chiave, 'VEICOLO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, v.nome, v.cognome, v.ditta, v.telefono, v.ndoc, v.tdoc, NULL::assegnazione as assegnazione, v.tveicolo, v.targa1, v.targa2, v.targa3, v.targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano 
+    FROM archivio_veicoli AS a
+    JOIN veicoli AS v ON a.badge = v.codice
+    JOIN postazioni AS p ON a.postazione = p.id)
+    UNION
+    (SELECT a.badge, a.chiave, 'CHIAVE' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, c.indirizzo, c.citta, c.edificio, c.piano 
+    FROM archivio_chiavi AS a
+    JOIN badges AS b ON a.chiave = b.codice
+    JOIN chiavi AS c ON a.badge = c.codice
+    JOIN postazioni AS p ON a.postazione = p.id))
+    WHERE data_in IS NOT NULL AND data_out IS NOT NULL;
 
-SELECT * FROM users
-WHERE check_bit(permessi, 4) IS TRUE;
+CREATE VIEW in_strutt AS
+    SELECT * FROM
+    ((SELECT a.badge AS codice, b.descrizione, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4
+    FROM archivio_badge AS a
+    JOIN badges AS b ON codice = b.codice
+    JOIN postazioni AS p ON a.postazione = p.id)
+    UNION
+    (SELECT a.badge AS codice, NULL AS descrizione, 'PROVVISORIO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, a.nome, a.cognome, a.ditta, a.telefono, a.ndoc, a.tdoc, 'ospite' AS assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4
+    FROM archivio_provvisori AS a
+    JOIN postazioni AS p ON a.postazione = p.id)
+    UNION
+    (SELECT a.badge AS codice, v.descrizione, 'VEICOLO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, v.nome, v.cognome, v.ditta, v.telefono, v.ndoc, v.tdoc, NULL::assegnazione AS assegnazione, v.tveicolo, v.targa1, v.targa2, v.targa3, v.targa4
+    FROM archivio_veicoli AS a
+    JOIN veicoli AS v ON codice = v.codice
+    JOIN postazioni AS p ON a.postazione = p.id))
+    WHERE data_in IS NOT NULL AND data_out IS NULL;
+
+CREATE VIEW in_prestito AS
+    SELECT a.badge, a.chiave, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.ip, b.descrizione AS descr_badge, b.stato, b.assegnazione, b.scadenza, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, c.descrizione AS descr_chiave, c.ubicazione, c.indirizzo, c.citta, c.edificio, c.piano
+    FROM archivio_chiavi AS a
+    JOIN badges AS b ON a.badge = b.codice
+    JOIN chiavi AS c ON a.badge = c.codice
+    JOIN postazioni AS p ON a.postazione = p.id
+    WHERE data_out IS NULL;
+
+CREATE VIEW enums AS
+    select n.nspname as enum_schema,  t.typname as enum_name,  e.enumlabel as enum_value
+    from pg_type t 
+    join pg_enum e on t.oid = e.enumtypid  
+    join pg_catalog.pg_namespace n ON n.oid = t.typnamespace;
+
+CREATE VIEW full_users AS 
+    SELECT u.*,
+    ARRAY(
+        SELECT DISTINCT p.cliente FROM postazioni AS p
+        LEFT JOIN postazioni_user AS pu ON p.id = pu.postazione
+        WHERE u.id = pu.user_id OR u.permessi = admin_flags()
+    ) AS clienti,
+    ARRAY(
+        SELECT DISTINCT p.id FROM postazioni AS p
+        LEFT JOIN postazioni_user AS pu ON p.id = pu.postazione
+        WHERE u.id = pu.user_id OR u.permessi = admin_flags()
+    ) AS postazioni
+    FROM users AS u;
+
+CREATE VIEW full_protocolli AS
+    SELECT p.id, p.date, p.descrizione AS prot_descrizione, d.filename, d.descrizione AS doc_descrizione,
+    ARRAY(
+        SELECT DISTINCT u.id FROM users AS u JOIN prot_visibile_da AS v ON u.id = v.user_id AND v.prot_id = p.id
+    ) AS visibile_da_id, 
+    ARRAY(
+        SELECT DISTINCT name FROM users AS u JOIN prot_visibile_da AS v ON u.id = v.user_id AND v.prot_id = p.id
+    ) AS visibile_da_name 
+    FROM protocolli AS p
+    JOIN documenti AS d ON p.id = d.prot_id;
 
 /*######################################################################################################################################################*/
 
-\c owen;
+-- (SELECT * FROM persone)
+-- UNION
+-- (SELECT nome, cognome, ditta, telefono, ndoc, tdoc FROM badges)
+-- UNION
+-- (SELECT nome, cognome, ditta, telefono, ndoc, tdoc FROM veicoli);
+
+-- SELECT * FROM users
+-- WHERE check_bit(permessi, 4) IS TRUE;
+
+-- SELECT * FROM all_badges
+-- WHERE cliente = 'Corte d''Appello' AND stato = 'VALIDO';
+
+-- SELECT * FROM full_archivio
+-- WHERE data_in > '2023-12-20' AND data_in < '2023-12-22';
+
+-- SELECT * FROM enums WHERE enum_name = 'cliente';
+
+SELECT * FROM full_users;
+
+SELECT * FROM full_protocolli;
+
+-- queryInStrutt
+SELECT codice, tipo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in
+FROM in_strutt
+WHERE tipo = 'NOMINATIVO' OR tipo = 'PROVVISORIO'
+ORDER BY data_in DESC;
+
+-- findInStrutt
+SELECT codice, tipo, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, telefono, ndoc, tdoc, data_in
+FROM in_strutt
+WHERE tipo = 'NOMINATIVO' OR tipo = 'PROVVISORIO' AND postazione_id = 1 OR postazione_id = 2
+ORDER BY data_in DESC;
+
+-- queryInPrestito
+SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, indirizzo, citta, edificio, piano, data_in
+FROM in_prestito
+ORDER BY data_in DESC;
+
+-- findInPrestito
+SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, telefono, ndoc, tdoc, indirizzo, citta, edificio, piano, data_in
+FROM in_prestito
+ORDER BY data_in DESC;
+
+/*######################################################################################################################################################*/
+
+\c postgres;

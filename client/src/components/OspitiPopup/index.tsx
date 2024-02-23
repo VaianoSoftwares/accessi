@@ -1,54 +1,54 @@
-import React from "react";
+import { useRef } from "react";
 import Popup from "reactjs-popup";
 import Cf from "codice-fiscale-js";
 import "./index.css";
-import { TEventInput, TDOCS } from "../../types";
+import { FormRef, TEventInput } from "../../types";
+import { Postazione, TDOCS } from "../../types/badges";
+import { InsertArchProvForm } from "../../types/forms";
+import toast from "react-hot-toast";
+import { InsertArchProvData } from "../../types/archivio";
 
 export default function OspitiPopup(props: {
   isShown: boolean;
   closePopup: () => void;
-  insertOsp: (data: FormData) => void;
-  isVeicolo: boolean;
+  insertOsp: (data: InsertArchProvData) => void;
+  currPostazione: Postazione | undefined;
 }) {
-  const barcodeOspRef = React.useRef<HTMLInputElement>(null);
-  const nomeOspRef = React.useRef<HTMLInputElement>(null);
-  const cognomeOspRef = React.useRef<HTMLInputElement>(null);
-  const telefonoOspRef = React.useRef<HTMLInputElement>(null);
-  const dittaOspRef = React.useRef<HTMLInputElement>(null);
-  const tdocOspRef = React.useRef<HTMLSelectElement>(null);
-  const ndocOspRef = React.useRef<HTMLInputElement>(null);
-  const targa1OspRef = React.useRef<HTMLInputElement>(null);
-  const targa2OspRef = React.useRef<HTMLInputElement>(null);
-  const targa3OspRef = React.useRef<HTMLInputElement>(null);
-  const targa4OspRef = React.useRef<HTMLInputElement>(null);
+  const formRef = useRef<FormRef<InsertArchProvForm>>({
+    codice: null,
+    nome: null,
+    cognome: null,
+    ditta: null,
+    telefono: null,
+    ndoc: null,
+    tdoc: null,
+  });
 
-  function createFormData() {
-    const formData = new FormData();
-    formData.append("barcode", barcodeOspRef.current!.value);
-    formData.append("descrizione", "PROVVISORIO");
-    formData.append("tipo", "PROVVISORIO");
-    formData.append("assegnazione", "OSPITE");
-    formData.append("stato", "VALIDO");
-    formData.append("nome", nomeOspRef.current!.value);
-    formData.append("cognome", cognomeOspRef.current!.value);
-    formData.append("telefono", telefonoOspRef.current!.value);
-    formData.append("ditta", dittaOspRef.current!.value);
-    formData.append("tdoc", tdocOspRef.current!.value);
-    formData.append("ndoc", ndocOspRef.current!.value);
-    targa1OspRef.current &&
-      formData.append("targa1", targa1OspRef.current.value);
-    targa2OspRef.current &&
-      formData.append("targa2", targa2OspRef.current.value);
-    targa3OspRef.current &&
-      formData.append("targa3", targa3OspRef.current.value);
-    targa4OspRef.current &&
-      formData.append("targa4", targa4OspRef.current.value);
-    return formData;
+  function formToObj() {
+    const obj: InsertArchProvForm = {};
+
+    Object.entries(formRef.current)
+      .filter(([_, el]) => el !== null)
+      .forEach(
+        ([key, el]) => (obj[key as keyof InsertArchProvForm] = el?.value)
+      );
+
+    return {
+      ...obj,
+      postazione: props.currPostazione!.id,
+      codice: "",
+      ndoc: "",
+      tdoc: "",
+    } satisfies InsertArchProvData;
   }
 
   function insertOspBtnEvent() {
-    props.insertOsp(createFormData());
-    props.closePopup();
+    if (props.currPostazione) {
+      props.insertOsp(formToObj());
+      props.closePopup();
+    } else {
+      toast.error("Nessuna postazione selezionata");
+    }
   }
 
   function onChangeNDocOsp(e: TEventInput) {
@@ -57,9 +57,9 @@ export default function OspitiPopup(props: {
 
     const { name, surname } = Cf.computeInverse(value);
 
-    nomeOspRef.current!.value = name;
-    cognomeOspRef.current!.value = surname;
-    tdocOspRef.current!.value = "CARTA IDENTITA";
+    formRef.current.nome && (formRef.current.nome.value = name);
+    formRef.current.cognome && (formRef.current.cognome.value = surname);
+    formRef.current.tdoc && (formRef.current.tdoc.value = "CARTA IDENTITA");
   }
 
   return (
@@ -81,12 +81,12 @@ export default function OspitiPopup(props: {
                 <input
                   type="text"
                   className="form-control form-control-sm"
-                  id="osp-barcode"
-                  placeholder="barcode"
-                  ref={barcodeOspRef}
-                  defaultValue=""
+                  id="osp-codice"
+                  placeholder="codice"
+                  ref={(el) => (formRef.current.codice = el)}
+                  required
                 />
-                <label htmlFor="osp-barcode">barcode</label>
+                <label htmlFor="osp-codice">codice</label>
               </div>
             </div>
             <div className="row">
@@ -96,8 +96,7 @@ export default function OspitiPopup(props: {
                   className="form-control form-control-sm"
                   id="osp-nome"
                   placeholder="nome"
-                  ref={nomeOspRef}
-                  defaultValue=""
+                  ref={(el) => (formRef.current.nome = el)}
                 />
                 <label htmlFor="osp-nome">nome</label>
               </div>
@@ -107,8 +106,7 @@ export default function OspitiPopup(props: {
                   className="form-control form-control-sm"
                   id="osp-cognome"
                   placeholder="cognome"
-                  ref={cognomeOspRef}
-                  defaultValue=""
+                  ref={(el) => (formRef.current.cognome = el)}
                 />
                 <label htmlFor="osp-cognome">cognome</label>
               </div>
@@ -118,8 +116,7 @@ export default function OspitiPopup(props: {
                   className="form-control form-control-sm"
                   id="osp-ditta"
                   placeholder="ditta"
-                  ref={dittaOspRef}
-                  defaultValue=""
+                  ref={(el) => (formRef.current.ditta = el)}
                 />
                 <label htmlFor="osp-ditta">ditta</label>
               </div>
@@ -131,8 +128,7 @@ export default function OspitiPopup(props: {
                   className="form-control form-control-sm"
                   id="osp-telefono"
                   placeholder="telefono"
-                  ref={telefonoOspRef}
-                  defaultValue=""
+                  ref={(el) => (formRef.current.telefono = el)}
                 />
                 <label htmlFor="osp-telefono">telefono</label>
               </div>
@@ -142,9 +138,9 @@ export default function OspitiPopup(props: {
                   className="form-control form-control-sm"
                   id="osp-ndoc"
                   placeholder="num documento"
-                  ref={ndocOspRef}
-                  defaultValue=""
+                  ref={(el) => (formRef.current.ndoc = el)}
                   onChange={onChangeNDocOsp}
+                  required
                 />
                 <label htmlFor="osp-ndoc">num documento</label>
               </div>
@@ -153,11 +149,12 @@ export default function OspitiPopup(props: {
                   className="form-select form-select-sm"
                   id="osp-tdoc"
                   placeholder="tipo documento"
-                  ref={tdocOspRef}
+                  ref={(el) => (formRef.current.tdoc = el)}
                   defaultValue={"CARTA IDENTITA"}
+                  required
                 >
-                  {TDOCS.map((tipoDoc, index) => (
-                    <option value={tipoDoc} key={index}>
+                  {TDOCS.map((tipoDoc) => (
+                    <option value={tipoDoc} key={tipoDoc}>
                       {tipoDoc}
                     </option>
                   ))}
@@ -165,63 +162,11 @@ export default function OspitiPopup(props: {
                 <label htmlFor="osp-tdoc">tipo documento</label>
               </div>
             </div>
-            {props.isVeicolo === true && (
-              <div>
-                <div className="row">
-                  <div className="form-floating col-sm-4">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      id="osp-targa1"
-                      placeholder="targa1"
-                      ref={targa1OspRef}
-                      defaultValue=""
-                    />
-                    <label htmlFor="osp-targa1">targa1</label>
-                  </div>
-                  <div className="form-floating col-sm-4">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      id="osp-targa2"
-                      placeholder="targa2"
-                      ref={targa2OspRef}
-                      defaultValue=""
-                    />
-                    <label htmlFor="osp-targa2">targa2</label>
-                  </div>
-                </div>
-                <div className="row">
-                  <div className="form-floating col-sm-4">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      id="osp-targa3"
-                      placeholder="targa3"
-                      ref={targa3OspRef}
-                      defaultValue=""
-                    />
-                    <label htmlFor="osp-targa3">targa3</label>
-                  </div>
-                  <div className="form-floating col-sm-4">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      id="osp-targa4"
-                      placeholder="targa4"
-                      ref={targa4OspRef}
-                      defaultValue=""
-                    />
-                    <label htmlFor="osp-targa4">targa4</label>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
         <div className="actions">
           <button className="btn btn-primary" onClick={insertOspBtnEvent}>
-            Crea Badge Ospite
+            Invio
           </button>
         </div>
       </div>

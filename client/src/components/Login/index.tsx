@@ -3,7 +3,7 @@ import "./index.css";
 import { useNavigate } from "react-router-dom";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { useRef, useEffect } from "react";
-import { TLoggedUser, TUser } from "../../types";
+import { TLoggedUser } from "../../types/users";
 
 export default function Login(props: {
   login: (user: TLoggedUser) => Promise<void>;
@@ -17,12 +17,15 @@ export default function Login(props: {
     function retriveUser() {
       UserDataService.deviceLogin()
         .then((response) => {
-          const dataResp = response.data.data as TUser;
-          console.log(dataResp.username, "logged In.");
+          if (response.data.success === false) {
+            throw response.data.error;
+          }
+          const dataResp = response.data.result;
+          console.log(dataResp.name, "logged In.");
 
           props.login({
             ...dataResp,
-            token: response.headers["x-access-token"]! as string,
+            token: String(response.headers["x-access-token"]),
           });
         })
         .catch((err) => {
@@ -43,7 +46,7 @@ export default function Login(props: {
 
   function login() {
     UserDataService.login({
-      username: usernameRef.current!.value,
+      name: usernameRef.current!.value,
       password: passwordRef.current!.value,
     })
       .then((response) => {
@@ -52,12 +55,12 @@ export default function Login(props: {
           return;
         }
 
-        const dataResp = response.data.data as TUser;
-        console.log(dataResp.username, "logged In.");
+        const dataResp = response.data.result;
+        console.log(dataResp.name, "logged In.");
 
         props.login({
           ...dataResp,
-          token: response.headers["x-access-token"]! as string,
+          token: String(response.headers["x-access-token"]),
         });
 
         navigate("/home");

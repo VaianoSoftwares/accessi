@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
-import BadgeDataService from "../../services/badge";
+import ClientiDataService from "../../services/clienti";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 
 export default function Clienti() {
@@ -9,16 +9,18 @@ export default function Clienti() {
   const queryClienti = useQuery({
     queryKey: ["clienti"],
     queryFn: () =>
-      BadgeDataService.getClienti().then((response) => {
+      ClientiDataService.getAll().then((response) => {
         console.log("queryClienti | response:", response);
-        const result = response.data.data as string[];
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        const result = response.data.result;
         return result;
       }),
   });
 
   const addCliente = useMutation({
-    mutationFn: (data: { cliente: string }) =>
-      BadgeDataService.insertCliente(data),
+    mutationFn: (data: { cliente: string }) => ClientiDataService.insert(data),
     onSuccess: async (response) => {
       console.log("addCliente | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["clienti"] });
@@ -29,8 +31,7 @@ export default function Clienti() {
   });
 
   const deleteCliente = useMutation({
-    mutationFn: (data: { cliente: string }) =>
-      BadgeDataService.deleteCliente(data),
+    mutationFn: (cliente: string) => ClientiDataService.delete(cliente),
     onSuccess: async (response) => {
       console.log("deleteCliente | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["clienti"] });
@@ -93,9 +94,7 @@ export default function Clienti() {
                       );
                       if (!confirmed) return;
 
-                      deleteCliente.mutate({
-                        cliente: e.currentTarget.value,
-                      });
+                      deleteCliente.mutate(e.currentTarget.value);
                     }}
                   >
                     <span aria-hidden="true">&times;</span>

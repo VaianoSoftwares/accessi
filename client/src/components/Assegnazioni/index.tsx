@@ -4,10 +4,11 @@ import "./index.css";
 
 import BadgeDataService from "../../services/badge";
 
-import { TAssegnazione, TBadgeTipo, TIPI_BADGE } from "../../types";
+import { TAssegnazione } from "../../types";
 
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { BadgeTipo, TIPI_BADGE } from "../../types/badges";
 
 export default function Assegnazioni() {
   const queryClient = useQueryClient();
@@ -15,9 +16,12 @@ export default function Assegnazioni() {
   const queryAssegnazioni = useQuery({
     queryKey: ["assegnazioni"],
     queryFn: () =>
-      BadgeDataService.getAssegnazioni().then((response) => {
+      BadgeDataService._getAssegnazioni().then((response) => {
         console.log("queryAssegnazioni | response:", response);
-        const result = response.data.data as TAssegnazione[];
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        const result = response.data.result;
         return result;
       }),
   });
@@ -43,7 +47,7 @@ export default function Assegnazioni() {
     onError: async (err) => axiosErrHandl(err, "deleteAssegnazione"),
   });
 
-  const [currTBadge, setCurrTBadge] = React.useState<TBadgeTipo>("BADGE");
+  const [currTBadge, setCurrTBadge] = React.useState<BadgeTipo>("NOMINATIVO");
   const nameRef = React.useRef<HTMLInputElement>(null);
 
   return (
@@ -55,7 +59,7 @@ export default function Assegnazioni() {
             className="form-select form-select-sm"
             id="tipo-badge"
             placeholder="tipo badge"
-            onChange={(e) => setCurrTBadge(e.target.value as TBadgeTipo)}
+            onChange={(e) => setCurrTBadge(e.target.value as BadgeTipo)}
             defaultValue="BADGE"
           >
             {TIPI_BADGE.map((tipo, index) => (

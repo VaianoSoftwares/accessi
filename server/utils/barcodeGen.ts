@@ -1,3 +1,5 @@
+import { BadgePrefix } from "../_types/badges.js";
+
 function murmurhash3_32_gc(key: string, seed = 0) {
   let remainder, bytes, h1, h1b, c1, c2, k1, i;
 
@@ -77,12 +79,21 @@ function recSortKeys(o: any): any {
         );
 }
 
-const HASH_LENGTH = 10;
+export default function createBarcode(
+  o: any,
+  tipoBadge: BadgePrefix,
+  cliente: string
+) {
+  const sortedObj = recSortKeys(o);
 
-export default function hash(o: any) {
-  const sorted = recSortKeys(o);
-  const hashed = Math.abs(murmurhash3_32_gc(JSON.stringify(sorted))).toString();
-  return hashed.length >= HASH_LENGTH
-    ? hashed.substring(0, HASH_LENGTH)
-    : ["0".repeat(HASH_LENGTH - hashed.length), hashed].join("");
+  const prefix = String(tipoBadge);
+  const middle = String(Math.abs(murmurhash3_32_gc(cliente)) % 1000).padStart(
+    3,
+    "0"
+  );
+  const suffix = String(
+    Math.abs(murmurhash3_32_gc(JSON.stringify(sortedObj))) % 100_000
+  ).padStart(5, "0");
+
+  return [prefix, middle, suffix].join("");
 }

@@ -1,31 +1,29 @@
-export type WithId<T> = T & { _id: string };
+import { BadgeTipo, BadgeStato, TDoc } from "./badges";
+import { BaseError } from "./errors";
 
-export type TUser = {
-  _id: string;
-  username: string;
-  admin: boolean;
-  postazioni: string[] | null;
-  clienti: string[] | null;
-  pages: string[] | null;
-  device: boolean;
-  canLogout: boolean;
-  excel: boolean;
-  provvisori: boolean;
-  password: string;
-};
+export type Ok<T> = { success: true; result: T };
+export type Err<T> = { success: false; error: T };
+export type Result<T, E extends BaseError = BaseError> = Ok<T> | Err<E>;
 
-export type TLoggedUser = TUser & {
-  token: string;
-};
+export const Ok = <T>(result: T): Ok<T> => ({ success: true, result });
+export const Err = <T>(error: T): Err<T> => ({ success: false, error });
 
-export type TPostazione = {
-  _id: string;
-  cliente: string;
-  name: string;
-};
+export type GenericForm = Record<PropertyKey, any>;
+export type FormRef<
+  K,
+  E extends HTMLElement = HTMLInputElement | HTMLSelectElement
+> = Record<keyof K, E | null>;
+
+export type WithId<T> = T & { id: string };
+
+export const MAX_UINT32 = 4294967295;
+
+export type TEventInput = React.ChangeEvent<HTMLInputElement>;
+export type TEventSelect = React.ChangeEvent<HTMLSelectElement>;
+export type TEvent = TEventInput | TEventSelect;
 
 export type TAssegnazione = {
-  badge: TBadgeTipo;
+  badge: BadgeTipo;
   name: string;
 };
 
@@ -34,55 +32,17 @@ export type TPermesso = {
   date: string;
 };
 
-export type TimbraDoc = {
-  barcode: string;
-  postazioneId: string;
-};
-
-export type TEventInput = React.ChangeEvent<HTMLInputElement>;
-export type TEventSelect = React.ChangeEvent<HTMLSelectElement>;
-export type TEvent = TEventInput | TEventSelect;
-
-export type TEnums = {
-  assegnazione: TAssegnazione[];
-  cliente: string[];
-  postazione: TPostazione[];
-};
-
 export type TAlert = {
   readonly success: boolean;
   readonly msg: string;
 };
 
-export type TBadgeTipo = "PROVVISORIO" | "BADGE" | "CHIAVE" | "VEICOLO";
-export type TBadgeStato = "VALIDO" | "SCADUTO" | "REVOCATO" | "RICONSEGNATO";
-export type TTDoc = "CARTA IDENTITA" | "PATENTE" | "TESSERA STUDENTE" | "";
-
-export const TIPI_BADGE: ReadonlyArray<TBadgeTipo> = [
-  "BADGE",
-  "PROVVISORIO",
-  "CHIAVE",
-  "VEICOLO",
-];
-export const STATI_BADGE: ReadonlyArray<TBadgeStato> = [
-  "VALIDO",
-  "SCADUTO",
-  "REVOCATO",
-  "RICONSEGNATO",
-];
-export const TDOCS: ReadonlyArray<TTDoc> = [
-  "CARTA IDENTITA",
-  "PATENTE",
-  "TESSERA STUDENTE",
-  "",
-];
-
 export type TPartialBadge = {
   barcode: string;
   descrizione: string;
-  tipo: TBadgeTipo;
+  tipo: BadgeTipo;
   assegnazione: string;
-  stato: TBadgeStato;
+  stato: BadgeStato;
   ubicazione: string;
   cliente: string;
 };
@@ -92,7 +52,7 @@ export type TPartialNom = {
   cognome: string;
   telefono: string;
   ditta: string;
-  tdoc: TTDoc;
+  tdoc: TDoc;
   ndoc: string;
   scadenza: string;
 };
@@ -110,7 +70,7 @@ export type TBadgeResp = TPartialBadge & TFullNom;
 
 export type TTableContent = {
   codice: string;
-  tipo: TBadgeTipo;
+  tipo: BadgeTipo;
   assegnaz: string;
   nome: string;
   cognome: string;
@@ -133,41 +93,8 @@ type TArchPartialContent = {
 export type TInStruttTableContent = TTableContent & TInStruttPartialContent;
 export type TArchTableContent = TInStruttTableContent & TArchPartialContent;
 
-export type GenericResponse = {
-  readonly success: boolean;
-  readonly msg: string;
-  readonly data: unknown;
-  readonly filter?: unknown[];
-};
-
-export type OkResponse = GenericResponse & {
-  readonly success: true;
-};
-
-export type ErrResponse = GenericResponse & {
-  readonly success: false;
-  readonly data?: null;
-};
-
-export type LoginFormState = {
-  username: string;
-  password: string;
-};
-
-export type RegisterFormState = {
-  username: string;
-  password: string;
-  postazioni: string[];
-  clienti: string[];
-  pages: string[];
-  device: boolean;
-  canLogout: boolean;
-  excel: boolean;
-  provvisori: boolean;
-};
-
 export type AssegnazFormState = {
-  tipoBadge: TBadgeTipo;
+  tipoBadge: BadgeTipo;
   assegnazione: string;
 };
 
@@ -215,11 +142,6 @@ export type TFindArchChiaviDoc = TPartialArchivioChiave & {
   dataFine: string;
 };
 
-export type TPrestitoDataReq = {
-  barcodes: string[];
-  postazioneId: string;
-};
-
 export type TPrestitoDataRes = {
   rese: string[];
   prestate: TInPrestito[];
@@ -238,8 +160,6 @@ export type OspFormState = TBadgeFormState & {
   assegnazione: "OSPITE";
   ubicazione: "";
 };
-
-export type GenericForm = Record<PropertyKey, unknown>;
 
 export type FindBadgeDoc = Omit<TBadgeFormState, "pfp" | "scadenza">;
 
@@ -263,14 +183,6 @@ export type TDocumento = TPartialDoc & {
 
 export type TDocFormState = Partial<TPartialDoc>;
 
-export type TInPrestitoDataReq = {
-  postazioniIds?: string[];
-};
-
-export type TInStruttDataReq = TInPrestitoDataReq & {
-  tipi?: TBadgeTipo[];
-};
-
 export type ProtocolloFile = {
   _id: string;
   filename: string;
@@ -285,198 +197,4 @@ export type ProtocolloFindReq = Partial<
   dataFine?: Date | string;
 };
 
-type TMonths =
-  | "Gennaio"
-  | "Febbraio"
-  | "Marzo"
-  | "Aprile"
-  | "Maggio"
-  | "Giugno"
-  | "Luglio"
-  | "Agosto"
-  | "Settembre"
-  | "Ottobre"
-  | "Novembre"
-  | "Dicembre";
-
-export const MONTHS: ReadonlyArray<TMonths> = [
-  "Gennaio",
-  "Febbraio",
-  "Marzo",
-  "Aprile",
-  "Maggio",
-  "Giugno",
-  "Luglio",
-  "Agosto",
-  "Settembre",
-  "Ottobre",
-  "Novembre",
-  "Dicembre",
-];
-
-export const N_CALENDAR_ROWS = 6;
-export const N_CALENDAR_COLS = 8;
-export const W100_POS = N_CALENDAR_COLS - 1;
-export const N_DATE_DIVS = N_CALENDAR_ROWS * N_CALENDAR_COLS - 1;
-
-export type TAddPostazioneData = Omit<TPostazione, "_id">;
-export type TDeletePostazioneData = Pick<TPostazione, "_id">;
 export type TGetPostazioniFilters = { _id?: string[]; names?: string[] };
-
-export type TPage =
-  | "badge"
-  | "chiavi"
-  | "veicoli"
-  | "archivio"
-  | "protocollo"
-  | "documenti";
-
-export const PAGES: ReadonlyArray<TPage> = [
-  "badge",
-  "chiavi",
-  "veicoli",
-  "archivio",
-  "protocollo",
-  "documenti",
-];
-
-export type TAdminPage =
-  | "register"
-  | "users"
-  | "assegnazioni"
-  | "postazioni"
-  | "clienti";
-
-export const ADMIN_PAGES: ReadonlyArray<TAdminPage> = [
-  "register",
-  "users",
-  "assegnazioni",
-  "postazioni",
-  "clienti",
-];
-
-export interface IPageInfo {
-  readonly pathname: string;
-  readonly name: string;
-  readonly title: string;
-  readonly description: string;
-  readonly imagePath?: string;
-}
-
-export const PAGES_INFO: ReadonlyMap<TPage, IPageInfo> = new Map([
-  [
-    "badge",
-    {
-      pathname: "/badge",
-      name: "Badge",
-      title: "Gestione Badge",
-      description: "Pagina di gestione badge",
-      imagePath: "/badge_icon_128.png",
-    },
-  ],
-  [
-    "chiavi",
-    {
-      pathname: "/chiavi",
-      name: "Chiavi",
-      title: "Gestione Chiavi",
-      description: "Pagina di gestione chiavi",
-      imagePath: "/key_icon_128.png",
-    },
-  ],
-  [
-    "veicoli",
-    {
-      pathname: "/veicoli",
-      name: "Veicoli",
-      title: "Gestione Veicoli",
-      description: "Pagina di gestione veicoli",
-      imagePath: "/car_icon_128.png",
-    },
-  ],
-  [
-    "archivio",
-    {
-      pathname: "/archivio",
-      name: "Archivio",
-      title: "Archivio",
-      description: "Monitoraggio archivio resoconti",
-      imagePath: "/archive_icon_128.png",
-    },
-  ],
-  [
-    "protocollo",
-    {
-      pathname: "/protocollo",
-      name: "Protocollo",
-      title: "Protocollo Elettronico",
-      description: "Pagina per condivisione documenti",
-      imagePath: "/document_icon_128.png",
-    },
-  ],
-  [
-    "documenti",
-    {
-      pathname: "/documenti",
-      name: "Documenti",
-      title: "Documenti",
-      description: "Gestione documenti di identità",
-      imagePath: "/id_icon_128.png",
-    },
-  ],
-]);
-
-export const ADMIN_PAGES_INFO: ReadonlyMap<TAdminPage, IPageInfo> = new Map([
-  [
-    "register",
-    {
-      pathname: "/admin/register",
-      name: "Registra",
-      title: "Registra Account",
-      description: "Registrazione nuovo account",
-      imagePath: "/user_icon_128.png",
-    },
-  ],
-  [
-    "users",
-    {
-      pathname: "/admin/users",
-      name: "Modifica Utenti",
-      title: "Modifica Utenti",
-      description: "Modifica account utenti",
-      imagePath: "/user_icon_128.png",
-    },
-  ],
-  [
-    "assegnazioni",
-    {
-      pathname: "/admin/assegnazioni",
-      name: "Assegnazioni",
-      title: "Modifica Assegnazioni",
-      description: "Gestione delle assegnazioni",
-      imagePath: "/user_icon_128.png",
-    },
-  ],
-  [
-    "postazioni",
-    {
-      pathname: "/admin/postazioni",
-      name: "Postazioni",
-      title: "Modifica Postazioni",
-      description: "Gestione delle postazioni",
-      imagePath: "/user_icon_128.png",
-    },
-  ],
-  [
-    "clienti",
-    {
-      pathname: "/admin/clienti",
-      name: "Clienti",
-      title: "Modifica Clienti",
-      description: "Gestione dei clienti",
-      imagePath: "/user_icon_128.png",
-    },
-  ],
-]);
-
-export type TGenericPage = TPage | TAdminPage;

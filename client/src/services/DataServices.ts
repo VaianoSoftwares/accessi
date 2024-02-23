@@ -4,9 +4,9 @@ import {
   GenericAbortSignal,
   RawAxiosRequestHeaders,
 } from "axios";
-import { GenericResponse, GenericForm } from "../types";
+import { GenericForm, Result } from "../types";
 
-type TAxiosResp = Promise<AxiosResponse<GenericResponse>>;
+type TAxiosResp<T = any> = Promise<AxiosResponse<Result<T>>>;
 
 type TQueryMethod = "GET" | "DELETE";
 type TFormDataMethod = "POST" | "PUT" | "PATCH";
@@ -53,14 +53,14 @@ export default abstract class DataServices {
       : "";
   }
 
-  protected async request({
+  protected async request<T = any>({
     url = "",
     token = false,
     files = false,
     method = "GET",
     data,
     signal = undefined,
-  }: TReqOptions): TAxiosResp {
+  }: TReqOptions): TAxiosResp<T> {
     const headers = DataServices.getHeaders(token, files);
 
     const completeUrl =

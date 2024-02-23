@@ -1,9 +1,15 @@
 import DataServices from "./DataServices";
 import { GenericAbortSignal } from "axios";
-import { RegisterFormState, LoginFormState, TPermesso, TUser } from "../types";
+import { TPermesso } from "../types";
+import {
+  InsertUserData,
+  LoginUserData,
+  TUser,
+  UpdateUserData,
+} from "../types/users";
 
 class UserDataService extends DataServices {
-  register(data: RegisterFormState, signal?: GenericAbortSignal) {
+  register(data: InsertUserData, signal?: GenericAbortSignal) {
     return super.request({
       method: "POST",
       url: "/register",
@@ -13,8 +19,8 @@ class UserDataService extends DataServices {
     });
   }
 
-  login(data: LoginFormState, signal?: GenericAbortSignal) {
-    return super.request({
+  login(data: LoginUserData, signal?: GenericAbortSignal) {
+    return super.request<TUser>({
       method: "POST",
       url: "/login",
       data,
@@ -23,7 +29,7 @@ class UserDataService extends DataServices {
   }
 
   deviceLogin(signal?: GenericAbortSignal) {
-    return super.request({
+    return super.request<TUser>({
       url: "/login/refresh",
       token: true,
       signal,
@@ -31,26 +37,26 @@ class UserDataService extends DataServices {
   }
 
   getAllUsers(signal?: GenericAbortSignal) {
-    return super.request({
+    return super.request<TUser[]>({
       token: true,
       signal,
     });
   }
 
-  getUser({ _id }: { _id: string }, signal?: GenericAbortSignal) {
-    return super.request({
-      url: `/user/${_id}`,
+  getUser({ id }: { id: string }, signal?: GenericAbortSignal) {
+    return super.request<TUser>({
+      url: `/user/${id}`,
       token: true,
       signal,
     });
   }
 
   updateUser(
-    { _id, user }: { _id: string; user: Partial<TUser> | FormData },
+    { id, user }: { id: string; user: UpdateUserData },
     signal?: GenericAbortSignal
   ) {
     return super.request({
-      url: `/user/${_id}`,
+      url: `/user/${id}`,
       method: "POST",
       token: true,
       data: user,
@@ -58,9 +64,9 @@ class UserDataService extends DataServices {
     });
   }
 
-  deleteUser({ _id }: { _id: string }, signal?: GenericAbortSignal) {
+  deleteUser({ id }: { id: string }, signal?: GenericAbortSignal) {
     return super.request({
-      url: `/user/${_id}`,
+      url: `/user/${id}`,
       method: "DELETE",
       token: true,
       signal,

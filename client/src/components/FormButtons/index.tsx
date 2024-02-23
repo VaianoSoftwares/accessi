@@ -6,9 +6,6 @@ import { TTableContent } from "../../types";
 export default function FormButtons(props: {
   findBadges: () => void;
   timbra: () => void;
-  insertBadge: () => void;
-  updateBadge: () => void;
-  deleteBadge: () => void;
   openPopup: () => void;
   readonlyForm: boolean;
   toggleReadOnlyForm: () => void;
@@ -65,33 +62,6 @@ export default function FormButtons(props: {
                 onOpen={props.findBadges}
                 position="right top"
               />
-            </div>
-            <div className="w-100 mt-1" />
-            <div className="col">
-              <button
-                onClick={() => props.insertBadge()}
-                className="btn btn-success home-form-btn"
-              >
-                Aggiungi
-              </button>
-            </div>
-            <div className="w-100 mt-1" />
-            <div className="col">
-              <button
-                onClick={() => props.updateBadge()}
-                className="btn btn-success home-form-btn"
-              >
-                Aggiorna
-              </button>
-            </div>
-            <div className="w-100 mt-1" />
-            <div className="col">
-              <button
-                onClick={() => props.deleteBadge()}
-                className="btn btn-success home-form-btn"
-              >
-                Elimina
-              </button>
             </div>
             <div className="w-100 mt-1" />
           </>

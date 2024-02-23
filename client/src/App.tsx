@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import { TLoggedUser, TPostazione, TUser } from "./types";
 import Login from "./components/Login";
 import PageNotFound from "./components/PageNotFound";
 import AccessiNavbar from "./components/AccessiNavbar";
@@ -11,12 +10,15 @@ import Home from "./components/Home";
 import serialPortHandler from "./utils/scannerHandler";
 import useSessionStorage from "./hooks/useSessionStorage";
 import Loader from "./components/Loader";
+import { canAccessPage, isAdmin, TLoggedUser } from "./types/users";
+import { TPages } from "./types/pages";
+import { Postazione } from "./types/badges";
 
 const Badge = lazy(() => import("./components/Badge"));
 const Chiavi = lazy(() => import("./components/Chiavi"));
 const Archivio = lazy(() => import("./components/Archivio"));
 const Protocollo = lazy(() => import("./components/Protocollo"));
-const Documenti = lazy(() => import("./components/Documenti"));
+const Anagrafico = lazy(() => import("./components/Anagrafico"));
 const Register = lazy(() => import("./components/Register"));
 const UserEdit = lazy(() => import("./components/UserEdit"));
 const UsersList = lazy(() => import("./components/UsersList"));
@@ -27,7 +29,7 @@ const Clienti = lazy(() => import("./components/Clienti"));
 export default function App() {
   const [user, setUser] = useSessionStorage<TLoggedUser | null>("user", null);
 
-  const [currPostazione, setCurrPostazione] = useState<TPostazione>();
+  const [currPostazione, setCurrPostazione] = useState<Postazione>();
 
   const [accessiScanner, setAccessiScanner] = useState<SerialPort>();
   const [timbraVal, setTimbraVal] = useState("");
@@ -89,13 +91,13 @@ export default function App() {
         <Route
           path="badge"
           element={
-            user && (user.admin || user.pages?.includes("badge")) ? (
+            user && canAccessPage(user, TPages.badge) ? (
               <Suspense fallback={<Loader />}>
                 <Badge
                   user={user}
                   scannedValue={timbraVal}
                   clearScannedValue={() => setTimbraVal("")}
-                  tipoBadge={"BADGE"}
+                  tipoBadge={"NOMINATIVO"}
                   currPostazione={currPostazione}
                 />
               </Suspense>
@@ -107,7 +109,7 @@ export default function App() {
         <Route
           path="chiavi"
           element={
-            user && (user.admin || user.pages?.includes("chiavi")) ? (
+            user && canAccessPage(user, TPages.chiavi) ? (
               <Suspense fallback={<Loader />}>
                 <Chiavi
                   user={user}
@@ -126,7 +128,7 @@ export default function App() {
         <Route
           path="veicoli"
           element={
-            user && (user.admin || user.pages?.includes("veicoli")) ? (
+            user && canAccessPage(user, TPages.veicoli) ? (
               <Suspense fallback={<Loader />}>
                 <Badge
                   user={user}
@@ -144,9 +146,9 @@ export default function App() {
         <Route
           path="archivio"
           element={
-            user && (user.admin || user.pages?.includes("archivio")) ? (
+            user && canAccessPage(user, TPages.archivio) ? (
               <Suspense fallback={<Loader />}>
-                <Archivio tipoArchivio="BADGE" user={user} />
+                <Archivio user={user} />
               </Suspense>
             ) : (
               <PageNotFound />
@@ -156,7 +158,7 @@ export default function App() {
         <Route
           path="protocollo"
           element={
-            user && (user.admin || user.pages?.includes("protocollo")) ? (
+            user && canAccessPage(user, TPages.protocollo) ? (
               <Suspense fallback={<Loader />}>
                 <Protocollo user={user} currPostazione={currPostazione} />
               </Suspense>
@@ -166,11 +168,11 @@ export default function App() {
           }
         />
         <Route
-          path="documenti"
+          path="anagrafico"
           element={
-            user && (user.admin || user.pages?.includes("documenti")) ? (
+            user && canAccessPage(user, TPages.anagrafico) ? (
               <Suspense fallback={<Loader />}>
-                <Documenti admin={user.admin} />
+                <Anagrafico user={user} />
               </Suspense>
             ) : (
               <PageNotFound />
@@ -180,7 +182,7 @@ export default function App() {
         <Route
           path="admin/register"
           element={
-            user?.admin ? (
+            user && isAdmin(user) ? (
               <Suspense fallback={<Loader />}>
                 <Register />
               </Suspense>
@@ -193,7 +195,7 @@ export default function App() {
         <Route
           path="admin/users"
           element={
-            user?.admin ? (
+            user && isAdmin(user) ? (
               <Suspense fallback={<Loader />}>
                 <UsersList />
               </Suspense>
@@ -205,7 +207,7 @@ export default function App() {
         <Route
           path="admin/users/:userId"
           element={
-            user?.admin ? (
+            user && isAdmin(user) ? (
               <Suspense fallback={<Loader />}>
                 <UserEdit />
               </Suspense>
@@ -217,7 +219,7 @@ export default function App() {
         <Route
           path="admin/assegnazioni"
           element={
-            user?.admin ? (
+            user && isAdmin(user) ? (
               <Suspense fallback={<Loader />}>
                 <Assegnazioni />
               </Suspense>
@@ -229,7 +231,7 @@ export default function App() {
         <Route
           path="admin/postazioni"
           element={
-            user?.admin ? (
+            user && isAdmin(user) ? (
               <Suspense fallback={<Loader />}>
                 <Postazioni />
               </Suspense>
@@ -241,7 +243,7 @@ export default function App() {
         <Route
           path="admin/clienti"
           element={
-            user?.admin ? (
+            user && isAdmin(user) ? (
               <Suspense fallback={<Loader />}>
                 <Clienti />
               </Suspense>

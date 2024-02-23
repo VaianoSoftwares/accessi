@@ -1,67 +1,43 @@
 import React from "react";
 import { TableContentMapper } from "../../utils/tableContentMapper";
 import BadgeDataService from "../../services/badge";
+import ArchivioDataService from "../../services/archivio";
+import PostazioniDataService from "../../services/postazioni";
+import ClientiDataService from "../../services/clienti";
 import "./index.css";
 import dateFormat from "dateformat";
 import BadgeTable from "../BadgeTable";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import { useQuery } from "@tanstack/react-query";
-import {
-  TAssegnazione,
-  TPostazione,
-  TArchTableContent,
-  TArchivioChiave,
-  TLoggedUser,
-} from "../../types";
+import { FormRef } from "../../types";
 import Clock from "../Clock";
-
-type TArchForm = {
-  cliente?: string;
-  postazione?: string;
-  nominativo?: string;
-  assegnazione?: string;
-  nome?: string;
-  cognome?: string;
-  chiave?: string;
-  descrizione?: string;
-  dataInizio?: string;
-  dataFine?: string;
-};
+import { TLoggedUser } from "../../types/users";
+import { TIPI_BADGE } from "../../types/badges";
+import { FindArchivioForm } from "../../types/forms";
 
 const TABLE_ID = "archivio-table";
 
-export default function Archivio({
-  tipoArchivio,
-  user,
-}: {
-  tipoArchivio: "BADGE" | "CHIAVE";
-  user: TLoggedUser;
-}) {
-  const clienteRef = React.useRef<HTMLSelectElement>(null);
-  const postazioneRef = React.useRef<HTMLSelectElement>(null);
-  const nominativoRef = React.useRef<HTMLInputElement>(null);
-  const assegnazioneRef = React.useRef<HTMLSelectElement>(null);
-  const nomeRef = React.useRef<HTMLInputElement>(null);
-  const cognomeRef = React.useRef<HTMLInputElement>(null);
-  const chiaveRef = React.useRef<HTMLInputElement>(null);
-  const descrizioneRef = React.useRef<HTMLInputElement>(null);
-  const dataInizioRef = React.useRef<HTMLInputElement>(null);
-  const dataFineRef = React.useRef<HTMLInputElement>(null);
+export default function Archivio({ user }: { user: TLoggedUser }) {
+  const formRef = React.useRef<FormRef<FindArchivioForm>>({
+    badge: null,
+    chiave: null,
+    tipo: null,
+    cliente: null,
+    postazione: null,
+    assegnazione: null,
+    nome: null,
+    cognome: null,
+    ditta: null,
+    data_in: null,
+    data_out: null,
+  });
 
-  function formToObj(): TArchForm {
-    console.log(dataInizioRef.current?.value);
-    return {
-      cliente: clienteRef.current?.value || undefined,
-      postazione: postazioneRef.current?.value || undefined,
-      nominativo: nominativoRef.current?.value || undefined,
-      assegnazione: assegnazioneRef.current?.value || undefined,
-      nome: nomeRef.current?.value || undefined,
-      cognome: cognomeRef.current?.value || undefined,
-      chiave: chiaveRef.current?.value || undefined,
-      descrizione: descrizioneRef.current?.value || undefined,
-      dataInizio: dataInizioRef.current?.value || undefined,
-      dataFine: dataFineRef.current?.value || undefined,
-    };
+  function formToObj(): FindArchivioForm {
+    const obj: FindArchivioForm = {};
+    Object.entries(formRef.current)
+      .filter(([_, el]) => el !== null)
+      .forEach(([key, el]) => (obj[key as keyof FindArchivioForm] = el!.value));
+    return obj;
   }
 
   const assegnazioni = useQuery({
@@ -69,23 +45,25 @@ export default function Archivio({
     queryFn: async () => {
       const response = await BadgeDataService.getAssegnazioni();
       console.log("queryAssegnazioni | response:", response);
-      const result = response.data.data as TAssegnazione[];
+      if (response.data.success === false) {
+        throw response.data.error;
+      }
+      const result = response.data.result;
       return result;
     },
   });
 
   const postazioni = useQuery({
-    queryKey: user.postazioni
-      ? ["postazioni", user.postazioni]
-      : ["postazioni"],
+    queryKey: ["postazioni", user.postazioni],
     queryFn: async (context) => {
-      const response = await BadgeDataService.getPostazioni(
-        context.queryKey[1]
-          ? { _id: context.queryKey[1] as string[] }
-          : undefined
-      );
+      const response = await PostazioniDataService.get({
+        ids: context.queryKey[1] as number[],
+      });
       console.log("queryPostazioni | response:", response);
-      const result = response.data.data as TPostazione[];
+      if (response.data.success === false) {
+        throw response.data.error;
+      }
+      const result = response.data.result;
       return result;
     },
   });
@@ -93,51 +71,31 @@ export default function Archivio({
   const clienti = useQuery({
     queryKey: ["clienti"],
     queryFn: async () => {
-      const response = await BadgeDataService.getClienti();
+      const response = await ClientiDataService.getAll();
       console.log("queryClienti | response:", response);
-      const result = response.data.data as string[];
+      if (response.data.success === false) {
+        throw response.data.error;
+      }
+      const result = response.data.result;
       return result;
     },
   });
 
-  const queryArchivioBadge = useQuery({
-    queryKey: ["archivioBadge"],
+  const queryArchivio = useQuery({
+    queryKey: ["archivio"],
     queryFn: async () => {
-      const response = await BadgeDataService.getArchivio(formToObj());
-      console.log("findArchivioBadge | response: ", response);
-      const result = response.data.data as TArchTableContent[];
+      const response = await ArchivioDataService.getArchivio(formToObj());
+      console.log("findArchivio | response: ", response);
+      if (response.data.success === false) {
+        throw response.data.error;
+      }
+      const result = response.data.result;
       TableContentMapper.parseDate(result);
       return result;
     },
     refetchOnWindowFocus: false,
     enabled: false,
   });
-
-  const queryArchivioChiavi = useQuery({
-    queryKey: ["archivioChiavi"],
-    queryFn: async () => {
-      const response = await BadgeDataService.getArchivioChiavi(formToObj());
-      console.log("findArchivioChiavi | response: ", response);
-      const result = response.data.data as TArchivioChiave[];
-      TableContentMapper.parseDate(result);
-      return result;
-    },
-    refetchOnWindowFocus: false,
-    enabled: false,
-  });
-
-  // function clearForm() {
-  //   clienteRef.current!.value = clienteRef.current!.options!.item(0)!.value;
-  //   postazioneRef.current!.value = postazioneRef.current!.options!.item(0)!.value;
-  //   nominativoRef.current!.value = nominativoRef.current!.defaultValue;
-  //   assegnazioneRef.current!.value = assegnazioneRef.current!.options!.item(0)!.value;
-  //   nomeRef.current!.value = nomeRef.current!.defaultValue;
-  //   cognomeRef.current!.value = cognomeRef.current!.defaultValue;
-  //   chiaveRef.current!.value = chiaveRef.current!.defaultValue;
-  //   descrizioneRef.current!.value = descrizioneRef.current!.defaultValue;
-  //   dataInizioRef.current!.value = dataInizioRef.current!.defaultValue;
-  //   dataFineRef.current!.value = dataFineRef.current!.defaultValue;
-  // }
 
   return (
     <div className="archivio-wrapper">
@@ -151,7 +109,7 @@ export default function Archivio({
                   className="form-control form-control-sm"
                   id="dataInizio"
                   autoComplete="off"
-                  ref={dataInizioRef}
+                  ref={(el) => (formRef.current.data_in = el)}
                   defaultValue={dateFormat(new Date(), "yyyy-mm-dd")}
                 />
                 <label htmlFor="dataInizio">resoconto inizio</label>
@@ -162,9 +120,9 @@ export default function Archivio({
                   className="form-control form-control-sm"
                   id="dataFine"
                   autoComplete="off"
-                  ref={dataFineRef}
+                  ref={(el) => (formRef.current.data_out = el)}
                   defaultValue={dateFormat(new Date(), "yyyy-mm-dd")}
-                  min={dataInizioRef.current?.value}
+                  min={formRef.current?.data_out?.value}
                 />
                 <label htmlFor="dataFine">resoconto fine</label>
               </div>
@@ -174,21 +132,17 @@ export default function Archivio({
                   className="form-select form-select-sm"
                   id="cliente"
                   placeholder="cliente"
-                  ref={clienteRef}
-                  defaultValue=""
+                  ref={(el) => (formRef.current.cliente = el)}
                 >
-                  <option value="" key="-1"></option>
-                  {clienti.data
-                    ?.filter(
-                      (cliente) =>
-                        cliente &&
-                        (user.admin || user.clienti?.includes(cliente))
-                    )
-                    .map((cliente, index) => (
-                      <option value={cliente} key={index}>
-                        {cliente}
-                      </option>
-                    ))}
+                  <option key="-1"></option>
+                  {clienti.isSuccess &&
+                    clienti.data
+                      .filter((cliente) => user.clienti.includes(cliente))
+                      .map((cliente, index) => (
+                        <option value={cliente} key={index}>
+                          {cliente}
+                        </option>
+                      ))}
                 </select>
                 <label htmlFor="cliente">cliente</label>
               </div>
@@ -197,17 +151,17 @@ export default function Archivio({
                   className="form-select form-select-sm"
                   id="postazione"
                   placeholder="postazione"
-                  ref={postazioneRef}
-                  defaultValue=""
+                  ref={(el) => (formRef.current.postazione = el)}
                 >
-                  <option value="" key="-1"></option>
-                  {postazioni.data
-                    ?.filter(({ name }) => name)
-                    .map(({ name }, index) => (
-                      <option value={name} key={index}>
-                        {name}
-                      </option>
-                    ))}
+                  <option key="-1"></option>
+                  {postazioni.isSuccess &&
+                    postazioni.data
+                      .filter(({ name }) => name)
+                      .map(({ name }, index) => (
+                        <option value={name} key={index}>
+                          {name}
+                        </option>
+                      ))}
                 </select>
                 <label htmlFor="postazione">postazione</label>
               </div>
@@ -216,82 +170,90 @@ export default function Archivio({
                 <input
                   type="text"
                   className="form-control form-control-sm"
-                  id="nominativo"
+                  id="badge"
                   autoComplete="off"
-                  ref={nominativoRef}
-                  defaultValue=""
+                  ref={(el) => (formRef.current.badge = el)}
                 />
-                <label htmlFor="nominativo">badge</label>
+                <label htmlFor="badge">badge</label>
               </div>
+              <div className="form-floating col-sm">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  id="chiave"
+                  autoComplete="off"
+                  ref={(el) => (formRef.current.chiave = el)}
+                />
+                <label htmlFor="chiave">chiave</label>
+              </div>
+              <div className="w-100 mb-1" />
               <div className="form-floating col-sm">
                 <select
                   className="form-select form-select-sm"
                   id="assegnazione"
                   placeholder="assegnazione"
-                  ref={assegnazioneRef}
-                  defaultValue=""
+                  ref={(el) => (formRef.current.assegnazione = el)}
                 >
-                  <option value="" key="-1"></option>
-                  {assegnazioni.data
-                    ?.filter(({ name }) => name)
-                    .map(({ name }, index) => (
-                      <option value={name} key={index}>
-                        {name}
-                      </option>
-                    ))}
+                  <option key="-1"></option>
+                  {assegnazioni.isSuccess &&
+                    assegnazioni.data
+                      .filter((a) => a)
+                      .map((a) => (
+                        <option value={a} key={a}>
+                          {a}
+                        </option>
+                      ))}
                 </select>
                 <label htmlFor="assegnazione">assegnazione</label>
               </div>
+              <div className="form-floating col-sm">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  id="ditta"
+                  autoComplete="off"
+                  ref={(el) => (formRef.current.ditta = el)}
+                />
+                <label htmlFor="ditta">ditta</label>
+              </div>
               <div className="w-100 mb-1" />
-              {tipoArchivio === "CHIAVE" && (
-                <>
-                  <div className="form-floating col-sm">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      id="nome"
-                      autoComplete="off"
-                      ref={nomeRef}
-                      defaultValue=""
-                    />
-                    <label htmlFor="nome">nome</label>
-                  </div>
-                  <div className="form-floating col-sm">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      id="cognome"
-                      autoComplete="off"
-                      ref={cognomeRef}
-                      defaultValue=""
-                    />
-                    <label htmlFor="cognome">cognome</label>
-                  </div>
-                  <div className="w-100 mb-1" />
-                  <div className="form-floating col-sm">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      id="chiave"
-                      autoComplete="off"
-                      ref={chiaveRef}
-                      defaultValue=""
-                    />
-                    <label htmlFor="chiave">chiave</label>
-                  </div>
-                  <div className="form-floating col-sm">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      id="descrizione"
-                      autoComplete="off"
-                      ref={descrizioneRef}
-                      defaultValue=""
-                    />
-                    <label htmlFor="descrizione">descrizione</label>
-                  </div>
-                </>
-              )}
+              <div className="form-floating col-sm">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  id="nome"
+                  autoComplete="off"
+                  ref={(el) => (formRef.current.nome = el)}
+                />
+                <label htmlFor="nome">nome</label>
+              </div>
+              <div className="form-floating col-sm">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  id="cognome"
+                  autoComplete="off"
+                  ref={(el) => (formRef.current.cognome = el)}
+                />
+                <label htmlFor="cognome">cognome</label>
+              </div>
+              <div className="w-100 mb-1" />
+              <div className="form-floating col-sm">
+                <select
+                  className="form-select form-select-sm"
+                  id="tipo"
+                  placeholder="tipo"
+                  ref={(el) => (formRef.current.tipo = el)}
+                >
+                  <option key="-1"></option>
+                  {TIPI_BADGE.map((a) => (
+                    <option value={a} key={a}>
+                      {a}
+                    </option>
+                  ))}
+                </select>
+                <label htmlFor="tipo">tipo</label>
+              </div>
             </div>
           </div>
           <div className="col-1">
@@ -299,11 +261,7 @@ export default function Archivio({
               <div className="col">
                 <button
                   className="btn btn-success"
-                  onClick={() =>
-                    tipoArchivio === "BADGE"
-                      ? queryArchivioBadge.refetch()
-                      : queryArchivioChiavi.refetch()
-                  }
+                  onClick={() => queryArchivio.refetch()}
                 >
                   Cerca
                 </button>
@@ -312,12 +270,7 @@ export default function Archivio({
               <div className="col">
                 <button
                   className="btn btn-success"
-                  onClick={() =>
-                    htmlTableToExcel(
-                      TABLE_ID,
-                      `archivio-${tipoArchivio}`.toLocaleLowerCase()
-                    )
-                  }
+                  onClick={() => htmlTableToExcel(TABLE_ID, "archivio")}
                 >
                   Excel
                 </button>
@@ -330,11 +283,8 @@ export default function Archivio({
         </div>
       </div>
       <div className="archivio-table-wrapper mt-3">
-        {tipoArchivio === "BADGE" && queryArchivioBadge.isSuccess && (
-          <BadgeTable content={queryArchivioBadge.data} tableId={TABLE_ID} />
-        )}
-        {tipoArchivio === "CHIAVE" && queryArchivioChiavi.isSuccess && (
-          <BadgeTable content={queryArchivioChiavi.data} tableId={TABLE_ID} />
+        {queryArchivio.isSuccess && (
+          <BadgeTable content={queryArchivio.data} tableId={TABLE_ID} />
         )}
       </div>
     </div>
