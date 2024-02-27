@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 import * as BadgesDB from "../db/badges.js";
-import { Err, Ok } from "../_types/index.js";
+import { Err, Ok } from "../types/index.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
 import * as Validator from "../utils/validation.js";
-import { BaseError } from "../_types/errors.js";
+import { BaseError } from "../types/errors.js";
 import createBarcode from "../utils/barcodeGen.js";
-import { BadgePrefix, TDoc } from "../_types/badges.js";
+import { BadgePrefix, TDoc } from "../types/badges.js";
 import * as Filemanager from "../files/badges.js";
 
 export async function apiGetBadges(req: Request, res: Response) {
@@ -446,7 +446,7 @@ export async function apiInsertPersona(req: Request, res: Response) {
         ? req.files.documento[0]
         : req.files.documento);
     if (docFile) {
-      await Filemanager.uploadDocumento(ndoc, tdoc, docFile);
+      await Filemanager.uploadDocumento(ndoc, docFile);
     }
 
     res.json(Ok(dbRes));
@@ -491,7 +491,7 @@ export async function apiUpdatePersona(req: Request, res: Response) {
         ? req.files.documento[0]
         : req.files.documento);
     if (docFile) {
-      await Filemanager.uploadDocumento(ndoc, tdoc as TDoc, docFile);
+      await Filemanager.uploadDocumento(ndoc, docFile);
     }
 
     res.json(Ok(dbRes));
@@ -504,7 +504,7 @@ export async function apiUpdatePersona(req: Request, res: Response) {
 
 export async function apiDeletePersona(req: Request, res: Response) {
   try {
-    const parsed = Validator.PERSONA_DOC_SCHEMA.safeParse(req.params.codice);
+    const parsed = Validator.PERSONA_DOC_SCHEMA.safeParse(req.params);
     if (parsed.success === false) {
       throw new BaseError(parsed.error.errors[0].message, {
         status: 400,

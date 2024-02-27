@@ -1,4 +1,4 @@
-import { BasePostazione, Postazione } from "../_types/users.js";
+import { BasePostazione, Postazione } from "../types/users.js";
 import { FindPostazioniData } from "../utils/validation.js";
 import * as db from "./index.js";
 
@@ -44,6 +44,14 @@ export async function getPostazioni(filter?: FindPostazioniData) {
       .flat();
   console.log("postazioni", { queryText, queryValues });
   return await db.query<Postazione>(queryText, queryValues);
+}
+
+export async function getPostazioneById(id: number) {
+  const { rows } = await db.query<Postazione>(
+    "SELECT * FROM postazioni WHERE id = $1",
+    [id]
+  );
+  return rows[0];
 }
 
 export async function insertPostazione(postazione: BasePostazione) {

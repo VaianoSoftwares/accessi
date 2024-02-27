@@ -7,12 +7,14 @@ import {
   Nominativo,
   NominativoInsertData,
   NominativoUpdateData,
+  Provvisorio,
   ProvvisorioInsertData,
   ProvvisorioUpdateData,
   UpdatePersonaData,
+  Veicolo,
   VeicoloInsertData,
   VeicoloUpdateData,
-} from "../_types/badges.js";
+} from "../types/badges.js";
 import { FindBadgesFilter, FindPersoneFilter } from "../utils/validation.js";
 
 export async function getBadges(filter?: FindBadgesFilter) {
@@ -21,13 +23,19 @@ export async function getBadges(filter?: FindBadgesFilter) {
     filter &&
     Object.entries(filter)
       .filter(([, value]) => value)
-      .map(([key], i) => `${key}=$${i + 1}`)
+      .map(([key, value], i) =>
+        typeof value === "string" ? `${key} LIKE $${i + 1}` : `${key}=$${i + 1}`
+      )
       .join(" AND ");
 
   const queryText = filterText
-    ? [prefixText, filterText].join(" WHERE ")
-    : prefixText;
-  const queryValues = filter && Object.values(filter).filter((value) => value);
+    ? [prefixText, "WHERE", filterText, "ORDER BY tipo"].join(" ")
+    : [prefixText, "ORDER BY tipo"].join(" ");
+  const queryValues =
+    filter &&
+    Object.values(filter)
+      .filter((value) => value)
+      .map((value) => (typeof value === "string" ? `%${value}%` : value));
 
   return await db.query(queryText, queryValues);
 }
@@ -45,15 +53,15 @@ export function deleteProvvisorio(codice: string) {
 }
 
 export function insertNominativo(data: NominativoInsertData) {
-  return db.insertRow("badges", data);
+  return db.insertRow("nominativi", data);
 }
 
 export function updateNominativo(codice: string, data: NominativoUpdateData) {
-  return db.updateRows("badges", data, { codice });
+  return db.updateRows("nominativi", data, { codice });
 }
 
 export function deleteNominativo(codice: string) {
-  return db.deleteRows("badges", { codice });
+  return db.deleteRows("nominativi", { codice });
 }
 
 export function insertChiave(data: ChiaveInsertData) {
@@ -86,13 +94,19 @@ export async function getPersone(filter?: FindPersoneFilter) {
     filter &&
     Object.entries(filter)
       .filter(([, value]) => value)
-      .map(([key], i) => `${key}=$${i + 1}`)
+      .map(([key, value], i) =>
+        typeof value === "string" ? `${key} LIKE $${i + 1}` : `${key}=$${i + 1}`
+      )
       .join(" AND ");
 
   const queryText = filterText
     ? [prefixText, filterText].join(" WHERE ")
     : prefixText;
-  const queryValues = filter && Object.values(filter).filter((value) => value);
+  const queryValues =
+    filter &&
+    Object.values(filter)
+      .filter((value) => value)
+      .map((value) => (typeof value === "string" ? `%${value}%` : value));
 
   return await db.query(queryText, queryValues);
 }
@@ -113,25 +127,29 @@ export function deletePersona(data: DeletePersonaData) {
 }
 
 export function getAssegnazioni() {
-  return db.query<{ value: string }>(
-    "SELECT unnest(enum_range(NULL::assegnazione)) AS value"
-  );
+  return db.query<{ value: string }>("SELECT * FROM assegnazioni");
 }
 
 export function getEdifici() {
-  return db.query<{ value: string }>(
-    "SELECT unnest(enum_range(NULL::edificio)) AS value"
-  );
+  return db.query<{ value: string }>("SELECT * FROM edifici");
 }
 
 export function getTVeicoli() {
-  return db.query<{ value: string }>(
-    "SELECT unnest(enum_range(NULL::tveicolo)) AS value"
-  );
+  return db.query<{ value: string }>("SELECT * FROM tveicoli");
 }
 
 export function getNominativoByCodice(codice: string) {
   return db.query<Nominativo>("SELECT * FROM nominativi WHERE codice = $1", [
     codice,
   ]);
+}
+
+export function getProvvisorioByCodice(codice: string) {
+  return db.query<Provvisorio>("SELECT * FROM provvisori WHERE codice = $1", [
+    codice,
+  ]);
+}
+
+export function getVeicoloByCodice(codice: string) {
+  return db.query<Veicolo>("SELECT * FROM veicoli WHERE codice = $1", [codice]);
 }

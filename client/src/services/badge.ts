@@ -25,7 +25,7 @@ class BadgesDataService extends DataServices {
 
   update({ data, tipoBadge }: BadgeFormDataReq, signal?: GenericAbortSignal) {
     return super.request({
-      url: `/${tipoBadge}`,
+      url: `/${tipoBadge}/${data.get("codice")}`,
       method: "PUT",
       token: true,
       data,
@@ -36,10 +36,9 @@ class BadgesDataService extends DataServices {
 
   delete({ data, tipoBadge }: BadgeDeleteReq, signal?: GenericAbortSignal) {
     return super.request({
-      url: `/${tipoBadge}`,
+      url: `/${tipoBadge}/${data.codice}`,
       method: "DELETE",
       token: true,
-      data,
       signal,
     });
   }

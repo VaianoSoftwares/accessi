@@ -8,7 +8,7 @@ export default router;
 
 router
   .route("/")
-  .get(JwtAuth.verifyToken, ClientiCtrl.apiGetClienti)
+  .get(ClientiCtrl.apiGetClienti)
   .post(JwtAuth.verifyToken, JwtAuth.isAdmin, ClientiCtrl.apiInsertCliente);
 router.delete(
   "/:cliente",

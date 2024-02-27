@@ -1,15 +1,19 @@
 import "./index.css";
+import dateFormat from "dateformat";
 
 export default function BadgeTable(props: {
   content: object[];
   tableId?: string;
   omitedParams?: string[];
   obfuscatedParams?: string[];
+  timestampParams?: string[];
   dateParams?: string[];
 }) {
-  function displayTableRowValue({ key, value }: { key: string; value: any }) {
+  function parseTableTdContent({ key, value }: { key: string; value: any }) {
     if (props?.obfuscatedParams?.includes?.(key)) return "XXXXX";
     else if (props?.dateParams?.includes?.(key))
+      return dateFormat(value, "dd/mm/yyyy");
+    else if (props?.timestampParams?.includes?.(key))
       return new Date(value).toLocaleString("it-IT", {
         timeZone: "Europe/Rome",
       });
@@ -37,11 +41,16 @@ export default function BadgeTable(props: {
           <tbody className="badge-table-tbody">
             {props.content.map((elem, i) => (
               <tr key={i} className="badge-table-tr">
-                {Object.entries(elem).map(([key, value], j) => (
-                  <td className="badge-table-td" key={j}>
-                    {displayTableRowValue({ key, value })}
-                  </td>
-                ))}
+                {Object.entries(elem)
+                  .filter(
+                    ([key]) =>
+                      !(props.omitedParams && props.omitedParams.includes(key))
+                  )
+                  .map(([key, value], j) => (
+                    <td className="badge-table-td" key={j}>
+                      {parseTableTdContent({ key, value })}
+                    </td>
+                  ))}
               </tr>
             ))}
           </tbody>

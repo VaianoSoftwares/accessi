@@ -2,18 +2,23 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import UserDataService from "../../services/user";
 import "./index.css";
+import { axiosErrHandl } from "../../utils/axiosErrHandl";
 
 export default function UsersList() {
   const usersQuery = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const response = await UserDataService.getAllUsers();
-      console.log("usersQuery |", response);
-      if (response.data.success === false) {
-        throw response.data.error;
+      try {
+        const response = await UserDataService.getAllUsers();
+        console.log("usersQuery |", response);
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        return response.data.result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
       }
-      const result = response.data.result;
-      return result;
     },
   });
 

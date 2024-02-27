@@ -1,5 +1,6 @@
 import z from "zod";
-import { STATI_BADGE, TDOCS, TIPI_BADGE } from "../_types/badges.js";
+import { STATI_BADGE, TDOCS, TIPI_BADGE } from "../types/badges.js";
+import { BarcodePrefix } from "../types/archivio.js";
 
 function MISSING_ATTR_ERR_MSG(attribute: string) {
   return `Campo ${attribute} risulta mancante`;
@@ -27,10 +28,13 @@ const PSW_MAX_LEN = 256;
 const PSW_TOO_LONG_ERR_MSG = ATTR_TOO_LONG_ERR_MSG("Password", PSW_MAX_LEN);
 
 const CODICE_LEN = 9;
-const CODICE_LEN_ERR_MSG = `Barcode deve contenere esattamente ${CODICE_LEN} caratteri`;
+const CODICE_LEN_ERR_MSG = `Barcode deve contenere esattamente ${CODICE_LEN} cifre`;
 
 const BARCODE_LEN = 10;
-const BARCODE_LEN_ERR_MSG = `Barcode deve contenere esattamente ${BARCODE_LEN} caratteri`;
+const BARCODE_LEN_ERR_MSG = `Barcode deve contenere esattamente ${BARCODE_LEN} cifre`;
+
+const ID_STUD_LEN = 7;
+const ID_STUD_LEN_ERR_MSG = `Codice studente deve contenere esattamente ${ID_STUD_LEN} cifre`;
 
 function ID_SCHEMA(attrName = "ID") {
   return z.coerce
@@ -319,7 +323,9 @@ export const FIND_ARCHIVIO_SCHEMA = z.object({
 export type FindArchivioFilter = z.infer<typeof FIND_ARCHIVIO_SCHEMA>;
 
 export const FIND_IN_STRUTT_SCHEMA = z.object({
+  id: ID_SCHEMA().optional(),
   badge: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
+  codice: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
   tipo: z.enum(TIPI_BADGE).optional(),
   tipi: z.enum(TIPI_BADGE).array().nonempty().optional(),
   data_in_min: z.union([z.string(), z.coerce.date()]).optional(),
@@ -360,74 +366,75 @@ export const FIND_IN_PRESTITO_SCHEMA = z.object({
 });
 export type FindInPrestitoFilter = z.infer<typeof FIND_IN_PRESTITO_SCHEMA>;
 
+const BARCODE_NOM_ENTRA_SCHEMA = z
+  .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
+  .startsWith(BarcodePrefix.nominativoEntra, "Barcode non valido")
+  .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
+  .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
+const BARCODE_NOM_ESCE_SCHEMA = z
+  .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
+  .startsWith(BarcodePrefix.nominativoEsce, "Barcode non valido")
+  .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
+  .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
+const BARCODE_PROV_ENTRA_SCHEMA = z
+  .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
+  .startsWith(BarcodePrefix.provvisorioEntra, "Barcode non valido")
+  .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
+  .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
+const BARCODE_PROV_ESCE_SCHEMA = z
+  .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
+  .startsWith(BarcodePrefix.provvisorioEsce, "Barcode non valido")
+  .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
+  .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
+const BARCODE_CHIAVE_ENTRA_SCHEMA = z
+  .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
+  .startsWith(BarcodePrefix.chiaveEntra, "Barcode non valido")
+  .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
+  .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
+const BARCODE_CHIAVE_ESCE_SCHEMA = z
+  .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
+  .startsWith(BarcodePrefix.chiaveEsce, "Barcode non valido")
+  .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
+  .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
+const BARCODE_VEICOLO_ENTRA_SCHEMA = z
+  .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
+  .startsWith(BarcodePrefix.veicoloEntra, "Barcode non valido")
+  .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
+  .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
+const BARCODE_VEICOLO_ESCE_SCHEMA = z
+  .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
+  .startsWith(BarcodePrefix.veicoloEsce, "Barcode non valido")
+  .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
+  .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
+const CODICE_STUDENTE_SCHEMA = z
+  .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
+  .regex(/^\d+$/, "Codice studente deve contenere solo cifre numeriche")
+  .length(ID_STUD_LEN, ID_STUD_LEN_ERR_MSG);
+
 export const TIMBRA_BADGE_SCHEMA = z.object({
   badge: z.union([
-    z
-      .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-      .startsWith("00", "Barcode non valido")
-      .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG),
-    z
-      .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-      .startsWith("10", "Barcode non valido")
-      .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG),
-    z
-      .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-      .startsWith("01", "Barcode non valido")
-      .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG),
-    z
-      .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-      .startsWith("11", "Barcode non valido")
-      .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG),
-    z
-      .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-      .startsWith("03", "Barcode non valido")
-      .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG),
-    z
-      .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-      .startsWith("13", "Barcode non valido")
-      .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG),
+    BARCODE_NOM_ENTRA_SCHEMA,
+    BARCODE_NOM_ESCE_SCHEMA,
+    BARCODE_PROV_ENTRA_SCHEMA,
+    BARCODE_PROV_ESCE_SCHEMA,
+    BARCODE_VEICOLO_ENTRA_SCHEMA,
+    BARCODE_VEICOLO_ESCE_SCHEMA,
+    CODICE_STUDENTE_SCHEMA,
   ]),
   postazione: ID_SCHEMA("Postazione ID"),
 });
 
 export const TIMBRA_CHIAVI_SCHEMA = z.object({
-  badge: z.union([
-    z
-      .string({ required_error: MISSING_ATTR_ERR_MSG("Badge") })
-      .startsWith("00", "Barcode non valido")
-      .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG),
-    z
-      .string({ required_error: MISSING_ATTR_ERR_MSG("Badge") })
-      .startsWith("10", "Barcode non valido")
-      .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG),
-  ]),
+  badge: z.union([BARCODE_NOM_ENTRA_SCHEMA, BARCODE_NOM_ESCE_SCHEMA]),
   postazione: ID_SCHEMA("Postazione ID"),
   chiavi: z
-    .union([
-      z
-        .string()
-        .startsWith("02", "Chiave non valida")
-        .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG),
-      z
-        .string()
-        .startsWith("12", "Chiave non valida")
-        .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG),
-    ])
+    .union([BARCODE_CHIAVE_ENTRA_SCHEMA, BARCODE_CHIAVE_ESCE_SCHEMA])
     .array()
     .nonempty(MISSING_ATTR_ERR_MSG("Chiavi")),
 });
 
 export const INSERT_ARCH_PROV_SCHEMA = z.object({
-  badge: z.union([
-    z
-      .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-      .startsWith("00", "Barcode non valido")
-      .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG),
-    z
-      .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-      .startsWith("10", "Barcode non valido")
-      .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG),
-  ]),
+  badge: z.union([BARCODE_PROV_ENTRA_SCHEMA, BARCODE_PROV_ESCE_SCHEMA]),
   postazione: ID_SCHEMA("Postazione ID"),
   nome: z.string().nullish(),
   cognome: z.string().nullish(),

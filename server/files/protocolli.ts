@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs/promises";
 import { UploadedFile } from "express-fileupload";
-import { BaseError } from "../_types/errors.js";
+import { BaseError } from "../types/errors.js";
 
 const __dirname = path.resolve();
 const PUBLIC_DIR = path.resolve(__dirname, "server", "public");

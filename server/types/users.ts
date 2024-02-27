@@ -1,28 +1,41 @@
-import { ObjectId } from "mongodb";
+import { MAX_UINT32, WithId } from "./index.js";
 
-export type TUser = {
-  username: string;
+export interface BaseUser {
+  name: string;
   password: string;
-  admin: boolean;
-  postazioni: ObjectId[] | null;
-  clienti: string[] | null;
-  pages: string[] | null;
-  device: boolean;
-  canLogout: boolean;
-  excel: boolean;
-  provvisori: boolean;
-};
+  permessi: number;
+  pages: number;
+}
 
-export type TUserReq = {
-  [key: string]: string | string[] | boolean | undefined;
-} & Pick<TUser, "username" | "password"> &
-  Partial<Omit<TUser, "username" | "password">>;
+export interface BasePostazione {
+  name: string;
+  cliente: string;
+}
+export type Postazione = WithId<BasePostazione>;
 
-export type TPermesso = {
-  username: string;
-  date: string;
-};
+export interface PostazioneUser {
+  user_id: number;
+  postazione: number;
+}
 
-export type TPermessoReq = {
-  [key: string]: string | undefined;
-} & Partial<TPermesso>;
+export enum TPermessi {
+  admin = MAX_UINT32,
+  device = 1,
+  canLogout = 2,
+  excel = 4,
+  provvisori = 8,
+}
+export enum TPages {
+  admin = MAX_UINT32,
+  badge = 1,
+  chiavi = 2,
+  veicoli = 4,
+  archivio = 8,
+  protocollo = 16,
+  anagrafico = 32,
+}
+
+export type InsertUserData = BaseUser & { postazioni: Postazione[] };
+export type UpdateUserData = Partial<BaseUser>;
+
+export type User = WithId<BaseUser>;

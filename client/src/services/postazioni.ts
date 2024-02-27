@@ -8,11 +8,11 @@ import DataServices from "./DataServices";
 
 class PostazioniDataService extends DataServices {
   getAll(signal?: GenericAbortSignal) {
-    return super.request<Postazione[]>({ token: true, signal });
+    return super.request<Postazione[]>({ signal });
   }
 
   get(data: GetPostazioniFilters, signal?: GenericAbortSignal) {
-    return super.request<Postazione[]>({ token: true, data, signal });
+    return super.request<Postazione[]>({ data, signal });
   }
 
   insert(data: InsertPostazioneData, signal?: GenericAbortSignal) {

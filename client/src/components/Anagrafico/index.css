@@ -1,0 +1,81 @@
+.anagrafico-container {
+    height: 40%;
+    max-height: 40%;
+}
+
+.anagrafico-table-wrapper {
+    overflow: auto;
+    height: 60%;
+    max-height: 250px;
+    background-color: white;
+}
+
+.pfp-container {
+    border: 2px solid green;
+    width: 200px;
+    height: 200px;
+    max-width: 200px;
+    max-height: 200px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background-color: white;
+}
+
+.anagrafico-form {
+    border: 2px solid green;
+    background-color: azure;
+    padding-bottom: 12px;
+}
+
+.anagrafico-form .form-control {
+    height: 38px;
+}
+
+.anagrafico-form .form-select {
+    height: 38px;
+    padding: 0 0 1px 4px;
+}
+
+.anagrafico-form .form-floating label {
+    font-size: 13px;
+    top: -25%;
+}
+
+.custom-input-file input[type=file] {
+    margin-left: -2px !important;
+    font-size: 15px;
+    height: 35px;
+}
+.custom-input-file input[type=file]::-webkit-file-upload-button {
+    display: none;
+}
+.custom-input-file input[type=file]::file-selector-button {
+    display: none;
+}
+.custom-input-file:hover label {
+    background-color: #dde0e3;
+    cursor: pointer;
+}
+.custom-input-file label {
+    height: 35px;
+    font-size: 13px;
+}
+
+.anagrafico-form input[type=file] {
+    font-size: 15px;
+    height: 35px;
+}
+
+.anagrafico-form-btn {
+    width: 95px;
+    height: 35px;
+}
+
+.anagrafico-form-b {
+    font-size: 14px;
+}
+
+.custom-input-pfp {
+    max-width: 200px;
+}

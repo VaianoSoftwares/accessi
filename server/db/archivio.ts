@@ -7,18 +7,25 @@ import {
   ArchivioVeicolo,
   BaseArchivio,
   TimbraChiaviData,
-  TimbraNomData,
-  TimbraVeicoloData,
-} from "../_types/archivio.js";
-import { WithId } from "../_types/index.js";
-import { BaseError } from "../_types/errors.js";
-import { Nominativo } from "../_types/badges.js";
+  TimbraBadgeData,
+  TimbraUniData,
+  InStrutt,
+} from "../types/archivio.js";
+import { WithId } from "../types/index.js";
+import { BaseError } from "../types/errors.js";
+import { Nominativo } from "../types/badges.js";
 import {
   FindArchivioFilter,
   FindInPrestitoFilter,
   FindInStruttFilter,
   InsertArchProvData,
 } from "../utils/validation.js";
+import {
+  getNominativoByCodice,
+  getProvvisorioByCodice,
+  getVeicoloByCodice,
+} from "../db/badges.js";
+import { getPostazioneById, getPostazioni } from "./postazioni.js";
 
 export async function getArchivio(filter?: FindArchivioFilter) {
   const prefixText = "SELECT * FROM full_archivio";
@@ -26,10 +33,8 @@ export async function getArchivio(filter?: FindArchivioFilter) {
     filter &&
     Object.entries(filter)
       .filter(([, value]) => value)
-      .map(([key], i) => {
+      .map(([key, value], i) => {
         switch (key) {
-          case "tipo":
-            return `(tipo='PROVVISORIO' OR tipo=${i + 1})`;
           case "data_in_min":
             return `data_in>=$${i + 1}`;
           case "data_in_max":
@@ -39,15 +44,21 @@ export async function getArchivio(filter?: FindArchivioFilter) {
           case "data_out_max":
             return `data_out<=$${i + 1}`;
           default:
-            return `${key} LIKE %${i + 1}%`;
+            return typeof value === "string"
+              ? `${key} LIKE $${i + 1}`
+              : `${key}=$${i + 1}`;
         }
       })
       .join(" AND ");
 
   const queryText = filterText
-    ? [prefixText, filterText].join(" WHERE ")
-    : prefixText;
-  const queryValues = filter && Object.values(filter).filter((value) => value);
+    ? [prefixText, "WHERE", filterText, "ORDER BY data_in DESC, tipo"].join(" ")
+    : [prefixText, "ORDER BY data_in DESC, tipo"].join(" ");
+  const queryValues =
+    filter &&
+    Object.values(filter)
+      .filter((value) => value)
+      .map((value) => (typeof value === "string" ? `%${value}%` : value));
 
   return await db.query<Archivio>(queryText, queryValues);
 }
@@ -55,7 +66,7 @@ export async function getArchivio(filter?: FindArchivioFilter) {
 export async function getInStrutt(filter?: FindInStruttFilter) {
   let i = 1;
   const prefixText =
-    "SELECT codice, tipo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM in_strutt";
+    "SELECT id, codice, tipo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM in_strutt";
   const filterText =
     filter &&
     Object.entries(filter)
@@ -81,21 +92,24 @@ export async function getInStrutt(filter?: FindInStruttFilter) {
           case "data_in_max":
             return `data_in<=$${i++}`;
           default:
-            return `${key} LIKE %${i++}%`;
+            return typeof value === "string"
+              ? `${key} LIKE $${i++}`
+              : `${key}=$${i++}`;
         }
       })
       .join(" AND ");
 
   const queryText = filterText
-    ? [prefixText, filterText].join(" WHERE ")
-    : prefixText;
+    ? [prefixText, "WHERE", filterText, "ORDER BY data_in DESC, tipo"].join(" ")
+    : [prefixText, "ORDER BY data_in DESC, tipo"].join(" ");
   const queryValues =
     filter &&
     Object.values(filter)
       .filter((value) => value)
+      .map((value) => (typeof value === "string" ? `%${value}%` : value))
       .flat();
 
-  return await db.query<Archivio>(queryText, queryValues);
+  return await db.query<InStrutt>(queryText, queryValues);
 }
 
 export async function getInPrestito(filter?: FindInPrestitoFilter) {
@@ -121,7 +135,9 @@ export async function getInPrestito(filter?: FindInPrestitoFilter) {
           case "data_in_max":
             return `data_in<=$${i++}`;
           default:
-            return `${key} LIKE %${i++}%`;
+            return typeof value === "string"
+              ? `${key} LIKE $${i++}`
+              : `${key}=$${i++}`;
         }
       })
       .join(" AND ");
@@ -133,20 +149,10 @@ export async function getInPrestito(filter?: FindInPrestitoFilter) {
     filter &&
     Object.values(filter)
       .filter((value) => value)
+      .map((value) => (typeof value === "string" ? `%${value}%` : value))
       .flat();
 
   return await db.query<ArchivioChiave>(queryText, queryValues);
-}
-
-async function getInStruttRowIdByBadge<T extends WithId<BaseArchivio>>(
-  badge: string,
-  tableName: string
-) {
-  const { rows, rowCount } = await db.query<T>(
-    "SELECT * FROM $1 WHERE data_in IS NOT NULL AND data_out IS NULL AND badge = $2",
-    [tableName, badge]
-  );
-  return rowCount === 0 ? null : rows[0].id;
 }
 
 async function setRowDateOut<T extends WithId<BaseArchivio>>(
@@ -154,81 +160,388 @@ async function setRowDateOut<T extends WithId<BaseArchivio>>(
   tableName: string
 ) {
   return await db.query<T>(
-    "UPDATE $1 * SET data_out = DEFAULT WHERE id = $2 RETURNING *",
-    [tableName, id]
+    `UPDATE ${tableName} * SET data_out = date_trunc('second', CURRENT_TIMESTAMP) WHERE id = $1 RETURNING *`,
+    [id]
   );
 }
 
-export async function timbraEntrataNominativo(data: TimbraNomData) {
-  const id = await getInStruttRowIdByBadge(data.badge, "archivio_badge");
-  if (id)
+export async function timbraEntrataNominativo(data: TimbraBadgeData) {
+  const existsBadge = await getNominativoByCodice(data.badge);
+  if (existsBadge.rowCount === 0) {
+    throw new BaseError("Badge non esistente", {
+      status: 400,
+      context: { badge: data.badge },
+    });
+  }
+
+  const { cliente: clienteBadge, scadenza, stato } = existsBadge.rows[0];
+
+  const postazioneMark = await getPostazioneById(data.postazione);
+  if (postazioneMark.cliente !== clienteBadge) {
+    throw new BaseError("Impossibile timbrare badge di un altro cliente", {
+      status: 400,
+      context: {
+        badge: data.badge,
+        clienteBadge,
+        clientePostazione: postazioneMark.cliente,
+      },
+    });
+  } else if (stato !== "VALIDO") {
+    throw new BaseError("Badge non valido", {
+      status: 400,
+      context: {
+        badge: data.badge,
+        stato,
+      },
+    });
+  } else if (scadenza && new Date(scadenza) < new Date()) {
+    throw new BaseError("Badge scaduto", {
+      status: 400,
+      context: {
+        badge: data.badge,
+        scadenza,
+      },
+    });
+  }
+
+  const { rowCount: numRowsInStrutt } = await getInStrutt({
+    codice: data.badge,
+  });
+  if (numRowsInStrutt !== 0)
     throw new BaseError("Badge già presente in struttura", {
       status: 400,
       context: { badge: data.badge },
     });
-  return await db.insertRow<ArchivioNominativo>("archivio_badge", data);
+
+  const { rows: insertedRows, rowCount: numRowsInserted } =
+    await db.insertRow<ArchivioNominativo>("archivio_nominativi", data);
+  if (numRowsInserted === 0) {
+    throw new BaseError("Impossibile timbrare badge", {
+      status: 500,
+      context: { badge: data.badge },
+    });
+  }
+
+  const { rows: inStruttRows } = await getInStrutt({ id: insertedRows[0].id });
+  return { row: inStruttRows[0], isEntering: true };
 }
 
-export async function timbraUscitaNominativo(badge: string) {
-  const id = await getInStruttRowIdByBadge(badge, "archivio_badge");
-  if (!id)
+export async function timbraUscitaNominativo(data: TimbraBadgeData) {
+  const existsBadge = await getNominativoByCodice(data.badge);
+  if (existsBadge.rowCount === 0) {
+    throw new BaseError("Badge non esistente", {
+      status: 400,
+      context: { badge: data.badge },
+    });
+  }
+
+  const { cliente: clienteBadge } = existsBadge.rows[0];
+
+  const postazioneMark = await getPostazioneById(data.postazione);
+  if (postazioneMark.cliente !== clienteBadge) {
+    throw new BaseError("Impossibile timbrare badge di un altro cliente", {
+      status: 400,
+      context: {
+        badge: data.badge,
+        clienteBadge,
+        clientePostazione: postazioneMark.cliente,
+      },
+    });
+  }
+
+  const { rows: inStruttRows, rowCount: numInStruttRows } = await getInStrutt({
+    codice: data.badge,
+  });
+  if (numInStruttRows === 0)
     throw new BaseError("Badge non presente in struttura", {
       status: 400,
-      context: { badge },
+      context: { badge: data.badge },
     });
-  return await setRowDateOut(id, "archivio_badge");
+
+  const { rowCount: updatedRowsNum } = await setRowDateOut(
+    inStruttRows[0].id,
+    "archivio_nominativi"
+  );
+  if (updatedRowsNum === 0) {
+    throw new BaseError("Impossibile timbrare badge", {
+      status: 400,
+      context: { id: inStruttRows[0].id, badge: data.badge },
+    });
+  }
+
+  return { row: inStruttRows[0], isEntering: false };
 }
 
-export async function timbraEntrataVeicolo(data: TimbraVeicoloData) {
-  const id = await getInStruttRowIdByBadge(data.badge, "archivio_veicoli");
-  if (id)
+export async function timbraEntrataVeicolo(data: TimbraBadgeData) {
+  const existsBadge = await getVeicoloByCodice(data.badge);
+  if (existsBadge.rowCount === 0) {
+    throw new BaseError("Badge non esistente", {
+      status: 400,
+      context: { badge: data.badge },
+    });
+  }
+
+  const { cliente: clienteBadge, stato } = existsBadge.rows[0];
+
+  const postazioneMark = await getPostazioneById(data.postazione);
+  if (postazioneMark.cliente !== clienteBadge) {
+    throw new BaseError("Impossibile timbrare badge di un altro cliente", {
+      status: 400,
+      context: {
+        badge: data.badge,
+        clienteBadge,
+        clientePostazione: postazioneMark.cliente,
+      },
+    });
+  } else if (stato !== "VALIDO") {
+    throw new BaseError("Badge non valido", {
+      status: 400,
+      context: {
+        badge: data.badge,
+        stato,
+      },
+    });
+  }
+
+  const { rowCount: numRowsInStrutt } = await getInStrutt({
+    codice: data.badge,
+  });
+  if (numRowsInStrutt !== 0)
     throw new BaseError("Badge già presente in struttura", {
       status: 400,
       context: { badge: data.badge },
     });
-  return await db.insertRow<ArchivioVeicolo>("archivio_veicoli", data);
+
+  const { rows: insertedRows, rowCount: numRowsInserted } =
+    await db.insertRow<ArchivioNominativo>("archivio_veicoli", data);
+  if (numRowsInserted === 0) {
+    throw new BaseError("Impossibile timbrare badge", {
+      status: 500,
+      context: { badge: data.badge },
+    });
+  }
+
+  const { rows: inStruttRows } = await getInStrutt({ id: insertedRows[0].id });
+  return { row: inStruttRows[0], isEntering: true };
 }
 
-export async function timbraUscitaVeicolo(badge: string) {
-  const id = await getInStruttRowIdByBadge(badge, "archivio_veicoli");
-  if (!id)
+export async function timbraUscitaVeicolo(data: TimbraBadgeData) {
+  const existsBadge = await getVeicoloByCodice(data.badge);
+  if (existsBadge.rowCount === 0) {
+    throw new BaseError("Badge non esistente", {
+      status: 400,
+      context: { badge: data.badge },
+    });
+  }
+
+  const { cliente: clienteBadge } = existsBadge.rows[0];
+
+  const postazioneMark = await getPostazioneById(data.postazione);
+  if (postazioneMark.cliente !== clienteBadge) {
+    throw new BaseError("Impossibile timbrare badge di un altro cliente", {
+      status: 400,
+      context: {
+        badge: data.badge,
+        clienteBadge,
+        clientePostazione: postazioneMark.cliente,
+      },
+    });
+  }
+
+  const { rows: inStruttRows, rowCount: numInStruttRows } = await getInStrutt({
+    codice: data.badge,
+  });
+  if (numInStruttRows === 0)
     throw new BaseError("Badge non presente in struttura", {
       status: 400,
-      context: { badge },
+      context: { badge: data.badge },
     });
-  return await setRowDateOut(id, "archivio_veicoli");
+
+  const { rowCount: updatedRowsNum } = await setRowDateOut(
+    inStruttRows[0].id,
+    "archivio_veicoli"
+  );
+  if (updatedRowsNum === 0) {
+    throw new BaseError("Impossibile timbrare badge", {
+      status: 400,
+      context: { id: inStruttRows[0].id, badge: data.badge },
+    });
+  }
+
+  return { row: inStruttRows[0], isEntering: false };
 }
 
 export async function insertProvvisorio(data: InsertArchProvData) {
   return await db.insertRow<ArchivioProvvisorio>("archivio_provvisori", data);
 }
 
-export async function timbraEntrataProvvisorio(badge: string) {
-  const { rows, rowCount } = await db.query<ArchivioProvvisorio>(
-    "SELECT * FROM archivio_provvisori WHERE data_in IS NULL AND data_out IS NULL AND badge = $1",
-    [badge]
-  );
-  if (rowCount === 0)
+export async function timbraEntrataProvvisorio(data: TimbraBadgeData) {
+  const existsBadge = await getProvvisorioByCodice(data.badge);
+  if (existsBadge.rowCount === 0) {
+    throw new BaseError("Badge non esistente", {
+      status: 400,
+      context: { badge: data.badge },
+    });
+  }
+
+  const { cliente: clienteBadge } = existsBadge.rows[0];
+
+  const postazioneMark = await getPostazioneById(data.postazione);
+  if (postazioneMark.cliente !== clienteBadge) {
+    throw new BaseError("Impossibile timbrare badge di un altro cliente", {
+      status: 400,
+      context: {
+        badge: data.badge,
+        clienteBadge,
+        clientePostazione: postazioneMark.cliente,
+      },
+    });
+  }
+
+  const { rows: rowsInStrutt, rowCount: numRowsInStrutt } =
+    await db.query<ArchivioProvvisorio>(
+      "SELECT * FROM archivio_provvisori WHERE data_in > date_trunc('second', CURRENT_TIMESTAMP) AND badge = $1",
+      [data.badge]
+    );
+  if (numRowsInStrutt === 0)
     throw new BaseError("Badge Provvisorio non valido", {
       status: 400,
-      context: { badge },
+      context: { badge: data.badge },
     });
-  const { id } = rows[0];
 
-  return await db.query<ArchivioProvvisorio>(
-    "UPDATE archivio_provvisori * SET data_in = DEFAULT WHERE id = $1",
-    [id]
-  );
+  const { id } = rowsInStrutt[0];
+
+  const { rows: updatedRows, rowCount: numRowsUpdated } =
+    await db.query<ArchivioProvvisorio>(
+      "UPDATE archivio_provvisori * SET data_in = date_trunc('second', CURRENT_TIMESTAMP) WHERE id = $1 RETURNING data_in",
+      [id]
+    );
+  if (numRowsUpdated === 0) {
+    throw new BaseError("Impossibile timbrare badge", {
+      status: 500,
+      context: { id: rowsInStrutt[0].id, badge: data.badge },
+    });
+  }
+
+  const resRow = { ...rowsInStrutt[0], data_in: updatedRows[0].data_in };
+  return { row: resRow, isEntering: true };
 }
 
-export async function timbraUscitaProvvisorio(badge: string) {
-  const id = await getInStruttRowIdByBadge(badge, "archivio_provvisori");
-  if (!id)
+export async function timbraUscitaProvvisorio(data: TimbraBadgeData) {
+  const existsBadge = await getProvvisorioByCodice(data.badge);
+  if (existsBadge.rowCount === 0) {
+    throw new BaseError("Badge non esistente", {
+      status: 400,
+      context: { badge: data.badge },
+    });
+  }
+
+  const { cliente: clienteBadge } = existsBadge.rows[0];
+
+  const postazioneMark = await getPostazioneById(data.postazione);
+  if (postazioneMark.cliente !== clienteBadge) {
+    throw new BaseError("Impossibile timbrare badge di un altro cliente", {
+      status: 400,
+      context: {
+        badge: data.badge,
+        clienteBadge,
+        clientePostazione: postazioneMark.cliente,
+      },
+    });
+  }
+
+  const { rows: inStruttRows, rowCount: numInStruttRow } = await getInStrutt({
+    codice: data.badge,
+  });
+  if (numInStruttRow === 0) {
     throw new BaseError("Badge non presente in struttura", {
       status: 400,
-      context: { badge },
+      context: { badge: data.badge },
     });
-  return await setRowDateOut(id, "archivio_provvisori");
+  }
+
+  const { rowCount: numUpdatedRows } = await setRowDateOut(
+    inStruttRows[0].id,
+    "archivio_provvisori"
+  );
+  if (numUpdatedRows === 0) {
+    throw new BaseError("Impossibile timbrare badge", {
+      status: 400,
+      context: { id: inStruttRows[0].id, badge: data.badge },
+    });
+  }
+
+  return { row: inStruttRows[0], isEntering: false };
+}
+
+export async function timbraUniversitario(data: TimbraUniData) {
+  const { rows: inStruttRows, rowCount: numInStruttRows } =
+    await db.query<Archivio>(
+      "SELECT * FROM in_strutt WHERE tipo = 'PROVVISORIO' AND ndoc = $1",
+      [data.ndoc]
+    );
+
+  if (numInStruttRows !== 0) {
+    const { rows, rowCount } = await getPostazioni({
+      ids: [data.postazione, inStruttRows[0].postazione],
+    });
+    if (!rowCount || rowCount < 2) {
+      throw new BaseError("Impossibile reperire postazioni", {
+        status: 500,
+        context: {
+          badge: data.ndoc,
+          postazioniId: [[data.postazione, inStruttRows[0].postazione]],
+        },
+      });
+    } else if (rows[0].cliente !== rows[1].cliente) {
+      throw new BaseError("Impossibile timbrare badge di un altro cliente", {
+        status: 400,
+        context: {
+          badge: data.ndoc,
+          clienti: JSON.stringify(rows),
+        },
+      });
+    } else {
+      const { rowCount: numUpdatedRows } = await setRowDateOut(
+        inStruttRows[0].id,
+        "archivio_provvisori"
+      );
+      if (numUpdatedRows === 0) {
+        throw new BaseError("Impossibile timbrare badge", {
+          status: 500,
+          context: { id: inStruttRows[0].id, badge: data.ndoc },
+        });
+      }
+
+      return { row: inStruttRows[0], isEntrata: false };
+    }
+  } else {
+    const queryValues = Object.values(data).filter((v) => v);
+    const { rowCount: numInsertedRows } = await db.insertRow(
+      "archivio_provvisori",
+      queryValues
+    );
+    if (numInsertedRows === 0) {
+      throw new BaseError("Impossibile timbrare badge", {
+        status: 500,
+        context: { badge: data.ndoc },
+      });
+    }
+
+    const { rows: inStruttRows, rowCount: numInStruttRows } =
+      await db.query<Archivio>(
+        "SELECT * FROM in_strutt WHERE tipo = 'PROVVISORIO' AND ndoc = $1",
+        [data.ndoc]
+      );
+    if (numInStruttRows === 0) {
+      throw new BaseError("Impossibile timbrare badge", {
+        status: 500,
+        context: { badge: data.ndoc },
+      });
+    }
+
+    return { row: inStruttRows[0], isEntrata: true };
+  }
 }
 
 export async function timbraChiavi(data: TimbraChiaviData) {
@@ -270,7 +583,7 @@ export async function timbraChiavi(data: TimbraChiaviData) {
       id: number;
       chiave: string;
     }>(
-      "SELECT id, chiave FROM archivio_chiavi WHERE data_out IS NULL AND badge = $1",
+      "SELECT id, chiave FROM archivio_chiavi WHERE data_out > date_trunc('second', CURRENT_TIMESTAMP) AND badge = $1",
       [data.badge]
     );
 

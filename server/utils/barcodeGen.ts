@@ -1,4 +1,4 @@
-import { BadgePrefix } from "../_types/badges.js";
+import { BadgePrefix } from "../types/badges.js";
 
 function murmurhash3_32_gc(key: string, seed = 0) {
   let remainder, bytes, h1, h1b, c1, c2, k1, i;

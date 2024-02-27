@@ -8,7 +8,7 @@ export default router;
 
 router
   .route("/")
-  .get(JwtAuth.verifyToken, PostazioniCtrl.apiGetPostazioni)
+  .get(PostazioniCtrl.apiGetPostazioni)
   .post(
     JwtAuth.verifyToken,
     JwtAuth.isAdmin,

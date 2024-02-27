@@ -57,8 +57,8 @@ export type FindArchivioForm = {
   nome?: string | undefined;
   cognome?: string | undefined;
   ditta?: string | undefined;
-  data_in?: string | undefined;
-  data_out?: string | undefined;
+  data_in_min?: string | undefined;
+  data_in_max?: string | undefined;
 };
 
 export type ProtocolloForm = {

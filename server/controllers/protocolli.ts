@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import * as ProtDB from "../db/protocolli.js";
-import { Err, Ok } from "../_types/index.js";
+import { Err, Ok } from "../types/index.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
-import { BaseError } from "../_types/errors.js";
+import { BaseError } from "../types/errors.js";
 import * as Validator from "../utils/validation.js";
 import * as FileManager from "../files/protocolli.js";
 

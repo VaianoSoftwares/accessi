@@ -1,6 +1,7 @@
 import { BadgeTipo } from "./badges";
 
 export type QueryInStrutt = {
+  id: string;
   codice: string;
   tipo: string;
   assegnazione: string;
@@ -101,8 +102,8 @@ export type FindInPrestitoData = {
 };
 
 export type TimbraRes = {
-  rows: QueryInStrutt[];
-  isEntrata: boolean;
+  row: QueryInStrutt;
+  isEntering: boolean;
 };
 
 export type PrestitoChiaviRes = {

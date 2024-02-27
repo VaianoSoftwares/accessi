@@ -1,10 +1,10 @@
-import { BaseError } from "../_types/errors.js";
+import { BaseError } from "../types/errors.js";
 import {
   Postazione,
   PostazioneUser,
   UpdateUserData,
   User,
-} from "../_types/users.js";
+} from "../types/users.js";
 import { InsertUserData, UpdPostazioniUserData } from "../utils/validation.js";
 import * as db from "./index.js";
 

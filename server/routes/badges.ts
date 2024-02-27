@@ -7,36 +7,108 @@ const router = Router();
 export default router;
 
 router.get("/", JwtAuth.verifyToken, BadgesCtrl.apiGetBadges);
+
 router
-  .route("/nominativi")
-  .post(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiInsertNominativo)
-  .put(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiUpdateNominativo)
-  .delete(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiDeleteNominativo);
-router
-  .route("/provvisori")
-  .post(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiInsertProvvisorio)
-  .put(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiUpdateProvvisorio)
+  .post(
+    "/nominativo",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    BadgesCtrl.apiInsertNominativo
+  )
+  .put(
+    "/nominativo/:codice",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    BadgesCtrl.apiUpdateNominativo
+  )
   .delete(
+    "/nominativo/:codice",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    BadgesCtrl.apiDeleteNominativo
+  );
+
+router
+  .post(
+    "/provvisorio",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    BadgesCtrl.apiInsertProvvisorio
+  )
+  .put(
+    "/provvisorio/:codice",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    BadgesCtrl.apiUpdateProvvisorio
+  )
+  .delete(
+    "/provvisorio/:codice",
     JwtAuth.verifyToken,
     JwtAuth.isAdmin,
     BadgesCtrl.apiDeleteProvvisorio
   );
+
 router
-  .route("/chiavi")
-  .post(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiInsertChiave)
-  .put(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiUpdateChiave)
-  .delete(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiDeleteChiave);
+  .post(
+    "/chiave",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    BadgesCtrl.apiInsertChiave
+  )
+  .put(
+    "/chiave/:codice",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    BadgesCtrl.apiUpdateChiave
+  )
+  .delete(
+    "/chiave/:codice",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    BadgesCtrl.apiDeleteChiave
+  );
+
 router
-  .route("/veicoli")
-  .post(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiInsertVeicolo)
-  .put(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiUpdateVeicolo)
-  .delete(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiDeleteVeicolo);
+  .post(
+    "/veicolo",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    BadgesCtrl.apiInsertVeicolo
+  )
+  .put(
+    "/veicolo/:codice",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    BadgesCtrl.apiUpdateVeicolo
+  )
+  .delete(
+    "/veicolo/:codice",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    BadgesCtrl.apiDeleteVeicolo
+  );
+
 router
-  .route("/persone")
-  .get(JwtAuth.verifyToken, BadgesCtrl.apiGetPersone)
-  .post(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiInsertPersona)
-  .put(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiUpdatePersona)
-  .delete(JwtAuth.verifyToken, JwtAuth.isAdmin, BadgesCtrl.apiDeletePersona);
+  .get("/persona", JwtAuth.verifyToken, BadgesCtrl.apiGetPersone)
+  .post(
+    "/persona",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    BadgesCtrl.apiInsertPersona
+  )
+  .put(
+    "/persona/:ndoc:tdoc",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    BadgesCtrl.apiUpdatePersona
+  )
+  .delete(
+    "/persona/:ndoc:tdoc",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    BadgesCtrl.apiDeletePersona
+  );
+
 router.get("/assegnazioni", BadgesCtrl.apiGetAssegnazioni);
 router.get("/edifici", BadgesCtrl.apiGetEdifici);
 router.get("/tveicoli", BadgesCtrl.apiGetTVeicoli);

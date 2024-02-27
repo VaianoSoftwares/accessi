@@ -2,8 +2,8 @@ import path from "path";
 import fs from "fs/promises";
 import { existsSync } from "fs";
 import { UploadedFile } from "express-fileupload";
-import { BaseError } from "../_types/errors.js";
-import { TDoc } from "../_types/badges.js";
+import { BaseError } from "../types/errors.js";
+import { TDoc } from "../types/badges.js";
 
 const __dirname = path.resolve();
 const PUBLIC_DIR = path.resolve(__dirname, "server", "public");
@@ -80,11 +80,7 @@ export async function deletePrivacy(barcode: string) {
   return { fileName, filePath };
 }
 
-export async function uploadDocumento(
-  ndoc: string,
-  tdoc: TDoc,
-  file: UploadedFile
-) {
+export async function uploadDocumento(ndoc: string, file: UploadedFile) {
   const fileExt = path.extname(file.name);
   const expectedFileExt = ".jpg";
   if (fileExt !== expectedFileExt) {
@@ -101,8 +97,8 @@ export async function uploadDocumento(
     });
   }
 
-  const newName = `DOC_${ndoc}_${tdoc}${fileExt}`;
-  const filePath = path.resolve(PUBLIC_DIR, "foto-profilo", newName);
+  const newName = `DOC_${ndoc}${fileExt}`;
+  const filePath = path.resolve(PUBLIC_DIR, "documenti", newName);
   console.log("File has been uploaded at location", filePath);
 
   await file.mv(filePath);
@@ -110,8 +106,8 @@ export async function uploadDocumento(
 }
 
 export async function deleteDocumento(ndoc: string, tdoc: string) {
-  const fileName = `DOC_${ndoc}_${tdoc}.jpg`;
-  const filePath = path.resolve(PUBLIC_DIR, "foto-profilo", fileName);
+  const fileName = `DOC_${ndoc}.jpg`;
+  const filePath = path.resolve(PUBLIC_DIR, "documenti", fileName);
 
   if (!existsSync(filePath)) return;
 

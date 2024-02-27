@@ -11,28 +11,36 @@ export default function Postazioni() {
 
   const clienti = useQuery({
     queryKey: ["clienti"],
-    queryFn: () =>
-      ClientiDataService.getAll().then((response) => {
-        console.log("queryClienti | response:", response);
+    queryFn: async () => {
+      try {
+        const response = await ClientiDataService.getAll();
         if (response.data.success === false) {
           throw response.data.error;
         }
-        const result = response.data.result;
-        return result;
-      }),
+        console.log("queryClienti | response:", response);
+        return response.data.result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
+      }
+    },
   });
 
   const queryPostazioni = useQuery({
-    queryKey: ["assegnazioni"],
-    queryFn: () =>
-      PostazioniDataService.getAll().then((response) => {
-        console.log("queryPostazioni | response:", response);
+    queryKey: ["postazioni"],
+    queryFn: async () => {
+      try {
+        const response = await PostazioniDataService.getAll();
         if (response.data.success === false) {
           throw response.data.error;
         }
-        const result = response.data.result;
-        return result;
-      }),
+        console.log("queryPostazioni | response:", response);
+        return response.data.result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
+      }
+    },
   });
 
   const addPostazione = useMutation({

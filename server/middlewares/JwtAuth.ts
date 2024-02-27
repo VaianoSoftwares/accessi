@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import * as UsersDB from "../db/users.js";
-import { BaseError } from "../_types/errors.js";
-import { TPermessi, User } from "../_types/users.js";
+import { BaseError } from "../types/errors.js";
+import { TPermessi, User } from "../types/users.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
-import { Err } from "../_types/index.js";
+import { Err } from "../types/index.js";
 import { checkBits } from "../utils/bitwise.js";
 
 declare module "jsonwebtoken" {
@@ -65,7 +65,7 @@ export default class JwtAuth {
       const { user } = req;
       if (!user) {
         throw new BaseError("Server interal error", { status: 500 });
-      } else if (checkBits(user.permessi, flags)) {
+      } else if (checkBits(user.permessi, flags) === false) {
         throw new BaseError("Permessi insufficienti", { status: 401 });
       }
 

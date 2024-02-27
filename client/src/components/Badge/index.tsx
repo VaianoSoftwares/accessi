@@ -53,15 +53,20 @@ export default function Badge({
 
   const assegnazioni = useQuery({
     queryKey: ["assegnazioni"],
-    queryFn: () =>
-      BadgeDataService.getAssegnazioni().then((response) => {
+    queryFn: async () => {
+      try {
+        const response = await BadgeDataService.getAssegnazioni();
+        console.log("queryAssegnazioni | response:", response);
         if (response.data.success === false) {
           throw response.data.error;
         }
-        console.log("queryAssegnazioni | response:", response);
         const result = response.data.result;
         return result;
-      }),
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
+      }
+    },
   });
 
   const queryInStrutt = useQuery({
@@ -69,21 +74,24 @@ export default function Badge({
       "inStrutt",
       {
         tipi: ["NOMINATIVO", "PROVVISORIO"],
-        postazioni: currPostazione ? [currPostazione] : user.postazioni,
+        postazioni: currPostazione ? [currPostazione.id] : user.postazioni,
       },
     ],
-    queryFn: (context) =>
-      ArchivioDataService.getInStrutt(
-        context.queryKey[1] as FindInStruttData
-      ).then((response) => {
+    queryFn: async (context) => {
+      try {
+        const response = await ArchivioDataService.getInStrutt(
+          context.queryKey[1] as FindInStruttData
+        );
         console.log("queryInStrutt | response:", response);
         if (response.data.success === false) {
           throw response.data.error;
         }
-        const result = response.data.result;
-        // TableContentMapper.parseDate(result);
-        return result;
-      }),
+        return response.data.result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
+      }
+    },
   });
 
   const mutateInStrutt = useMutation({
@@ -99,14 +107,13 @@ export default function Badge({
 
       await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
 
-      const result = response.data.result;
+      const { row: timbraRow, isEntering } = response.data.result;
 
-      if (result.isEntrata === false) setDeletedRow(result.rows[0]);
-      else setDeletedRow(undefined);
+      setDeletedRow(isEntering === false ? timbraRow : undefined);
 
       if (readonlyForm === true) {
-        setForm(result.rows[0]);
-        updateImage(result.rows[0].codice);
+        setForm(timbraRow);
+        updateImage(timbraRow.codice);
       }
 
       const badgeTable = document.getElementById(TABLE_NAME);
@@ -114,8 +121,7 @@ export default function Badge({
         ? (badgeTable as HTMLTableElement).tBodies[0].rows[0]
         : null;
       if (firstRow) {
-        if (result.isEntrata === true) firstRow.style.backgroundColor = "green";
-        else firstRow.style.backgroundColor = "red";
+        firstRow.style.backgroundColor = isEntering === true ? "green" : "red";
       }
 
       setTimeout(() => {
@@ -148,7 +154,11 @@ export default function Badge({
   const timeoutRunning = useRef(false);
 
   const [pfpUrl, { updateImage, setNoImage }] = useImage((data) =>
-    data ? `/api/v1/public/foto-profilo/USER_${data}.jpg` : ""
+    data
+      ? `${
+          import.meta.env.DEV ? import.meta.env.VITE_PROXY : ""
+        }/api/v1/public/foto-profilo/PFP_${data}.jpg`
+      : ""
   );
 
   function formToObj() {
@@ -178,26 +188,30 @@ export default function Badge({
   const findInStrutt = useQuery({
     queryKey: ["findInStrutt"],
     queryFn: async () => {
-      const response = await ArchivioDataService.findInStrutt({
-        ...formToObj(),
-        postazioni: currPostazione ? [currPostazione.id] : user.postazioni,
-        tipiBadge: ["NOMINATIVO", "PROVVISORIO"],
-      });
-      console.log("findBadges | response:", response);
+      try {
+        const response = await ArchivioDataService.findInStrutt({
+          ...formToObj(),
+          postazioni: currPostazione ? [currPostazione.id] : user.postazioni,
+          tipiBadge: ["NOMINATIVO", "PROVVISORIO"],
+        });
+        console.log("findBadges | response:", response);
 
-      if (response.data.success === false) {
-        throw response.data.error;
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+
+        const { result } = response.data;
+
+        if (result.length === 1) {
+          setForm(result[0]);
+          updateImage(result[0].codice);
+        }
+
+        return result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
       }
-
-      const result = response.data.result;
-
-      if (result.length === 1) {
-        setForm(result[0]);
-
-        updateImage(result[0].codice);
-      }
-
-      return result;
     },
     enabled: false,
     refetchOnWindowFocus: false,
@@ -233,45 +247,11 @@ export default function Badge({
   }, [scannedValue]);
 
   return (
-    <div id="home-wrapper">
-      <div className="container-fluid m-1 home-container">
+    <div id="badge-wrapper">
+      <div className="container-fluid m-1 badge-container">
         <div className="row justify-content-start align-items-start submit-form">
           <div className="col-6 badge-form">
-            <div className="row mb-2">
-              <div className="form-floating col-sm-6">
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
-                  id="codice"
-                  placeholder="codice"
-                  autoComplete="off"
-                  ref={(el) => (formRef.current.codice = el)}
-                />
-                <label htmlFor="barcode">barcode</label>
-              </div>
-              <div className="form-floating col-sm-6">
-                <select
-                  className="form-select form-select-sm"
-                  id="assegnazione"
-                  placeholder="assegnazione"
-                  ref={(el) => (formRef.current.assegnazione = el)}
-                >
-                  <option key="-1" disabled={readonlyForm === true} />
-                  {assegnazioni.isSuccess &&
-                    assegnazioni.data.map((assegnazione) => (
-                      <option
-                        value={assegnazione}
-                        key={assegnazione}
-                        disabled={readonlyForm === true}
-                      >
-                        {assegnazione}
-                      </option>
-                    ))}
-                </select>
-                <label htmlFor="assegnazione">assegnazione</label>
-              </div>
-            </div>
-            <div className="row mt-2">
+            <div className="row my-1">
               <div className="col-3">
                 <div
                   className="pfp-container"
@@ -282,6 +262,39 @@ export default function Badge({
               </div>
               <div className="col-9">
                 <div className="row">
+                  <div className="form-floating col-sm-6">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="codice"
+                      placeholder="codice"
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.codice = el)}
+                    />
+                    <label htmlFor="barcode">barcode</label>
+                  </div>
+                  <div className="form-floating col-sm-6">
+                    <select
+                      className="form-select form-select-sm"
+                      id="assegnazione"
+                      placeholder="assegnazione"
+                      ref={(el) => (formRef.current.assegnazione = el)}
+                    >
+                      <option key="-1" disabled={readonlyForm === true} />
+                      {assegnazioni.isSuccess &&
+                        assegnazioni.data.map((assegnazione) => (
+                          <option
+                            value={assegnazione}
+                            key={assegnazione}
+                            disabled={readonlyForm === true}
+                          >
+                            {assegnazione}
+                          </option>
+                        ))}
+                    </select>
+                    <label htmlFor="assegnazione">assegnazione</label>
+                  </div>
+                  <div className="w-100" />
                   <div className="form-floating col-sm">
                     <input
                       type="text"
@@ -305,19 +318,6 @@ export default function Badge({
                       ref={(el) => (formRef.current.cognome = el)}
                     />
                     <label htmlFor="cognome">cognome</label>
-                  </div>
-                  <div className="w-100" />
-                  <div className="form-floating col-sm-6">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      id="ditta"
-                      placeholder="ditta"
-                      readOnly={readonlyForm === true}
-                      autoComplete="off"
-                      ref={(el) => (formRef.current.ditta = el)}
-                    />
-                    <label htmlFor="ditta">ditta</label>
                   </div>
                   <div className="w-100" />
                   <div className="form-floating col-sm-6">
@@ -352,8 +352,21 @@ export default function Badge({
                     />
                     <label htmlFor="ndoc">num documento</label>
                   </div>
-                  <div className="w-100 my-1" />
-                  <div className="col-sm-8" />
+                  <div className="w-100" />
+                  <div className="form-floating col-sm-6">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="ditta"
+                      placeholder="ditta"
+                      readOnly={readonlyForm === true}
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.ditta = el)}
+                    />
+                    <label htmlFor="ditta">ditta</label>
+                  </div>
+                  <div className="w-100 mb-4" />
+                  <div className="col" />
                   <div className="in-strutt-count col-sm-4">
                     <b># in struttura:</b> {queryInStrutt.data?.length || 0}
                   </div>
@@ -369,12 +382,12 @@ export default function Badge({
                     <div className="col-auto">
                       <button
                         onClick={() => setReadonlyForm.setToggle()}
-                        className="btn btn-success home-form-btn"
+                        className="btn btn-success badge-form-btn"
                       >
                         Form
                       </button>
                     </div>
-                    <div className="col-auto mx-2 home-form-b">
+                    <div className="col-auto mx-2 badge-form-b">
                       <b
                         style={
                           readonlyForm ? { color: "red" } : { color: "green" }
@@ -390,8 +403,11 @@ export default function Badge({
                 <div className="col">
                   <button
                     onClick={() => {
-                      if (!formRef.current.codice?.value || !currPostazione) {
-                        toast.error("Selezionare la postazione ed un barcode");
+                      if (!currPostazione) {
+                        toast.error("Selezionare la postazione");
+                        return;
+                      } else if (!formRef.current.codice?.value) {
+                        toast.error("Campo Barcode mancante");
                         return;
                       }
 
@@ -400,7 +416,7 @@ export default function Badge({
                         postazione: currPostazione.id,
                       });
                     }}
-                    className="btn btn-success home-form-btn"
+                    className="btn btn-success badge-form-btn"
                   >
                     Timbra
                   </button>
@@ -412,7 +428,7 @@ export default function Badge({
                       <BadgePopup
                         content={findInStrutt.data || []}
                         trigger={
-                          <button className="btn btn-success home-form-btn">
+                          <button className="btn btn-success badge-form-btn">
                             Cerca
                           </button>
                         }
@@ -429,7 +445,7 @@ export default function Badge({
                       onClick={() =>
                         htmlTableToExcel(TABLE_NAME, "in-struttura")
                       }
-                      className="btn btn-success home-form-btn"
+                      className="btn btn-success badge-form-btn"
                     >
                       Esporta
                     </button>
@@ -440,7 +456,7 @@ export default function Badge({
                   <div className="col">
                     <button
                       onClick={() => setIsShown.setTrue()}
-                      className="btn btn-success home-form-btn"
+                      className="btn btn-success badge-form-btn"
                     >
                       Provvisori
                     </button>
@@ -469,11 +485,8 @@ export default function Badge({
                 : queryInStrutt.data
             }
             tableId={TABLE_NAME}
-            omitedParams={["_id", "id"]}
-            dateParams={["data_in", "data_out"]}
-            // obfuscatedParams={
-            //   props.user.admin === true ? undefined : ["codice", "data_in"]
-            // }
+            omitedParams={["id"]}
+            timestampParams={["data_in", "data_out"]}
           />
         )}
       </div>

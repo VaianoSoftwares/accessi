@@ -2,8 +2,6 @@
 vcpkg
 
 *.txt
-*.sh
-*.bat
 
 login.sh
 timbra.sh

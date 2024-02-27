@@ -1,4 +1,4 @@
-import { BaseError } from "../_types/errors.js";
+import { BaseError } from "../types/errors.js";
 
 export default function enforceBaseErr(e: unknown) {
   if (e instanceof BaseError) return e;

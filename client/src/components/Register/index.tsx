@@ -45,13 +45,17 @@ export default function Register() {
   const postazioni = useQuery({
     queryKey: ["postazioni"],
     queryFn: async () => {
-      const response = await PostazioniDataService.getAll();
-      console.log("queryPostazioni | response:", response);
-      if (response.data.success === false) {
-        throw response.data.error;
+      try {
+        const response = await PostazioniDataService.getAll();
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        console.log("queryPostazioni | response:", response);
+        return response.data.result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
       }
-      const result = response.data.result;
-      return result;
     },
   });
 

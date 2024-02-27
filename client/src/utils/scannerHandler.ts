@@ -2,31 +2,37 @@ import React from "react";
 import { toast } from "react-hot-toast";
 import utf8ArrayToStr from "./utf8ArrayToStr";
 
-async function initScanner() {
-  try {
-    const port = await navigator.serial.requestPort();
-    if (!port) throw new Error("Nessun dispositivo selezionato");
-
-    await port.open({ baudRate: 57600 });
-    console.log("initScanner | Aperta porta seriale.", port.getInfo());
-
-    return port;
-  } catch (err) {
-    console.error("initScanner |", err);
-  }
-}
-
-async function readScanner(
-  port: SerialPort,
-  setValue: (value: string) => void
+export default async function runScanner(
+  setValue: (value: string) => void,
+  setScanner: (value: React.SetStateAction<SerialPort | undefined>) => void
 ) {
+  let port: SerialPort;
+  try {
+    port = await navigator.serial.requestPort();
+  } catch (e) {
+    console.error(e);
+    return;
+  }
+
+  try {
+    await port.open({ baudRate: 57600 });
+  } catch (e) {
+    console.error(e);
+    toast.error("Impossibile aprire porta seriale");
+    return;
+  }
+
+  setScanner(port);
+
+  console.log("Dispositivo seriale connesso", port.getInfo());
+
   while (port.readable) {
     const reader = port.readable.getReader();
 
     try {
       while (true) {
         const { value, done } = await reader.read();
-        console.log("readScanner | value:", value, "- done:", done);
+        console.log("readScanner |", { value, done });
 
         if (done) break;
 
@@ -35,34 +41,22 @@ async function readScanner(
           .trim();
         console.log("readScanner | value:", trimmedValue);
 
-        if (trimmedValue.length < 3 || trimmedValue[0] === "-") continue;
-
-        setValue(trimmedValue);
+        if (
+          (trimmedValue.length === 10 || trimmedValue.length === 7) &&
+          /^\d+$/.test(trimmedValue)
+        )
+          setValue(trimmedValue);
       }
-    } catch (err) {
-      console.error("readScanner |", err);
+    } catch (e) {
+      console.error(e);
+      toast.error("Dispositivo seriale disconnesso");
     } finally {
       reader.releaseLock();
+      await port.close();
+
+      setScanner(undefined);
+
+      console.log("readScanner | Chiusa porta seriale", port.getInfo());
     }
-  }
-
-  await port.close();
-  console.log("readScanner | Chiusa porta seriale.", port.getInfo());
-}
-
-export default async function runScanner(
-  setValue: (value: string) => void,
-  setScanner: (value: React.SetStateAction<SerialPort | undefined>) => void
-) {
-  try {
-    const port = await initScanner();
-    if (!port) throw new Error("Impossibile aprire porta seriale");
-
-    setScanner(port);
-    await readScanner(port, setValue);
-    setScanner(undefined);
-  } catch (err) {
-    console.error("runScanner |", err);
-    toast.error(String(err));
   }
 }

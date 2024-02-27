@@ -25,3 +25,8 @@
     font-size: 13px;
     top: -25%;
 }
+
+.archivio-form-btns button {
+    height: 35px;
+    width: 70px;
+}

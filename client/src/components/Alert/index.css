@@ -1,9 +1,0 @@
-.alert-custom {
-    display: "flex";
-    justify-content: "space-between";
-    align-items: "center";
-}
-
-.alert-custom-component {
-    margin-right: 0.5rem;
-}

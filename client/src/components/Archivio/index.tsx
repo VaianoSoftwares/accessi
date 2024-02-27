@@ -1,5 +1,4 @@
 import React from "react";
-import { TableContentMapper } from "../../utils/tableContentMapper";
 import BadgeDataService from "../../services/badge";
 import ArchivioDataService from "../../services/archivio";
 import PostazioniDataService from "../../services/postazioni";
@@ -14,6 +13,7 @@ import Clock from "../Clock";
 import { TLoggedUser } from "../../types/users";
 import { TIPI_BADGE } from "../../types/badges";
 import { FindArchivioForm } from "../../types/forms";
+import { axiosErrHandl } from "../../utils/axiosErrHandl";
 
 const TABLE_ID = "archivio-table";
 
@@ -28,14 +28,14 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
     nome: null,
     cognome: null,
     ditta: null,
-    data_in: null,
-    data_out: null,
+    data_in_min: null,
+    data_in_max: null,
   });
 
   function formToObj(): FindArchivioForm {
     const obj: FindArchivioForm = {};
     Object.entries(formRef.current)
-      .filter(([_, el]) => el !== null)
+      .filter(([, el]) => el !== null)
       .forEach(([key, el]) => (obj[key as keyof FindArchivioForm] = el!.value));
     return obj;
   }
@@ -43,55 +43,70 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
   const assegnazioni = useQuery({
     queryKey: ["assegnazioni"],
     queryFn: async () => {
-      const response = await BadgeDataService.getAssegnazioni();
-      console.log("queryAssegnazioni | response:", response);
-      if (response.data.success === false) {
-        throw response.data.error;
+      try {
+        const response = await BadgeDataService.getAssegnazioni();
+        console.log("queryAssegnazioni | response:", response);
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        return response.data.result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
       }
-      const result = response.data.result;
-      return result;
     },
   });
 
   const postazioni = useQuery({
     queryKey: ["postazioni", user.postazioni],
     queryFn: async (context) => {
-      const response = await PostazioniDataService.get({
-        ids: context.queryKey[1] as number[],
-      });
-      console.log("queryPostazioni | response:", response);
-      if (response.data.success === false) {
-        throw response.data.error;
+      try {
+        const response = await PostazioniDataService.get({
+          ids: context.queryKey[1] as number[],
+        });
+        console.log("queryPostazioni | response:", response);
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        return response.data.result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
       }
-      const result = response.data.result;
-      return result;
     },
   });
 
   const clienti = useQuery({
     queryKey: ["clienti"],
     queryFn: async () => {
-      const response = await ClientiDataService.getAll();
-      console.log("queryClienti | response:", response);
-      if (response.data.success === false) {
-        throw response.data.error;
+      try {
+        const response = await ClientiDataService.getAll();
+        console.log("queryClienti | response:", response);
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        return response.data.result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
       }
-      const result = response.data.result;
-      return result;
     },
   });
 
   const queryArchivio = useQuery({
     queryKey: ["archivio"],
     queryFn: async () => {
-      const response = await ArchivioDataService.getArchivio(formToObj());
-      console.log("findArchivio | response: ", response);
-      if (response.data.success === false) {
-        throw response.data.error;
+      try {
+        const response = await ArchivioDataService.getArchivio(formToObj());
+        console.log("findArchivio | response: ", response);
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        return response.data.result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
       }
-      const result = response.data.result;
-      TableContentMapper.parseDate(result);
-      return result;
     },
     refetchOnWindowFocus: false,
     enabled: false,
@@ -102,14 +117,14 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
       <div className="container-fluid m-1 archivio-container">
         <div className="row mt-2">
           <div className="col-6 archivio-form">
-            <div className="row">
+            <div className="row my-1">
               <div className="form-floating col-sm">
                 <input
                   type="date"
                   className="form-control form-control-sm"
                   id="dataInizio"
                   autoComplete="off"
-                  ref={(el) => (formRef.current.data_in = el)}
+                  ref={(el) => (formRef.current.data_in_min = el)}
                   defaultValue={dateFormat(new Date(), "yyyy-mm-dd")}
                 />
                 <label htmlFor="dataInizio">resoconto inizio</label>
@@ -120,9 +135,9 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                   className="form-control form-control-sm"
                   id="dataFine"
                   autoComplete="off"
-                  ref={(el) => (formRef.current.data_out = el)}
+                  ref={(el) => (formRef.current.data_in_max = el)}
                   defaultValue={dateFormat(new Date(), "yyyy-mm-dd")}
-                  min={formRef.current?.data_out?.value}
+                  min={formRef.current?.data_in_max?.value}
                 />
                 <label htmlFor="dataFine">resoconto fine</label>
               </div>
@@ -238,7 +253,7 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                 <label htmlFor="cognome">cognome</label>
               </div>
               <div className="w-100 mb-1" />
-              <div className="form-floating col-sm">
+              <div className="form-floating col-sm-6">
                 <select
                   className="form-select form-select-sm"
                   id="tipo"
@@ -256,7 +271,7 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
               </div>
             </div>
           </div>
-          <div className="col-1">
+          <div className="col-1 archivio-form-btns">
             <div className="row">
               <div className="col">
                 <button
@@ -284,7 +299,11 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
       </div>
       <div className="archivio-table-wrapper mt-3">
         {queryArchivio.isSuccess && (
-          <BadgeTable content={queryArchivio.data} tableId={TABLE_ID} />
+          <BadgeTable
+            content={queryArchivio.data}
+            tableId={TABLE_ID}
+            timestampParams={["data_in", "data_out"]}
+          />
         )}
       </div>
     </div>

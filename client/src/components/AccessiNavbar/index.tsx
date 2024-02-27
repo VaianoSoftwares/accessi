@@ -15,6 +15,7 @@ import {
   isAdmin,
 } from "../../types/users";
 import { Postazione } from "../../types/badges";
+import { axiosErrHandl } from "../../utils/axiosErrHandl";
 
 export default function AccessiNavbar({
   user,
@@ -42,35 +43,42 @@ export default function AccessiNavbar({
 
   const postazioni = useQuery({
     queryKey: ["postazioni", user.postazioni],
-    queryFn: (context) =>
-      PostazioniDataService.get({
-        ids: context.queryKey[1] as number[],
-      }).then((response) => {
-        console.log("queryPostazioni | response:", response);
+    queryFn: async (context) => {
+      try {
+        const response = await PostazioniDataService.get({
+          ids: context.queryKey[1] as number[],
+        });
         if (response.data.success === false) {
           throw response.data.error;
         }
+        console.log("queryPostazioni | response:", response);
+
         const result = response.data.result;
         !currPostazione &&
           setCurrPostazione(result.length === 1 ? result[0] : undefined);
         return result;
-      }),
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
+      }
+    },
   });
 
   const clienti = useQuery({
     queryKey: ["clienti"],
-    queryFn: () =>
-      ClientiDataService.getAll().then((response) => {
+    queryFn: async () => {
+      try {
+        const response = await ClientiDataService.getAll();
         if (response.data.success === false) {
           throw response.data.error;
         }
         console.log("queryClienti | response:", response);
-        const result = response.data.result;
-        setCurrCliente(
-          result.length === 1 ? currPostazione?.cliente : undefined
-        );
-        return result;
-      }),
+        return response.data.result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
+      }
+    },
   });
 
   async function logout() {

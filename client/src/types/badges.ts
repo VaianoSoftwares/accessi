@@ -1,4 +1,9 @@
-export type BadgeTipo = "PROVVISORIO" | "NOMINATIVO" | "CHIAVE" | "VEICOLO";
+export type BadgeTipo =
+  | "PROVVISORIO"
+  | "NOMINATIVO"
+  | "CHIAVE"
+  | "VEICOLO"
+  | "PERSONA";
 export type BadgeStato = "VALIDO" | "SCADUTO" | "REVOCATO" | "RICONSEGNATO";
 export type TDoc = "CARTA IDENTITA" | "PATENTE" | "TESSERA STUDENTE" | "";
 
@@ -7,6 +12,7 @@ export const TIPI_BADGE: ReadonlyArray<BadgeTipo> = [
   "PROVVISORIO",
   "CHIAVE",
   "VEICOLO",
+  "PERSONA",
 ];
 export const STATI_BADGE: ReadonlyArray<BadgeStato> = [
   "VALIDO",
@@ -81,7 +87,7 @@ export type Badge = Provvisorio &
 
 export type BadgeGenericReq<T> = { data: T; tipoBadge: string };
 export type BadgeFormDataReq = BadgeGenericReq<FormData>;
-export type BadgeDeleteReq = BadgeGenericReq<{ barcode: string }>;
+export type BadgeDeleteReq = BadgeGenericReq<{ codice: string }>;
 
 export type Postazione = {
   id: number;

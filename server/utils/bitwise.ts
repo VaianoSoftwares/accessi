@@ -1,4 +1,4 @@
-import { MAX_UINT32 } from "../_types/index.js";
+import { MAX_UINT32 } from "../types/index.js";
 
 export function checkBits(x: number, y: number) {
   x >>>= 0;

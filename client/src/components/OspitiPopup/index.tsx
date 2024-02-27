@@ -1,12 +1,27 @@
 import { useRef } from "react";
 import Popup from "reactjs-popup";
-import Cf from "codice-fiscale-js";
 import "./index.css";
 import { FormRef, TEventInput } from "../../types";
 import { Postazione, TDOCS } from "../../types/badges";
 import { InsertArchProvForm } from "../../types/forms";
 import toast from "react-hot-toast";
 import { InsertArchProvData } from "../../types/archivio";
+
+function isCodiceFiscale(cf: string) {
+  if (cf.length !== 16) return false;
+
+  cf = cf.toUpperCase();
+
+  if (
+    !/^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST]{1}[0-9LMNPQRSTUV]{2}[A-Z]{1}[0-9LMNPQRSTUV]{3}[A-Z]{1}$/.test(
+      cf
+    )
+  ) {
+    return false;
+  }
+
+  return true;
+}
 
 export default function OspitiPopup(props: {
   isShown: boolean;
@@ -53,12 +68,12 @@ export default function OspitiPopup(props: {
 
   function onChangeNDocOsp(e: TEventInput) {
     const { value } = e.target;
-    if (!value || !Cf.check(value)) return;
+    if (!isCodiceFiscale(value)) return;
 
-    const { name, surname } = Cf.computeInverse(value);
-
-    formRef.current.nome && (formRef.current.nome.value = name);
-    formRef.current.cognome && (formRef.current.cognome.value = surname);
+    formRef.current.nome &&
+      (formRef.current.nome.value = value.substring(3, 6).toUpperCase());
+    formRef.current.cognome &&
+      (formRef.current.cognome.value = value.substring(0, 3).toUpperCase());
     formRef.current.tdoc && (formRef.current.tdoc.value = "CARTA IDENTITA");
   }
 

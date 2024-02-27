@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import * as Validator from "../utils/validation.js";
-import { Err, Ok } from "../_types/index.js";
-import { BaseError } from "../_types/errors.js";
+import { Err, Ok } from "../types/index.js";
+import { BaseError } from "../types/errors.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
 import * as PostazioniDB from "../db/postazioni.js";
 

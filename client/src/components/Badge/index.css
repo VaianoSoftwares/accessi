@@ -1,4 +1,4 @@
-.home-alert-wrapper {
+.badge-alert-wrapper {
     position: absolute;
     left: 70%;
     top: 35%;
@@ -9,7 +9,7 @@
     font-size: 20px;
 }
 
-.home-container {
+.badge-container {
     height: 40%;
     max-height: 40%;
 }
@@ -46,7 +46,7 @@
 }
 
 .badge-form .form-control {
-    height: 35px;
+    height: 38px;
 }
 
 .badge-form .form-select {
@@ -63,11 +63,11 @@
     font-size: 11px;
 }
 
-.home-form-btn {
+.badge-form-btn {
     width: 95px;
     height: 35px;
 }
 
-.home-form-b {
+.badge-form-b {
     font-size: 14px;
 }

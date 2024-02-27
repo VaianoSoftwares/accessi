@@ -1,4 +1,4 @@
-import { BaseError } from "../_types/errors.js";
+import { BaseError } from "../types/errors.js";
 import {
   GetProtocolliFilter,
   InsertProtocolloData,
@@ -13,7 +13,7 @@ export async function getProtocolli(filter?: GetProtocolliFilter) {
     filter &&
     Object.entries(filter)
       .filter(([, value]) => value)
-      .map(([key], i) => {
+      .map(([key, value], i) => {
         switch (key) {
           case "userId":
             return `${i + 1}=ANY(visibile_da_id)`;
@@ -24,7 +24,9 @@ export async function getProtocolli(filter?: GetProtocolliFilter) {
           case "dataFine":
             return `date<=${i + 1}`;
           default:
-            return `${key} LIKE %${i + 1}%`;
+            return typeof value === "string"
+              ? `${key} LIKE $${i + 1}`
+              : `${key}=$${i + 1}`;
         }
       })
       .join(" AND ");
@@ -32,7 +34,11 @@ export async function getProtocolli(filter?: GetProtocolliFilter) {
   const queryText = filterText
     ? [prefixText, filterText].join(" WHERE ")
     : prefixText;
-  const queryValues = filter && Object.values(filter).filter((value) => value);
+  const queryValues =
+    filter &&
+    Object.values(filter)
+      .filter((value) => value)
+      .map((value) => (typeof value === "string" ? `%${value}%` : value));
 
   return await db.query(queryText, queryValues);
 }

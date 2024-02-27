@@ -4,8 +4,8 @@ import * as UsersDB from "../db/users.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
-import { Err, Ok } from "../_types/index.js";
-import { BaseError } from "../_types/errors.js";
+import { Err, Ok } from "../types/index.js";
+import { BaseError } from "../types/errors.js";
 
 async function login(req: Request, res: Response, expiresIn: string | number) {
   try {

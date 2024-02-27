@@ -17,7 +17,10 @@ export default function BadgePopup(props: {
     >
       {props.content.length > 0 ? (
         <div className="popup-table-wrapper" id="popup-table">
-          <BadgeTable content={props.content} />
+          <BadgeTable
+            content={props.content}
+            dateParams={["data_in", "data_out"]}
+          />
         </div>
       ) : (
         "Nessun Risultato Trovato"

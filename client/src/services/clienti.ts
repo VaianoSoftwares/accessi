@@ -3,7 +3,7 @@ import DataServices from "./DataServices";
 
 class ClientiDataService extends DataServices {
   getAll(signal?: GenericAbortSignal) {
-    return super.request<string[]>({ token: true, signal });
+    return super.request<string[]>({ signal });
   }
 
   insert(data: { cliente: string }, signal?: GenericAbortSignal) {

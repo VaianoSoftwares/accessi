@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import { TLoggedUser } from "../../types/users";
 import BadgeDataService from "../../services/badge";
-import PostazioniDataService from "../../services/postazioni";
 import ClientiDataService from "../../services/clienti";
 import toast from "react-hot-toast";
 import useImage from "../../hooks/useImage";
@@ -20,6 +19,7 @@ import {
   TIPI_BADGE,
 } from "../../types/badges";
 import { FormRef, GenericForm } from "../../types";
+import "./index.css";
 
 export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
   const formRef = useRef<FormRef<AnagraficoForm>>({
@@ -55,72 +55,93 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
 
   const clienti = useQuery({
     queryKey: ["clienti"],
-    queryFn: () =>
-      ClientiDataService.getAll().then((response) => {
+    queryFn: async () => {
+      try {
+        const response = await ClientiDataService.getAll();
         if (response.data.success === false) {
           throw response.data.error;
         }
         console.log("queryClienti | response:", response);
-        const result = response.data.result;
-        return result;
-      }),
+        return response.data.result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
+      }
+    },
   });
 
   const assegnazioni = useQuery({
     queryKey: ["assegnazioni"],
-    queryFn: () =>
-      BadgeDataService.getAssegnazioni().then((response) => {
+    queryFn: async () => {
+      try {
+        const response = await BadgeDataService.getAssegnazioni();
         if (response.data.success === false) {
           throw response.data.error;
         }
         console.log("queryAssegnazioni | response:", response);
-        const result = response.data.result;
-        return result;
-      }),
+        return response.data.result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
+      }
+    },
   });
 
   const edifici = useQuery({
     queryKey: ["edifici"],
-    queryFn: () =>
-      BadgeDataService.getEdifici().then((response) => {
+    queryFn: async () => {
+      try {
+        const response = await BadgeDataService.getEdifici();
         if (response.data.success === false) {
           throw response.data.error;
         }
         console.log("queryEdifici | response:", response);
-        const result = response.data.result;
-        return result;
-      }),
+        return response.data.result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
+      }
+    },
   });
 
   const tVeicoli = useQuery({
     queryKey: ["tveicoli"],
-    queryFn: () =>
-      BadgeDataService.getTVeicoli().then((response) => {
+    queryFn: async () => {
+      try {
+        const response = await BadgeDataService.getTVeicoli();
         if (response.data.success === false) {
           throw response.data.error;
         }
         console.log("queryTVeicoli | response:", response);
-        const result = response.data.result;
-        return result;
-      }),
+        return response.data.result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
+      }
+    },
   });
 
   const findBadges = useQuery({
     queryKey: ["badges"],
     queryFn: async () => {
-      const response = await BadgeDataService.find(formToObj());
-      console.log("findBadges | response:", response);
-      if (response.data.success === false) {
-        throw response.data.error;
-      }
+      try {
+        const response = await BadgeDataService.find(formToObj());
+        console.log("findBadges | response:", response);
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
 
-      const result = response.data.result.rows as Badge[];
-      if (result.length === 1) {
-        setForm(result[0]);
-        updateImage(result[0].codice);
-      }
+        const result = response.data.result as Badge[];
+        if (result.length === 1) {
+          setForm(result[0]);
+          updateImage(result[0].codice);
+        }
 
-      return result;
+        return result;
+      } catch (e) {
+        axiosErrHandl(e);
+        return [];
+      }
     },
     enabled: false,
     refetchOnWindowFocus: false,
@@ -169,13 +190,17 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
   });
 
   const [pfpUrl, { updateImage, setNoImage }] = useImage((data) =>
-    data ? `/api/v1/public/foto-profilo/USER_${data}.jpg` : ""
+    data
+      ? `${
+          import.meta.env.DEV ? import.meta.env.VITE_PROXY : ""
+        }/api/v1/public/foto-profilo/PFP_${data}.jpg`
+      : ""
   );
 
   function createFormData() {
     const formData = new FormData();
     Object.entries(formRef.current)
-      .filter(([_, el]) => el !== null)
+      .filter(([_, el]) => el !== null && el.value)
       .forEach(([key, el]) => {
         switch (key) {
           case "tipo":
@@ -224,11 +249,11 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
 
   return (
     <div>
-      <div className="container-fluid m-1 home-container">
+      <div className="container-fluid m-1 anagrafico-container">
         <div className="row justify-content-start align-items-start submit-form">
-          <div className="col-6 badge-form">
-            <div className="row mb-2">
-              <div className="form-floating col-sm-6">
+          <div className="col-8 anagrafico-form">
+            <div className="row my-1">
+              <div className="form-floating col-sm-4">
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -239,7 +264,7 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                 />
                 <label htmlFor="codice">codice</label>
               </div>
-              <div className="form-floating col-sm-6">
+              <div className="form-floating col-sm-4">
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -250,31 +275,31 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                 />
                 <label htmlFor="descrizione">descrizione</label>
               </div>
-              <div className="w-100"></div>
-              <div className="form-floating col-sm-6">
+              <div className="form-floating col-sm-4">
                 <select
                   className="form-select form-select-sm"
                   id="tipo"
                   placeholder="tipo"
                   ref={(el) => (formRef.current.tipo = el)}
                 >
+                  <option key="-1" />
                   {TIPI_BADGE.map((tipo) => (
                     <option value={tipo} key={tipo}>
                       {tipo}
                     </option>
                   ))}
-                  <option value="" key="-1" />
                 </select>
                 <label htmlFor="tipo">tipo</label>
               </div>
-              <div className="form-floating col-sm-6">
+              <div className="w-100"></div>
+              <div className="form-floating col-sm-4">
                 <select
                   className="form-select form-select-sm"
                   id="stato"
                   placeholder="stato"
                   ref={(el) => (formRef.current.stato = el)}
                 >
-                  <option value="" key="-1" />
+                  <option key="-1" />
                   {STATI_BADGE.map((stato) => (
                     <option value={stato} key={stato}>
                       {stato}
@@ -283,15 +308,14 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                 </select>
                 <label htmlFor="stato">stato</label>
               </div>
-              <div className="w-100"></div>
-              <div className="form-floating col-sm-6">
+              <div className="form-floating col-sm-4">
                 <select
                   className="form-select form-select-sm"
                   id="cliente"
                   placeholder="cliente"
                   ref={(el) => (formRef.current.cliente = el)}
                 >
-                  <option value="" key="-1" />
+                  <option key="-1" />
                   {clienti.isSuccess &&
                     clienti.data
                       .filter((cliente) => user.clienti.includes(cliente))
@@ -303,7 +327,7 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                 </select>
                 <label htmlFor="cliente">cliente</label>
               </div>
-              <div className="form-floating col-sm-6">
+              <div className="form-floating col-sm-4">
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -315,7 +339,8 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                 <label htmlFor="ubicazione">ubicazione</label>
               </div>
             </div>
-            <div className="row mt-2">
+            <hr />
+            <div className="row my-1">
               <div className="col-3">
                 <div
                   className="pfp-container"
@@ -323,11 +348,14 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                     backgroundImage: `url(${pfpUrl})`,
                   }}
                 />
-                <div className="input-group input-group-sm">
+                <div className="col-sm input-group custom-input-file custom-input-pfp">
+                  <label htmlFor="pfp" className="input-group-text">
+                    pfp
+                  </label>
                   <input
                     accept="image/*"
                     type="file"
-                    className="custom-file-input"
+                    className="form-control form-control-sm"
                     id="pfp"
                     autoComplete="off"
                     ref={(el) => (formRef.current.pfp = el)}
@@ -341,24 +369,6 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
               </div>
               <div className="col-9">
                 <div className="row">
-                  <div className="form-floating col-sm-6">
-                    <select
-                      className="form-select form-select-sm"
-                      id="assegnazione"
-                      placeholder="assegnazione"
-                      ref={(el) => (formRef.current.assegnazione = el)}
-                    >
-                      <option value="" key="-1" />
-                      {assegnazioni.isSuccess &&
-                        assegnazioni.data.map((assegnazione) => (
-                          <option value={assegnazione} key={assegnazione}>
-                            {assegnazione}
-                          </option>
-                        ))}
-                    </select>
-                    <label htmlFor="assegnazione">assegnazione</label>
-                  </div>
-                  <div className="w-100"></div>
                   <div className="form-floating col-sm">
                     <input
                       type="text"
@@ -412,7 +422,7 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                       placeholder="tipo documento"
                       ref={(el) => (formRef.current.tdoc = el)}
                     >
-                      <option value="" key="-1" />
+                      <option key="-1" />
                       {TDOCS.filter((tipoDoc) => tipoDoc).map((tipoDoc) => (
                         <option value={tipoDoc} key={tipoDoc}>
                           {tipoDoc}
@@ -433,16 +443,22 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                     <label htmlFor="ndoc">num documento</label>
                   </div>
                   <div className="w-100" />
-                  <div className="input-group input-group-sm">
-                    <input
-                      accept="image/*"
-                      type="file"
-                      className="custom-file-input"
-                      id="privacy"
-                      autoComplete="off"
-                      ref={(el) => (formRef.current.privacy = el)}
-                    />
-                    <label htmlFor="privacy">privacy</label>
+                  <div className="form-floating col-sm-6">
+                    <select
+                      className="form-select form-select-sm"
+                      id="assegnazione"
+                      placeholder="assegnazione"
+                      ref={(el) => (formRef.current.assegnazione = el)}
+                    >
+                      <option key="-1" />
+                      {assegnazioni.isSuccess &&
+                        assegnazioni.data.map((assegnazione) => (
+                          <option value={assegnazione} key={assegnazione}>
+                            {assegnazione}
+                          </option>
+                        ))}
+                    </select>
+                    <label htmlFor="assegnazione">assegnazione</label>
                   </div>
                   <div className="form-floating col-sm-6">
                     <input
@@ -455,10 +471,25 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                     />
                     <label htmlFor="scadenza">scadenza</label>
                   </div>
+                  <div className="w-100" />
+                  <div className="col-sm-6 input-group custom-input-file">
+                    <label htmlFor="privacy" className="input-group-text">
+                      privacy
+                    </label>
+                    <input
+                      accept="image/*"
+                      type="file"
+                      className="form-control form-control-sm"
+                      id="privacy"
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.privacy = el)}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="row mt-2">
+            <hr />
+            <div className="row my-1">
               <div className="form-floating col-sm-6">
                 <input
                   type="text"
@@ -489,7 +520,7 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                   placeholder="edificio"
                   ref={(el) => (formRef.current.edificio = el)}
                 >
-                  <option value="" key="-1" />
+                  <option key="-1" />
                   {edifici.isSuccess &&
                     edifici.data.map((edificio) => (
                       <option value={edificio} key={edificio}>
@@ -511,7 +542,8 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                 <label htmlFor="piano">piano</label>
               </div>
             </div>
-            <div className="row mt-2">
+            <hr />
+            <div className="row my-1">
               <div className="form-floating col-sm-6">
                 <select
                   className="form-select form-select-sm"
@@ -519,7 +551,7 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                   placeholder="tipo veicolo"
                   ref={(el) => (formRef.current.tveicolo = el)}
                 >
-                  <option value="" key="-1" />
+                  <option key="-1" />
                   {tVeicoli.isSuccess &&
                     tVeicoli.data.map((tveicolo) => (
                       <option value={tveicolo} key={tveicolo}>
@@ -575,35 +607,37 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                 <label htmlFor="targa4">targa4</label>
               </div>
             </div>
-            <div className="row mt-2">
-              <div className="input-group input-group-sm">
+            <hr />
+            <div className="row my-1">
+              <div className="col-sm-6 input-group custom-input-file">
+                <label htmlFor="documento" className="input-group-text">
+                  documento
+                </label>
                 <input
                   accept="image/*"
                   type="file"
-                  className="custom-file-input"
+                  className="form-control form-control-sm"
                   id="documento"
                   autoComplete="off"
                   ref={(el) => (formRef.current.documento = el)}
                 />
-                <label htmlFor="documento">documento</label>
               </div>
             </div>
           </div>
-          <div className="col-sm-2 form-buttons">
+          <div className="col-sm-1 form-buttons">
             <div className="row align-items-center justify-content-start g-0">
               <div className="col">
                 <button
                   onClick={() => findBadges.refetch()}
-                  className="btn btn-success home-form-btn"
+                  className="btn btn-success anagrafico-form-btn"
                 >
                   Cerca
                 </button>
               </div>
-              <div className="w-100 mt-1" />
-              <div className="col">
+              <div className="col mt-1">
                 <button
                   onClick={() => {
-                    const tipoBadge = formRef.current.tipo?.value;
+                    const tipoBadge = formRef.current.tipo?.value.toLowerCase();
                     if (!tipoBadge) {
                       toast.error("Campo Tipo mancante");
                       return;
@@ -613,13 +647,12 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                       tipoBadge,
                     });
                   }}
-                  className="btn btn-success home-form-btn"
+                  className="btn btn-success anagrafico-form-btn"
                 >
                   Aggiungi
                 </button>
               </div>
-              <div className="w-100 mt-1" />
-              <div className="col">
+              <div className="col mt-1">
                 <button
                   onClick={() => {
                     const confirmed = window.confirm(
@@ -627,7 +660,7 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                     );
                     if (!confirmed) return;
 
-                    const tipoBadge = formRef.current.tipo?.value;
+                    const tipoBadge = formRef.current.tipo?.value.toLowerCase();
                     if (!tipoBadge) {
                       toast.error("Campo Tipo mancante");
                       return;
@@ -638,13 +671,12 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                       tipoBadge,
                     });
                   }}
-                  className="btn btn-success home-form-btn"
+                  className="btn btn-success anagrafico-form-btn"
                 >
                   Aggiorna
                 </button>
               </div>
-              <div className="w-100 mt-1" />
-              <div className="col">
+              <div className="col mt-1">
                 <button
                   onClick={() => {
                     const confirmed = window.confirm(
@@ -652,44 +684,53 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                     );
                     if (!confirmed) return;
 
-                    const tipoBadge = formRef.current.tipo?.value;
+                    const tipoBadge = formRef.current.tipo?.value.toLowerCase();
                     if (!tipoBadge) {
                       toast.error("Campo Tipo mancante");
                       return;
                     }
 
-                    const barcode = formRef.current.codice?.value;
-                    if (!barcode) {
+                    const codice = formRef.current.codice?.value;
+                    if (!codice) {
                       toast.error("Campo Codice mancante");
                       return;
                     }
 
                     deleteBadge.mutate({
-                      data: { barcode },
+                      data: { codice },
                       tipoBadge,
                     });
                   }}
-                  className="btn btn-success home-form-btn"
+                  className="btn btn-success anagrafico-form-btn"
                 >
                   Elimina
                 </button>
               </div>
+              <div className="col mt-1">
+                <button
+                  onClick={() => {
+                    clearForm();
+                    setNoImage();
+                  }}
+                  className="btn btn-success anagrafico-form-btn"
+                >
+                  Refresh
+                </button>
+              </div>
             </div>
           </div>
-          <div className="col-4">
+          <div className="col-3">
             <Clock />
           </div>
         </div>
       </div>
-      <div className="badge-table-wrapper">
+      <div className="anagrafico-table-wrapper">
         {findBadges.isSuccess && (
           <BadgeTable
             content={findBadges.data}
-            tableId="badge-table"
+            tableId="anagrafico-table"
             omitedParams={["_id", "id"]}
-            // obfuscatedParams={
-            //   props.user.admin === true ? undefined : ["codice", "entrata"]
-            // }
+            dateParams={["scadenza"]}
           />
         )}
       </div>
