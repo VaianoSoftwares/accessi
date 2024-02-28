@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS nominativi(
     ndoc VARCHAR(32) NOT NULL CHECK (ndoc != ''),
     tdoc tdoc DEFAULT 'CARTA IDENTITA',
     FOREIGN KEY (cliente) REFERENCES clienti (name),
-    CONSTRAINT expired_badge_is_valid CHECK (stato != 'VALIDO' OR scadenza > current_date)
+    CONSTRAINT expired_badge_is_valid CHECK (stato != 'VALIDO' OR scadenza > current_date),
 );
 
 CREATE TABLE IF NOT EXISTS provvisori(
@@ -354,7 +354,7 @@ CREATE VIEW all_badges AS
     FROM persone);
 
 CREATE VIEW full_archivio AS
-    SELECT * FROM
+    SELECT t.* FROM
     ((SELECT b.codice AS badge, NULL AS chiave, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
     FROM nominativi AS b
     JOIN archivio_nominativi AS a ON badge = a.badge
@@ -381,11 +381,11 @@ CREATE VIEW full_archivio AS
         FROM chiavi AS c
         JOIN archivio_chiavi AS a ON c.codice = a.chiave
     ) AS c
-    WHERE b.chiave = c.codice))
+    WHERE b.chiave = c.codice)) AS t
     WHERE data_out < date_trunc('second', CURRENT_TIMESTAMP);
 
 CREATE VIEW in_strutt AS
-    SELECT * FROM
+    SELECT t.* FROM
     ((SELECT a.id, b.codice, b.descrizione, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4
     FROM nominativi AS b
     JOIN archivio_nominativi AS a ON b.codice = a.badge
@@ -398,7 +398,7 @@ CREATE VIEW in_strutt AS
     (SELECT a.id, v.codice, v.descrizione, 'VEICOLO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, v.nome, v.cognome, v.ditta, v.telefono, v.ndoc, v.tdoc, NULL::assegnazione AS assegnazione, v.tveicolo, v.targa1, v.targa2, v.targa3, v.targa4
     FROM veicoli AS v
     JOIN archivio_veicoli AS a ON v.codice = a.badge
-    JOIN postazioni AS p ON a.postazione = p.id))
+    JOIN postazioni AS p ON a.postazione = p.id)) AS t
     WHERE is_in_strutt(data_in, data_out);
 
 CREATE VIEW in_prestito AS

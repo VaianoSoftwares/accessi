@@ -22,10 +22,17 @@ export async function getBadges(filter?: FindBadgesFilter) {
   const filterText =
     filter &&
     Object.entries(filter)
-      .filter(([, value]) => value)
-      .map(([key, value], i) =>
-        typeof value === "string" ? `${key} LIKE $${i + 1}` : `${key}=$${i + 1}`
-      )
+      .filter(([key, value]) => value)
+      .map(([key, value], i) => {
+        switch (key) {
+          case "scadenza":
+            return `scadenza <= ${i + 1}`;
+          default:
+            return typeof value === "string"
+              ? `${key} LIKE $${i + 1}`
+              : `${key}=$${i + 1}`;
+        }
+      })
       .join(" AND ");
 
   const queryText = filterText

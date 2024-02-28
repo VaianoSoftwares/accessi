@@ -81,6 +81,7 @@ export async function apiInsertNominativo(req: Request, res: Response) {
 
 export async function apiUpdateNominativo(req: Request, res: Response) {
   try {
+    console.log("updnom", req.body);
     const parsed = Validator.UPDATE_NOM_SCHEMA.safeParse({
       codice: req.params.codice,
       updateData: req.body,

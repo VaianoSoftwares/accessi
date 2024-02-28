@@ -239,14 +239,13 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
         switch (mappedKey) {
           case "scadenza":
             el instanceof HTMLInputElement &&
-              (el.value =
-                dateFormat(obj[mappedKey], "yyyy-mm-dd") || el.defaultValue);
+              (el.value = dateFormat(obj[mappedKey], "yyyy-mm-dd"));
             break;
           default:
             if (el instanceof HTMLInputElement)
               el.value = obj[mappedKey] || el.defaultValue;
             else if (el instanceof HTMLSelectElement && el.options.length > 0)
-              el.value = obj[mappedKey] || el.options.item(0)!.value;
+              el.value = obj[mappedKey] || el.options.item(0)?.value;
         }
       });
   }
@@ -471,7 +470,6 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                   <div className="form-floating col-sm-6">
                     <input
                       type="date"
-                      min={dateFormat(new Date(), "yyyy-mm-dd")}
                       className="form-control form-control-sm"
                       id="scadenza"
                       autoComplete="off"

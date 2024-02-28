@@ -48,20 +48,22 @@ export function getUpdateRowsQuery(
   updateData: object,
   filter?: object
 ) {
+  let i = 1;
+
   const updateText = Object.entries(updateData)
     .filter(([, value]) => value)
-    .map(([key], i) => `${key}=$${i + 1}`)
+    .map(([key]) => `${key}=$${i++}`)
     .join(",");
   const updateValues = Object.values(updateData).filter(
     (value) => value !== "" && value !== undefined
   );
 
-  const startIndex = updateValues.length + 1;
-
-  const filterText = Object.entries(updateData)
-    .filter(([, value]) => value)
-    .map(([key], i) => `${key}=$${i + startIndex}`)
-    .join(" AND ");
+  const filterText =
+    filter &&
+    Object.entries(filter)
+      .filter(([, value]) => value)
+      .map(([key]) => `${key}=$${i++}`)
+      .join(" AND ");
   const filterValues =
     filter &&
     Object.values(filter).filter(
