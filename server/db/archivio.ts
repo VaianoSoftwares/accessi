@@ -4,12 +4,12 @@ import {
   ArchivioChiave,
   ArchivioNominativo,
   ArchivioProvvisorio,
-  ArchivioVeicolo,
   BaseArchivio,
   TimbraChiaviData,
   TimbraBadgeData,
   TimbraUniData,
   InStrutt,
+  ArchivioVeicolo,
 } from "../types/archivio.js";
 import { WithId } from "../types/index.js";
 import { BaseError } from "../types/errors.js";
@@ -26,6 +26,7 @@ import {
   getVeicoloByCodice,
 } from "../db/badges.js";
 import { getPostazioneById, getPostazioni } from "./postazioni.js";
+import { Postazione } from "../types/users.js";
 
 export async function getArchivio(filter?: FindArchivioFilter) {
   const prefixText = "SELECT * FROM full_archivio";
@@ -313,7 +314,7 @@ export async function timbraEntrataVeicolo(data: TimbraBadgeData) {
     });
 
   const { rows: insertedRows, rowCount: numRowsInserted } =
-    await db.insertRow<ArchivioNominativo>("archivio_veicoli", data);
+    await db.insertRow<ArchivioVeicolo>("archivio_veicoli", data);
   if (numRowsInserted === 0) {
     throw new BaseError("Impossibile timbrare badge", {
       status: 500,
@@ -550,32 +551,67 @@ export async function timbraChiavi(data: TimbraChiaviData) {
   try {
     await client.query("BEGIN");
 
+    const { rows: postazioniRows, rowCount: numPostazioniRows } =
+      await client.query<Postazione>("SELECT * FROM postazioni WHERE id = $1", [
+        data.postazione,
+      ]);
+    if (numPostazioniRows === 0) {
+      throw new BaseError("Postazione non valida", {
+        status: 400,
+        context: { postazione: data.postazione },
+      });
+    }
+
     const existsBadge = await client.query<Nominativo>(
-      "SELECT codice, stato FROM nominativi WHERE codice = $1",
+      "SELECT * FROM nominativi WHERE codice = $1",
       [data.badge]
     );
-    if (existsBadge.rowCount !== 1) {
+    if (existsBadge.rowCount === 0) {
       throw new BaseError("Badge non valido", {
-        status: 400,
-        context: { badge: data.badge },
-      });
-    } else if (existsBadge.rows[0].stato !== "VALIDO") {
-      throw new BaseError("Badge scaduto", {
         status: 400,
         context: { badge: data.badge },
       });
     }
 
-    const findChiaviQueryText = [
-      "SELECT codice FROM chiavi",
-      data.chiavi.map((_, i) => `codice=$${i + 1}`).join(" OR "),
-    ].join(" WHERE ");
+    const badge = existsBadge.rows[0];
+    const { cliente } = postazioniRows[0];
 
-    const existingChiavi = await client.query(findChiaviQueryText, data.chiavi);
+    if (badge.cliente !== cliente) {
+      throw new BaseError("Impossibile timbrare badge di un altro cliente", {
+        status: 400,
+        context: { codice: badge.codice, cliente: badge.cliente },
+      });
+    } else if (badge.stato !== "VALIDO") {
+      throw new BaseError("Badge non valido", {
+        status: 400,
+        context: { codice: badge.codice, stato: badge.stato },
+      });
+    } else if (
+      existsBadge.rows[0].scadenza &&
+      new Date(existsBadge.rows[0].scadenza) < new Date()
+    ) {
+      throw new BaseError("Badge scaduto", {
+        status: 400,
+        context: { codice: badge.codice, scadenza: badge.scadenza },
+      });
+    }
+
+    const findChiaviQueryText = [
+      "SELECT * FROM chiavi WHERE cliente = $1",
+      data.chiavi.map((_, i) => `codice=$${i + 2}`).join(" OR "),
+    ].join(" AND ");
+    const existingChiavi = await client.query<ArchivioChiave>(
+      findChiaviQueryText,
+      [cliente, ...data.chiavi]
+    );
     if (existingChiavi.rowCount !== data.chiavi.length) {
       throw new BaseError("Una o più chiavi non valide", {
         status: 400,
-        context: { chiavi: data.chiavi },
+        context: {
+          chiavi: data.chiavi,
+          expectedLength: data.chiavi.length,
+          actualLength: existingChiavi.rowCount,
+        },
       });
     }
 
@@ -584,7 +620,7 @@ export async function timbraChiavi(data: TimbraChiaviData) {
       chiave: string;
     }>(
       "SELECT id, chiave FROM archivio_chiavi WHERE data_out > date_trunc('second', CURRENT_TIMESTAMP) AND badge = $1",
-      [data.badge]
+      [data.badge, cliente]
     );
 
     const chiaviIn: string[] = [];

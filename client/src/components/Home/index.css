@@ -1,3 +1,7 @@
+.home-card {
+    height: 100%;
+}
+
 .home-card:hover {
     cursor: pointer;
     background-color: rgb(195, 224, 228);

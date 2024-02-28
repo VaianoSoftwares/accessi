@@ -402,12 +402,19 @@ CREATE VIEW in_strutt AS
     WHERE is_in_strutt(data_in, data_out);
 
 CREATE VIEW in_prestito AS
-    SELECT a.badge, a.chiave, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.ip, b.descrizione AS descr_badge, b.stato, b.assegnazione, b.scadenza, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, c.descrizione AS descr_chiave, c.ubicazione, c.indirizzo, c.citta, c.edificio, c.piano
-    FROM archivio_chiavi AS a
-    JOIN nominativi AS b ON a.badge = b.codice
-    JOIN chiavi AS c ON a.badge = c.codice
-    JOIN postazioni AS p ON a.postazione = p.id
-    WHERE data_out > date_trunc('second', CURRENT_TIMESTAMP);
+    SELECT DISTINCT c.codice AS chiave, b.codice AS badge, b.cliente, b.postazione, b.postazione_id, b.data_in, b.data_out, b.ip, c.indirizzo, c.citta, c.edificio, c.piano, c.descrizione AS descr_chiave, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, b.descrizione AS descr_badge
+    FROM (
+        SELECT a.id, a.badge, a.chiave, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, b.*
+        FROM nominativi AS b
+        JOIN archivio_chiavi AS a ON badge = b.codice
+        JOIN postazioni AS p ON a.postazione = p.id
+    ) AS b
+    CROSS JOIN (
+        SELECT c.*
+        FROM chiavi AS c
+        JOIN archivio_chiavi AS a ON c.codice = a.chiave
+    ) AS c
+    WHERE b.chiave = c.codice AND data_out > date_trunc('second', CURRENT_TIMESTAMP);
 
 CREATE VIEW full_users AS 
     SELECT u.*,
@@ -468,6 +475,8 @@ WHERE tipo = 'NOMINATIVO' OR tipo = 'PROVVISORIO'
 ORDER BY data_in DESC;
 
 SELECT * FROM archivio_nominativi WHERE is_in_strutt(data_in, data_out);
+
+SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, indirizzo, citta, edificio, piano, data_in FROM in_prestito;
 
 -- archivio chiavi
 -- SELECT DISTINCT b.codice AS badge, c.codice AS chiave, b.postazione, b.data_in, b.data_out, b.nome, b.cognome, c.indirizzo

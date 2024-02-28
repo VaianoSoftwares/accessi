@@ -29,7 +29,9 @@ export default function Chiavi({
     queryKey: [
       "inPrestito",
       {
-        postazioni: currPostazione ? [currPostazione] : props.user.postazioni,
+        postazioni: currPostazione
+          ? [currPostazione.id]
+          : props.user.postazioni,
       },
     ],
     queryFn: async (context) => {
@@ -72,6 +74,9 @@ export default function Chiavi({
                     onClick={() => {
                       const barcode = barcodeTxtInput?.current?.value;
                       barcode && props.addScanValue(barcode);
+                      barcodeTxtInput.current &&
+                        (barcodeTxtInput.current.value =
+                          barcodeTxtInput.current.defaultValue);
                     }}
                   >
                     Aggiungi

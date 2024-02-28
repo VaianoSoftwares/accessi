@@ -236,10 +236,18 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
       .filter(([key, el]) => el !== null && key in formRef.current)
       .forEach(([key, el]) => {
         const mappedKey = key as keyof AnagraficoForm;
-        if (el instanceof HTMLInputElement)
-          el.value = obj[mappedKey] || el.defaultValue;
-        else if (el instanceof HTMLSelectElement && el.options.length > 0)
-          el.value = obj[mappedKey] || el.options.item(0)!.value;
+        switch (mappedKey) {
+          case "scadenza":
+            el instanceof HTMLInputElement &&
+              (el.value =
+                dateFormat(obj[mappedKey], "yyyy-mm-dd") || el.defaultValue);
+            break;
+          default:
+            if (el instanceof HTMLInputElement)
+              el.value = obj[mappedKey] || el.defaultValue;
+            else if (el instanceof HTMLSelectElement && el.options.length > 0)
+              el.value = obj[mappedKey] || el.options.item(0)!.value;
+        }
       });
   }
 

@@ -60,8 +60,7 @@ export default function Badge({
         if (response.data.success === false) {
           throw response.data.error;
         }
-        const result = response.data.result;
-        return result;
+        return response.data.result;
       } catch (e) {
         axiosErrHandl(e);
         return [];

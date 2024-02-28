@@ -51,14 +51,27 @@ export async function apiInsertNominativo(req: Request, res: Response) {
       });
     }
 
+    let uploadedFiles = [];
+
     const pfp =
       req.files?.pfp &&
       (Array.isArray(req.files.pfp) ? req.files.pfp[0] : req.files.pfp);
     if (pfp) {
-      await Filemanager.uploadPfp(codice, pfp);
+      const uploadedFile = await Filemanager.uploadPfp(codice, pfp);
+      uploadedFiles.push(uploadedFile);
     }
 
-    res.json(Ok(dbRes));
+    const privacy =
+      req.files?.privacy &&
+      (Array.isArray(req.files.privacy)
+        ? req.files.privacy[0]
+        : req.files.privacy);
+    if (privacy) {
+      const uploadedFile = await Filemanager.uploadPrivacy(codice, privacy);
+      uploadedFiles.push(uploadedFile);
+    }
+
+    res.json(Ok({ ...dbRes, uploadedFiles }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -68,9 +81,8 @@ export async function apiInsertNominativo(req: Request, res: Response) {
 
 export async function apiUpdateNominativo(req: Request, res: Response) {
   try {
-    const { codice } = req.params;
     const parsed = Validator.UPDATE_NOM_SCHEMA.safeParse({
-      codice,
+      codice: req.params.codice,
       updateData: req.body,
     });
     if (parsed.success === false) {
@@ -80,22 +92,38 @@ export async function apiUpdateNominativo(req: Request, res: Response) {
       });
     }
 
-    const dbRes = await BadgesDB.updateNominativo(codice, parsed.data);
-    if (dbRes.rowCount === 0) {
-      throw new BaseError("Impossibile modificare badge", {
-        status: 500,
-        context: { codice: parsed.data.codice },
-      });
-    }
+    const { codice, updateData } = parsed.data;
+
+    const dbRes = await BadgesDB.updateNominativo(codice, updateData);
+
+    let uploadedFiles = [];
 
     const pfp =
       req.files?.pfp &&
       (Array.isArray(req.files.pfp) ? req.files.pfp[0] : req.files.pfp);
     if (pfp) {
-      await Filemanager.uploadPfp(codice, pfp);
+      const uploadedFile = await Filemanager.uploadPfp(codice, pfp);
+      uploadedFiles.push(uploadedFile);
     }
 
-    res.json(Ok(dbRes));
+    const privacy =
+      req.files?.privacy &&
+      (Array.isArray(req.files.privacy)
+        ? req.files.privacy[0]
+        : req.files.privacy);
+    if (privacy) {
+      const uploadedFile = await Filemanager.uploadPrivacy(codice, privacy);
+      uploadedFiles.push(uploadedFile);
+    }
+
+    if (dbRes.rowCount === 0 && uploadedFiles.length === 0) {
+      throw new BaseError("Impossibile modificare badge", {
+        status: 500,
+        context: { codice },
+      });
+    }
+
+    res.json(Ok({ ...dbRes, uploadedFiles }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -123,9 +151,10 @@ export async function apiDeleteNominativo(req: Request, res: Response) {
       });
     }
 
-    await Filemanager.deletePfp(codice);
+    const deletedPfp = await Filemanager.deletePfp(codice);
+    const deletedPrivacy = await Filemanager.deletePrivacy(codice);
 
-    res.json(Ok(dbRes));
+    res.json(Ok({ ...dbRes, deletedFiles: [deletedPfp, deletedPrivacy] }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -169,9 +198,8 @@ export async function apiInsertProvvisorio(req: Request, res: Response) {
 }
 export async function apiUpdateProvvisorio(req: Request, res: Response) {
   try {
-    const { codice } = req.params;
     const parsed = Validator.UPDATE_PROVV_SCHEMA.safeParse({
-      codice,
+      codice: req.params.codice,
       updateData: req.body,
     });
     if (parsed.success === false) {
@@ -181,11 +209,13 @@ export async function apiUpdateProvvisorio(req: Request, res: Response) {
       });
     }
 
-    const dbRes = await BadgesDB.updateProvvisorio(codice, parsed.data);
+    const { codice, updateData } = parsed.data;
+
+    const dbRes = await BadgesDB.updateProvvisorio(codice, updateData);
     if (dbRes.rowCount === 0) {
       throw new BaseError("Impossibile modificare badge", {
         status: 500,
-        context: { codice: parsed.data.codice },
+        context: { codice },
       });
     }
 
@@ -257,9 +287,8 @@ export async function apiInsertChiave(req: Request, res: Response) {
 }
 export async function apiUpdateChiave(req: Request, res: Response) {
   try {
-    const { codice } = req.params;
     const parsed = Validator.UPDATE_CHIAVE_SCHEMA.safeParse({
-      codice,
+      codice: req.params.codice,
       updateData: req.body,
     });
     if (parsed.success === false) {
@@ -269,11 +298,13 @@ export async function apiUpdateChiave(req: Request, res: Response) {
       });
     }
 
-    const dbRes = await BadgesDB.updateChiave(codice, parsed.data);
+    const { codice, updateData } = parsed.data;
+
+    const dbRes = await BadgesDB.updateChiave(codice, updateData);
     if (dbRes.rowCount === 0) {
       throw new BaseError("Impossibile modificare badge", {
         status: 500,
-        context: { codice: parsed.data.codice },
+        context: { codice },
       });
     }
 
@@ -346,9 +377,8 @@ export async function apiInsertVeicolo(req: Request, res: Response) {
 
 export async function apiUpdateVeicolo(req: Request, res: Response) {
   try {
-    const { codice } = req.params;
     const parsed = Validator.UPDATE_VEICOLO_SCHEMA.safeParse({
-      codice,
+      codice: req.params.codice,
       updateData: req.body,
     });
     if (parsed.success === false) {
@@ -358,11 +388,13 @@ export async function apiUpdateVeicolo(req: Request, res: Response) {
       });
     }
 
-    const dbRes = await BadgesDB.updateVeicolo(codice, parsed.data);
+    const { codice, updateData } = parsed.data;
+
+    const dbRes = await BadgesDB.updateVeicolo(codice, updateData);
     if (dbRes.rowCount === 0) {
       throw new BaseError("Impossibile modificare badge", {
         status: 500,
-        context: { codice: parsed.data.codice },
+        context: { codice },
       });
     }
 
@@ -440,16 +472,17 @@ export async function apiInsertPersona(req: Request, res: Response) {
       });
     }
 
+    let uploadedFile;
     const docFile =
       req.files?.documento &&
       (Array.isArray(req.files.documento)
         ? req.files.documento[0]
         : req.files.documento);
     if (docFile) {
-      await Filemanager.uploadDocumento(ndoc, docFile);
+      uploadedFile = await Filemanager.uploadDocumento(ndoc, docFile);
     }
 
-    res.json(Ok(dbRes));
+    res.json(Ok({ ...dbRes, uploadedFile }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -458,9 +491,8 @@ export async function apiInsertPersona(req: Request, res: Response) {
 }
 export async function apiUpdatePersona(req: Request, res: Response) {
   try {
-    const { ndoc, tdoc } = req.params;
     const parsed = Validator.UPDATE_PERSONA_SCHEMA.safeParse({
-      docInfo: { ndoc, tdoc },
+      docInfo: req.params,
       updateData: req.body,
     });
     if (parsed.success === false) {
@@ -470,31 +502,29 @@ export async function apiUpdatePersona(req: Request, res: Response) {
       });
     }
 
-    const dbRes = await BadgesDB.updatePersona(
-      { ndoc, tdoc: tdoc as TDoc },
-      {
-        ...parsed.data,
-        tdoc:
-          parsed.data.updateData.tdoc && (parsed.data.updateData.tdoc as TDoc),
-      }
-    );
-    if (dbRes.rowCount === 0) {
-      throw new BaseError("Impossibile modificare persona", {
-        status: 500,
-        context: { ndoc, tdoc },
-      });
-    }
+    const { ndoc, tdoc } = parsed.data.docInfo;
+    const { updateData } = parsed.data;
 
+    const dbRes = await BadgesDB.updatePersona({ ndoc, tdoc }, updateData);
+
+    let uploadedFile;
     const docFile =
       req.files?.documento &&
       (Array.isArray(req.files.documento)
         ? req.files.documento[0]
         : req.files.documento);
     if (docFile) {
-      await Filemanager.uploadDocumento(ndoc, docFile);
+      uploadedFile = await Filemanager.uploadDocumento(ndoc, docFile);
     }
 
-    res.json(Ok(dbRes));
+    if (dbRes.rowCount === 0 && !uploadedFile) {
+      throw new BaseError("Impossibile modificare badge", {
+        status: 500,
+        context: { ndoc, tdoc },
+      });
+    }
+
+    res.json(Ok({ ...dbRes, uploadedFile }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -522,9 +552,9 @@ export async function apiDeletePersona(req: Request, res: Response) {
       });
     }
 
-    await Filemanager.deleteDocumento(ndoc, tdoc);
+    const deletedFile = await Filemanager.deleteDocumento(ndoc, tdoc);
 
-    res.json(Ok(dbRes));
+    res.json(Ok({ ...dbRes, deletedFile }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);

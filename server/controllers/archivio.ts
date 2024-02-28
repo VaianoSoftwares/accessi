@@ -129,17 +129,47 @@ export async function apiTimbraChiavi(req: Request, res: Response) {
       throw new BaseError(parsed.error.errors[0].message, {
         status: 400,
         cause: parsed.error,
+        context: req.body,
       });
     }
 
-    const timbraData = {
-      ...parsed.data,
-      badge: parsed.data.badge.substring(1),
-      chiavi: Array.from(new Set(parsed.data.chiavi)),
-      ip: req.ip,
-    };
+    let badge: string | null = null;
+    let chiavi: string[] = [];
+    Array.from(new Set(parsed.data.barcodes))
+      .map((barcode) =>
+        barcode.length === 10 ? barcode.substring(1) : barcode
+      )
+      .forEach((barcode) => {
+        const prefix = barcode.substring(0, 1);
 
-    const dbRes = await ArchivioDB.timbraChiavi(timbraData);
+        switch (prefix) {
+          case "0":
+            badge = barcode;
+            break;
+          case "2":
+            chiavi.push(barcode);
+            break;
+        }
+      });
+
+    if (!badge) {
+      throw new BaseError("Nessun badge selezionato", {
+        status: 400,
+        context: { barcodes: parsed.data.barcodes },
+      });
+    } else if (chiavi.length === 0) {
+      throw new BaseError("Nessuna chiave selezionata", {
+        status: 400,
+        context: { barcodes: parsed.data.barcodes },
+      });
+    }
+
+    const dbRes = await ArchivioDB.timbraChiavi({
+      ...parsed.data,
+      badge,
+      chiavi,
+      ip: req.ip,
+    });
 
     res.json(Ok(dbRes));
   } catch (e) {

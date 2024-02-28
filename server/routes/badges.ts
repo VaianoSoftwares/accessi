@@ -97,13 +97,13 @@ router
     BadgesCtrl.apiInsertPersona
   )
   .put(
-    "/persona/:ndoc:tdoc",
+    "/persona/:ndoc/:tdoc",
     JwtAuth.verifyToken,
     JwtAuth.isAdmin,
     BadgesCtrl.apiUpdatePersona
   )
   .delete(
-    "/persona/:ndoc:tdoc",
+    "/persona/:ndoc/:tdoc",
     JwtAuth.verifyToken,
     JwtAuth.isAdmin,
     BadgesCtrl.apiDeletePersona

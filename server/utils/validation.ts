@@ -425,12 +425,18 @@ export const TIMBRA_BADGE_SCHEMA = z.object({
 });
 
 export const TIMBRA_CHIAVI_SCHEMA = z.object({
-  badge: z.union([BARCODE_NOM_ENTRA_SCHEMA, BARCODE_NOM_ESCE_SCHEMA]),
   postazione: ID_SCHEMA("Postazione ID"),
-  chiavi: z
-    .union([BARCODE_CHIAVE_ENTRA_SCHEMA, BARCODE_CHIAVE_ESCE_SCHEMA])
+  barcodes: z
+    .union([
+      BARCODE_CHIAVE_ENTRA_SCHEMA,
+      BARCODE_CHIAVE_ESCE_SCHEMA,
+      BARCODE_NOM_ENTRA_SCHEMA,
+      BARCODE_NOM_ESCE_SCHEMA,
+      CODICE_CHIAVE_SCHEMA,
+      CODICE_NOM_SCHEMA,
+    ])
     .array()
-    .nonempty(MISSING_ATTR_ERR_MSG("Chiavi")),
+    .nonempty(MISSING_ATTR_ERR_MSG("Barcodes")),
 });
 
 export const INSERT_ARCH_PROV_SCHEMA = z.object({
