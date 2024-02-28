@@ -57,9 +57,11 @@ export async function getArchivio(filter?: FindArchivioFilter) {
     : [prefixText, "ORDER BY data_in DESC, tipo"].join(" ");
   const queryValues =
     filter &&
-    Object.values(filter)
-      .filter((value) => value)
-      .map((value) => (typeof value === "string" ? `%${value}%` : value));
+    Object.entries(filter)
+      .filter(([, value]) => value)
+      .map(([key, value]) =>
+        key.includes("data") ? new Date(String(value)) : `%${value}%`
+      );
 
   return await db.query<Archivio>(queryText, queryValues);
 }
@@ -105,9 +107,11 @@ export async function getInStrutt(filter?: FindInStruttFilter) {
     : [prefixText, "ORDER BY data_in DESC, tipo"].join(" ");
   const queryValues =
     filter &&
-    Object.values(filter)
-      .filter((value) => value)
-      .map((value) => (typeof value === "string" ? `%${value}%` : value))
+    Object.entries(filter)
+      .filter(([, value]) => value)
+      .map(([key, value]) =>
+        key.includes("data") ? new Date(String(value)) : `%${value}%`
+      )
       .flat();
 
   return await db.query<InStrutt>(queryText, queryValues);
@@ -148,9 +152,11 @@ export async function getInPrestito(filter?: FindInPrestitoFilter) {
     : prefixText;
   const queryValues =
     filter &&
-    Object.values(filter)
-      .filter((value) => value)
-      .map((value) => (typeof value === "string" ? `%${value}%` : value))
+    Object.entries(filter)
+      .filter(([, value]) => value)
+      .map(([key, value]) =>
+        key.includes("data") ? new Date(String(value)) : `%${value}%`
+      )
       .flat();
 
   return await db.query<ArchivioChiave>(queryText, queryValues);

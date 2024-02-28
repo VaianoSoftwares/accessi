@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS nominativi(
     ndoc VARCHAR(32) NOT NULL CHECK (ndoc != ''),
     tdoc tdoc DEFAULT 'CARTA IDENTITA',
     FOREIGN KEY (cliente) REFERENCES clienti (name),
-    CONSTRAINT expired_badge_is_valid CHECK (stato != 'VALIDO' OR scadenza > current_date),
+    CONSTRAINT expired_badge_is_valid CHECK (stato != 'VALIDO' OR scadenza > current_date)
 );
 
 CREATE TABLE IF NOT EXISTS provvisori(
