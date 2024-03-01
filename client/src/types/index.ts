@@ -22,6 +22,10 @@ export type TEventInput = React.ChangeEvent<HTMLInputElement>;
 export type TEventSelect = React.ChangeEvent<HTMLSelectElement>;
 export type TEvent = TEventInput | TEventSelect;
 
+export type HTMLElementEvent<T extends HTMLElement = HTMLElement> = Event & {
+  target: T;
+};
+
 export type TAssegnazione = {
   badge: BadgeTipo;
   name: string;

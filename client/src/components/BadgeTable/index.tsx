@@ -1,8 +1,12 @@
 import { MouseEventHandler } from "react";
 import "./index.css";
 import dateFormat from "dateformat";
+import { HTMLElementEvent } from "../../types";
 
-export default function BadgeTable(props: {
+export default function BadgeTable({
+  clickRowEvent,
+  ...props
+}: {
   content: Record<PropertyKey, any>[];
   tableId?: string;
   omitedParams?: string[];
@@ -10,7 +14,7 @@ export default function BadgeTable(props: {
   timestampParams?: string[];
   dateParams?: string[];
   keyAttribute?: string;
-  clickRowEvent?: MouseEventHandler;
+  clickRowEvent?: (e: HTMLElementEvent) => void;
 }) {
   function parseTableTdContent({ key, value }: { key: string; value: any }) {
     if (props?.obfuscatedParams?.includes?.(key)) return "XXXXX";
@@ -48,11 +52,15 @@ export default function BadgeTable(props: {
               <tr
                 key={i}
                 className={
-                  props.clickRowEvent === undefined
+                  clickRowEvent === undefined
                     ? "badge-table-tr"
                     : "badge-table-tr clickable-tr"
                 }
-                onClick={props.clickRowEvent}
+                onClick={
+                  clickRowEvent === undefined
+                    ? undefined
+                    : (e) => clickRowEvent(e as any)
+                }
                 data-key={
                   props.keyAttribute &&
                   props.keyAttribute in elem &&

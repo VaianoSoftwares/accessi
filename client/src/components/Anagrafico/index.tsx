@@ -744,7 +744,6 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
             tableId="anagrafico-table"
             dateParams={["scadenza"]}
             clickRowEvent={(e) => {
-              if (e.target instanceof HTMLElement === false) return;
               const codice = e.target.parentElement?.dataset["key"];
               if (!codice) return;
               setForm({ codice });
