@@ -476,7 +476,10 @@ ORDER BY data_in DESC;
 
 SELECT * FROM archivio_nominativi WHERE is_in_strutt(data_in, data_out);
 
-SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, indirizzo, citta, edificio, piano, data_in FROM in_prestito;
+-- SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, indirizzo, citta, edificio, piano, data_in FROM in_prestito;
+
+SELECT badge, chiave, postazione, data_in, data_out, nome, cognome, indirizzo FROM full_archivio
+WHERE data_in > '2023-12-20' AND data_in < '2023-12-22';
 
 -- archivio chiavi
 -- SELECT DISTINCT b.codice AS badge, c.codice AS chiave, b.postazione, b.data_in, b.data_out, b.nome, b.cognome, c.indirizzo

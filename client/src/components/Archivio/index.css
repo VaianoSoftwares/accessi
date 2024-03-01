@@ -1,9 +1,9 @@
 .archivio-container {
-    height: 25%;
+    height: 10%;
 }
 
 .archivio-table-wrapper {
-    height: 75%;
+    height: 90%;
     overflow: auto;
 }
 

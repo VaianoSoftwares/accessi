@@ -1,5 +1,6 @@
 import * as db from "./index.js";
 import {
+  Chiave,
   ChiaveInsertData,
   ChiaveUpdateData,
   DeletePersonaData,
@@ -7,6 +8,7 @@ import {
   Nominativo,
   NominativoInsertData,
   NominativoUpdateData,
+  Persona,
   Provvisorio,
   ProvvisorioInsertData,
   ProvvisorioUpdateData,
@@ -22,7 +24,7 @@ export async function getBadges(filter?: FindBadgesFilter) {
   const filterText =
     filter &&
     Object.entries(filter)
-      .filter(([key, value]) => value)
+      .filter(([, value]) => value)
       .map(([key, value], i) => {
         switch (key) {
           case "scadenza":
@@ -40,59 +42,62 @@ export async function getBadges(filter?: FindBadgesFilter) {
     : [prefixText, "ORDER BY tipo"].join(" ");
   const queryValues =
     filter &&
-    Object.values(filter)
-      .filter((value) => value)
-      .map((value) => (typeof value === "string" ? `%${value}%` : value));
+    Object.entries(filter)
+      .filter(([, value]) => value)
+      .map(([key, value]) =>
+        key === "scadenza" || typeof value !== "string" ? value : `%${value}%`
+      )
+      .flat();
 
   return await db.query(queryText, queryValues);
 }
 
 export function insertProvvisorio(data: ProvvisorioInsertData) {
-  return db.insertRow("provvisori", data);
+  return db.insertRow<Provvisorio>("provvisori", data);
 }
 
 export function updateProvvisorio(codice: string, data: ProvvisorioUpdateData) {
-  return db.updateRows("provvisori", data, { codice });
+  return db.updateRows<Provvisorio>("provvisori", data, { codice });
 }
 
 export function deleteProvvisorio(codice: string) {
-  return db.deleteRows("provvisori", { codice });
+  return db.deleteRows<Provvisorio>("provvisori", { codice });
 }
 
 export function insertNominativo(data: NominativoInsertData) {
-  return db.insertRow("nominativi", data);
+  return db.insertRow<Nominativo>("nominativi", data);
 }
 
 export function updateNominativo(codice: string, data: NominativoUpdateData) {
-  return db.updateRows("nominativi", data, { codice });
+  return db.updateRows<Nominativo>("nominativi", data, { codice });
 }
 
 export function deleteNominativo(codice: string) {
-  return db.deleteRows("nominativi", { codice });
+  return db.deleteRows<Nominativo>("nominativi", { codice });
 }
 
 export function insertChiave(data: ChiaveInsertData) {
-  return db.insertRow("chiavi", data);
+  return db.insertRow<Chiave>("chiavi", data);
 }
 
 export function updateChiave(codice: string, data: ChiaveUpdateData) {
-  return db.updateRows("chiavi", data, { codice });
+  return db.updateRows<Chiave>("chiavi", data, { codice });
 }
 
 export function deleteChiave(codice: string) {
-  return db.deleteRows("chiavi", { codice });
+  return db.deleteRows<Chiave>("chiavi", { codice });
 }
 
 export function insertVeicolo(data: VeicoloInsertData) {
-  return db.insertRow("veicoli", data);
+  return db.insertRow<Veicolo>("veicoli", data);
 }
 
 export function updateVeicolo(codice: string, data: VeicoloUpdateData) {
-  return db.updateRows("veicoli", data, { codice });
+  return db.updateRows<Veicolo>("veicoli", data, { codice });
 }
 
 export function deleteVeicolo(codice: string) {
-  return db.deleteRows("veicoli", { codice });
+  return db.deleteRows<Veicolo>("veicoli", { codice });
 }
 
 export async function getPersone(filter?: FindPersoneFilter) {
@@ -111,26 +116,26 @@ export async function getPersone(filter?: FindPersoneFilter) {
     : prefixText;
   const queryValues =
     filter &&
-    Object.values(filter)
-      .filter((value) => value)
-      .map((value) => (typeof value === "string" ? `%${value}%` : value));
+    Object.entries(filter)
+      .filter(([, value]) => value)
+      .map(([, value]) => (typeof value === "string" ? `%${value}%` : value));
 
   return await db.query(queryText, queryValues);
 }
 
 export function insertPersona(data: InsertPersonaData) {
-  return db.insertRow("persone", data);
+  return db.insertRow<Persona>("persone", data);
 }
 
 export function updatePersona(
   data: UpdatePersonaData,
   filter?: FindPersoneFilter
 ) {
-  return db.updateRows("persone", data, filter);
+  return db.updateRows<Persona>("persone", data, filter);
 }
 
 export function deletePersona(data: DeletePersonaData) {
-  return db.deleteRows("persone", data);
+  return db.deleteRows<Persona>("persone", data);
 }
 
 export function getAssegnazioni() {

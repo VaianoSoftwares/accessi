@@ -28,3 +28,7 @@
 .badge-table-td {
     white-space: nowrap;
 }
+
+.clickable-tr:hover {
+    cursor: pointer;
+}

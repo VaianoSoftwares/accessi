@@ -73,8 +73,8 @@ export function getUpdateRowsQuery(
   const prefixText = `UPDATE ${tableName} SET ${updateText}`;
 
   const queryText = filterText
-    ? [prefixText, filterText].join(" WHERE ")
-    : prefixText;
+    ? [prefixText, "WHERE", filterText, "RETURNING *"].join(" ")
+    : [prefixText, "RETURNING *"].join(" ");
   const queryValues = updateValues.concat(filterValues);
 
   return { queryText, queryValues };
@@ -91,8 +91,8 @@ export function getDeleteRowsQuery(tableName: string, filter?: object) {
 
   const queryValues = filter && Object.values(filter).filter((value) => value);
   const queryText = filterText
-    ? [prefixText, filterText].join(" WHERE ")
-    : prefixText;
+    ? [prefixText, "WHERE", filterText, "RETURNING *"].join(" ")
+    : [prefixText, "RETURNING *"].join(" ");
 
   return { queryText, queryValues };
 }

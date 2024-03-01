@@ -110,10 +110,14 @@ export async function getInStrutt(filter?: FindInStruttFilter) {
     Object.entries(filter)
       .filter(([, value]) => value)
       .map(([key, value]) =>
-        key.includes("data") ? new Date(String(value)) : `%${value}%`
+        Array.isArray(value) ||
+        key.includes("data") ||
+        typeof value !== "string"
+          ? value
+          : `%${value}%`
       )
       .flat();
-
+  console.log("instrutt", { queryText, queryValues });
   return await db.query<InStrutt>(queryText, queryValues);
 }
 
@@ -155,7 +159,11 @@ export async function getInPrestito(filter?: FindInPrestitoFilter) {
     Object.entries(filter)
       .filter(([, value]) => value)
       .map(([key, value]) =>
-        key.includes("data") ? new Date(String(value)) : `%${value}%`
+        Array.isArray(value) ||
+        key.includes("data") ||
+        typeof value !== "string"
+          ? value
+          : `%${value}%`
       )
       .flat();
 

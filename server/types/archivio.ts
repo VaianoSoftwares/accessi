@@ -44,18 +44,6 @@ export type ArchivioFilter = Partial<Archivio> & {
   data_out_min?: string | null | undefined;
   data_out_max?: string | null | undefined;
 };
-// export type InStruttFilter = Partial<ArchivioNominativo & ArchivioVeicolo> & {
-//   tipo?: string | null | undefined;
-//   tipi?: string[] | null | undefined;
-//   postazioni?: number[] | null | undefined;
-//   data_in_min?: string | null | undefined;
-//   data_in_max?: string | null | undefined;
-// };
-// export type InPrestitoFilter = Partial<ArchivioChiave> & {
-//   postazioni?: number[] | null | undefined;
-//   data_in_min?: string | null | undefined;
-//   data_in_max?: string | null | undefined;
-// };
 
 export type TimbraBadgeData = Omit<BaseArchivio, "data_in" | "data_out">;
 export type TimbraChiaveData = TimbraBadgeData & {

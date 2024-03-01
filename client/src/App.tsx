@@ -13,6 +13,7 @@ import Loader from "./components/Loader";
 import { canAccessPage, isAdmin, TLoggedUser } from "./types/users";
 import { TPages } from "./types/pages";
 import { Postazione } from "./types/badges";
+import useIsMobile from "./hooks/useIsMobile";
 
 const Badge = lazy(() => import("./components/Badge"));
 const Chiavi = lazy(() => import("./components/Chiavi"));
@@ -27,6 +28,8 @@ const Postazioni = lazy(() => import("./components/Postazioni"));
 const Clienti = lazy(() => import("./components/Clienti"));
 
 export default function App() {
+  const { isMobile } = useIsMobile();
+
   const [user, setUser] = useSessionStorage<TLoggedUser | null>("user", null);
 
   const [currPostazione, setCurrPostazione] = useState<Postazione>();
@@ -67,199 +70,209 @@ export default function App() {
 
   return (
     <div className="App">
-      {user && (
-        <AccessiNavbar
-          user={user}
-          logout={logout}
-          currPostazione={currPostazione}
-          setCurrPostazione={setCurrPostazione}
-          badgeScannerConnected={accessiScanner !== undefined}
-          runBadgeScanner={runAccessiScanner}
-          chiaviScannerConnected={chiaviScanner !== undefined}
-          runChiaviScanner={runChiaviScanner}
-        />
+      {isMobile ? (
+        <h2>Portale web non disponibile per dispositivi mobili</h2>
+      ) : (
+        <>
+          {user && (
+            <AccessiNavbar
+              user={user}
+              logout={logout}
+              currPostazione={currPostazione}
+              setCurrPostazione={setCurrPostazione}
+              badgeScannerConnected={accessiScanner !== undefined}
+              runBadgeScanner={runAccessiScanner}
+              chiaviScannerConnected={chiaviScanner !== undefined}
+              runChiaviScanner={runChiaviScanner}
+            />
+          )}
+          <Routes>
+            <Route path="*" element={<PageNotFound />} />
+            <Route
+              path="home"
+              element={
+                user ? <Home user={user} /> : <Navigate replace to="/login" />
+              }
+            />
+            <Route index element={<Navigate replace to="/home" />} />
+            <Route
+              path="badge"
+              element={
+                user && canAccessPage(user, TPages.badge) ? (
+                  <Suspense fallback={<Loader />}>
+                    <Badge
+                      user={user}
+                      scannedValue={timbraVal}
+                      clearScannedValue={() => setTimbraVal("")}
+                      tipoBadge={"NOMINATIVO"}
+                      currPostazione={currPostazione}
+                    />
+                  </Suspense>
+                ) : (
+                  <PageNotFound />
+                )
+              }
+            />
+            <Route
+              path="chiavi"
+              element={
+                user && canAccessPage(user, TPages.chiavi) ? (
+                  <Suspense fallback={<Loader />}>
+                    <Chiavi
+                      user={user}
+                      scanValues={prestaArr}
+                      addScanValue={prestaArrAdd}
+                      removeScanValue={prestaArrRemove}
+                      clearScanValues={() => setPrestaArr([])}
+                      currPostazione={currPostazione}
+                    />
+                  </Suspense>
+                ) : (
+                  <PageNotFound />
+                )
+              }
+            />
+            <Route
+              path="veicoli"
+              element={
+                user && canAccessPage(user, TPages.veicoli) ? (
+                  <Suspense fallback={<Loader />}>
+                    <Badge
+                      user={user}
+                      scannedValue={timbraVal}
+                      clearScannedValue={() => setTimbraVal("")}
+                      tipoBadge={"VEICOLO"}
+                      currPostazione={undefined}
+                    />
+                  </Suspense>
+                ) : (
+                  <PageNotFound />
+                )
+              }
+            />
+            <Route
+              path="archivio"
+              element={
+                user && canAccessPage(user, TPages.archivio) ? (
+                  <Suspense fallback={<Loader />}>
+                    <Archivio user={user} />
+                  </Suspense>
+                ) : (
+                  <PageNotFound />
+                )
+              }
+            />
+            <Route
+              path="protocollo"
+              element={
+                user && canAccessPage(user, TPages.protocollo) ? (
+                  <Suspense fallback={<Loader />}>
+                    <Protocollo user={user} currPostazione={currPostazione} />
+                  </Suspense>
+                ) : (
+                  <PageNotFound />
+                )
+              }
+            />
+            <Route
+              path="anagrafico"
+              element={
+                user && canAccessPage(user, TPages.anagrafico) ? (
+                  <Suspense fallback={<Loader />}>
+                    <Anagrafico user={user} />
+                  </Suspense>
+                ) : (
+                  <PageNotFound />
+                )
+              }
+            />
+            <Route
+              path="admin/register"
+              element={
+                user && isAdmin(user) ? (
+                  <Suspense fallback={<Loader />}>
+                    <Register />
+                  </Suspense>
+                ) : (
+                  <PageNotFound />
+                )
+              }
+            />
+            <Route path="admin" element={<Navigate replace to="register" />} />
+            <Route
+              path="admin/users"
+              element={
+                user && isAdmin(user) ? (
+                  <Suspense fallback={<Loader />}>
+                    <UsersList />
+                  </Suspense>
+                ) : (
+                  <PageNotFound />
+                )
+              }
+            />
+            <Route
+              path="admin/users/:userId"
+              element={
+                user && isAdmin(user) ? (
+                  <Suspense fallback={<Loader />}>
+                    <UserEdit />
+                  </Suspense>
+                ) : (
+                  <PageNotFound />
+                )
+              }
+            />
+            <Route
+              path="admin/assegnazioni"
+              element={
+                user && isAdmin(user) ? (
+                  <Suspense fallback={<Loader />}>
+                    <Assegnazioni />
+                  </Suspense>
+                ) : (
+                  <PageNotFound />
+                )
+              }
+            />
+            <Route
+              path="admin/postazioni"
+              element={
+                user && isAdmin(user) ? (
+                  <Suspense fallback={<Loader />}>
+                    <Postazioni />
+                  </Suspense>
+                ) : (
+                  <PageNotFound />
+                )
+              }
+            />
+            <Route
+              path="admin/clienti"
+              element={
+                user && isAdmin(user) ? (
+                  <Suspense fallback={<Loader />}>
+                    <Clienti />
+                  </Suspense>
+                ) : (
+                  <PageNotFound />
+                )
+              }
+            />
+            <Route
+              path="login"
+              element={
+                !user ? (
+                  <Login login={login} />
+                ) : (
+                  <Navigate replace to="/home" />
+                )
+              }
+            />
+          </Routes>
+          <Toaster />
+        </>
       )}
-      <Routes>
-        <Route path="*" element={<PageNotFound />} />
-        <Route
-          path="home"
-          element={
-            user ? <Home user={user} /> : <Navigate replace to="/login" />
-          }
-        />
-        <Route index element={<Navigate replace to="/home" />} />
-        <Route
-          path="badge"
-          element={
-            user && canAccessPage(user, TPages.badge) ? (
-              <Suspense fallback={<Loader />}>
-                <Badge
-                  user={user}
-                  scannedValue={timbraVal}
-                  clearScannedValue={() => setTimbraVal("")}
-                  tipoBadge={"NOMINATIVO"}
-                  currPostazione={currPostazione}
-                />
-              </Suspense>
-            ) : (
-              <PageNotFound />
-            )
-          }
-        />
-        <Route
-          path="chiavi"
-          element={
-            user && canAccessPage(user, TPages.chiavi) ? (
-              <Suspense fallback={<Loader />}>
-                <Chiavi
-                  user={user}
-                  scanValues={prestaArr}
-                  addScanValue={prestaArrAdd}
-                  removeScanValue={prestaArrRemove}
-                  clearScanValues={() => setPrestaArr([])}
-                  currPostazione={currPostazione}
-                />
-              </Suspense>
-            ) : (
-              <PageNotFound />
-            )
-          }
-        />
-        <Route
-          path="veicoli"
-          element={
-            user && canAccessPage(user, TPages.veicoli) ? (
-              <Suspense fallback={<Loader />}>
-                <Badge
-                  user={user}
-                  scannedValue={timbraVal}
-                  clearScannedValue={() => setTimbraVal("")}
-                  tipoBadge={"VEICOLO"}
-                  currPostazione={undefined}
-                />
-              </Suspense>
-            ) : (
-              <PageNotFound />
-            )
-          }
-        />
-        <Route
-          path="archivio"
-          element={
-            user && canAccessPage(user, TPages.archivio) ? (
-              <Suspense fallback={<Loader />}>
-                <Archivio user={user} />
-              </Suspense>
-            ) : (
-              <PageNotFound />
-            )
-          }
-        />
-        <Route
-          path="protocollo"
-          element={
-            user && canAccessPage(user, TPages.protocollo) ? (
-              <Suspense fallback={<Loader />}>
-                <Protocollo user={user} currPostazione={currPostazione} />
-              </Suspense>
-            ) : (
-              <PageNotFound />
-            )
-          }
-        />
-        <Route
-          path="anagrafico"
-          element={
-            user && canAccessPage(user, TPages.anagrafico) ? (
-              <Suspense fallback={<Loader />}>
-                <Anagrafico user={user} />
-              </Suspense>
-            ) : (
-              <PageNotFound />
-            )
-          }
-        />
-        <Route
-          path="admin/register"
-          element={
-            user && isAdmin(user) ? (
-              <Suspense fallback={<Loader />}>
-                <Register />
-              </Suspense>
-            ) : (
-              <PageNotFound />
-            )
-          }
-        />
-        <Route path="admin" element={<Navigate replace to="register" />} />
-        <Route
-          path="admin/users"
-          element={
-            user && isAdmin(user) ? (
-              <Suspense fallback={<Loader />}>
-                <UsersList />
-              </Suspense>
-            ) : (
-              <PageNotFound />
-            )
-          }
-        />
-        <Route
-          path="admin/users/:userId"
-          element={
-            user && isAdmin(user) ? (
-              <Suspense fallback={<Loader />}>
-                <UserEdit />
-              </Suspense>
-            ) : (
-              <PageNotFound />
-            )
-          }
-        />
-        <Route
-          path="admin/assegnazioni"
-          element={
-            user && isAdmin(user) ? (
-              <Suspense fallback={<Loader />}>
-                <Assegnazioni />
-              </Suspense>
-            ) : (
-              <PageNotFound />
-            )
-          }
-        />
-        <Route
-          path="admin/postazioni"
-          element={
-            user && isAdmin(user) ? (
-              <Suspense fallback={<Loader />}>
-                <Postazioni />
-              </Suspense>
-            ) : (
-              <PageNotFound />
-            )
-          }
-        />
-        <Route
-          path="admin/clienti"
-          element={
-            user && isAdmin(user) ? (
-              <Suspense fallback={<Loader />}>
-                <Clienti />
-              </Suspense>
-            ) : (
-              <PageNotFound />
-            )
-          }
-        />
-        <Route
-          path="login"
-          element={
-            !user ? <Login login={login} /> : <Navigate replace to="/home" />
-          }
-        />
-      </Routes>
-      <Toaster />
     </div>
   );
 }

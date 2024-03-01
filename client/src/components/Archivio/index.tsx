@@ -9,7 +9,6 @@ import BadgeTable from "../BadgeTable";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import { useQuery } from "@tanstack/react-query";
 import { FormRef } from "../../types";
-import Clock from "../Clock";
 import { TLoggedUser } from "../../types/users";
 import { TIPI_BADGE } from "../../types/badges";
 import { FindArchivioForm } from "../../types/forms";
@@ -116,9 +115,9 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
     <div className="archivio-wrapper">
       <div className="container-fluid m-1 archivio-container">
         <div className="row mt-2">
-          <div className="col-6 archivio-form">
+          <div className="col archivio-form">
             <div className="row my-1">
-              <div className="form-floating col-sm">
+              <div className="form-floating col-sm-3">
                 <input
                   type="date"
                   className="form-control form-control-sm"
@@ -129,7 +128,7 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                 />
                 <label htmlFor="dataInizio">resoconto inizio</label>
               </div>
-              <div className="form-floating col-sm">
+              <div className="form-floating col-sm-3">
                 <input
                   type="date"
                   className="form-control form-control-sm"
@@ -141,8 +140,7 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                 />
                 <label htmlFor="dataFine">resoconto fine</label>
               </div>
-              <div className="w-100 mb-1" />
-              <div className="form-floating col-sm">
+              <div className="form-floating col-sm-3">
                 <select
                   className="form-select form-select-sm"
                   id="cliente"
@@ -161,7 +159,7 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                 </select>
                 <label htmlFor="cliente">cliente</label>
               </div>
-              <div className="form-floating col-sm">
+              <div className="form-floating col-sm-3">
                 <select
                   className="form-select form-select-sm"
                   id="postazione"
@@ -181,7 +179,7 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                 <label htmlFor="postazione">postazione</label>
               </div>
               <div className="w-100 mb-1" />
-              <div className="form-floating col-sm">
+              <div className="form-floating col-sm-3">
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -191,7 +189,7 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                 />
                 <label htmlFor="badge">badge</label>
               </div>
-              <div className="form-floating col-sm">
+              <div className="form-floating col-sm-3">
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -201,8 +199,7 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                 />
                 <label htmlFor="chiave">chiave</label>
               </div>
-              <div className="w-100 mb-1" />
-              <div className="form-floating col-sm">
+              <div className="form-floating col-sm-3">
                 <select
                   className="form-select form-select-sm"
                   id="assegnazione"
@@ -221,7 +218,7 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                 </select>
                 <label htmlFor="assegnazione">assegnazione</label>
               </div>
-              <div className="form-floating col-sm">
+              <div className="form-floating col-sm-3">
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -232,7 +229,7 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                 <label htmlFor="ditta">ditta</label>
               </div>
               <div className="w-100 mb-1" />
-              <div className="form-floating col-sm">
+              <div className="form-floating col-sm-3">
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -242,7 +239,7 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                 />
                 <label htmlFor="nome">nome</label>
               </div>
-              <div className="form-floating col-sm">
+              <div className="form-floating col-sm-3">
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -252,8 +249,7 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                 />
                 <label htmlFor="cognome">cognome</label>
               </div>
-              <div className="w-100 mb-1" />
-              <div className="form-floating col-sm-6">
+              <div className="form-floating col-sm-3">
                 <select
                   className="form-select form-select-sm"
                   id="tipo"
@@ -291,9 +287,6 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                 </button>
               </div>
             </div>
-          </div>
-          <div className="col">
-            <Clock></Clock>
           </div>
         </div>
       </div>

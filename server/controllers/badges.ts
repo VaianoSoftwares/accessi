@@ -45,7 +45,7 @@ export async function apiInsertNominativo(req: Request, res: Response) {
       codice,
     });
     if (dbRes.rowCount === 0) {
-      throw new BaseError("Impossibile eliminare badge", {
+      throw new BaseError("Impossibile inserire badge", {
         status: 500,
         context: { codice },
       });
@@ -71,7 +71,7 @@ export async function apiInsertNominativo(req: Request, res: Response) {
       uploadedFiles.push(uploadedFile);
     }
 
-    res.json(Ok({ ...dbRes, uploadedFiles }));
+    res.json(Ok({ insertedRow: dbRes.rows[0], uploadedFiles }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -124,7 +124,7 @@ export async function apiUpdateNominativo(req: Request, res: Response) {
       });
     }
 
-    res.json(Ok({ ...dbRes, uploadedFiles }));
+    res.json(Ok({ updatedRow: dbRes.rows[0], uploadedFiles }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -155,7 +155,12 @@ export async function apiDeleteNominativo(req: Request, res: Response) {
     const deletedPfp = await Filemanager.deletePfp(codice);
     const deletedPrivacy = await Filemanager.deletePrivacy(codice);
 
-    res.json(Ok({ ...dbRes, deletedFiles: [deletedPfp, deletedPrivacy] }));
+    res.json(
+      Ok({
+        deletedRow: dbRes.rows[0],
+        deletedFiles: [deletedPfp, deletedPrivacy],
+      })
+    );
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -190,7 +195,7 @@ export async function apiInsertProvvisorio(req: Request, res: Response) {
       });
     }
 
-    res.json(Ok(dbRes));
+    res.json(Ok({ insertedRow: dbRes.rows[0] }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -220,7 +225,7 @@ export async function apiUpdateProvvisorio(req: Request, res: Response) {
       });
     }
 
-    res.json(Ok(dbRes));
+    res.json(Ok({ updatedRow: dbRes.rows[0] }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -248,7 +253,7 @@ export async function apiDeleteProvvisorio(req: Request, res: Response) {
       });
     }
 
-    res.json(Ok(dbRes));
+    res.json(Ok({ deletedRow: dbRes.rows[0] }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -279,7 +284,7 @@ export async function apiInsertChiave(req: Request, res: Response) {
       });
     }
 
-    res.json(Ok(dbRes));
+    res.json(Ok({ insertedRow: dbRes.rows[0] }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -309,7 +314,7 @@ export async function apiUpdateChiave(req: Request, res: Response) {
       });
     }
 
-    res.json(Ok(dbRes));
+    res.json(Ok({ updatedRow: dbRes.rows[0] }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -337,7 +342,7 @@ export async function apiDeleteChiave(req: Request, res: Response) {
       });
     }
 
-    res.json(Ok(dbRes));
+    res.json(Ok({ deletedRow: dbRes.rows[0] }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -368,7 +373,7 @@ export async function apiInsertVeicolo(req: Request, res: Response) {
       });
     }
 
-    res.json(Ok(dbRes));
+    res.json(Ok({ insertedRow: dbRes.rows[0] }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -399,7 +404,7 @@ export async function apiUpdateVeicolo(req: Request, res: Response) {
       });
     }
 
-    res.json(Ok(dbRes));
+    res.json(Ok({ updatedRow: dbRes.rows[0] }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -427,7 +432,7 @@ export async function apiDeleteVeicolo(req: Request, res: Response) {
       });
     }
 
-    res.json(Ok(dbRes));
+    res.json(Ok({ deletedRow: dbRes.rows[0] }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -483,7 +488,7 @@ export async function apiInsertPersona(req: Request, res: Response) {
       uploadedFile = await Filemanager.uploadDocumento(ndoc, docFile);
     }
 
-    res.json(Ok({ ...dbRes, uploadedFile }));
+    res.json(Ok({ insertedRow: dbRes.rows[0], uploadedFile }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -525,7 +530,7 @@ export async function apiUpdatePersona(req: Request, res: Response) {
       });
     }
 
-    res.json(Ok({ ...dbRes, uploadedFile }));
+    res.json(Ok({ updatedRow: dbRes.rows[0], uploadedFile }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);
@@ -555,7 +560,7 @@ export async function apiDeletePersona(req: Request, res: Response) {
 
     const deletedFile = await Filemanager.deleteDocumento(ndoc, tdoc);
 
-    res.json(Ok({ ...dbRes, deletedFile }));
+    res.json(Ok({ deletedRow: dbRes.rows[0], deletedFile }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);

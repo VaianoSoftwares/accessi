@@ -6,7 +6,7 @@
 .anagrafico-table-wrapper {
     overflow: auto;
     height: 60%;
-    max-height: 250px;
+    max-height: 240px;
     background-color: white;
 }
 
@@ -77,5 +77,14 @@
 }
 
 .custom-input-pfp {
+    max-width: 200px;
+    min-width: 200px;
+}
+
+.half-col {
+    width: 50% !important;
+}
+
+.pfp-col {
     max-width: 200px;
 }

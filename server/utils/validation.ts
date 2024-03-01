@@ -116,7 +116,7 @@ export const CODICE_SCHEMA = z.union([
 ]);
 
 export const FIND_BADGES_SCHEMA = z.object({
-  codice: CODICE_NOM_SCHEMA.optional(),
+  codice: CODICE_SCHEMA.optional(),
   descrizione: z.string().optional(),
   assegnazione: z.string().optional(),
   stato: z.enum(STATI_BADGE).optional(),

@@ -1,15 +1,15 @@
 import DataServices from "./DataServices";
 import { GenericAbortSignal } from "axios";
 import { TAssegnazione } from "../types";
-import { BadgeDeleteReq, BadgeFormDataReq } from "../types/badges";
+import { Badge, BadgeDeleteReq, BadgeFormDataReq } from "../types/badges";
 
 class BadgesDataService extends DataServices {
   getAll(signal?: GenericAbortSignal) {
-    return super.request({ token: true, signal });
+    return super.request<Badge[]>({ token: true, signal });
   }
 
   find(query: Record<string, string>, signal?: GenericAbortSignal) {
-    return super.request({ token: true, data: query, signal });
+    return super.request<Badge[]>({ token: true, data: query, signal });
   }
 
   insert({ data, tipoBadge }: BadgeFormDataReq, signal?: GenericAbortSignal) {
