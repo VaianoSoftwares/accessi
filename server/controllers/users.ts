@@ -144,7 +144,7 @@ export async function apiRegister(req: Request, res: Response) {
     }
 
     const nameExistsRes = await UsersDB.getUserByName(parsed.data.name);
-    if (nameExistsRes.rowCount === 0) {
+    if (nameExistsRes.rowCount !== 0) {
       throw new BaseError("Username non disponibile", {
         status: 400,
         context: { name: parsed.data.name },

@@ -163,7 +163,7 @@ export default function Badge({
   function formToObj() {
     const obj: FindInStruttForm = {};
     Object.entries(formRef.current)
-      .filter(([_, el]) => el !== null)
+      .filter(([, el]) => el !== null)
       .forEach(([key, el]) => (obj[key as keyof FindInStruttForm] = el!.value));
     return obj;
   }

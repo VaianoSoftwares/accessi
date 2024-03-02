@@ -7,10 +7,11 @@ import { useRef } from "react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router";
-import { PERMESSI_INFO, UpdateUserData } from "../../types/users";
-import { PAGES_INFO } from "../../types/pages";
+import { PERMESSI_INFO, TPermessi, UpdateUserData } from "../../types/users";
+import { PAGES_INFO, TPages } from "../../types/pages";
 import { UpdateUserForm } from "../../types/forms";
-import { FormRef } from "../../types";
+import { FormRef, GenericForm } from "../../types";
+import { checkBits } from "../../utils/bitwise";
 
 const formRefDefaultState: Record<keyof UpdateUserForm, null> = {
   name: null,
@@ -42,6 +43,19 @@ function selectPagesOptions(disabled = false) {
     );
   }
   return options;
+}
+
+function flagsToFlagArray(
+  flags: number,
+  flagsIterator: IterableIterator<number>
+) {
+  if (Number.isNaN(Number(flags))) return [];
+
+  let flagArr: string[] = [];
+  for (const flag of flagsIterator) {
+    if (checkBits(flags, flag)) flagArr.push(String(flag));
+  }
+  return flagArr;
 }
 
 export default function UserEdit() {
@@ -107,7 +121,9 @@ export default function UserEdit() {
   function formToObj() {
     const obj: Record<PropertyKey, any> = {};
     Object.entries(formRef.current)
-      .filter(([, el]) => el !== null)
+      .filter(
+        ([, el]) => el !== null && el.value !== "" && el.value !== undefined
+      )
       .forEach(([key, el]) => {
         switch (key) {
           case "postazioni":
@@ -159,6 +175,7 @@ export default function UserEdit() {
                 ref={(el) => (readonlyFormRef.current.name = el)}
                 autoComplete="off"
                 readOnly
+                defaultValue={userQuery.data.name}
               />
             </div>
             <div className="form-group col-sm-3">
@@ -182,6 +199,7 @@ export default function UserEdit() {
                 ref={(el) => (readonlyFormRef.current.password = el)}
                 autoComplete="off"
                 readOnly
+                defaultValue="password"
               />
             </div>
             <div className="form-group col-sm-3">
@@ -203,6 +221,10 @@ export default function UserEdit() {
                 id="permessi"
                 ref={(el) => (readonlyFormRef.current.permessi = el)}
                 multiple
+                defaultValue={flagsToFlagArray(
+                  userQuery.data.permessi,
+                  PERMESSI_INFO.keys()
+                )}
               >
                 {selectPermessiOptions(true)}
               </select>
@@ -227,6 +249,10 @@ export default function UserEdit() {
                 id="pages"
                 ref={(el) => (readonlyFormRef.current.pages = el)}
                 multiple
+                defaultValue={flagsToFlagArray(
+                  userQuery.data.pages,
+                  PAGES_INFO.keys()
+                )}
               >
                 {selectPagesOptions(true)}
               </select>
@@ -251,7 +277,7 @@ export default function UserEdit() {
                 id="postazioni"
                 ref={(el) => (readonlyFormRef.current.postazioni = el)}
                 multiple
-                value={userQuery.data.postazioni.map((p) => String(p))}
+                defaultValue={userQuery.data.postazioni.map((p) => String(p))}
               >
                 {selectPostazioniOptions(true)}
               </select>

@@ -45,7 +45,7 @@ class UserDataService extends DataServices {
 
   getUser({ id }: { id: string }, signal?: GenericAbortSignal) {
     return super.request<TUser>({
-      url: `/user/${id}`,
+      url: `/${id}`,
       token: true,
       signal,
     });
@@ -56,7 +56,7 @@ class UserDataService extends DataServices {
     signal?: GenericAbortSignal
   ) {
     return super.request({
-      url: `/user/${id}`,
+      url: `/${id}`,
       method: "POST",
       token: true,
       data: user,
@@ -66,7 +66,7 @@ class UserDataService extends DataServices {
 
   deleteUser({ id }: { id: string }, signal?: GenericAbortSignal) {
     return super.request({
-      url: `/user/${id}`,
+      url: `/${id}`,
       method: "DELETE",
       token: true,
       signal,

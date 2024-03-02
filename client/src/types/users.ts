@@ -44,7 +44,7 @@ export function isAdmin(user: TUser) {
 }
 
 export function canAccessPage(user: TUser, page: TPages) {
-  return checkBits(user.permessi, page);
+  return checkBits(user.pages, page);
 }
 
 export function getPagesNum(user: TUser) {
