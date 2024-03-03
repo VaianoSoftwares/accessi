@@ -4,7 +4,7 @@ import { Err, Ok } from "../types/index.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
 import { BaseError } from "../types/errors.js";
 import * as Validator from "../utils/validation.js";
-import { BarcodePrefix } from "../types/archivio.js";
+import { Archivio, BarcodePrefix } from "../types/archivio.js";
 
 export async function apiGetArchivio(req: Request, res: Response) {
   try {

@@ -51,9 +51,9 @@ END; $$ LANGUAGE plpgsql;
 
 CREATE TYPE tdoc AS ENUM ('CARTA IDENTITA', 'PATENTE', 'TESSERA STUDENTE');
 CREATE TYPE badge_state AS ENUM ('VALIDO', 'SCADUTO', 'REVOCATO', 'RICONSEGNATO');
-CREATE TYPE assegnazione as ENUM ('ospite', 'utente', 'giornalista', 'manutenzione', 'associazione', 'cooperativa', 'collaboratore', 'pulizie', 'portineria', 'facchinaggio', 'corriere', 'universitario');
-CREATE TYPE edificio as ENUM ('appartamento', 'villetta', 'capannone', 'fondo', 'clinica', 'ufficio');
-CREATE TYPE veicolo as ENUM ('auto', 'moto', 'bicicletta', 'generico');
+CREATE TYPE assegnazione as ENUM ('OSPITE', 'UTENTE', 'GIORNALISTA', 'MANUTENZIONE', 'ASSOCIAZIONE', 'COOPERATIVA', 'COLLABORATORE', 'PULIZIE', 'PORTINERIA', 'FACCHINAGGIO', 'CORRIERE', 'UNIVERSITARIO');
+CREATE TYPE edificio as ENUM ('APPARTAMENTO', 'VILLETTA', 'CAPANNONE', 'FONDO', 'CLINICA', 'UFFICIO');
+CREATE TYPE veicolo as ENUM ('AUTO', 'MOTO', 'BICICLETTA', 'GENERICO');
 CREATE TYPE tbadge as ENUM ('NOMINATIVO', 'PROVVISORIO', 'CHIAVE', 'VEICOLO', 'PERSONA');
 
 CREATE TABLE IF NOT EXISTS clienti(
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS nominativi(
     codice CHAR(9) PRIMARY KEY CHECK (codice != ''),
     descrizione TEXT CHECK (descrizione != ''),
     stato badge_state DEFAULT 'VALIDO',
-    assegnazione assegnazione DEFAULT 'utente',
+    assegnazione assegnazione DEFAULT 'UTENTE',
     cliente VARCHAR(64) NOT NULL,
     scadenza DATE,
     nome VARCHAR(32) CHECK (nome != ''),
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS veicoli(
     telefono VARCHAR(32) CHECK (telefono != ''),
     ndoc VARCHAR(32) NOT NULL CHECK (ndoc != ''),
     tdoc tdoc DEFAULT 'CARTA IDENTITA',
-    tveicolo veicolo DEFAULT 'generico',
+    tveicolo veicolo DEFAULT 'GENERICO',
     targa1 VARCHAR(32) CHECK (targa1 != ''),
     targa2 VARCHAR(32) CHECK (targa2 != ''),
     targa3 VARCHAR(32) CHECK (targa3 != ''),
@@ -232,16 +232,16 @@ INSERT INTO clienti (name) VALUES
 
 
 INSERT INTO persone (nome, cognome, ditta, telefono, ndoc, tdoc, cliente) VALUES 
-    ('Marco', 'Pierattini', 'GanzoSoft', '055-420-69', 'AU0069420', 'CARTA IDENTITA', 'Corte d''Appello'),
-    ('Luca', 'Cecchi', 'GTAExpertIndustries', DEFAULT, 'AU0042069', 'PATENTE', 'Corte d''Appello'),
-    ('Giorgio', 'Paolo Coda', DEFAULT, '055-420-420', 'AU006969', 'CARTA IDENTITA', 'Montedomini'),
+    ('MARCO', 'PIERATTINI', 'GanzoSoft', '055-420-69', 'AU0069420', 'CARTA IDENTITA', 'Corte d''Appello'),
+    ('LUCA', 'CECCHI', 'GTAExpertIndustries', DEFAULT, 'AU0042069', 'PATENTE', 'Corte d''Appello'),
+    ('GIORGIO', 'PAOLO CODA', DEFAULT, '055-420-420', 'AU006969', 'CARTA IDENTITA', 'Montedomini'),
     (DEFAULT, DEFAULT, DEFAULT, DEFAULT, 'AU00420420', 'TESSERA STUDENTE', 'Corte d''Appello');
 
 INSERT INTO nominativi (codice, descrizione, stato, assegnazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
-    ('028212345', 'marco :-.)', 'VALIDO', 'utente', 'Corte d''Appello', '2025-03-15', 'Marco', 'Pierattini', 'GanzoSoft', '055-420-69', 'AU0069420', 'CARTA IDENTITA'),
-    ('028212346', DEFAULT, 'VALIDO', 'portineria', 'Corte d''Appello', '2024-10-12', 'Luca', 'Cecchi', 'GTAExpertIndustries', '055-69-420', 'AU0042069', 'PATENTE'),
-    ('028212347', DEFAULT, 'SCADUTO', 'corriere', 'Corte d''Appello', '2024-01-01', 'Giovanni', 'Panza', DEFAULT, DEFAULT, '1020301', 'TESSERA STUDENTE'),
-    ('091712345', DEFAULT, 'VALIDO', 'portineria', 'Montedomini', '2025-07-09', DEFAULT, DEFAULT, 'GanzoSoft', DEFAULT, 'AU006969', 'CARTA IDENTITA');
+    ('028212345', 'marco :-.)', 'VALIDO', 'UTENTE', 'Corte d''Appello', '2025-03-15', 'MARCO', 'PIERATTINI', 'GanzoSoft', '055-420-69', 'AU0069420', 'CARTA IDENTITA'),
+    ('028212346', DEFAULT, 'VALIDO', 'PORTINERIA', 'Corte d''Appello', '2024-10-12', 'LUCA', 'CECCHI', 'GTAExpertIndustries', '055-69-420', 'AU0042069', 'PATENTE'),
+    ('028212347', DEFAULT, 'SCADUTO', 'CORRIERE', 'Corte d''Appello', '2024-01-01', 'GIOVANNI', 'PANZA', DEFAULT, DEFAULT, '1020301', 'TESSERA STUDENTE'),
+    ('091712345', DEFAULT, 'VALIDO', 'PORTINERIA', 'Montedomini', '2025-07-09', DEFAULT, DEFAULT, 'GanzoSoft', DEFAULT, 'AU006969', 'CARTA IDENTITA');
 
 INSERT INTO provvisori (codice, descrizione, stato, ubicazione, cliente) VALUES
     ('128212345', DEFAULT, DEFAULT, DEFAULT, 'Corte d''Appello'),
@@ -250,11 +250,11 @@ INSERT INTO provvisori (codice, descrizione, stato, ubicazione, cliente) VALUES
     ('191712346', DEFAULT, DEFAULT, DEFAULT, 'Montedomini');
 
 INSERT INTO chiavi (codice, descrizione, ubicazione, cliente, indirizzo, citta, edificio, piano) VALUES
-    ('228212345', DEFAULT, DEFAULT, 'Corte d''Appello', 'Via Calcinaia 69', 'Kekistan', 'capannone', '0'),
-    ('291712345', DEFAULT, DEFAULT, 'Montedomini', 'Piazza Shrek III 88', 'Scandicci', 'ufficio', 'B2');
+    ('228212345', DEFAULT, DEFAULT, 'Corte d''Appello', 'Via Calcinaia 69', 'KEKISTAN', 'CAPANNONE', '0'),
+    ('291712345', DEFAULT, DEFAULT, 'Montedomini', 'Piazza Shrek III 88', 'SCANDICCI', 'UFFICIO', 'B2');
 
 INSERT INTO veicoli (codice, descrizione, stato, cliente, tveicolo, targa1, targa2, targa3, targa4, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
-    ('328212345', DEFAULT, DEFAULT, 'Corte d''Appello', DEFAULT, 'XYZ-GTA5', '88LUKE88', DEFAULT , DEFAULT, 'Gianluca', 'Causio', DEFAULT, DEFAULT, 'AU420420', 'PATENTE');
+    ('328212345', DEFAULT, DEFAULT, 'Corte d''Appello', DEFAULT, 'XYZ-GTA5', '88LUKE88', DEFAULT , DEFAULT, 'GIANLUCA', 'CAUSIO', DEFAULT, DEFAULT, 'AU420420', 'PATENTE');
 
 INSERT INTO users (name, password, permessi, pages) VALUES
     ('admin', '$2a$10$cLLMrZEMQCU44vy7Sqsb/uQJDo3vCXV/kUR5Zgm7CvaOQQw08Q6Yu', admin_flags(), admin_flags()),
@@ -271,7 +271,7 @@ INSERT INTO postazioni (cliente, name) VALUES
     ('Corte d''Appello', 'Parcheggio-Peretola'),
     ('Corte d''Appello', 'Parcheggio-3pini'),
     ('Corte d''Appello', 'Aula-bunker'),
-    ('Corte d''Appello', 'Presidio-pulizie'),
+    ('Corte d''Appello', 'Presidio-Pulizie'),
     ('Corte d''Appello', 'Centralino'),
     ('Corte d''Appello', 'Uffici'),
     ('Montedomini', 'Desk');
@@ -339,7 +339,7 @@ INSERT INTO prot_visibile_da (protocollo, postazione) VALUES
 --     join pg_catalog.pg_namespace n ON n.oid = t.typnamespace;
 
 CREATE VIEW all_badges AS
-    (SELECT codice, 'PROVVISORIO' AS tipo, descrizione, stato, 'ospite' AS assegnazione, ubicazione, cliente, NULL AS scadenza, NULL AS nome, NULL AS cognome, NULL AS ditta, NULL AS telefono, NULL AS ndoc, NULL AS tdoc, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
+    (SELECT codice, 'PROVVISORIO' AS tipo, descrizione, stato, 'OSPITE' AS assegnazione, ubicazione, cliente, NULL AS scadenza, NULL AS nome, NULL AS cognome, NULL AS ditta, NULL AS telefono, NULL AS ndoc, NULL AS tdoc, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
     FROM provvisori)
     UNION
     (SELECT codice, 'NOMINATIVO' AS tipo, descrizione, stato, assegnazione, NULL AS ubicazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
@@ -361,7 +361,7 @@ CREATE VIEW full_archivio AS
     JOIN archivio_nominativi AS a ON badge = a.badge
     JOIN postazioni AS p ON a.postazione = p.id)
     UNION
-    (SELECT v1_or_v2(a.badge, a.ndoc) AS codice, NULL AS chiave, 'PROVVISORIO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, a.nome, a.cognome, a.ditta, a.telefono, a.ndoc, a.tdoc, 'ospite' AS assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano 
+    (SELECT v1_or_v2(a.badge, a.ndoc) AS codice, NULL AS chiave, 'PROVVISORIO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, a.nome, a.cognome, a.ditta, a.telefono, a.ndoc, a.tdoc, 'OSPITE' AS assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano 
     FROM archivio_provvisori AS a
     JOIN postazioni AS p ON a.postazione = p.id)
     UNION
@@ -392,7 +392,7 @@ CREATE VIEW in_strutt AS
     JOIN archivio_nominativi AS a ON b.codice = a.badge
     JOIN postazioni AS p ON a.postazione = p.id)
     UNION
-    (SELECT a.id, v1_or_v2(a.badge, a.ndoc) AS codice, NULL AS descrizione, 'PROVVISORIO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, a.nome, a.cognome, a.ditta, a.telefono, a.ndoc, a.tdoc, 'ospite' AS assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4
+    (SELECT a.id, v1_or_v2(a.badge, a.ndoc) AS codice, NULL AS descrizione, 'PROVVISORIO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, a.nome, a.cognome, a.ditta, a.telefono, a.ndoc, a.tdoc, 'OSPITE' AS assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4
     FROM archivio_provvisori AS a
     JOIN postazioni AS p ON a.postazione = p.id)
     UNION
@@ -467,9 +467,9 @@ CREATE VIEW tveicoli AS SELECT unnest(enum_range(NULL::veicolo)) AS value;
 
 -- SELECT * FROM full_users;
 
-SELECT * FROM full_protocolli;
+-- SELECT * FROM full_protocolli;
 
-SELECT * FROM full_protocolli WHERE 11 = ANY(visibile_da_id);
+-- SELECT * FROM full_protocolli WHERE 11 = ANY(visibile_da_id);
 
 -- queryInStrutt
 SELECT id, codice, tipo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in

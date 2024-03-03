@@ -20,6 +20,8 @@ import {
 import { FormRef, GenericForm } from "../../types";
 import "./index.css";
 
+const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
+
 export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
   const formRef = useRef<FormRef<AnagraficoForm>>({
     codice: null,
@@ -203,11 +205,7 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
   });
 
   const [pfpUrl, { updateImage, setNoImage }] = useImage((data) =>
-    data
-      ? `${
-          import.meta.env.DEV ? import.meta.env.VITE_PROXY : ""
-        }/api/v1/public/foto-profilo/PFP_${data}.jpg`
-      : ""
+    data ? `${PROXY}/api/v1/public/foto-profilo/PFP_${data}.jpg` : ""
   );
 
   function createFormData() {

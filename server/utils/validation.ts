@@ -152,8 +152,9 @@ export const INSERT_NOM_SCHEMA = z.object({
   ditta: z.string().nullish(),
   tdoc: z.enum(TDOCS),
   ndoc: z.string({ required_error: MISSING_ATTR_ERR_MSG("Numero Documento") }),
-  scadenza: z.union([z.string(), z.coerce.date()]).nullish(),
+  scadenza: z.coerce.date().nullish(),
 });
+export type InsertNominativoData = z.infer<typeof INSERT_NOM_SCHEMA>;
 
 export const UPDATE_NOM_SCHEMA = z.object({
   codice: CODICE_NOM_SCHEMA,
@@ -169,9 +170,10 @@ export const UPDATE_NOM_SCHEMA = z.object({
     ditta: z.string().optional(),
     tdoc: z.enum(TDOCS).optional(),
     ndoc: z.string().optional(),
-    scadenza: z.union([z.string(), z.coerce.date()]).optional(),
+    scadenza: z.coerce.date().optional(),
   }),
 });
+export type UpdateNominativoData = z.infer<typeof UPDATE_NOM_SCHEMA>;
 
 export const INSERT_PROVV_SCHEMA = z.object({
   codice: CODICE_PROV_SCHEMA.nullish(),
@@ -180,6 +182,7 @@ export const INSERT_PROVV_SCHEMA = z.object({
   cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
   ubicazione: z.string().nullish(),
 });
+export type InsertProvvisorioData = z.infer<typeof INSERT_PROVV_SCHEMA>;
 
 export const UPDATE_PROVV_SCHEMA = z.object({
   codice: CODICE_PROV_SCHEMA,
@@ -191,6 +194,7 @@ export const UPDATE_PROVV_SCHEMA = z.object({
     ubicazione: z.string().optional(),
   }),
 });
+export type UpdateProvvisorioData = z.infer<typeof UPDATE_PROVV_SCHEMA>;
 
 export const INSERT_CHIAVE_SCHEMA = z.object({
   codice: CODICE_CHIAVE_SCHEMA.nullish(),
@@ -202,6 +206,7 @@ export const INSERT_CHIAVE_SCHEMA = z.object({
   edificio: z.string().nullish(),
   piano: z.string().nullish(),
 });
+export type InsertChiaveData = z.infer<typeof INSERT_CHIAVE_SCHEMA>;
 
 export const UPDATE_CHIAVE_SCHEMA = z.object({
   codice: CODICE_CHIAVE_SCHEMA,
@@ -216,6 +221,7 @@ export const UPDATE_CHIAVE_SCHEMA = z.object({
     piano: z.string().optional(),
   }),
 });
+export type UpdateChiaveData = z.infer<typeof UPDATE_CHIAVE_SCHEMA>;
 
 export const INSERT_VEICOLO_SCHEMA = z.object({
   codice: CODICE_VEICOLO_SCHEMA.nullish(),
@@ -235,6 +241,7 @@ export const INSERT_VEICOLO_SCHEMA = z.object({
   targa3: z.string().nullish(),
   targa4: z.string().nullish(),
 });
+export type InsertVeicoloData = z.infer<typeof INSERT_VEICOLO_SCHEMA>;
 
 export const UPDATE_VEICOLO_SCHEMA = z.object({
   codice: CODICE_VEICOLO_SCHEMA,
@@ -257,6 +264,7 @@ export const UPDATE_VEICOLO_SCHEMA = z.object({
     targa4: z.string().optional(),
   }),
 });
+export type UpdateVeicoloData = z.infer<typeof UPDATE_VEICOLO_SCHEMA>;
 
 export const FIND_PERSONE_SCHEMA = z.object({
   nome: z.string().optional(),
@@ -276,6 +284,7 @@ export const INSERT_PERSONA_SCHEMA = z.object({
   tdoc: z.enum(TDOCS),
   ndoc: z.string({ required_error: MISSING_ATTR_ERR_MSG("Numero Documento") }),
 });
+export type InsertPersonaData = z.infer<typeof INSERT_PERSONA_SCHEMA>;
 
 export const PERSONA_DOC_SCHEMA = z.object({
   ndoc: z.string({ required_error: MISSING_ATTR_ERR_MSG("Numero Documento") }),
@@ -293,15 +302,16 @@ export const UPDATE_PERSONA_SCHEMA = z.object({
     ndoc: z.string().optional(),
   }),
 });
+export type UpdatePersonaData = z.infer<typeof UPDATE_PERSONA_SCHEMA>;
 
 export const FIND_ARCHIVIO_SCHEMA = z.object({
   badge: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
   chiave: CODICE_CHIAVE_SCHEMA.optional(),
   tipo: z.enum(TIPI_BADGE).optional(),
-  data_in_min: z.union([z.string(), z.coerce.date()]).optional(),
-  data_in_max: z.union([z.string(), z.coerce.date()]).optional(),
-  data_out_min: z.union([z.string(), z.coerce.date()]).optional(),
-  data_out_max: z.union([z.string(), z.coerce.date()]).optional(),
+  data_in_min: z.coerce.date().optional(),
+  data_in_max: z.coerce.date().optional(),
+  data_out_min: z.coerce.date().optional(),
+  data_out_max: z.coerce.date().optional(),
   postazione: ID_SCHEMA("ID Postazione").optional(),
   ip: z.string().optional(),
   nome: z.string().optional(),
@@ -328,8 +338,8 @@ export const FIND_IN_STRUTT_SCHEMA = z.object({
   codice: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
   tipo: z.enum(TIPI_BADGE).optional(),
   tipi: z.enum(TIPI_BADGE).array().nonempty().optional(),
-  data_in_min: z.union([z.string(), z.coerce.date()]).optional(),
-  data_in_max: z.union([z.string(), z.coerce.date()]).optional(),
+  data_in_min: z.coerce.date().optional(),
+  data_in_max: z.coerce.date().optional(),
   postazione: ID_SCHEMA("ID Postazione").optional(),
   postazioni: ID_SCHEMA("ID Postazione").array().nonempty().optional(),
   nome: z.string().optional(),
@@ -349,8 +359,8 @@ export type FindInStruttFilter = z.infer<typeof FIND_IN_STRUTT_SCHEMA>;
 export const FIND_IN_PRESTITO_SCHEMA = z.object({
   badge: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
   chiave: CODICE_CHIAVE_SCHEMA.optional(),
-  data_in_min: z.union([z.string(), z.coerce.date()]).optional(),
-  data_in_max: z.union([z.string(), z.coerce.date()]).optional(),
+  data_in_min: z.coerce.date().optional(),
+  data_in_max: z.coerce.date().optional(),
   postazione: ID_SCHEMA("ID Postazione").optional(),
   postazioni: ID_SCHEMA("ID Postazione").array().nonempty().optional(),
   nome: z.string().optional(),
@@ -457,8 +467,8 @@ export const GET_PROTOCOLLI_SCHEMA = z.object({
   prot_descrizione: z.string().optional(),
   doc_descrizione: z.string().optional(),
   filename: z.string().optional(),
-  dataInizio: z.union([z.string(), z.coerce.date()]).optional(),
-  dataFine: z.union([z.string(), z.coerce.date()]).optional(),
+  dataInizio: z.coerce.date().optional(),
+  dataFine: z.coerce.date().optional(),
   postazioneId: ID_SCHEMA("User ID").optional(),
   postazioneName: z.string().optional(),
 });

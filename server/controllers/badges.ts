@@ -5,8 +5,19 @@ import enforceBaseErr from "../utils/enforceBaseErr.js";
 import * as Validator from "../utils/validation.js";
 import { BaseError } from "../types/errors.js";
 import createBarcode from "../utils/barcodeGen.js";
-import { BadgePrefix, TDoc } from "../types/badges.js";
+import { Badge, BadgePrefix } from "../types/badges.js";
 import * as Filemanager from "../files/badges.js";
+
+function reqDataToUpperCase<T extends object>(data: T) {
+  const caseSensitiveAttributes: Array<keyof Badge> = ["cliente"];
+
+  return Object.entries(data).map(([key, value]) =>
+    typeof value !== "string" ||
+    caseSensitiveAttributes.includes(key as keyof Badge)
+      ? value
+      : value.toUpperCase()
+  ) as T;
+}
 
 export async function apiGetBadges(req: Request, res: Response) {
   try {
@@ -17,7 +28,7 @@ export async function apiGetBadges(req: Request, res: Response) {
         cause: parsed.error,
       });
     }
-    const dbRes = await BadgesDB.getBadges(parsed.data);
+    const dbRes = await BadgesDB.getBadges(reqDataToUpperCase(parsed.data));
     res.json(Ok(dbRes.rows));
   } catch (e) {
     const error = enforceBaseErr(e);
@@ -40,10 +51,12 @@ export async function apiInsertNominativo(req: Request, res: Response) {
       parsed.data.codice ||
       createBarcode(parsed.data, BadgePrefix.NOMINATIVO, parsed.data.cliente);
 
-    const dbRes = await BadgesDB.insertNominativo({
-      ...parsed.data,
-      codice,
-    });
+    const dbRes = await BadgesDB.insertNominativo(
+      reqDataToUpperCase({
+        ...parsed.data,
+        codice,
+      })
+    );
     if (dbRes.rowCount === 0) {
       throw new BaseError("Impossibile inserire badge", {
         status: 500,
@@ -81,7 +94,6 @@ export async function apiInsertNominativo(req: Request, res: Response) {
 
 export async function apiUpdateNominativo(req: Request, res: Response) {
   try {
-    console.log("updnom", req.body);
     const parsed = Validator.UPDATE_NOM_SCHEMA.safeParse({
       codice: req.params.codice,
       updateData: req.body,
@@ -95,7 +107,10 @@ export async function apiUpdateNominativo(req: Request, res: Response) {
 
     const { codice, updateData } = parsed.data;
 
-    const dbRes = await BadgesDB.updateNominativo(codice, updateData);
+    const dbRes = await BadgesDB.updateNominativo({
+      codice,
+      updateData: reqDataToUpperCase(updateData),
+    });
 
     let uploadedFiles = [];
 
@@ -178,16 +193,18 @@ export async function apiInsertProvvisorio(req: Request, res: Response) {
       });
     }
 
-    const dbRes = await BadgesDB.insertProvvisorio({
-      ...parsed.data,
-      codice:
-        parsed.data.codice ||
-        createBarcode(
-          parsed.data,
-          BadgePrefix.PROVVISORIO,
-          parsed.data.cliente
-        ),
-    });
+    const dbRes = await BadgesDB.insertProvvisorio(
+      reqDataToUpperCase({
+        ...parsed.data,
+        codice:
+          parsed.data.codice ||
+          createBarcode(
+            parsed.data,
+            BadgePrefix.PROVVISORIO,
+            parsed.data.cliente
+          ),
+      })
+    );
     if (dbRes.rowCount === 0) {
       throw new BaseError("Impossibile eliminare badge", {
         status: 500,
@@ -217,7 +234,10 @@ export async function apiUpdateProvvisorio(req: Request, res: Response) {
 
     const { codice, updateData } = parsed.data;
 
-    const dbRes = await BadgesDB.updateProvvisorio(codice, updateData);
+    const dbRes = await BadgesDB.updateProvvisorio({
+      codice,
+      updateData: reqDataToUpperCase(updateData),
+    });
     if (dbRes.rowCount === 0) {
       throw new BaseError("Impossibile modificare badge", {
         status: 500,
@@ -271,12 +291,14 @@ export async function apiInsertChiave(req: Request, res: Response) {
       });
     }
 
-    const dbRes = await BadgesDB.insertChiave({
-      ...parsed.data,
-      codice:
-        parsed.data.codice ||
-        createBarcode(parsed.data, BadgePrefix.CHIAVE, parsed.data.cliente),
-    });
+    const dbRes = await BadgesDB.insertChiave(
+      reqDataToUpperCase({
+        ...parsed.data,
+        codice:
+          parsed.data.codice ||
+          createBarcode(parsed.data, BadgePrefix.CHIAVE, parsed.data.cliente),
+      })
+    );
     if (dbRes.rowCount === 0) {
       throw new BaseError("Impossibile eliminare badge", {
         status: 500,
@@ -306,7 +328,10 @@ export async function apiUpdateChiave(req: Request, res: Response) {
 
     const { codice, updateData } = parsed.data;
 
-    const dbRes = await BadgesDB.updateChiave(codice, updateData);
+    const dbRes = await BadgesDB.updateChiave({
+      codice,
+      updateData: reqDataToUpperCase(updateData),
+    });
     if (dbRes.rowCount === 0) {
       throw new BaseError("Impossibile modificare badge", {
         status: 500,
@@ -396,7 +421,10 @@ export async function apiUpdateVeicolo(req: Request, res: Response) {
 
     const { codice, updateData } = parsed.data;
 
-    const dbRes = await BadgesDB.updateVeicolo(codice, updateData);
+    const dbRes = await BadgesDB.updateVeicolo({
+      codice,
+      updateData: reqDataToUpperCase(updateData),
+    });
     if (dbRes.rowCount === 0) {
       throw new BaseError("Impossibile modificare badge", {
         status: 500,
@@ -449,7 +477,7 @@ export async function apiGetPersone(req: Request, res: Response) {
         cause: parsed.error,
       });
     }
-    const dbRes = await BadgesDB.getPersone(parsed.data);
+    const dbRes = await BadgesDB.getPersone(reqDataToUpperCase(parsed.data));
     res.json(Ok(dbRes.rows));
   } catch (e) {
     const error = enforceBaseErr(e);
@@ -470,7 +498,7 @@ export async function apiInsertPersona(req: Request, res: Response) {
 
     const { ndoc, tdoc } = parsed.data;
 
-    const dbRes = await BadgesDB.insertPersona(parsed.data);
+    const dbRes = await BadgesDB.insertPersona(reqDataToUpperCase(parsed.data));
     if (dbRes.rowCount === 0) {
       throw new BaseError("Impossibile inserire persona", {
         status: 500,
@@ -508,10 +536,12 @@ export async function apiUpdatePersona(req: Request, res: Response) {
       });
     }
 
-    const { ndoc, tdoc } = parsed.data.docInfo;
-    const { updateData } = parsed.data;
+    const { docInfo } = parsed.data;
 
-    const dbRes = await BadgesDB.updatePersona({ ndoc, tdoc }, updateData);
+    const dbRes = await BadgesDB.updatePersona({
+      docInfo,
+      updateData: reqDataToUpperCase(parsed.data.updateData),
+    });
 
     let uploadedFile;
     const docFile =
@@ -520,13 +550,13 @@ export async function apiUpdatePersona(req: Request, res: Response) {
         ? req.files.documento[0]
         : req.files.documento);
     if (docFile) {
-      uploadedFile = await Filemanager.uploadDocumento(ndoc, docFile);
+      uploadedFile = await Filemanager.uploadDocumento(docInfo.ndoc, docFile);
     }
 
     if (dbRes.rowCount === 0 && !uploadedFile) {
       throw new BaseError("Impossibile modificare badge", {
         status: 500,
-        context: { ndoc, tdoc },
+        context: { ...docInfo },
       });
     }
 

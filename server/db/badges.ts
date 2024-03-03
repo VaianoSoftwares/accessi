@@ -1,23 +1,26 @@
 import * as db from "./index.js";
 import {
   Chiave,
-  ChiaveInsertData,
-  ChiaveUpdateData,
   DeletePersonaData,
-  InsertPersonaData,
   Nominativo,
-  NominativoInsertData,
-  NominativoUpdateData,
   Persona,
   Provvisorio,
-  ProvvisorioInsertData,
-  ProvvisorioUpdateData,
-  UpdatePersonaData,
   Veicolo,
-  VeicoloInsertData,
-  VeicoloUpdateData,
 } from "../types/badges.js";
-import { FindBadgesFilter, FindPersoneFilter } from "../utils/validation.js";
+import {
+  FindBadgesFilter,
+  FindPersoneFilter,
+  InsertChiaveData,
+  InsertNominativoData,
+  InsertPersonaData,
+  InsertProvvisorioData,
+  InsertVeicoloData,
+  UpdateChiaveData,
+  UpdateNominativoData,
+  UpdatePersonaData,
+  UpdateProvvisorioData,
+  UpdateVeicoloData,
+} from "../utils/validation.js";
 
 export async function getBadges(filter?: FindBadgesFilter) {
   const prefixText = "SELECT * FROM all_badges";
@@ -45,55 +48,59 @@ export async function getBadges(filter?: FindBadgesFilter) {
     Object.entries(filter)
       .filter(([, value]) => value)
       .map(([key, value]) =>
-        key === "scadenza" || typeof value !== "string" ? value : `%${value}%`
+        key === "cliente" || typeof value !== "string"
+          ? value
+          : `%${value.toUpperCase()}%`
       )
       .flat();
 
   return await db.query(queryText, queryValues);
 }
 
-export function insertProvvisorio(data: ProvvisorioInsertData) {
+export function insertProvvisorio(data: InsertProvvisorioData) {
   return db.insertRow<Provvisorio>("provvisori", data);
 }
 
-export function updateProvvisorio(codice: string, data: ProvvisorioUpdateData) {
-  return db.updateRows<Provvisorio>("provvisori", data, { codice });
+export function updateProvvisorio(data: UpdateProvvisorioData) {
+  return db.updateRows<Provvisorio>("provvisori", data, {
+    codice: data.codice,
+  });
 }
 
 export function deleteProvvisorio(codice: string) {
   return db.deleteRows<Provvisorio>("provvisori", { codice });
 }
 
-export function insertNominativo(data: NominativoInsertData) {
+export function insertNominativo(data: InsertNominativoData) {
   return db.insertRow<Nominativo>("nominativi", data);
 }
 
-export function updateNominativo(codice: string, data: NominativoUpdateData) {
-  return db.updateRows<Nominativo>("nominativi", data, { codice });
+export function updateNominativo(data: UpdateNominativoData) {
+  return db.updateRows<Nominativo>("nominativi", data, { codice: data.codice });
 }
 
 export function deleteNominativo(codice: string) {
   return db.deleteRows<Nominativo>("nominativi", { codice });
 }
 
-export function insertChiave(data: ChiaveInsertData) {
+export function insertChiave(data: InsertChiaveData) {
   return db.insertRow<Chiave>("chiavi", data);
 }
 
-export function updateChiave(codice: string, data: ChiaveUpdateData) {
-  return db.updateRows<Chiave>("chiavi", data, { codice });
+export function updateChiave(data: UpdateChiaveData) {
+  return db.updateRows<Chiave>("chiavi", data, { codice: data.codice });
 }
 
 export function deleteChiave(codice: string) {
   return db.deleteRows<Chiave>("chiavi", { codice });
 }
 
-export function insertVeicolo(data: VeicoloInsertData) {
+export function insertVeicolo(data: InsertVeicoloData) {
   return db.insertRow<Veicolo>("veicoli", data);
 }
 
-export function updateVeicolo(codice: string, data: VeicoloUpdateData) {
-  return db.updateRows<Veicolo>("veicoli", data, { codice });
+export function updateVeicolo(data: UpdateVeicoloData) {
+  return db.updateRows<Veicolo>("veicoli", data, { codice: data.codice });
 }
 
 export function deleteVeicolo(codice: string) {
@@ -127,11 +134,8 @@ export function insertPersona(data: InsertPersonaData) {
   return db.insertRow<Persona>("persone", data);
 }
 
-export function updatePersona(
-  data: UpdatePersonaData,
-  filter?: FindPersoneFilter
-) {
-  return db.updateRows<Persona>("persone", data, filter);
+export function updatePersona(data: UpdatePersonaData) {
+  return db.updateRows<Persona>("persone", data.updateData, data.docInfo);
 }
 
 export function deletePersona(data: DeletePersonaData) {
