@@ -459,8 +459,8 @@ export const GET_PROTOCOLLI_SCHEMA = z.object({
   filename: z.string().optional(),
   dataInizio: z.union([z.string(), z.coerce.date()]).optional(),
   dataFine: z.union([z.string(), z.coerce.date()]).optional(),
-  userId: ID_SCHEMA("User ID").optional(),
-  username: z.string().optional(),
+  postazioneId: ID_SCHEMA("User ID").optional(),
+  postazioneName: z.string().optional(),
 });
 export type GetProtocolliFilter = z.infer<typeof GET_PROTOCOLLI_SCHEMA>;
 

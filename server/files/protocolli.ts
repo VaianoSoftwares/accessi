@@ -6,10 +6,10 @@ import { BaseError } from "../types/errors.js";
 const __dirname = path.resolve();
 const PUBLIC_DIR = path.resolve(__dirname, "server", "public");
 
-const PROT_DIR = path.resolve(PUBLIC_DIR, "prot");
+const PROT_DIR = path.resolve(PUBLIC_DIR, "protocolli");
 
 function protDocPrefix(protId: number) {
-  return `PROT${String(protId).padStart(10, "0")}-`;
+  return `PROT${String(protId)}-`;
 }
 
 export async function uploadDocs(protId: number, docs: UploadedFile[]) {
@@ -20,7 +20,7 @@ export async function uploadDocs(protId: number, docs: UploadedFile[]) {
       const docSize = doc.size;
       if (doc.size > maxDocSize) {
         throw new BaseError("File troppo grande", {
-          context: { docSize, maxDocSize, protId },
+          context: { docSize, maxDocSize, protId, filename: doc.name },
         });
       }
 

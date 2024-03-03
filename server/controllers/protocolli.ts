@@ -8,7 +8,7 @@ import * as FileManager from "../files/protocolli.js";
 
 export async function apiGetProtocolli(req: Request, res: Response) {
   try {
-    const parsed = Validator.INSERT_PROTOCOLLO_SCHEMA.safeParse(req.query);
+    const parsed = Validator.GET_PROTOCOLLI_SCHEMA.safeParse(req.query);
     if (parsed.success === false) {
       throw new BaseError(parsed.error.errors[0].message, {
         status: 400,
@@ -68,9 +68,9 @@ export async function apiDeleteProtocollo(req: Request, res: Response) {
       });
     }
 
-    await FileManager.deleteDocs(protId);
+    const deletedDocs = await FileManager.deleteDocs(protId);
 
-    res.json(Ok(dbRes));
+    res.json(Ok({ ...dbRes, deletedDocs }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error);

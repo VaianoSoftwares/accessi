@@ -217,11 +217,11 @@ CREATE TABLE IF NOT EXISTS documenti(
 );
 
 CREATE TABLE IF NOT EXISTS prot_visibile_da(
-    prot_id SERIAL,
-    user_id SERIAL,
-    FOREIGN KEY (user_id) REFERENCES users (id),
-    FOREIGN KEY (prot_id) REFERENCES protocolli (id),
-    PRIMARY KEY (prot_id, user_id)
+    protocollo SERIAL,
+    postazione SERIAL,
+    FOREIGN KEY (protocollo) REFERENCES protocolli (id),
+    FOREIGN KEY (postazione) REFERENCES postazioni (id),
+    PRIMARY KEY (protocollo, postazione)
 );
 
 /*######################################################################################################################################################*/
@@ -319,15 +319,16 @@ INSERT INTO documenti (filename, descrizione, prot_id) VALUES
     ('bilanci.xlsn', DEFAULT, 1),
     ('bilanci.xlsn', 'bilanci scorso semestre', 3),
     ('script.bat', 'lancio web app', 2),
-    ('documento.jpeg', 'patente Aldo Fedonni', 2);
+    ('documento.jpg', 'patente Aldo Fedonni', 2);
 
-INSERT INTO prot_visibile_da (prot_id, user_id) VALUES
-    (1, 3),
-    (1, 4),
+INSERT INTO prot_visibile_da (protocollo, postazione) VALUES
+    (1, 1),
+    (1, 2),
     (1, 5),
-    (2, 3),
-    (3, 3),
-    (3, 5);
+    (1, 11),
+    (2, 5),
+    (3, 5),
+    (3, 11);
 
 /*######################################################################################################################################################*/
 
@@ -431,15 +432,15 @@ CREATE VIEW full_users AS
     FROM users AS u;
 
 CREATE VIEW full_protocolli AS
-    SELECT p.id, p.date, p.descrizione AS prot_descrizione, d.filename, d.descrizione AS doc_descrizione,
+    SELECT pr.id, pr.date, pr.descrizione AS prot_descrizione, d.filename, d.descrizione AS doc_descrizione,
     ARRAY(
-        SELECT DISTINCT u.id FROM users AS u JOIN prot_visibile_da AS v ON u.id = v.user_id AND v.prot_id = p.id
+        SELECT DISTINCT po.id FROM postazioni AS po JOIN prot_visibile_da AS v ON po.id = v.postazione AND v.protocollo = pr.id
     ) AS visibile_da_id, 
     ARRAY(
-        SELECT DISTINCT name FROM users AS u JOIN prot_visibile_da AS v ON u.id = v.user_id AND v.prot_id = p.id
+        SELECT DISTINCT po.name FROM postazioni AS po JOIN prot_visibile_da AS v ON po.id = v.postazione AND v.protocollo = pr.id
     ) AS visibile_da_name 
-    FROM protocolli AS p
-    JOIN documenti AS d ON p.id = d.prot_id;
+    FROM protocolli AS pr
+    JOIN documenti AS d ON pr.id = d.prot_id;
 
 CREATE VIEW assegnazioni AS SELECT unnest(enum_range(NULL::assegnazione)) AS value;
 CREATE VIEW edifici AS SELECT unnest(enum_range(NULL::edificio)) AS value;
@@ -466,7 +467,9 @@ CREATE VIEW tveicoli AS SELECT unnest(enum_range(NULL::veicolo)) AS value;
 
 -- SELECT * FROM full_users;
 
--- SELECT * FROM full_protocolli;
+SELECT * FROM full_protocolli;
+
+SELECT * FROM full_protocolli WHERE 11 = ANY(visibile_da_id);
 
 -- queryInStrutt
 SELECT id, codice, tipo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in

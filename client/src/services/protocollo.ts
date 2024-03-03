@@ -1,14 +1,19 @@
 import { GenericAbortSignal } from "axios";
 import DataServices from "./DataServices";
-import { ProtocolloFindReq } from "../types";
+import { GenericForm } from "../types";
+import { FullProtocollo } from "../types/protocolli";
 
 class ProtocolloDataServices extends DataServices {
   getAll(signal?: GenericAbortSignal) {
-    return super.request({ token: true, signal });
+    return super.request<FullProtocollo[]>({ token: true, signal });
   }
 
-  find(query: ProtocolloFindReq, signal?: GenericAbortSignal) {
-    return super.request({ token: true, data: query, signal });
+  find(query: GenericForm, signal?: GenericAbortSignal) {
+    return super.request<FullProtocollo[]>({
+      token: true,
+      data: query,
+      signal,
+    });
   }
 
   insert(data: FormData, signal?: GenericAbortSignal) {
@@ -31,4 +36,4 @@ class ProtocolloDataServices extends DataServices {
   }
 }
 
-export default new ProtocolloDataServices("/api/v1/protocollo");
+export default new ProtocolloDataServices("/api/v1/protocolli");

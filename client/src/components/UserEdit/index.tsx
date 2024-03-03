@@ -7,10 +7,10 @@ import { useRef } from "react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router";
-import { PERMESSI_INFO, TPermessi, UpdateUserData } from "../../types/users";
-import { PAGES_INFO, TPages } from "../../types/pages";
+import { PERMESSI_INFO, UpdateUserData } from "../../types/users";
+import { PAGES_INFO } from "../../types/pages";
 import { UpdateUserForm } from "../../types/forms";
-import { FormRef, GenericForm } from "../../types";
+import { FormRef } from "../../types";
 import { checkBits } from "../../utils/bitwise";
 
 const formRefDefaultState: Record<keyof UpdateUserForm, null> = {

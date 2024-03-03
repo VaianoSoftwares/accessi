@@ -28,3 +28,7 @@
     font-size: 13px;
     top: -25%;
 }
+
+.prot-form-btns button {
+    width: 90px;
+}

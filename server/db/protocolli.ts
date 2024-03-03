@@ -6,6 +6,7 @@ import {
 import * as db from "./index.js";
 import * as FileManager from "../files/protocolli.js";
 import { UploadedFile } from "express-fileupload";
+import { FullProtocollo } from "../types/protocolli.js";
 
 export async function getProtocolli(filter?: GetProtocolliFilter) {
   const prefixText = "SELECT * FROM full_protocolli";
@@ -15,9 +16,9 @@ export async function getProtocolli(filter?: GetProtocolliFilter) {
       .filter(([, value]) => value)
       .map(([key, value], i) => {
         switch (key) {
-          case "userId":
+          case "postazioneId":
             return `${i + 1}=ANY(visibile_da_id)`;
-          case "username":
+          case "postazioneName":
             return `${i + 1}=ANY(visibile_da_name)`;
           case "dataInizio":
             return `date>=${i + 1}`;
@@ -36,11 +37,15 @@ export async function getProtocolli(filter?: GetProtocolliFilter) {
     : prefixText;
   const queryValues =
     filter &&
-    Object.values(filter)
-      .filter((value) => value)
-      .map((value) => (typeof value === "string" ? `%${value}%` : value));
+    Object.entries(filter)
+      .filter(([, value]) => value)
+      .map(([key, value]) =>
+        key.startsWith("data") === false && typeof value === "string"
+          ? `%${value}%`
+          : value
+      );
 
-  return await db.query(queryText, queryValues);
+  return await db.query<FullProtocollo>(queryText, queryValues);
 }
 
 export async function insertProtocollo(
@@ -56,42 +61,62 @@ export async function insertProtocollo(
       "INSERT INTO protocolli (descrizione) VALUES ($1) RETURNING id",
       [data.descrizione]
     );
-    if (insertProtRes.rowCount !== 1) {
+    if (insertProtRes.rowCount === 0) {
       throw new BaseError("Impossibile inserire protocollo");
     }
 
     const protId = insertProtRes.rows[0].id;
     const filenames = await FileManager.uploadDocs(protId, docs);
-    const userIds = data.visibileDa.filter((v) => v);
+    const postazioniIds = data.visibileDa.filter((v) => v);
 
-    const docsValuesQuery = filenames.flatMap((filename) => [filename, protId]);
+    // const docsValuesQuery = filenames.flatMap((filename) => [filename, protId]);
+    // const docsTextQuery =
+    //   "INSERT INTO documento (filename, prot_id) VALUES ".concat(
+    //     docsValuesQuery
+    //       .map((_, i) => (i & 1 ? `$${i + 1})` : `($${i + 1}`))
+    //       .join(",")
+    //   );
+    const docsValuesQuery = [protId, ...filenames];
     const docsTextQuery =
       "INSERT INTO documento (filename, prot_id) VALUES ".concat(
-        docsValuesQuery
-          .map((_, i) => (i & 1 ? `$${i + 1})` : `($${i + 1}`))
-          .join(",")
+        docsValuesQuery.map((_, i) => `($${i + 2}, $1)`).join(",")
       );
     const insertDocsRes = await client.query(docsTextQuery, docsValuesQuery);
-    if (insertDocsRes.rowCount !== 1) {
+    if (insertDocsRes.rowCount !== filenames.length) {
       throw new BaseError("Impossibile inserire documento/i", {
-        context: { protId, filenames },
+        context: {
+          protId,
+          filenames,
+          expectedLength: filenames.length,
+          actualLength: insertDocsRes.rowCount,
+        },
       });
     }
 
-    const visibileDaValuesQuery = userIds.flatMap((userId) => [protId, userId]);
+    // const visibileDaValuesQuery = userIds.flatMap((userId) => [protId, userId]);
+    // const visibileDaTextQuery =
+    //   "INSERT INTO prot_visibile_da (prot_id, user_id) VALUES ($1, $2)".concat(
+    //     visibileDaValuesQuery
+    //       .map((_, i) => (i & 1 ? `$${i + 1})` : `($${i + 1}`))
+    //       .join(",")
+    //   );
+    const visibileDaValuesQuery = [protId, ...postazioniIds];
     const visibileDaTextQuery =
-      "INSERT INTO prot_visibile_da (prot_id, user_id) VALUES ($1, $2)".concat(
-        visibileDaValuesQuery
-          .map((_, i) => (i & 1 ? `$${i + 1})` : `($${i + 1}`))
-          .join(",")
+      "INSERT INTO prot_visibile_da (protocollo, postazione) VALUES ".concat(
+        visibileDaValuesQuery.map((_, i) => `($1, $${i + 2})`).join(",")
       );
     const insertVisibileDaRes = await client.query(
       visibileDaTextQuery,
       visibileDaValuesQuery
     );
-    if (insertVisibileDaRes.rowCount !== 1) {
+    if (insertVisibileDaRes.rowCount !== postazioniIds.length) {
       throw new BaseError("Impossibile inserire in prot_visibile_da", {
-        context: { protId, userIds },
+        context: {
+          protId,
+          postazioniIds,
+          expectedLength: postazioniIds.length,
+          actualLength: insertVisibileDaRes.rowCount,
+        },
       });
     }
 
@@ -99,6 +124,8 @@ export async function insertProtocollo(
 
     return insertProtRes;
   } catch (e) {
+    await client.query("ROLLBACK");
+
     if (e instanceof BaseError && e.context && typeof e.context === "object") {
       const protId = Number.parseInt(
         (e.context as Record<PropertyKey, any>)["protId"]
@@ -107,7 +134,7 @@ export async function insertProtocollo(
         await FileManager.deleteDocs(protId);
       }
     }
-    await client.query("ROLLBACK");
+
     throw e;
   } finally {
     client.release();

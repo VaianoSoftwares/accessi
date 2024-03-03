@@ -25,6 +25,7 @@ import {
 } from "../../types/archivio";
 
 const TABLE_NAME = "in_strutt_table";
+const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 
 export default function Badge({
   scannedValue,
@@ -153,11 +154,7 @@ export default function Badge({
   const timeoutRunning = useRef(false);
 
   const [pfpUrl, { updateImage, setNoImage }] = useImage((data) =>
-    data
-      ? `${
-          import.meta.env.DEV ? import.meta.env.VITE_PROXY : ""
-        }/api/v1/public/foto-profilo/PFP_${data}.jpg`
-      : ""
+    data ? `${PROXY}/api/v1/public/foto-profilo/PFP_${data}.jpg` : ""
   );
 
   function formToObj() {
@@ -367,7 +364,8 @@ export default function Badge({
                   <div className="w-100 mb-4" />
                   <div className="col" />
                   <div className="in-strutt-count col-sm-4">
-                    <b># in struttura:</b> {queryInStrutt.data?.length || 0}
+                    <b># in struttura:</b>{" "}
+                    {queryInStrutt.isSuccess ? queryInStrutt.data.length : 0}
                   </div>
                 </div>
               </div>

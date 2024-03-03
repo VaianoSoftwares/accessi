@@ -63,9 +63,9 @@ export type FindArchivioForm = {
 
 export type ProtocolloForm = {
   filename?: string | undefined;
-  descrizione?: string | undefined;
-  data_in?: string | undefined;
-  data_out?: string | undefined;
+  prot_descrizione?: string | undefined;
+  dataInizio?: string | undefined;
+  dataFine?: string | undefined;
   fileData?: string | undefined;
   visibileDa?: string | undefined;
 };

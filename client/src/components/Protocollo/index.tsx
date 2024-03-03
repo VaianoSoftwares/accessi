@@ -1,17 +1,16 @@
 import { useRef } from "react";
-import { FormRef, ProtocolloFile, ProtocolloFindReq } from "../../types";
+import { FormRef, GenericForm } from "../../types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PostazioniDataService from "../../services/postazioni";
 import ProtocolloDataService from "../../services/protocollo";
 import toast from "react-hot-toast";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import "./index.css";
-import Clock from "../Clock";
 import { Postazione } from "../../types/badges";
 import { TLoggedUser, isAdmin } from "../../types/users";
 import { ProtocolloForm } from "../../types/forms";
 
-const ON_PROD_MODE = process.env.NODE_ENV === "production";
+const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 
 export default function Protocollo({
   user,
@@ -22,9 +21,9 @@ export default function Protocollo({
 }) {
   const formRef = useRef<FormRef<ProtocolloForm>>({
     filename: null,
-    descrizione: null,
-    data_in: null,
-    data_out: null,
+    prot_descrizione: null,
+    dataInizio: null,
+    dataFine: null,
     fileData: null,
     visibileDa: null,
   });
@@ -32,21 +31,12 @@ export default function Protocollo({
   const queryClient = useQueryClient();
 
   function formToObj() {
-    const obj: Record<PropertyKey, any> = {};
+    const obj: Record<PropertyKey, any> = { postazioneId: currPostazione?.id };
     Object.entries(formRef.current)
-      .filter(([key, el]) => el?.value && key !== "fileData")
-      .forEach(([key, el]) => {
-        switch (key) {
-          case "visibileDa":
-            obj[key] = Array.from(
-              (el as HTMLSelectElement).selectedOptions,
-              (option) => option.value
-            );
-            break;
-          default:
-            obj[key] = el!.value;
-        }
-      });
+      .filter(
+        ([key, el]) => el?.value && !["fileData", "visibileDa"].includes(key)
+      )
+      .forEach(([key, el]) => (obj[key] = el!.value));
     return obj;
   }
 
@@ -70,7 +60,7 @@ export default function Protocollo({
                 formData.append(key, file)
               );
             break;
-          case "descrizione":
+          case "prot_descrizione":
             formData.append(key, el!.value);
         }
       });
@@ -88,39 +78,20 @@ export default function Protocollo({
         if (response.data.success === false) {
           throw response.data.error;
         }
-        const result = response.data.result;
-        return result;
+        return response.data.result;
       }),
   });
 
   const queryProtocollo = useQuery({
-    queryKey: ["protocollo", currPostazione?.id],
-    queryFn: (context) =>
-      ProtocolloDataService.find({
-        visibileDa: context.queryKey[1]
-          ? ([context.queryKey[1]] as string[])
-          : undefined,
-      }).then((response) => {
-        console.log("queryProtocollo | response:", response);
-        if (response.data.success === false) {
-          throw response.data.error;
-        }
-        const result = response.data.result as ProtocolloFile[];
-        return result;
-      }),
-  });
-
-  const findProtocollo = useQuery({
     queryKey: ["protocollo", formToObj()],
     queryFn: (context) =>
-      ProtocolloDataService.find(context.queryKey[1] as ProtocolloFindReq).then(
+      ProtocolloDataService.find(context.queryKey[1] as GenericForm).then(
         (response) => {
           console.log("queryProtocollo | response:", response);
           if (response.data.success === false) {
             throw response.data.error;
           }
-          const result = response.data.result as ProtocolloFile[];
-          return result;
+          return response.data.result;
         }
       ),
     enabled: false,
@@ -150,7 +121,7 @@ export default function Protocollo({
   return (
     <div className="container-fluid m-1">
       <div className="row">
-        <div className="col-5 protocollo-form">
+        <div className="col protocollo-form">
           <div className="row mb-2">
             <div className="form-floating col-sm-6">
               <input
@@ -168,7 +139,7 @@ export default function Protocollo({
                 className="form-control form-control-sm"
                 type="text"
                 id="descrizione"
-                ref={(el) => (formRef.current.descrizione = el)}
+                ref={(el) => (formRef.current.prot_descrizione = el)}
                 autoComplete="off"
                 placeholder="Descrizione"
               />
@@ -210,7 +181,7 @@ export default function Protocollo({
                 className="form-control form-control-sm"
                 type="date"
                 id="dataInizio"
-                ref={(el) => (formRef.current.data_in = el)}
+                ref={(el) => (formRef.current.dataInizio = el)}
                 autoComplete="off"
                 placeholder="Data Inizio"
               />
@@ -221,7 +192,7 @@ export default function Protocollo({
                 className="form-control form-control-sm"
                 type="date"
                 id="dataFine"
-                ref={(el) => (formRef.current.data_out = el)}
+                ref={(el) => (formRef.current.dataFine = el)}
                 autoComplete="off"
                 placeholder="Data Fine"
               />
@@ -229,12 +200,12 @@ export default function Protocollo({
             </div>
           </div>
         </div>
-        <div className="col-2">
+        <div className="col-1 prot-form-btns">
           <div className="row align-items-center justify-content-start g-0">
             <div className="col">
               <button
                 className="btn btn-success"
-                onClick={() => findProtocollo.refetch()}
+                onClick={() => queryProtocollo.refetch()}
               >
                 Cerca
               </button>
@@ -250,28 +221,30 @@ export default function Protocollo({
             </div>
           </div>
         </div>
-        <div className="col">
-          <Clock></Clock>
-        </div>
       </div>
-      <div className="row my-1">
-        <div className="col-3 protocollo-file-list border">
+      <div className="row m-1">
+        <div className="col protocollo-file-list border">
           <ul className="list-group list-group-flush">
             {queryProtocollo.isSuccess
-              ? queryProtocollo.data.map(({ filename, _id }) => (
-                  <li className="list-group-item" key={_id}>
+              ? queryProtocollo.data.map(({ filename, id }) => (
+                  <li className="list-group-item" key={`PROT${id}-${filename}`}>
                     {isAdmin(user) === true && (
                       <button
                         data-filename={filename}
-                        data-id={_id}
+                        data-id={id}
                         type="button"
                         className="close btn-del-file"
                         aria-label="Close"
                         onClick={(
                           event: React.MouseEvent<HTMLButtonElement, MouseEvent>
                         ) => {
+                          const confirmed = window.confirm(
+                            "Procedere alla rimozione del documento?"
+                          );
+                          if (!confirmed) return;
+
                           const id = Number.parseInt(
-                            event.currentTarget.getAttribute("data-id") || ""
+                            String(event.currentTarget.getAttribute("data-id"))
                           );
                           if (Number.isNaN(id)) return;
                           deleteProtocollo.mutate(id);
@@ -282,11 +255,7 @@ export default function Protocollo({
                     )}{" "}
                     <a
                       className="file-list-link"
-                      href={
-                        ON_PROD_MODE
-                          ? `/api/v1/public/protocollo/${filename}`
-                          : `${process.env.REACT_APP_PROXY}/api/v1/public/protocollo/${filename}`
-                      }
+                      href={`${PROXY}/api/v1/public/protocolli/PROT${id}-${filename}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >

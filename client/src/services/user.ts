@@ -30,6 +30,7 @@ class UserDataService extends DataServices {
 
   deviceLogin(signal?: GenericAbortSignal) {
     return super.request<TUser>({
+      method: "POST",
       url: "/login/refresh",
       token: true,
       signal,

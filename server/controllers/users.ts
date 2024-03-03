@@ -69,7 +69,7 @@ export function apiRefreshLogin(req: Request, res: Response) {
   try {
     const user = req.user!;
     const secret = process.env.TOKEN_SECRET!;
-
+    console.log("refreshlog", user);
     jwt.sign(
       { id: user.id, date: Date.now() },
       secret,
