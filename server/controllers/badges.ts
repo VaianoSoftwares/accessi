@@ -7,16 +7,10 @@ import { BaseError } from "../types/errors.js";
 import createBarcode from "../utils/barcodeGen.js";
 import { Badge, BadgePrefix } from "../types/badges.js";
 import * as Filemanager from "../files/badges.js";
+import { objToUpperCase } from "../utils/objToUpperCase.js";
 
 function reqDataToUpperCase<T extends object>(data: T) {
-  const caseSensitiveAttributes: Array<keyof Badge> = ["cliente"];
-
-  return Object.entries(data).map(([key, value]) =>
-    typeof value !== "string" ||
-    caseSensitiveAttributes.includes(key as keyof Badge)
-      ? value
-      : value.toUpperCase()
-  ) as T;
+  return objToUpperCase(data, ["cliente"] satisfies Array<keyof Badge>);
 }
 
 export async function apiGetBadges(req: Request, res: Response) {

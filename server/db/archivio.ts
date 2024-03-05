@@ -496,19 +496,19 @@ export async function timbraUniversitario(data: TimbraUniData) {
       [data.ndoc]
     );
 
-  if (numInStruttRows !== 0) {
+  if (numInStruttRows) {
     const { rows, rowCount } = await getPostazioni({
-      ids: [data.postazione, inStruttRows[0].postazione],
+      ids: [data.postazione, inStruttRows[0].postazione_id],
     });
-    if (!rowCount || rowCount < 2) {
+    if (!rowCount) {
       throw new BaseError("Impossibile reperire postazioni", {
         status: 500,
         context: {
           badge: data.ndoc,
-          postazioniId: [[data.postazione, inStruttRows[0].postazione]],
+          postazioniId: [data.postazione, inStruttRows[0].postazione_id],
         },
       });
-    } else if (rows[0].cliente !== rows[1].cliente) {
+    } else if (rowCount > 1 && rows[0].cliente !== rows[1].cliente) {
       throw new BaseError("Impossibile timbrare badge di un altro cliente", {
         status: 400,
         context: {
@@ -521,7 +521,7 @@ export async function timbraUniversitario(data: TimbraUniData) {
         inStruttRows[0].id,
         "archivio_provvisori"
       );
-      if (numUpdatedRows === 0) {
+      if (!numUpdatedRows) {
         throw new BaseError("Impossibile timbrare badge", {
           status: 500,
           context: { id: inStruttRows[0].id, badge: data.ndoc },
@@ -531,24 +531,23 @@ export async function timbraUniversitario(data: TimbraUniData) {
       return { row: inStruttRows[0], isEntrata: false };
     }
   } else {
-    const queryValues = Object.values(data).filter((v) => v);
-    const { rowCount: numInsertedRows } = await db.insertRow(
-      "archivio_provvisori",
-      queryValues
+    const { rowCount: numInsertedRows } = await db.query(
+      "INSERT INTO archivio_provvisori (ndoc, postazione, ip, data_in) VALUES ($1, $2, $3, date_trunc('second', CURRENT_TIMESTAMP))",
+      [data.ndoc, data.postazione, data.ip]
     );
-    if (numInsertedRows === 0) {
+    if (!numInsertedRows) {
       throw new BaseError("Impossibile timbrare badge", {
         status: 500,
         context: { badge: data.ndoc },
       });
     }
-
+    console.log("paolo luca");
     const { rows: inStruttRows, rowCount: numInStruttRows } =
       await db.query<Archivio>(
         "SELECT * FROM in_strutt WHERE tipo = 'PROVVISORIO' AND ndoc = $1",
         [data.ndoc]
       );
-    if (numInStruttRows === 0) {
+    if (!numInStruttRows) {
       throw new BaseError("Impossibile timbrare badge", {
         status: 500,
         context: { badge: data.ndoc },

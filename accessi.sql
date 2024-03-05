@@ -232,16 +232,16 @@ INSERT INTO clienti (name) VALUES
 
 
 INSERT INTO persone (nome, cognome, ditta, telefono, ndoc, tdoc, cliente) VALUES 
-    ('MARCO', 'PIERATTINI', 'GanzoSoft', '055-420-69', 'AU0069420', 'CARTA IDENTITA', 'Corte d''Appello'),
-    ('LUCA', 'CECCHI', 'GTAExpertIndustries', DEFAULT, 'AU0042069', 'PATENTE', 'Corte d''Appello'),
+    ('MARCO', 'PIERATTINI', 'GANZOSOFT', '055-420-69', 'AU0069420', 'CARTA IDENTITA', 'Corte d''Appello'),
+    ('LUCA', 'CECCHI', 'GTAEXPERTSINDUSTRIES', DEFAULT, 'AU0042069', 'PATENTE', 'Corte d''Appello'),
     ('GIORGIO', 'PAOLO CODA', DEFAULT, '055-420-420', 'AU006969', 'CARTA IDENTITA', 'Montedomini'),
     (DEFAULT, DEFAULT, DEFAULT, DEFAULT, 'AU00420420', 'TESSERA STUDENTE', 'Corte d''Appello');
 
 INSERT INTO nominativi (codice, descrizione, stato, assegnazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
-    ('028212345', 'marco :-.)', 'VALIDO', 'UTENTE', 'Corte d''Appello', '2025-03-15', 'MARCO', 'PIERATTINI', 'GanzoSoft', '055-420-69', 'AU0069420', 'CARTA IDENTITA'),
-    ('028212346', DEFAULT, 'VALIDO', 'PORTINERIA', 'Corte d''Appello', '2024-10-12', 'LUCA', 'CECCHI', 'GTAExpertIndustries', '055-69-420', 'AU0042069', 'PATENTE'),
+    ('028212345', 'marco :-.)', 'VALIDO', 'UTENTE', 'Corte d''Appello', '2025-03-15', 'MARCO', 'PIERATTINI', 'GANZOSOFT', '055-420-69', 'AU0069420', 'CARTA IDENTITA'),
+    ('028212346', DEFAULT, 'VALIDO', 'PORTINERIA', 'Corte d''Appello', '2024-10-12', 'LUCA', 'CECCHI', 'GTAEXPERTSINDUSTRIES', '055-69-420', 'AU0042069', 'PATENTE'),
     ('028212347', DEFAULT, 'SCADUTO', 'CORRIERE', 'Corte d''Appello', '2024-01-01', 'GIOVANNI', 'PANZA', DEFAULT, DEFAULT, '1020301', 'TESSERA STUDENTE'),
-    ('091712345', DEFAULT, 'VALIDO', 'PORTINERIA', 'Montedomini', '2025-07-09', DEFAULT, DEFAULT, 'GanzoSoft', DEFAULT, 'AU006969', 'CARTA IDENTITA');
+    ('091712345', DEFAULT, 'VALIDO', 'PORTINERIA', 'Montedomini', '2025-07-09', DEFAULT, DEFAULT, 'GANZOSOFT', DEFAULT, 'AU006969', 'CARTA IDENTITA');
 
 INSERT INTO provvisori (codice, descrizione, stato, ubicazione, cliente) VALUES
     ('128212345', DEFAULT, DEFAULT, DEFAULT, 'Corte d''Appello'),
@@ -250,8 +250,8 @@ INSERT INTO provvisori (codice, descrizione, stato, ubicazione, cliente) VALUES
     ('191712346', DEFAULT, DEFAULT, DEFAULT, 'Montedomini');
 
 INSERT INTO chiavi (codice, descrizione, ubicazione, cliente, indirizzo, citta, edificio, piano) VALUES
-    ('228212345', DEFAULT, DEFAULT, 'Corte d''Appello', 'Via Calcinaia 69', 'KEKISTAN', 'CAPANNONE', '0'),
-    ('291712345', DEFAULT, DEFAULT, 'Montedomini', 'Piazza Shrek III 88', 'SCANDICCI', 'UFFICIO', 'B2');
+    ('228212345', DEFAULT, DEFAULT, 'Corte d''Appello', 'VIA CALCINAIA 69', 'KEKISTAN', 'CAPANNONE', '0'),
+    ('291712345', DEFAULT, DEFAULT, 'Montedomini', 'PIAZZA SHREK III 88', 'SCANDICCI', 'UFFICIO', 'B2');
 
 INSERT INTO veicoli (codice, descrizione, stato, cliente, tveicolo, targa1, targa2, targa3, targa4, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
     ('328212345', DEFAULT, DEFAULT, 'Corte d''Appello', DEFAULT, 'XYZ-GTA5', '88LUKE88', DEFAULT , DEFAULT, 'GIANLUCA', 'CAUSIO', DEFAULT, DEFAULT, 'AU420420', 'PATENTE');

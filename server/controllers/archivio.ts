@@ -5,6 +5,13 @@ import enforceBaseErr from "../utils/enforceBaseErr.js";
 import { BaseError } from "../types/errors.js";
 import * as Validator from "../utils/validation.js";
 import { Archivio, BarcodePrefix } from "../types/archivio.js";
+import { objToUpperCase } from "../utils/objToUpperCase.js";
+
+function reqDataToUpperCase<T extends object>(data: T) {
+  return objToUpperCase(data, ["cliente", "postazione"] satisfies Array<
+    keyof Archivio
+  >);
+}
 
 export async function apiGetArchivio(req: Request, res: Response) {
   try {
@@ -15,7 +22,9 @@ export async function apiGetArchivio(req: Request, res: Response) {
         cause: parsed.error,
       });
     }
-    const dbResult = await ArchivioDB.getArchivio(parsed.data);
+    const dbResult = await ArchivioDB.getArchivio(
+      reqDataToUpperCase(parsed.data)
+    );
     res.json(Ok(dbResult.rows));
   } catch (e) {
     const error = enforceBaseErr(e);
@@ -33,7 +42,9 @@ export async function apiGetInStrutt(req: Request, res: Response) {
         cause: parsed.error,
       });
     }
-    const dbResult = await ArchivioDB.getInStrutt(parsed.data);
+    const dbResult = await ArchivioDB.getInStrutt(
+      reqDataToUpperCase(parsed.data)
+    );
     res.json(Ok(dbResult.rows));
   } catch (e) {
     const error = enforceBaseErr(e);
@@ -51,7 +62,9 @@ export async function apiGetInPrestito(req: Request, res: Response) {
         cause: parsed.error,
       });
     }
-    const dbResult = await ArchivioDB.getInPrestito(parsed.data);
+    const dbResult = await ArchivioDB.getInPrestito(
+      reqDataToUpperCase(parsed.data)
+    );
     res.json(Ok(dbResult.rows));
   } catch (e) {
     const error = enforceBaseErr(e);
@@ -77,7 +90,10 @@ export async function apiTimbraBadge(req: Request, res: Response) {
 
     const timbraData = {
       ...parsed.data,
-      badge: parsed.data.badge.substring(1),
+      badge:
+        barcodeType === "UNI"
+          ? parsed.data.badge
+          : parsed.data.badge.substring(1),
       ip: req.ip,
     };
 
@@ -107,6 +123,7 @@ export async function apiTimbraBadge(req: Request, res: Response) {
           ip: timbraData.ip,
           ndoc: timbraData.badge,
         });
+        break;
       default:
         throw new BaseError("Prefisso Barcode non valido", {
           status: 400,

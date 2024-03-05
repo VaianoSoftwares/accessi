@@ -94,19 +94,19 @@ export type UpdPostazioniUserData = z.infer<typeof UPD_POST_USR_SCHEMA>;
 
 export const CODICE_NOM_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Codice") })
-  .startsWith("0", "Codice non valido")
+  .startsWith(BarcodePrefix.nominativoGenerico, "Codice non valido")
   .length(CODICE_LEN, CODICE_LEN_ERR_MSG);
 export const CODICE_PROV_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Codice") })
-  .startsWith("1", "Codice non valido")
+  .startsWith(BarcodePrefix.provvisorioGenerico, "Codice non valido")
   .length(CODICE_LEN, CODICE_LEN_ERR_MSG);
 export const CODICE_CHIAVE_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Codice") })
-  .startsWith("2", "Codice non valido")
+  .startsWith(BarcodePrefix.chiaveGenerico, "Codice non valido")
   .length(CODICE_LEN, CODICE_LEN_ERR_MSG);
 export const CODICE_VEICOLO_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Codice") })
-  .startsWith("3", "Codice non valido")
+  .startsWith(BarcodePrefix.veicoloGenerico, "Codice non valido")
   .length(CODICE_LEN, CODICE_LEN_ERR_MSG);
 export const CODICE_SCHEMA = z.union([
   CODICE_NOM_SCHEMA,
@@ -487,8 +487,8 @@ export const INSERT_CLIENTE_SCHEMA = z.object({
 });
 
 export const FIND_POSTAZIONI_SCHEMA = z.object({
-  ids: z
-    .array(ID_SCHEMA("Postazione ID"))
+  ids: ID_SCHEMA("Postazione ID")
+    .array()
     .nonempty(MISSING_ATTR_ERR_MSG("Postazioni"))
     .optional(),
   cliente: z

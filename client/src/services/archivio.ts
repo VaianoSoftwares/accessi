@@ -33,6 +33,7 @@ class ArchivioDataService extends DataServices {
 
   findInStrutt(data: FindInStruttData, signal?: GenericAbortSignal) {
     return super.request<FindInStrutt[]>({
+      url: "/in-struttura",
       token: true,
       data,
       signal,
