@@ -67,8 +67,7 @@ CREATE TABLE IF NOT EXISTS persone(
     telefono VARCHAR(32) CHECK (telefono != ''),
     ndoc VARCHAR(32) CHECK (ndoc != ''),
     tdoc tdoc DEFAULT 'CARTA IDENTITA',
-    cliente VARCHAR(64) NOT NULL,
-    FOREIGN KEY (cliente) REFERENCES clienti (name),
+    cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
     PRIMARY KEY (ndoc, tdoc)
 );
 
@@ -77,7 +76,7 @@ CREATE TABLE IF NOT EXISTS nominativi(
     descrizione TEXT CHECK (descrizione != ''),
     stato badge_state DEFAULT 'VALIDO',
     assegnazione assegnazione DEFAULT 'UTENTE',
-    cliente VARCHAR(64) NOT NULL,
+    cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
     scadenza DATE,
     nome VARCHAR(32) CHECK (nome != ''),
     cognome VARCHAR(32) CHECK (cognome != ''),
@@ -85,7 +84,6 @@ CREATE TABLE IF NOT EXISTS nominativi(
     telefono VARCHAR(32) CHECK (telefono != ''),
     ndoc VARCHAR(32) NOT NULL CHECK (ndoc != ''),
     tdoc tdoc DEFAULT 'CARTA IDENTITA',
-    FOREIGN KEY (cliente) REFERENCES clienti (name),
     CONSTRAINT expired_badge_is_valid CHECK (stato != 'VALIDO' OR scadenza > current_date)
 );
 
@@ -94,15 +92,14 @@ CREATE TABLE IF NOT EXISTS provvisori(
     descrizione TEXT CHECK (descrizione != ''),
     stato badge_state DEFAULT 'VALIDO',
     ubicazione VARCHAR(32) CHECK (ubicazione != ''),
-    cliente VARCHAR(64) NOT NULL,
-    FOREIGN KEY (cliente) REFERENCES clienti (name)
+    cliente VARCHAR(64) NOT NULL REFERENCES clienti (name)
 );
 
 CREATE TABLE IF NOT EXISTS veicoli(
     codice CHAR(9) PRIMARY KEY CHECK (codice != ''),
     descrizione TEXT CHECK (descrizione != ''),
     stato badge_state DEFAULT 'VALIDO',
-    cliente VARCHAR(64) NOT NULL,
+    cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
     nome VARCHAR(32) CHECK (nome != ''),
     cognome VARCHAR(32) CHECK (cognome != ''),
     ditta VARCHAR(64) CHECK (ditta != ''),
@@ -113,20 +110,18 @@ CREATE TABLE IF NOT EXISTS veicoli(
     targa1 VARCHAR(32) CHECK (targa1 != ''),
     targa2 VARCHAR(32) CHECK (targa2 != ''),
     targa3 VARCHAR(32) CHECK (targa3 != ''),
-    targa4 VARCHAR(32) CHECK (targa4 != ''),
-    FOREIGN KEY (cliente) REFERENCES clienti (name)
+    targa4 VARCHAR(32) CHECK (targa4 != '')
 );
 
 CREATE TABLE IF NOT EXISTS chiavi(
     codice CHAR(9) PRIMARY KEY CHECK (codice != ''),
     descrizione TEXT CHECK (descrizione != ''),
     ubicazione VARCHAR(32) CHECK (ubicazione != ''),
-    cliente VARCHAR(64) NOT NULL,
+    cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
     indirizzo VARCHAR(128) CHECK (indirizzo != ''),
     citta VARCHAR(64) CHECK (citta != ''),
     edificio edificio,
-    piano VARCHAR(16) CHECK (piano != ''),
-    FOREIGN KEY (cliente) REFERENCES clienti (name)
+    piano VARCHAR(16) CHECK (piano != '')
 );
 
 CREATE TABLE IF NOT EXISTS users(
@@ -139,9 +134,8 @@ CREATE TABLE IF NOT EXISTS users(
 
 CREATE TABLE IF NOT EXISTS postazioni(
     id SERIAL PRIMARY KEY,
-    cliente VARCHAR(64),
+    cliente VARCHAR(64) REFERENCES clienti (name),
     name VARCHAR(64) CHECK (name != ''),
-    FOREIGN KEY (cliente) REFERENCES clienti (name),
     UNIQUE (cliente, name)
 );
 
@@ -169,18 +163,17 @@ CREATE TABLE IF NOT EXISTS archivio_chiavi(
     id SERIAL PRIMARY KEY,
     badge CHAR(9) REFERENCES nominativi (codice),
     chiave CHAR(9) REFERENCES chiavi (codice),
-    postazione SERIAL,
+    postazione SERIAL REFERENCES postazioni (id),
     data_in TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP),
     data_out TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '24 hours'),
     ip VARCHAR(32) CHECK (ip != ''),
-    FOREIGN KEY (postazione) REFERENCES postazioni (id),
     CONSTRAINT data_in_is_bigger_than_data_out CHECK (data_out IS NULL OR data_out > data_in)
 );
 
 CREATE TABLE IF NOT EXISTS archivio_provvisori(
     id SERIAL PRIMARY KEY,
     badge CHAR(9) REFERENCES provvisori (codice),
-    postazione SERIAL,
+    postazione SERIAL REFERENCES postazioni (id),
     data_in TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '23 hours 59 minutes'),
     data_out TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '24 hours'),
     ip VARCHAR(32) CHECK (ip != ''),
@@ -190,15 +183,12 @@ CREATE TABLE IF NOT EXISTS archivio_provvisori(
     telefono VARCHAR(32) CHECK (telefono != ''),
     ndoc VARCHAR(32) NOT NULL CHECK (ndoc != ''),
     tdoc tdoc DEFAULT 'CARTA IDENTITA',
-    FOREIGN KEY (postazione) REFERENCES postazioni (id),
     CONSTRAINT data_in_is_bigger_than_data_out CHECK (data_out IS NULL OR data_out > data_in)
 );
 
 CREATE TABLE IF NOT EXISTS postazioni_user(
-    user_id SERIAL,
-    postazione SERIAL,
-    FOREIGN KEY (user_id) REFERENCES users (id),
-    FOREIGN KEY (postazione) REFERENCES postazioni (id),
+    user_id SERIAL REFERENCES users (id) ON DELETE CASCADE,
+    postazione SERIAL REFERENCES postazioni (id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, postazione)
 );
 
@@ -211,16 +201,13 @@ CREATE TABLE IF NOT EXISTS protocolli(
 CREATE TABLE IF NOT EXISTS documenti(
     filename VARCHAR(256),
     descrizione TEXT,
-    prot_id SERIAL,
-    FOREIGN KEY (prot_id) REFERENCES protocolli (id),
+    prot_id SERIAL REFERENCES protocolli (id) ON DELETE CASCADE,
     PRIMARY KEY (filename, prot_id)
 );
 
 CREATE TABLE IF NOT EXISTS prot_visibile_da(
-    protocollo SERIAL,
-    postazione SERIAL,
-    FOREIGN KEY (protocollo) REFERENCES protocolli (id),
-    FOREIGN KEY (postazione) REFERENCES postazioni (id),
+    protocollo SERIAL REFERENCES protocolli (id) ON DELETE CASCADE,
+    postazione SERIAL REFERENCES postazioni (id) ON DELETE CASCADE,
     PRIMARY KEY (protocollo, postazione)
 );
 

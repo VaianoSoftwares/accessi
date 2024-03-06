@@ -181,24 +181,13 @@ export async function apiUpdateUser(req: Request, res: Response) {
     }
 
     const password = parsed.data.updateValues.password;
-    const userId = parsed.data.id;
-
     if (password) {
       const salt = await bcrypt.genSalt(10);
       const hashPsw = await bcrypt.hash(password, salt);
       parsed.data.updateValues.password = hashPsw;
     }
 
-    const dbRes = await UsersDB.updateUser(parsed.data.updateValues, {
-      id: userId,
-    });
-    if (dbRes.rowCount === 0) {
-      throw new BaseError("Impossibile modificare utente", {
-        status: 500,
-        context: { userId },
-      });
-    }
-
+    const dbRes = await UsersDB.updateUser(parsed.data);
     res.json(Ok(dbRes));
   } catch (e) {
     const error = enforceBaseErr(e);

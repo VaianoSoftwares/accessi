@@ -58,7 +58,7 @@ class UserDataService extends DataServices {
   ) {
     return super.request({
       url: `/${id}`,
-      method: "POST",
+      method: "PUT",
       token: true,
       data: user,
       signal,

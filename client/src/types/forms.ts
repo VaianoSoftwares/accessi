@@ -73,9 +73,9 @@ export type ProtocolloForm = {
 export type RegisterForm = {
   name?: string | undefined;
   password?: string | undefined;
-  postazioni?: string | undefined;
-  pages?: string | undefined;
-  permessi?: string | undefined;
+  postazioni?: string[] | undefined;
+  pages?: string[] | undefined;
+  permessi?: string[] | undefined;
 };
 
 export type UpdateUserForm = RegisterForm;

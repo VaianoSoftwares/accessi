@@ -78,6 +78,15 @@ export const UPDATE_USER_SCHEMA = z.object({
     password: PASSWORD_SCHEMA.optional(),
     permessi: z.number().nonnegative(ATTR_NUM_NEGATIVE("permessi")).optional(),
     pages: z.number().nonnegative(ATTR_NUM_NEGATIVE("pagine")).optional(),
+    postazioni: z
+      .array(
+        z.object({
+          checked: z.boolean(),
+          postazione: ID_SCHEMA("Postazione ID"),
+        })
+      )
+      .nonempty()
+      .optional(),
   }),
 });
 export type UpdateUserData = z.infer<typeof UPDATE_USER_SCHEMA>;

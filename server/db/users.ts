@@ -1,11 +1,10 @@
 import { BaseError } from "../types/errors.js";
+import { PostazioneUser, User } from "../types/users.js";
 import {
-  Postazione,
-  PostazioneUser,
+  InsertUserData,
   UpdateUserData,
-  User,
-} from "../types/users.js";
-import { InsertUserData, UpdPostazioniUserData } from "../utils/validation.js";
+  UpdPostazioniUserData,
+} from "../utils/validation.js";
 import * as db from "./index.js";
 
 const fullUsersQuery = "SELECT * FROM full_users";
@@ -84,8 +83,100 @@ export async function addUser(data: InsertUserData) {
   }
 }
 
-export async function updateUser(data: UpdateUserData, filter?: object) {
-  return await db.updateRows("users", data, filter);
+export async function updateUser({ id: userId, updateValues }: UpdateUserData) {
+  const client = await db.getClient();
+
+  try {
+    await client.query("BEGIN");
+
+    const userToUpd = await client.query<User>(
+      "SELECT * FROM users WHERE id = $1",
+      [userId]
+    );
+    if (!userToUpd.rowCount) {
+      throw new BaseError("Utente non esistente", {
+        status: 400,
+        context: { userId },
+      });
+    }
+
+    const { queryText: updUsersQueryText, queryValues: updUsersQueryValues } =
+      db.getUpdateRowsQuery(
+        "users",
+        { ...updateValues, postazioni: undefined },
+        { id: userId }
+      );
+    const updateUserRes = await client.query<User>(
+      updUsersQueryText,
+      updUsersQueryValues
+    );
+
+    const { rows: userPostazioni } = await client.query<PostazioneUser>(
+      "SELECT * FROM postazioni_user WHERE user_id = $1",
+      [userId]
+    );
+
+    const userPostazioniIds = userPostazioni.map((p) => p.postazione);
+    const postazioniToAdd: number[] = [];
+    const postazioniToRemove: number[] = [];
+    updateValues.postazioni?.forEach(({ checked, postazione }) => {
+      const found = userPostazioniIds.includes(postazione);
+      if (!found && checked) postazioniToAdd.push(userId, postazione);
+      else if (found && !checked) postazioniToRemove.push(userId, postazione);
+    });
+
+    const insertPostazioniText =
+      postazioniToAdd.length > 0
+        ? "INSERT INTO postazioni_user (user_id, postazione) VALUES ".concat(
+            postazioniToAdd
+              .map((_, i) => (i & 1 ? `$${i + 1})` : `($${i + 1}`))
+              .join(",")
+          )
+        : "";
+    const deletePostazioniText =
+      postazioniToRemove.length > 0
+        ? "DELETE FROM postazioni_user WHERE user_id = $1 AND ".concat(
+            postazioniToRemove
+              .map((_, i) => `postazione = $${i + 2}`)
+              .join(" OR ")
+          )
+        : "";
+
+    const insertPostazioniRes = await client.query(
+      insertPostazioniText,
+      postazioniToAdd
+    );
+    const deletePostazioniRes = await client.query(deletePostazioniText, [
+      userId,
+      ...postazioniToRemove,
+    ]);
+
+    if (
+      !updateUserRes.rowCount &&
+      !insertPostazioniRes.rowCount &&
+      !deletePostazioniRes.rowCount
+    ) {
+      throw new BaseError("Impossibile modificare utente", {
+        status: 500,
+        context: { userId },
+      });
+    }
+
+    await client.query("COMMIT");
+
+    return {
+      updatedUser: updateUserRes.rows[0],
+      updatedPostazioni: {
+        added: insertPostazioniRes.rows,
+        removed: deletePostazioniRes.rows,
+      },
+    };
+  } catch (e) {
+    await client.query("ROLLBACK");
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
 export async function updatePostazioniToUser(

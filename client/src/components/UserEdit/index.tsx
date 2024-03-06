@@ -3,23 +3,15 @@ import { toast } from "react-hot-toast";
 import UserDataService from "../../services/user";
 import PostazioniDataService from "../../services/postazioni";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router";
-import { PERMESSI_INFO, UpdateUserData } from "../../types/users";
+import { PERMESSI_INFO, TUser, UpdateUserData } from "../../types/users";
 import { PAGES_INFO } from "../../types/pages";
 import { UpdateUserForm } from "../../types/forms";
 import { FormRef } from "../../types";
 import { checkBits } from "../../utils/bitwise";
-
-const formRefDefaultState: Record<keyof UpdateUserForm, null> = {
-  name: null,
-  password: null,
-  postazioni: null,
-  pages: null,
-  permessi: null,
-};
 
 function selectPermessiOptions(disabled = false) {
   const options = [];
@@ -64,8 +56,15 @@ export default function UserEdit() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const formRef = useRef<FormRef<UpdateUserForm>>(formRefDefaultState);
-  const readonlyFormRef = useRef<FormRef<UpdateUserForm>>(formRefDefaultState);
+  const formRef = useRef<FormRef<UpdateUserForm>>({
+    name: null,
+    password: null,
+    postazioni: null,
+    pages: null,
+    permessi: null,
+  });
+
+  const [readOnlyForm, setReadonlyForm] = useState<UpdateUserForm>({});
 
   const postazioni = useQuery({
     queryKey: ["postazioni"],
@@ -92,7 +91,18 @@ export default function UserEdit() {
       if (response.data.success === false) {
         throw response.data.error;
       }
-      return response.data.result;
+
+      const { result } = response.data;
+
+      setReadonlyForm({
+        name: result.name,
+        password: "password",
+        permessi: flagsToFlagArray(result.permessi, PERMESSI_INFO.keys()),
+        pages: flagsToFlagArray(result.pages, PAGES_INFO.keys()),
+        postazioni: result.postazioni.map((p) => String(p)),
+      });
+
+      return result;
     },
   });
 
@@ -111,9 +121,9 @@ export default function UserEdit() {
     mutationFn: () => UserDataService.deleteUser({ id: userId! }),
     onSuccess: async (response) => {
       console.log("deleteUser | response:", response);
-      await queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Utente eliminato con successo");
       navigate("/admin/users");
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: async (err) => axiosErrHandl(err, "deleteUser"),
   });
@@ -172,10 +182,10 @@ export default function UserEdit() {
                 className="form-control form-control-sm"
                 type="text"
                 id="username"
-                ref={(el) => (readonlyFormRef.current.name = el)}
                 autoComplete="off"
+                disabled
                 readOnly
-                defaultValue={userQuery.data.name}
+                value={readOnlyForm.name}
               />
             </div>
             <div className="form-group col-sm-3">
@@ -196,8 +206,8 @@ export default function UserEdit() {
                 className="form-control form-control-sm"
                 type="password"
                 id="password"
-                ref={(el) => (readonlyFormRef.current.password = el)}
                 autoComplete="off"
+                disabled
                 readOnly
                 defaultValue="password"
               />
@@ -219,12 +229,8 @@ export default function UserEdit() {
               <select
                 className="form-control form-control-sm"
                 id="permessi"
-                ref={(el) => (readonlyFormRef.current.permessi = el)}
                 multiple
-                defaultValue={flagsToFlagArray(
-                  userQuery.data.permessi,
-                  PERMESSI_INFO.keys()
-                )}
+                value={readOnlyForm.permessi}
               >
                 {selectPermessiOptions(true)}
               </select>
@@ -247,12 +253,8 @@ export default function UserEdit() {
               <select
                 className="form-control form-control-sm"
                 id="pages"
-                ref={(el) => (readonlyFormRef.current.pages = el)}
                 multiple
-                defaultValue={flagsToFlagArray(
-                  userQuery.data.pages,
-                  PAGES_INFO.keys()
-                )}
+                value={readOnlyForm.pages}
               >
                 {selectPagesOptions(true)}
               </select>
@@ -275,9 +277,8 @@ export default function UserEdit() {
               <select
                 className="form-control form-control-sm"
                 id="postazioni"
-                ref={(el) => (readonlyFormRef.current.postazioni = el)}
                 multiple
-                defaultValue={userQuery.data.postazioni.map((p) => String(p))}
+                value={readOnlyForm.postazioni}
               >
                 {selectPostazioniOptions(true)}
               </select>
