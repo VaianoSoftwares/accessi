@@ -22,6 +22,7 @@ export async function apiGetArchivio(req: Request, res: Response) {
         cause: parsed.error,
       });
     }
+
     const dbResult = await ArchivioDB.getArchivio(
       reqDataToUpperCase(parsed.data)
     );
@@ -209,10 +210,15 @@ export async function apiInsertProvvisorio(req: Request, res: Response) {
       });
     }
 
-    const dbResult = await ArchivioDB.insertProvvisorio({
-      ...parsed.data,
-      badge: parsed.data.badge.substring(1),
-    });
+    const dbResult = await ArchivioDB.insertProvvisorio(
+      reqDataToUpperCase({
+        ...parsed.data,
+        badge:
+          parsed.data.badge.length === 10
+            ? parsed.data.badge.substring(1)
+            : parsed.data.badge,
+      })
+    );
 
     res.json(Ok(dbResult));
   } catch (e) {

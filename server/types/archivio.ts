@@ -12,18 +12,18 @@ export interface BaseArchivio {
 }
 
 export enum BarcodePrefix {
-  nominativoEntra = "00",
-  nominativoEsce = "10",
-  provvisorioEntra = "01",
-  provvisorioEsce = "11",
-  chiaveEntra = "02",
-  chiaveEsce = "12",
-  veicoloEntra = "03",
-  veicoloEsce = "13",
-  nominativoGenerico = "0",
-  provvisorioGenerico = "1",
-  chiaveGenerico = "2",
-  veicoloGenerico = "3",
+  nominativoEntra = "01",
+  nominativoEsce = "11",
+  provvisorioEntra = "02",
+  provvisorioEsce = "12",
+  chiaveEntra = "03",
+  chiaveEsce = "13",
+  veicoloEntra = "04",
+  veicoloEsce = "14",
+  nominativoGenerico = "1",
+  provvisorioGenerico = "2",
+  chiaveGenerico = "3",
+  veicoloGenerico = "4",
 }
 
 export type ArchNomInsertData = BaseArchivio;

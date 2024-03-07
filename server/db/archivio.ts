@@ -57,12 +57,10 @@ export async function getArchivio(filter?: FindArchivioFilter) {
     : [prefixText, "ORDER BY data_in DESC, tipo"].join(" ");
   const queryValues =
     filter &&
-    Object.entries(filter)
-      .filter(([, value]) => value)
-      .map(([key, value]) =>
-        key.includes("data") ? new Date(String(value)) : `%${value}%`
-      );
-
+    Object.values(filter)
+      .filter((value) => value)
+      .map((value) => (typeof value !== "string" ? value : `%${value}%`));
+  console.log("getarchivio", { queryText, queryValues, filter });
   return await db.query<Archivio>(queryText, queryValues);
 }
 
@@ -107,17 +105,13 @@ export async function getInStrutt(filter?: FindInStruttFilter) {
     : [prefixText, "ORDER BY data_in DESC, tipo"].join(" ");
   const queryValues =
     filter &&
-    Object.entries(filter)
-      .filter(([, value]) => value)
-      .map(([key, value]) =>
-        Array.isArray(value) ||
-        key.includes("data") ||
-        typeof value !== "string"
-          ? value
-          : `%${value}%`
+    Object.values(filter)
+      .filter((value) => value)
+      .map((value) =>
+        Array.isArray(value) || typeof value !== "string" ? value : `%${value}%`
       )
       .flat();
-  console.log("instrutt", { queryText, queryValues });
+
   return await db.query<InStrutt>(queryText, queryValues);
 }
 
@@ -157,13 +151,9 @@ export async function getInPrestito(filter?: FindInPrestitoFilter) {
   const queryValues =
     filter &&
     Object.entries(filter)
-      .filter(([, value]) => value)
-      .map(([key, value]) =>
-        Array.isArray(value) ||
-        key.includes("data") ||
-        typeof value !== "string"
-          ? value
-          : `%${value}%`
+      .filter((value) => value)
+      .map((value) =>
+        Array.isArray(value) || typeof value !== "string" ? value : `%${value}%`
       )
       .flat();
 

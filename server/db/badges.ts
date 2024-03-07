@@ -45,13 +45,9 @@ export async function getBadges(filter?: FindBadgesFilter) {
     : [prefixText, "ORDER BY tipo"].join(" ");
   const queryValues =
     filter &&
-    Object.entries(filter)
-      .filter(([, value]) => value)
-      .map(([key, value]) =>
-        key === "cliente" || typeof value !== "string"
-          ? value
-          : `%${value.toUpperCase()}%`
-      )
+    Object.values(filter)
+      .filter((value) => value)
+      .map((value) => (typeof value !== "string" ? value : `%${value}%`))
       .flat();
 
   return await db.query(queryText, queryValues);

@@ -459,7 +459,11 @@ export const TIMBRA_CHIAVI_SCHEMA = z.object({
 });
 
 export const INSERT_ARCH_PROV_SCHEMA = z.object({
-  badge: z.union([BARCODE_PROV_ENTRA_SCHEMA, BARCODE_PROV_ESCE_SCHEMA]),
+  badge: z.union([
+    BARCODE_PROV_ENTRA_SCHEMA,
+    BARCODE_PROV_ESCE_SCHEMA,
+    CODICE_PROV_SCHEMA,
+  ]),
   postazione: ID_SCHEMA("Postazione ID"),
   nome: z.string().nullish(),
   cognome: z.string().nullish(),

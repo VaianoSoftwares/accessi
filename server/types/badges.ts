@@ -3,7 +3,7 @@ export type TDoc = "CARTA IDENTITA" | "PATENTE" | "TESSERA STUDENTE";
 export type TBadge = "NOMINATIVO" | "PROVVISORIO" | "CHIAVE" | "VEICOLO";
 
 export enum BadgePrefix {
-  NOMINATIVO,
+  NOMINATIVO = 1,
   PROVVISORIO,
   CHIAVE,
   VEICOLO,

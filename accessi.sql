@@ -225,23 +225,23 @@ INSERT INTO persone (nome, cognome, ditta, telefono, ndoc, tdoc, cliente) VALUES
     (DEFAULT, DEFAULT, DEFAULT, DEFAULT, 'AU00420420', 'TESSERA STUDENTE', 'Corte d''Appello');
 
 INSERT INTO nominativi (codice, descrizione, stato, assegnazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
-    ('028212345', 'marco :-.)', 'VALIDO', 'UTENTE', 'Corte d''Appello', '2025-03-15', 'MARCO', 'PIERATTINI', 'GANZOSOFT', '055-420-69', 'AU0069420', 'CARTA IDENTITA'),
-    ('028212346', DEFAULT, 'VALIDO', 'PORTINERIA', 'Corte d''Appello', '2024-10-12', 'LUCA', 'CECCHI', 'GTAEXPERTSINDUSTRIES', '055-69-420', 'AU0042069', 'PATENTE'),
-    ('028212347', DEFAULT, 'SCADUTO', 'CORRIERE', 'Corte d''Appello', '2024-01-01', 'GIOVANNI', 'PANZA', DEFAULT, DEFAULT, '1020301', 'TESSERA STUDENTE'),
-    ('091712345', DEFAULT, 'VALIDO', 'PORTINERIA', 'Montedomini', '2025-07-09', DEFAULT, DEFAULT, 'GANZOSOFT', DEFAULT, 'AU006969', 'CARTA IDENTITA');
+    ('128212345', 'marco :-.)', 'VALIDO', 'UTENTE', 'Corte d''Appello', '2025-03-15', 'MARCO', 'PIERATTINI', 'GANZOSOFT', '055-420-69', 'AU0069420', 'CARTA IDENTITA'),
+    ('128212346', DEFAULT, 'VALIDO', 'PORTINERIA', 'Corte d''Appello', '2024-10-12', 'LUCA', 'CECCHI', 'GTAEXPERTSINDUSTRIES', '055-69-420', 'AU0042069', 'PATENTE'),
+    ('128212347', DEFAULT, 'SCADUTO', 'CORRIERE', 'Corte d''Appello', '2024-01-01', 'GIOVANNI', 'PANZA', DEFAULT, DEFAULT, '1020301', 'TESSERA STUDENTE'),
+    ('191712345', DEFAULT, 'VALIDO', 'PORTINERIA', 'Montedomini', '2025-07-09', DEFAULT, DEFAULT, 'GANZOSOFT', DEFAULT, 'AU006969', 'CARTA IDENTITA');
 
 INSERT INTO provvisori (codice, descrizione, stato, ubicazione, cliente) VALUES
-    ('128212345', DEFAULT, DEFAULT, DEFAULT, 'Corte d''Appello'),
-    ('128212346', DEFAULT, DEFAULT, DEFAULT, 'Corte d''Appello'),
-    ('191712345', DEFAULT, DEFAULT, DEFAULT, 'Montedomini'),
-    ('191712346', DEFAULT, DEFAULT, DEFAULT, 'Montedomini');
+    ('228212345', DEFAULT, DEFAULT, DEFAULT, 'Corte d''Appello'),
+    ('228212346', DEFAULT, DEFAULT, DEFAULT, 'Corte d''Appello'),
+    ('291712345', DEFAULT, DEFAULT, DEFAULT, 'Montedomini'),
+    ('291712346', DEFAULT, DEFAULT, DEFAULT, 'Montedomini');
 
 INSERT INTO chiavi (codice, descrizione, ubicazione, cliente, indirizzo, citta, edificio, piano) VALUES
-    ('228212345', DEFAULT, DEFAULT, 'Corte d''Appello', 'VIA CALCINAIA 69', 'KEKISTAN', 'CAPANNONE', '0'),
-    ('291712345', DEFAULT, DEFAULT, 'Montedomini', 'PIAZZA SHREK III 88', 'SCANDICCI', 'UFFICIO', 'B2');
+    ('328212345', DEFAULT, DEFAULT, 'Corte d''Appello', 'VIA CALCINAIA 69', 'KEKISTAN', 'CAPANNONE', '0'),
+    ('391712345', DEFAULT, DEFAULT, 'Montedomini', 'PIAZZA SHREK III 88', 'SCANDICCI', 'UFFICIO', 'B2');
 
 INSERT INTO veicoli (codice, descrizione, stato, cliente, tveicolo, targa1, targa2, targa3, targa4, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
-    ('328212345', DEFAULT, DEFAULT, 'Corte d''Appello', DEFAULT, 'XYZ-GTA5', '88LUKE88', DEFAULT , DEFAULT, 'GIANLUCA', 'CAUSIO', DEFAULT, DEFAULT, 'AU420420', 'PATENTE');
+    ('428212345', DEFAULT, DEFAULT, 'Corte d''Appello', DEFAULT, 'XYZ-GTA5', '88LUKE88', DEFAULT , DEFAULT, 'GIANLUCA', 'CAUSIO', DEFAULT, DEFAULT, 'AU420420', 'PATENTE');
 
 INSERT INTO users (name, password, permessi, pages) VALUES
     ('admin', '$2a$10$cLLMrZEMQCU44vy7Sqsb/uQJDo3vCXV/kUR5Zgm7CvaOQQw08Q6Yu', admin_flags(), admin_flags()),
@@ -271,29 +271,29 @@ INSERT INTO postazioni_user (user_id, postazione) VALUES
     (4, 2);
 
 INSERT INTO archivio_nominativi (badge, postazione, data_in, data_out, ip) VALUES
-    ('028212345', 1, '2023-12-19 8:04:55', '2023-12-19 16:15:03', '192.168.1.169'),
-    ('028212345', 3, '2023-12-20 21:29:40', '2023-12-21 5:30:10', '192.168.1.170'),
-    ('028212345', 1, '2023-12-22 7:58:30', '2023-12-22 16:14:58', '192.168.1.169'),
-    ('091712345', 11, '2023-12-21 9:01:20', '2023-12-21 17:32:45', '85.67.108.11'),
-    ('028212347', 1, '2023-12-20 8:32:35', '2023-12-20 17:05:15', '192.168.1.169'),
-    ('028212345', 3, '2024-01-04 8:00:00', '2099-01-04 8:00:00', '192.168.1.170'),
-    ('028212346', 3, '2024-01-04 8:30:00', '2099-01-04 8:00:00', '192.168.1.170'),
-    ('091712345', 11, '2024-01-04 8:00:00', '2099-01-04 8:00:00', '85.67.108.11');
+    ('128212345', 1, '2023-12-19 8:04:55', '2023-12-19 16:15:03', '192.168.1.169'),
+    ('128212345', 3, '2023-12-20 21:29:40', '2023-12-21 5:30:10', '192.168.1.170'),
+    ('128212345', 1, '2023-12-22 7:58:30', '2023-12-22 16:14:58', '192.168.1.169'),
+    ('191712345', 11, '2023-12-21 9:01:20', '2023-12-21 17:32:45', '85.67.108.11'),
+    ('128212347', 1, '2023-12-20 8:32:35', '2023-12-20 17:05:15', '192.168.1.169'),
+    ('128212345', 3, '2024-01-04 8:00:00', '2099-01-04 8:00:00', '192.168.1.170'),
+    ('128212346', 3, '2024-01-04 8:30:00', '2099-01-04 8:00:00', '192.168.1.170'),
+    ('191712345', 11, '2024-01-04 8:00:00', '2099-01-04 8:00:00', '85.67.108.11');
 
 INSERT INTO archivio_provvisori (badge, postazione, data_in, data_out, ip, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
-    ('128212345', 3, '2023-12-20 21:28:50', '2023-12-21 23:16:15', '192.168.1.170', 'Luke', 'Smith', DEFAULT, DEFAULT, 'AU8842088', 'CARTA IDENTITA'),
+    ('228212345', 3, '2023-12-20 21:28:50', '2023-12-21 23:16:15', '192.168.1.170', 'LUKE', 'SMITH', DEFAULT, DEFAULT, 'AU8842088', 'CARTA IDENTITA'),
     (DEFAULT, 1, '2023-12-20 20:28:50', '2023-12-21 21:16:15', '192.168.1.169', DEFAULT, DEFAULT, DEFAULT, DEFAULT, '8842088', 'TESSERA STUDENTE'),
-    ('191712345', 11, '2024-01-04 10:30:00', '2099-01-04 8:00:00', '192.168.1.170', 'Lyon', 'Gamer', DEFAULT, DEFAULT, 'AU8842069', 'PATENTE'),
+    ('291712345', 11, '2024-01-04 10:30:00', '2099-01-04 8:00:00', '192.168.1.170', 'LYON', 'GAMER', DEFAULT, DEFAULT, 'AU8842069', 'PATENTE'),
     (DEFAULT, 1, '2024-01-04 11:00:00', '2099-01-04 8:00:00', '85.67.108.11', DEFAULT, DEFAULT, DEFAULT, DEFAULT, '8842069', 'TESSERA STUDENTE');
 
 INSERT INTO archivio_chiavi (badge, chiave, postazione, data_in, data_out, ip) VALUES
-    ('028212345', '228212345', 1, '2023-12-21 10:25:10', '2023-12-21 11:30:20', '192.168.1.169'),
-    ('028212345', '228212345', 1, '2023-12-21 10:25:10', '2023-12-21 11:45:05', '192.168.1.169'),
-    ('028212345', '228212345', 1, '2023-12-22 18:07:15', '2023-12-22 20:05:20', '192.168.1.169'),
-    ('028212345', '228212345', 3, '2023-01-04 9:30:00', '2099-01-04 8:00:00', '192.168.1.170');
+    ('128212345', '328212345', 1, '2023-12-21 10:25:10', '2023-12-21 11:30:20', '192.168.1.169'),
+    ('128212345', '328212345', 1, '2023-12-21 10:25:10', '2023-12-21 11:45:05', '192.168.1.169'),
+    ('128212345', '328212345', 1, '2023-12-22 18:07:15', '2023-12-22 20:05:20', '192.168.1.169'),
+    ('128212345', '328212345', 3, '2023-01-04 9:30:00', '2099-01-04 8:00:00', '192.168.1.170');
 
 INSERT INTO archivio_veicoli (badge, postazione, data_in, data_out, ip) VALUES
-    ('328212345', 3, '2023-12-21 7:46:12', '2023-12-21 13:03:10', '192.168.1.170');
+    ('428212345', 3, '2023-12-21 7:46:12', '2023-12-21 13:03:10', '192.168.1.170');
 
 INSERT INTO protocolli (date, descrizione) VALUES
     (DEFAULT, 'prot1'),
