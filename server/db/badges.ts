@@ -58,7 +58,7 @@ export function insertProvvisorio(data: InsertProvvisorioData) {
 }
 
 export function updateProvvisorio(data: UpdateProvvisorioData) {
-  return db.updateRows<Provvisorio>("provvisori", data, {
+  return db.updateRows<Provvisorio>("provvisori", data.updateData, {
     codice: data.codice,
   });
 }
@@ -72,7 +72,9 @@ export function insertNominativo(data: InsertNominativoData) {
 }
 
 export function updateNominativo(data: UpdateNominativoData) {
-  return db.updateRows<Nominativo>("nominativi", data, { codice: data.codice });
+  return db.updateRows<Nominativo>("nominativi", data.updateData, {
+    codice: data.codice,
+  });
 }
 
 export function deleteNominativo(codice: string) {
@@ -84,7 +86,9 @@ export function insertChiave(data: InsertChiaveData) {
 }
 
 export function updateChiave(data: UpdateChiaveData) {
-  return db.updateRows<Chiave>("chiavi", data, { codice: data.codice });
+  return db.updateRows<Chiave>("chiavi", data.updateData, {
+    codice: data.codice,
+  });
 }
 
 export function deleteChiave(codice: string) {
@@ -96,7 +100,9 @@ export function insertVeicolo(data: InsertVeicoloData) {
 }
 
 export function updateVeicolo(data: UpdateVeicoloData) {
-  return db.updateRows<Veicolo>("veicoli", data, { codice: data.codice });
+  return db.updateRows<Veicolo>("veicoli", data.updateData, {
+    codice: data.codice,
+  });
 }
 
 export function deleteVeicolo(codice: string) {

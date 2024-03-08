@@ -224,11 +224,51 @@ INSERT INTO persone (nome, cognome, ditta, telefono, ndoc, tdoc, cliente) VALUES
     ('GIORGIO', 'PAOLO CODA', DEFAULT, '055-420-420', 'AU006969', 'CARTA IDENTITA', 'Montedomini'),
     (DEFAULT, DEFAULT, DEFAULT, DEFAULT, 'AU00420420', 'TESSERA STUDENTE', 'Corte d''Appello');
 
-INSERT INTO nominativi (codice, descrizione, stato, assegnazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
-    ('128212345', 'marco :-.)', 'VALIDO', 'UTENTE', 'Corte d''Appello', '2025-03-15', 'MARCO', 'PIERATTINI', 'GANZOSOFT', '055-420-69', 'AU0069420', 'CARTA IDENTITA'),
-    ('128212346', DEFAULT, 'VALIDO', 'PORTINERIA', 'Corte d''Appello', '2024-10-12', 'LUCA', 'CECCHI', 'GTAEXPERTSINDUSTRIES', '055-69-420', 'AU0042069', 'PATENTE'),
-    ('128212347', DEFAULT, 'SCADUTO', 'CORRIERE', 'Corte d''Appello', '2024-01-01', 'GIOVANNI', 'PANZA', DEFAULT, DEFAULT, '1020301', 'TESSERA STUDENTE'),
-    ('191712345', DEFAULT, 'VALIDO', 'PORTINERIA', 'Montedomini', '2025-07-09', DEFAULT, DEFAULT, 'GANZOSOFT', DEFAULT, 'AU006969', 'CARTA IDENTITA');
+COPY public.nominativi (codice, descrizione, stato, assegnazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc) FROM stdin;
+128212345	marco :-.)	VALIDO	UTENTE	Corte d'Appello	2025-03-15	MARCO	PIERATTINI	GANZOSOFT	055-420-69	AU0069420	CARTA IDENTITA
+128212346	\N	VALIDO	PORTINERIA	Corte d'Appello	2024-10-12	LUCA	CECCHI	GTAEXPERTSINDUSTRIES	055-69-420	AU0042069	PATENTE
+128212347	\N	SCADUTO	CORRIERE	Corte d'Appello	2024-01-01	GIOVANNI	PANZA	\N	\N	1020301	TESSERA STUDENTE
+191712345	\N	VALIDO	PORTINERIA	Montedomini	2025-07-09	\N	\N	GANZOSOFT	\N	AU006969	CARTA IDENTITA
+128209809	\N	VALIDO	PORTINERIA	Corte d'Appello	\N	ALESSANDRO	PESCIOTTI	VIVENDA	\N	N.D.	CARTA IDENTITA
+128247119	\N	VALIDO	PORTINERIA	Corte d'Appello	\N	ANGELO	MARTONE	VIVENDA	\N	N.D.	CARTA IDENTITA
+128205173	\N	VALIDO	UTENTE	Corte d'Appello	\N	GIUSEPPE	TABASCO	VIVENDA	\N	N.D.	CARTA IDENTITA
+128290751	\N	VALIDO	UTENTE	Corte d'Appello	\N	ARMANDO	DI RUOCCO	VIVENDA	\N	N.D.	CARTA IDENTITA
+128280420	\N	VALIDO	UTENTE	Corte d'Appello	\N	ANGELO	IACOPINI	VIVENDA	\N	N.D.	CARTA IDENTITA
+128248255	\N	VALIDO	PORTINERIA	Corte d'Appello	\N	SAURO	INNOCENTI	VIVENDA	\N	N.D.	CARTA IDENTITA
+128230909	\N	VALIDO	PORTINERIA	Corte d'Appello	\N	ALESSANDRO	PANDOLFI	VIVENDA	\N	N.D.	CARTA IDENTITA
+128208032	\N	VALIDO	FACCHINAGGIO	Corte d'Appello	\N	DANIELE	GANGUZZA	VIVENDA	\N	N.D.	CARTA IDENTITA
+128272593	\N	VALIDO	PORTINERIA	Corte d'Appello	\N	MARLENY	EGAS	VIVENDA	\N	N.D.	CARTA IDENTITA
+128215425	\N	VALIDO	PORTINERIA	Corte d'Appello	\N	EMANUELE	MASI	VIVENDA	\N	N.D.	CARTA IDENTITA
+128256594	\N	VALIDO	PORTINERIA	Corte d'Appello	\N	ALESSIO	IANNOTTA	VIVENDA	\N	N.D.	CARTA IDENTITA
+128209844	\N	VALIDO	PORTINERIA	Corte d'Appello	\N	RAISSA	CILIBERTI	VIVENDA	\N	N.D.	CARTA IDENTITA
+128296731	\N	VALIDO	PORTINERIA	Corte d'Appello	\N	GIUSEPPE	GRECO	VIVENDA	\N	N.D.	CARTA IDENTITA
+128239861	\N	VALIDO	PORTINERIA	Corte d'Appello	\N	ALESSIO	SILVESTRI	VIVENDA	\N	N.D.	CARTA IDENTITA
+128221997	\N	VALIDO	PORTINERIA	Corte d'Appello	\N	DARIA	MACALUSO	HUMANGEST	\N	N.D.	CARTA IDENTITA
+128237422	\N	VALIDO	PORTINERIA	Corte d'Appello	\N	ALDO	TRONCONI	OPEROSA	\N	N.D.	CARTA IDENTITA
+128272551	\N	VALIDO	PORTINERIA	Corte d'Appello	\N	ALESSIO	BENUCCI	OPEROSA	\N	N.D.	CARTA IDENTITA
+128224934	\N	VALIDO	PORTINERIA	Corte d'Appello	\N	CLAUDIA	TARDUCCI	OPEROSA	\N	N.D.	CARTA IDENTITA
+128203901	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	PATRIZIO	PESCE	OPEROSA	\N	N.D.	CARTA IDENTITA
+128213111	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	ANDREA	PUCCI	OPEROSA	\N	N.D.	CARTA IDENTITA
+128246798	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	NICULINA	BUHUCEANU	OPEROSA	\N	N.D.	CARTA IDENTITA
+128253403	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	ANTONIO	SAPORITO	OPEROSA	\N	N.D.	CARTA IDENTITA
+128288091	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	LEANDRO	GHELARDONI	OPEROSA	\N	N.D.	CARTA IDENTITA
+128200861	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	GABRIELE	SARTI	OPEROSA	\N	N.D.	CARTA IDENTITA
+128232481	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	ANTONIO	BASTA	OPEROSA	\N	N.D.	CARTA IDENTITA
+128247436	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	LETIZIA	ALBANESE	OPEROSA	\N	N.D.	CARTA IDENTITA
+128250114	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	MATTEO	DAL CORTIVO	OPEROSA	\N	N.D.	CARTA IDENTITA
+128253592	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	CONCETTA	GAZANEO	OPEROSA	\N	N.D.	CARTA IDENTITA
+128255315	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	ANDREA	MECHI	OPEROSA	\N	N.D.	CARTA IDENTITA
+128298055	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	EMILJANA	RROKAJ	OPEROSA	\N	N.D.	CARTA IDENTITA
+128225393	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	MANUEL	SCIONI	OPEROSA	\N	N.D.	CARTA IDENTITA
+128227568	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	ERIKA	GIANFELICI	HUMANGEST	\N	N.D.	CARTA IDENTITA
+128208112	BADGE MARCATEMPO	VALIDO	PORTINERIA	Corte d'Appello	\N	STEFANO	CANINO	HUMANGEST	\N	N.D.	CARTA IDENTITA
+\.
+
+-- INSERT INTO nominativi (codice, descrizione, stato, assegnazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
+--     ('128212345', 'marco :-.)', 'VALIDO', 'UTENTE', 'Corte d''Appello', '2025-03-15', 'MARCO', 'PIERATTINI', 'GANZOSOFT', '055-420-69', 'AU0069420', 'CARTA IDENTITA'),
+--     ('128212346', DEFAULT, 'VALIDO', 'PORTINERIA', 'Corte d''Appello', '2024-10-12', 'LUCA', 'CECCHI', 'GTAEXPERTSINDUSTRIES', '055-69-420', 'AU0042069', 'PATENTE'),
+--     ('128212347', DEFAULT, 'SCADUTO', 'CORRIERE', 'Corte d''Appello', '2024-01-01', 'GIOVANNI', 'PANZA', DEFAULT, DEFAULT, '1020301', 'TESSERA STUDENTE'),
+--     ('191712345', DEFAULT, 'VALIDO', 'PORTINERIA', 'Montedomini', '2025-07-09', DEFAULT, DEFAULT, 'GANZOSOFT', DEFAULT, 'AU006969', 'CARTA IDENTITA');
 
 INSERT INTO provvisori (codice, descrizione, stato, ubicazione, cliente) VALUES
     ('228212345', DEFAULT, DEFAULT, DEFAULT, 'Corte d''Appello'),
@@ -248,7 +288,8 @@ INSERT INTO users (name, password, permessi, pages) VALUES
     ('gta', '$2a$10$jeaqS/p1a4vUh9PTL/PdRepyJVZWqok7VsQK/HY4xI4SAco0ZktvG', 1 | 4 | 8, 1),
     ('DESKTOP-MH0JGEV', '$2a$10$IaMYS1vGSUMSRurXloRqE.vDLDRCjfUYCgzqh3fdo3iigCbUqrX/W', 1, 1),
     ('HPG8-CND1183BN8', '$2a$10$i/.7GEZTx.HFub1d.7d7IOLoifGua7X2OTc0jtzuEsvo/6cfBQmJO', 1 | 8, 1 | 16 | 32),
-    ('Montedomini', '$2a$10$Bcf0PZjC2GSzoeY2M8Vmn.b40KQVGIycsXIfLUsKu3ClAnGkk21Aq', 1 | 2 | 4 | 8, 1);
+    ('Montedomini', '$2a$10$Bcf0PZjC2GSzoeY2M8Vmn.b40KQVGIycsXIfLUsKu3ClAnGkk21Aq', 1 | 2 | 4 | 8, 1),
+    ('Tornelli-SD', '$2a$10$Qz5m9H2lTeSLqGZAuP0p1ewfAjh.iMNF4XdSOpX5Rm2MrzBo.yKOi',	1, 1);
 
 INSERT INTO postazioni (cliente, name) VALUES
     ('Corte d''Appello', 'Sala-controllo'),
@@ -343,9 +384,9 @@ CREATE VIEW all_badges AS
 
 CREATE VIEW full_archivio AS
     SELECT t.* FROM
-    ((SELECT b.codice AS badge, NULL AS chiave, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
-    FROM nominativi AS b
-    JOIN archivio_nominativi AS a ON badge = a.badge
+    ((SELECT n.codice AS badge, NULL AS chiave, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, n.nome, n.cognome, n.ditta, n.telefono, n.ndoc, n.tdoc, n.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
+    FROM nominativi AS n
+    JOIN archivio_nominativi AS a ON n.codice = a.badge
     JOIN postazioni AS p ON a.postazione = p.id)
     UNION
     (SELECT v1_or_v2(a.badge, a.ndoc) AS codice, NULL AS chiave, 'PROVVISORIO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, a.nome, a.cognome, a.ditta, a.telefono, a.ndoc, a.tdoc, 'OSPITE' AS assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano 
@@ -374,9 +415,9 @@ CREATE VIEW full_archivio AS
 
 CREATE VIEW in_strutt AS
     SELECT t.* FROM
-    ((SELECT a.id, b.codice, b.descrizione, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4
-    FROM nominativi AS b
-    JOIN archivio_nominativi AS a ON b.codice = a.badge
+    ((SELECT a.id, n.codice, n.descrizione, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, n.nome, n.cognome, n.ditta, n.telefono, n.ndoc, n.tdoc, n.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4
+    FROM nominativi AS n
+    JOIN archivio_nominativi AS a ON n.codice = a.badge
     JOIN postazioni AS p ON a.postazione = p.id)
     UNION
     (SELECT a.id, v1_or_v2(a.badge, a.ndoc) AS codice, NULL AS descrizione, 'PROVVISORIO' AS tipo, p.cliente, p.name AS postazione, p.id AS postazione_id, a.data_in, a.data_out, a.ip, a.nome, a.cognome, a.ditta, a.telefono, a.ndoc, a.tdoc, 'OSPITE' AS assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4
@@ -435,41 +476,26 @@ CREATE VIEW tveicoli AS SELECT unnest(enum_range(NULL::veicolo)) AS value;
 
 /*######################################################################################################################################################*/
 
--- (SELECT * FROM persone)
--- UNION
--- (SELECT nome, cognome, ditta, telefono, ndoc, tdoc FROM badges)
--- UNION
--- (SELECT nome, cognome, ditta, telefono, ndoc, tdoc FROM veicoli);
-
--- SELECT * FROM users
--- WHERE check_bit(permessi, 4) IS TRUE;
-
--- SELECT * FROM all_badges
--- WHERE cliente = 'Corte d''Appello' AND stato = 'VALIDO';
-
--- SELECT * FROM full_archivio
--- WHERE data_in > '2023-12-20' AND data_in < '2023-12-22';
-
--- SELECT * FROM enums WHERE enum_name = 'cliente';
-
--- SELECT * FROM full_users;
-
--- SELECT * FROM full_protocolli;
-
--- SELECT * FROM full_protocolli WHERE 11 = ANY(visibile_da_id);
-
 -- queryInStrutt
-SELECT id, codice, tipo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in
-FROM in_strutt
-WHERE tipo = 'NOMINATIVO' OR tipo = 'PROVVISORIO'
-ORDER BY data_in DESC;
+-- SELECT id, codice, tipo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in
+-- FROM in_strutt
+-- WHERE tipo = 'NOMINATIVO' OR tipo = 'PROVVISORIO'
+-- ORDER BY data_in DESC;
 
-SELECT * FROM archivio_nominativi WHERE is_in_strutt(data_in, data_out);
+-- SELECT * FROM archivio_nominativi WHERE is_in_strutt(data_in, data_out);
 
 -- SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, indirizzo, citta, edificio, piano, data_in FROM in_prestito;
 
-SELECT badge, chiave, postazione, data_in, data_out, nome, cognome, indirizzo FROM full_archivio
-WHERE data_in > '2023-12-20' AND data_in < '2023-12-22';
+-- SELECT badge, chiave, postazione, data_in, data_out, nome, cognome, indirizzo FROM full_archivio
+-- WHERE data_in > '2023-12-20' AND data_in < '2023-12-22';
+
+-- SELECT n.codice AS badge, p.cliente, p.name AS postazione, a.data_in, a.data_out, n.nome, n.cognome, n.ndoc, n.tdoc, n.assegnazione
+-- FROM nominativi AS n                                                                                                                                                  
+-- JOIN archivio_nominativi AS a ON badge = a.badge
+-- JOIN postazioni AS p ON a.postazione = p.id 
+-- WHERE data_out < date_trunc('second', CURRENT_TIMESTAMP);
+
+SELECT badge,chiave,tipo,cliente,postazione,data_in,data_out,nome,cognome FROM full_archivio;
 
 -- archivio chiavi
 -- SELECT DISTINCT b.codice AS badge, c.codice AS chiave, b.postazione, b.data_in, b.data_out, b.nome, b.cognome, c.indirizzo
