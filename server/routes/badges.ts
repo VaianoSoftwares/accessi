@@ -88,27 +88,6 @@ router
     BadgesCtrl.apiDeleteVeicolo
   );
 
-router
-  .get("/persona", JwtAuth.verifyToken, BadgesCtrl.apiGetPersone)
-  .post(
-    "/persona",
-    JwtAuth.verifyToken,
-    JwtAuth.isAdmin,
-    BadgesCtrl.apiInsertPersona
-  )
-  .put(
-    "/persona/:ndoc/:tdoc",
-    JwtAuth.verifyToken,
-    JwtAuth.isAdmin,
-    BadgesCtrl.apiUpdatePersona
-  )
-  .delete(
-    "/persona/:ndoc/:tdoc",
-    JwtAuth.verifyToken,
-    JwtAuth.isAdmin,
-    BadgesCtrl.apiDeletePersona
-  );
-
 router.get("/assegnazioni", BadgesCtrl.apiGetAssegnazioni);
 router.get("/edifici", BadgesCtrl.apiGetEdifici);
 router.get("/tveicoli", BadgesCtrl.apiGetTVeicoli);

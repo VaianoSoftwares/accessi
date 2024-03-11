@@ -10,7 +10,6 @@ import dateFormat from "dateformat";
 import BadgeTable from "../BadgeTable";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import {
-  Badge,
   BadgeDeleteReq,
   BadgeFormDataReq,
   STATI_BADGE,
@@ -502,6 +501,19 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                       ref={(el) => (formRef.current.privacy = el)}
                     />
                   </div>
+                  <div className="col-sm-6 input-group custom-input-file half-col">
+                    <label htmlFor="documento" className="input-group-text">
+                      documento
+                    </label>
+                    <input
+                      accept="image/*"
+                      type="file"
+                      className="form-control form-control-sm"
+                      id="documento"
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.documento = el)}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -619,22 +631,6 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                   ref={(el) => (formRef.current.targa4 = el)}
                 />
                 <label htmlFor="targa4">targa4</label>
-              </div>
-            </div>
-            <hr />
-            <div className="row my-1">
-              <div className="col-sm-6 input-group custom-input-file half-col">
-                <label htmlFor="documento" className="input-group-text">
-                  documento
-                </label>
-                <input
-                  accept="image/*"
-                  type="file"
-                  className="form-control form-control-sm"
-                  id="documento"
-                  autoComplete="off"
-                  ref={(el) => (formRef.current.documento = el)}
-                />
               </div>
             </div>
           </div>

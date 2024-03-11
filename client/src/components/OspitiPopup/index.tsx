@@ -5,28 +5,20 @@ import { FormRef, TEventInput } from "../../types";
 import { Postazione, TDOCS } from "../../types/badges";
 import { InsertArchProvForm } from "../../types/forms";
 import toast from "react-hot-toast";
-import { InsertArchProvData } from "../../types/archivio";
 
 function isCodiceFiscale(cf: string) {
-  if (cf.length !== 16) return false;
-
-  cf = cf.toUpperCase();
-
-  if (
-    !/^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST]{1}[0-9LMNPQRSTUV]{2}[A-Z]{1}[0-9LMNPQRSTUV]{3}[A-Z]{1}$/.test(
-      cf
+  return (
+    cf.length === 16 &&
+    /^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST]{1}[0-9LMNPQRSTUV]{2}[A-Z]{1}[0-9LMNPQRSTUV]{3}[A-Z]{1}$/.test(
+      cf.toUpperCase()
     )
-  ) {
-    return false;
-  }
-
-  return true;
+  );
 }
 
 export default function OspitiPopup(props: {
   isShown: boolean;
   closePopup: () => void;
-  insertOsp: (data: InsertArchProvData) => void;
+  insertOsp: (data: FormData) => void;
   currPostazione: Postazione | undefined;
 }) {
   const formRef = useRef<FormRef<InsertArchProvForm>>({
@@ -37,29 +29,30 @@ export default function OspitiPopup(props: {
     telefono: null,
     ndoc: null,
     tdoc: null,
+    documento: null,
   });
 
-  function formToObj() {
-    const obj: InsertArchProvForm = {};
-
+  function createFormData() {
+    const formData = new FormData();
+    formData.append("postazione", String(props.currPostazione!.id));
     Object.entries(formRef.current)
-      .filter(([_, el]) => el !== null)
-      .forEach(
-        ([key, el]) => (obj[key as keyof InsertArchProvForm] = el?.value)
-      );
-
-    return {
-      ...obj,
-      postazione: props.currPostazione!.id,
-      codice: "",
-      ndoc: "",
-      tdoc: "",
-    } satisfies InsertArchProvData;
+      .filter(([_, el]) => el !== null && el.value)
+      .forEach(([key, el]) => {
+        switch (key) {
+          case "documento":
+            const fileToUpl = (el as HTMLInputElement).files?.item(0);
+            fileToUpl && formData.append(key, fileToUpl);
+            break;
+          default:
+            formData.append(key, el!.value);
+        }
+      });
+    return formData;
   }
 
   function insertOspBtnEvent() {
     if (props.currPostazione) {
-      props.insertOsp(formToObj());
+      props.insertOsp(createFormData());
       props.closePopup();
     } else {
       toast.error("Nessuna postazione selezionata");
@@ -91,7 +84,7 @@ export default function OspitiPopup(props: {
         <div className="header">Accessi Provvisori</div>
         <div className="content">
           <div className="submit-form osp-form">
-            <div className="row mb-1">
+            <div className="row">
               <div className="form-floating col-sm-4">
                 <input
                   type="text"
@@ -103,8 +96,6 @@ export default function OspitiPopup(props: {
                 />
                 <label htmlFor="osp-codice">codice</label>
               </div>
-            </div>
-            <div className="row">
               <div className="form-floating col-sm-4">
                 <input
                   type="text"
@@ -125,6 +116,8 @@ export default function OspitiPopup(props: {
                 />
                 <label htmlFor="osp-cognome">cognome</label>
               </div>
+            </div>
+            <div className="row">
               <div className="form-floating col-sm-4">
                 <input
                   type="text"
@@ -134,18 +127,6 @@ export default function OspitiPopup(props: {
                   ref={(el) => (formRef.current.ditta = el)}
                 />
                 <label htmlFor="osp-ditta">ditta</label>
-              </div>
-            </div>
-            <div className="row mb-1">
-              <div className="form-floating col-sm-4">
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
-                  id="osp-telefono"
-                  placeholder="telefono"
-                  ref={(el) => (formRef.current.telefono = el)}
-                />
-                <label htmlFor="osp-telefono">telefono</label>
               </div>
               <div className="form-floating col-sm-4">
                 <input
@@ -175,6 +156,31 @@ export default function OspitiPopup(props: {
                   ))}
                 </select>
                 <label htmlFor="osp-tdoc">tipo documento</label>
+              </div>
+            </div>
+            <div className="row">
+              <div className="form-floating col-sm-4">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  id="osp-telefono"
+                  placeholder="telefono"
+                  ref={(el) => (formRef.current.telefono = el)}
+                />
+                <label htmlFor="osp-telefono">telefono</label>
+              </div>
+              <div className="col-sm-4 input-group custom-input-file one-third-col">
+                <label htmlFor="documento" className="input-group-text">
+                  documento
+                </label>
+                <input
+                  accept="image/*"
+                  type="file"
+                  className="form-control form-control-sm"
+                  id="documento"
+                  autoComplete="off"
+                  ref={(el) => (formRef.current.documento = el)}
+                />
               </div>
             </div>
           </div>

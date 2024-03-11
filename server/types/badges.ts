@@ -26,25 +26,24 @@ export const TDOCS = ["CARTA IDENTITA", "PATENTE", "TESSERA STUDENTE"] as const;
 interface BaseBadge {
   codice: string;
   descrizione: string | null;
+  stato: BadgeStato;
   cliente: string;
 }
 
 export interface Provvisorio extends BaseBadge {
-  stato: BadgeStato | null;
   ubicazione: string | null;
 }
 
 export interface BaseNominativo {
-  nome: string | null;
-  cognome: string | null;
+  nome: string;
+  cognome: string;
   ditta: string | null;
   telefono: string | null;
-  ndoc: string;
-  tdoc: TDoc;
+  ndoc: string | null;
+  tdoc: TDoc | null;
 }
 export interface Nominativo extends BaseBadge, BaseNominativo {
-  stato: BadgeStato | null;
-  assegnazione: string | null;
+  assegnazione: string;
   scadenza: Date | string | null;
 }
 
@@ -65,30 +64,9 @@ export interface BaseVeicolo {
   targa3: string | null;
   targa4: string | null;
 }
-export interface Veicolo extends BaseBadge, BaseVeicolo, BaseNominativo {
-  stato: BadgeStato | null;
-}
+export interface Veicolo extends BaseBadge, BaseVeicolo, BaseNominativo {}
 
-export type Persona = BaseNominativo & Pick<BaseBadge, "cliente">;
-
-export type Badge = Provvisorio & Nominativo & Chiave & Veicolo & Persona;
-
-// export type FindBadgesFilter = Partial<Badge>;
-// export type ProvvisorioInsertData = Partial<Provvisorio> &
-//   Pick<Provvisorio, "codice" | "cliente">;
-// export type ProvvisorioUpdateData = Partial<Provvisorio>;
-// export type NominativoInsertData = Partial<Nominativo> &
-//   Pick<Nominativo, "codice" | "cliente" | "ndoc" | "tdoc">;
-// export type NominativoUpdateData = Partial<Nominativo>;
-// export type ChiaveInsertData = Partial<Chiave> &
-//   Pick<Chiave, "codice" | "cliente">;
-// export type ChiaveUpdateData = Partial<Chiave>;
-// export type VeicoloInsertData = Partial<Veicolo> &
-//   Pick<Veicolo, "codice" | "cliente" | "ndoc" | "tdoc">;
-// export type VeicoloUpdateData = Partial<Veicolo>;
-
-// export type FindPersoneFilter = Partial<Persona>;
-// export type InsertPersonaData = Partial<Persona> &
-//   Pick<Persona, "ndoc" | "tdoc">;
-// export type UpdatePersonaData = Partial<Persona>;
-export type DeletePersonaData = Pick<Persona, "ndoc" | "tdoc">;
+export type Badge = Provvisorio &
+  Nominativo &
+  Chiave &
+  Veicolo & { tipo: TBadge };

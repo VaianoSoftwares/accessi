@@ -11,7 +11,6 @@ const app = express();
 
 console.log("App environment:", process.env.NODE_ENV);
 if (process.env.NODE_ENV == "development") {
-  // dotenv config
   dotenv.config();
 }
 
@@ -40,21 +39,7 @@ app.use(
   })
 );
 
-// public route
-app.use("/api/v1/public", express.static(path.resolve("server", "public")));
-
 // routes
 mountRoutes(app);
-
-// backend make public and get compiled react app
-if (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "staging") {
-  app.use(express.static(path.resolve("client", "dist")));
-  app.get("*", (_, res) => {
-    res.sendFile(path.resolve("client", "dist", "index.html"));
-  });
-}
-
-// failed request
-app.get("*", (_, res) => res.status(404).send("invalid request"));
 
 export default app;

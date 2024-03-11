@@ -45,6 +45,7 @@ export type InsertArchProvForm = {
   telefono?: string | undefined;
   ndoc?: string | undefined;
   tdoc?: string | undefined;
+  documento?: string | undefined;
 };
 
 export type FindArchivioForm = {

@@ -153,14 +153,14 @@ export const INSERT_NOM_SCHEMA = z.object({
   codice: CODICE_NOM_SCHEMA.nullish(),
   descrizione: z.string().nullish(),
   assegnazione: z.string().nullish(),
-  stato: z.enum(STATI_BADGE).default("VALIDO"),
+  stato: z.enum(STATI_BADGE).nullish(),
   cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
-  nome: z.string().nullish(),
-  cognome: z.string().nullish(),
+  nome: z.string({ required_error: MISSING_ATTR_ERR_MSG("Nome") }),
+  cognome: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cognome") }),
   telefono: z.string().nullish(),
   ditta: z.string().nullish(),
-  tdoc: z.enum(TDOCS),
-  ndoc: z.string({ required_error: MISSING_ATTR_ERR_MSG("Numero Documento") }),
+  tdoc: z.enum(TDOCS).nullish(),
+  ndoc: z.string().nullish(),
   scadenza: z.coerce.date().nullish(),
 });
 export type InsertNominativoData = z.infer<typeof INSERT_NOM_SCHEMA>;
@@ -238,13 +238,13 @@ export const INSERT_VEICOLO_SCHEMA = z.object({
   assegnazione: z.string().nullish(),
   stato: z.enum(STATI_BADGE).default("VALIDO"),
   cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
-  nome: z.string().nullish(),
-  cognome: z.string().nullish(),
+  nome: z.string({ required_error: MISSING_ATTR_ERR_MSG("Nome") }),
+  cognome: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cognome") }),
   telefono: z.string().nullish(),
   ditta: z.string().nullish(),
-  tdoc: z.enum(TDOCS),
-  ndoc: z.string({ required_error: MISSING_ATTR_ERR_MSG("Numero Documento") }),
-  tveicolo: z.string().default("GENERICO"),
+  tdoc: z.enum(TDOCS).nullish(),
+  ndoc: z.string().nullish(),
+  tveicolo: z.string().nullish(),
   targa1: z.string().nullish(),
   targa2: z.string().nullish(),
   targa3: z.string().nullish(),
@@ -274,44 +274,6 @@ export const UPDATE_VEICOLO_SCHEMA = z.object({
   }),
 });
 export type UpdateVeicoloData = z.infer<typeof UPDATE_VEICOLO_SCHEMA>;
-
-export const FIND_PERSONE_SCHEMA = z.object({
-  nome: z.string().optional(),
-  cognome: z.string().optional(),
-  telefono: z.string().optional(),
-  ditta: z.string().optional(),
-  tdoc: z.enum(TDOCS).optional(),
-  ndoc: z.string().optional(),
-});
-export type FindPersoneFilter = z.infer<typeof FIND_PERSONE_SCHEMA>;
-
-export const INSERT_PERSONA_SCHEMA = z.object({
-  nome: z.string().optional(),
-  cognome: z.string().optional(),
-  telefono: z.string().optional(),
-  ditta: z.string().optional(),
-  tdoc: z.enum(TDOCS),
-  ndoc: z.string({ required_error: MISSING_ATTR_ERR_MSG("Numero Documento") }),
-});
-export type InsertPersonaData = z.infer<typeof INSERT_PERSONA_SCHEMA>;
-
-export const PERSONA_DOC_SCHEMA = z.object({
-  ndoc: z.string({ required_error: MISSING_ATTR_ERR_MSG("Numero Documento") }),
-  tdoc: z.enum(TDOCS),
-});
-
-export const UPDATE_PERSONA_SCHEMA = z.object({
-  docInfo: PERSONA_DOC_SCHEMA,
-  updateData: z.object({
-    nome: z.string().optional(),
-    cognome: z.string().optional(),
-    telefono: z.string().optional(),
-    ditta: z.string().optional(),
-    tdoc: z.enum(TDOCS).optional(),
-    ndoc: z.string().optional(),
-  }),
-});
-export type UpdatePersonaData = z.infer<typeof UPDATE_PERSONA_SCHEMA>;
 
 export const FIND_ARCHIVIO_SCHEMA = z.object({
   badge: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
@@ -469,8 +431,8 @@ export const INSERT_ARCH_PROV_SCHEMA = z.object({
   cognome: z.string().nullish(),
   ditta: z.string().nullish(),
   telefono: z.string().nullish(),
-  ndoc: z.string({ required_error: MISSING_ATTR_ERR_MSG("Numero Documento") }),
-  tdoc: z.string({ required_error: MISSING_ATTR_ERR_MSG("Tipo Documento") }),
+  ndoc: z.string().nullish(),
+  tdoc: z.string().nullish(),
   ip: z.string(),
 });
 export type InsertArchProvData = z.infer<typeof INSERT_ARCH_PROV_SCHEMA>;

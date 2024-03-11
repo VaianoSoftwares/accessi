@@ -69,11 +69,12 @@ class ArchivioDataService extends DataServices {
     });
   }
 
-  insertArchProv(data: InsertArchProvData, signal?: GenericAbortSignal) {
+  insertArchProv(data: FormData, signal?: GenericAbortSignal) {
     return super.request({
       method: "POST",
       url: "/archivio",
       token: true,
+      files: true,
       data,
       signal,
     });

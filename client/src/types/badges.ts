@@ -26,28 +26,27 @@ export const TDOCS: ReadonlyArray<TDoc> = [
   "TESSERA STUDENTE",
 ];
 
-export interface Provvisorio {
+interface BaseBadge {
   codice: string;
   descrizione: string | null;
-  stato: BadgeStato | null;
-  ubicazione: string | null;
+  stato: BadgeStato;
   cliente: string;
 }
 
+export interface Provvisorio extends BaseBadge {
+  ubicazione: string | null;
+}
+
 export interface BaseNominativo {
-  nome: string | null;
-  cognome: string | null;
+  nome: string;
+  cognome: string;
   ditta: string | null;
   telefono: string | null;
-  ndoc: string;
-  tdoc: TDoc;
+  ndoc: string | null;
+  tdoc: TDoc | null;
 }
-export interface Nominativo extends BaseNominativo {
-  codice: string;
-  descrizione: string | null;
-  stato: BadgeStato | null;
-  assegnazione: string | null;
-  cliente: string;
+export interface Nominativo extends BaseBadge, BaseNominativo {
+  assegnazione: string;
   scadenza: Date | string | null;
 }
 
@@ -57,11 +56,8 @@ export interface BaseChiave {
   edificio: string | null;
   piano: string | null;
 }
-export interface Chiave extends BaseChiave {
-  codice: string;
-  descrizione: string | null;
+export interface Chiave extends BaseBadge, BaseChiave {
   ubicazione: string | null;
-  cliente: string;
 }
 
 export interface BaseVeicolo {
@@ -71,14 +67,7 @@ export interface BaseVeicolo {
   targa3: string | null;
   targa4: string | null;
 }
-export interface Veicolo extends BaseVeicolo, BaseNominativo {
-  codice: string;
-  descrizione: string | null;
-  stato: BadgeStato | null;
-  cliente: string;
-}
-
-export type Persona = BaseNominativo;
+export interface Veicolo extends BaseBadge, BaseVeicolo, BaseNominativo {}
 
 export type Badge = Provvisorio &
   Nominativo &

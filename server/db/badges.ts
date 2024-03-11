@@ -1,23 +1,13 @@
 import * as db from "./index.js";
-import {
-  Chiave,
-  DeletePersonaData,
-  Nominativo,
-  Persona,
-  Provvisorio,
-  Veicolo,
-} from "../types/badges.js";
+import { Chiave, Nominativo, Provvisorio, Veicolo } from "../types/badges.js";
 import {
   FindBadgesFilter,
-  FindPersoneFilter,
   InsertChiaveData,
   InsertNominativoData,
-  InsertPersonaData,
   InsertProvvisorioData,
   InsertVeicoloData,
   UpdateChiaveData,
   UpdateNominativoData,
-  UpdatePersonaData,
   UpdateProvvisorioData,
   UpdateVeicoloData,
 } from "../utils/validation.js";
@@ -41,8 +31,8 @@ export async function getBadges(filter?: FindBadgesFilter) {
       .join(" AND ");
 
   const queryText = filterText
-    ? [prefixText, "WHERE", filterText, "ORDER BY tipo"].join(" ")
-    : [prefixText, "ORDER BY tipo"].join(" ");
+    ? [prefixText, "WHERE", filterText, "ORDER BY codice"].join(" ")
+    : [prefixText, "ORDER BY codice"].join(" ");
   const queryValues =
     filter &&
     Object.values(filter)
@@ -107,41 +97,6 @@ export function updateVeicolo(data: UpdateVeicoloData) {
 
 export function deleteVeicolo(codice: string) {
   return db.deleteRows<Veicolo>("veicoli", { codice });
-}
-
-export async function getPersone(filter?: FindPersoneFilter) {
-  const prefixText = "SELECT * FROM persone";
-  const filterText =
-    filter &&
-    Object.entries(filter)
-      .filter(([, value]) => value)
-      .map(([key, value], i) =>
-        typeof value === "string" ? `${key} LIKE $${i + 1}` : `${key}=$${i + 1}`
-      )
-      .join(" AND ");
-
-  const queryText = filterText
-    ? [prefixText, filterText].join(" WHERE ")
-    : prefixText;
-  const queryValues =
-    filter &&
-    Object.entries(filter)
-      .filter(([, value]) => value)
-      .map(([, value]) => (typeof value === "string" ? `%${value}%` : value));
-
-  return await db.query(queryText, queryValues);
-}
-
-export function insertPersona(data: InsertPersonaData) {
-  return db.insertRow<Persona>("persone", data);
-}
-
-export function updatePersona(data: UpdatePersonaData) {
-  return db.updateRows<Persona>("persone", data.updateData, data.docInfo);
-}
-
-export function deletePersona(data: DeletePersonaData) {
-  return db.deleteRows<Persona>("persone", data);
 }
 
 export function getAssegnazioni() {

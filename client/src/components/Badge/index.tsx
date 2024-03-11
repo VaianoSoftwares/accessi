@@ -214,8 +214,7 @@ export default function Badge({
   });
 
   const insertArchProv = useMutation({
-    mutationFn: (data: InsertArchProvData) =>
-      ArchivioDataService.insertArchProv(data),
+    mutationFn: (data: FormData) => ArchivioDataService.insertArchProv(data),
     onSuccess: async (response) => {
       console.log("insertArchProv | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
@@ -483,6 +482,7 @@ export default function Badge({
             }
             tableId={TABLE_NAME}
             omitedParams={["id"]}
+            obfuscatedParams={["codice"]}
             timestampParams={["data_in", "data_out"]}
           />
         )}

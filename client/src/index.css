@@ -9,15 +9,39 @@ html, body {
   color: rgb(20, 13, 13);
   border-radius: 5px;
 }
-
 .popup-overlay[data-popup="modal"] {
   background: rgba(0,0,0,.5);
 }
-
 .popup-overlay[data-popup="modal"] .popup-content {
   padding: .5rem
 }
-
 .popup-arrow {
   visibility: hidden;
+}
+
+.one-third-col {
+  width: 33% !important;
+}
+.half-col {
+  width: 50% !important;
+}
+
+.custom-input-file input[type=file] {
+  margin-left: -2px !important;
+  font-size: 15px;
+  height: 35px;
+}
+.custom-input-file input[type=file]::-webkit-file-upload-button {
+  display: none;
+}
+.custom-input-file input[type=file]::file-selector-button {
+  display: none;
+}
+.custom-input-file:hover label {
+  background-color: #dde0e3;
+  cursor: pointer;
+}
+.custom-input-file label {
+  height: 35px;
+  font-size: 13px;
 }

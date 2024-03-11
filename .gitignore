@@ -9,9 +9,7 @@
 package-lock.json
 .env
 .env*
-
-# tmp upload files
-server/tmp/*
+vz
 
 # tsc server build files
 /dist
@@ -20,6 +18,12 @@ server/tmp/*
 # vscode configs
 /.vscode
 
-# documenti & calendario files
-# server/public/documenti/*
-# server/public/calendario/*
+# tmp upload files
+server/tmp/*
+
+# server public dir files
+server/public/uploads/*
+!server/public/uploads/*.gitkeep
+
+# shell scripts
+*.sh

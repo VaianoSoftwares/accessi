@@ -53,8 +53,8 @@ export async function getArchivio(filter?: FindArchivioFilter) {
       .join(" AND ");
 
   const queryText = filterText
-    ? [prefixText, "WHERE", filterText, "ORDER BY data_in DESC, tipo"].join(" ")
-    : [prefixText, "ORDER BY data_in DESC, tipo"].join(" ");
+    ? [prefixText, "WHERE", filterText, "ORDER BY data_in DESC"].join(" ")
+    : [prefixText, "ORDER BY data_in DESC"].join(" ");
   const queryValues =
     filter &&
     Object.values(filter)
@@ -101,8 +101,8 @@ export async function getInStrutt(filter?: FindInStruttFilter) {
       .join(" AND ");
 
   const queryText = filterText
-    ? [prefixText, "WHERE", filterText, "ORDER BY data_in DESC, tipo"].join(" ")
-    : [prefixText, "ORDER BY data_in DESC, tipo"].join(" ");
+    ? [prefixText, "WHERE", filterText, "ORDER BY data_in DESC"].join(" ")
+    : [prefixText, "ORDER BY data_in DESC"].join(" ");
   const queryValues =
     filter &&
     Object.values(filter)
@@ -146,8 +146,8 @@ export async function getInPrestito(filter?: FindInPrestitoFilter) {
       .join(" AND ");
 
   const queryText = filterText
-    ? [prefixText, filterText].join(" WHERE ")
-    : prefixText;
+    ? [prefixText, "WHERE", filterText, "ORDER BY data_in DESC"].join(" ")
+    : [prefixText, "ORDER BY data_in DESC"].join(" ");
   const queryValues =
     filter &&
     Object.entries(filter)
@@ -531,7 +531,7 @@ export async function timbraUniversitario(data: TimbraUniData) {
         context: { badge: data.ndoc },
       });
     }
-    console.log("paolo luca");
+
     const { rows: inStruttRows, rowCount: numInStruttRows } =
       await db.query<Archivio>(
         "SELECT * FROM in_strutt WHERE tipo = 'PROVVISORIO' AND ndoc = $1",

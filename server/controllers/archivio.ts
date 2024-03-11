@@ -6,6 +6,7 @@ import { BaseError } from "../types/errors.js";
 import * as Validator from "../utils/validation.js";
 import { Archivio, BarcodePrefix } from "../types/archivio.js";
 import { objToUpperCase } from "../utils/objToUpperCase.js";
+import { uploadDocumento } from "../files/badges.js";
 
 function reqDataToUpperCase<T extends object>(data: T) {
   return objToUpperCase(data, ["cliente", "postazione"] satisfies Array<
@@ -220,7 +221,15 @@ export async function apiInsertProvvisorio(req: Request, res: Response) {
       })
     );
 
-    res.json(Ok(dbResult));
+    let uploadedFile;
+    const documento = Array.isArray(req.files?.documento)
+      ? req.files?.documento[0]
+      : req.files?.documento;
+    if (documento) {
+      uploadedFile = await uploadDocumento(parsed.data.badge, documento);
+    }
+
+    res.json(Ok({ ...dbResult, uploadedFile }));
   } catch (e) {
     const error = enforceBaseErr(e);
     console.error(error.message);
