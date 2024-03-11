@@ -62,7 +62,7 @@ export async function apiLogin(req: Request, res: Response) {
 }
 
 export async function apiTmpLogin(req: Request, res: Response) {
-  return await login(req, res, 20);
+  return await login(req, res, "5m");
 }
 
 export function apiRefreshLogin(req: Request, res: Response) {
