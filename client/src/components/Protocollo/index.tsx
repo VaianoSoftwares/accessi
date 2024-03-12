@@ -255,7 +255,7 @@ export default function Protocollo({
                     )}{" "}
                     <a
                       className="file-list-link"
-                      href={`${PROXY}/api/v1/public/protocolli/PROT${id}-${filename}`}
+                      href={`${PROXY}/api/v1/public/uploads/PROT${id}_${filename}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >

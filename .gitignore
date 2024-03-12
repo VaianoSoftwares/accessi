@@ -9,7 +9,6 @@
 package-lock.json
 .env
 .env*
-vz
 
 # tsc server build files
 /dist

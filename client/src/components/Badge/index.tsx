@@ -154,7 +154,7 @@ export default function Badge({
   const timeoutRunning = useRef(false);
 
   const [pfpUrl, { updateImage, setNoImage }] = useImage((data) =>
-    data ? `${PROXY}/api/v1/public/foto-profilo/PFP_${data}.jpg` : ""
+    data ? `${PROXY}/api/v1/public/uploads/PFP_${data}.jpg` : ""
   );
 
   function formToObj() {
