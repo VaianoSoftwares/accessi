@@ -23,7 +23,7 @@ export async function apiGetArchivio(req: Request, res: Response) {
         cause: parsed.error,
       });
     }
-
+    console.log("parsed.data", parsed.data);
     const dbResult = await ArchivioDB.getArchivio(
       reqDataToUpperCase(parsed.data)
     );
@@ -96,6 +96,7 @@ export async function apiTimbraBadge(req: Request, res: Response) {
         barcodeType === "UNI"
           ? parsed.data.badge
           : parsed.data.badge.substring(1),
+      username: req.user!.name,
       ip: req.ip,
     };
 
@@ -122,6 +123,7 @@ export async function apiTimbraBadge(req: Request, res: Response) {
       case "UNI":
         dbRes = await ArchivioDB.timbraUniversitario({
           postazione: timbraData.postazione,
+          username: req.user!.name,
           ip: timbraData.ip,
           ndoc: timbraData.badge,
         });
@@ -187,6 +189,7 @@ export async function apiTimbraChiavi(req: Request, res: Response) {
       ...parsed.data,
       badge,
       chiavi,
+      username: req.user!.name,
       ip: req.ip,
     });
 

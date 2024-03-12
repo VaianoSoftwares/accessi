@@ -9,6 +9,7 @@ export interface BaseArchivio {
   postazione: number;
   data_in: string;
   data_out: string;
+  username: string;
   ip: string;
 }
 

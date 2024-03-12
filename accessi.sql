@@ -135,7 +135,8 @@ CREATE TABLE IF NOT EXISTS archivio_nominativi(
     postazione SERIAL REFERENCES postazioni (id),
     data_in TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP),
     data_out TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '24 hours'),
-    ip VARCHAR(32) CHECK (ip != ''),
+    username VARCHAR(64) NOT NULL REFERENCES users (name),
+    ip VARCHAR(32) NOT NULL CHECK (ip != ''),
     CONSTRAINT data_in_is_bigger_than_data_out CHECK (data_out IS NULL OR data_out > data_in)
 );
 
@@ -145,7 +146,8 @@ CREATE TABLE IF NOT EXISTS archivio_veicoli(
     postazione SERIAL REFERENCES postazioni (id),
     data_in TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP),
     data_out TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '24 hours'),
-    ip VARCHAR(32) CHECK (ip != ''),
+    username VARCHAR(64) NOT NULL REFERENCES users (name),
+    ip VARCHAR(32) NOT NULL CHECK (ip != ''),
     CONSTRAINT data_in_is_bigger_than_data_out CHECK (data_out IS NULL OR data_out > data_in)
 );
 
@@ -156,7 +158,8 @@ CREATE TABLE IF NOT EXISTS archivio_chiavi(
     postazione SERIAL REFERENCES postazioni (id),
     data_in TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP),
     data_out TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '24 hours'),
-    ip VARCHAR(32) CHECK (ip != ''),
+    username VARCHAR(64) NOT NULL REFERENCES users (name),
+    ip VARCHAR(32) NOT NULL CHECK (ip != ''),
     CONSTRAINT data_in_is_bigger_than_data_out CHECK (data_out IS NULL OR data_out > data_in)
 );
 
@@ -166,7 +169,8 @@ CREATE TABLE IF NOT EXISTS archivio_provvisori(
     postazione SERIAL REFERENCES postazioni (id),
     data_in TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '23 hours 59 minutes'),
     data_out TIMESTAMP DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '24 hours'),
-    ip VARCHAR(32) CHECK (ip != ''),
+    username VARCHAR(64) NOT NULL REFERENCES users (name),
+    ip VARCHAR(32) NOT NULL CHECK (ip != ''),
     nome VARCHAR(32) CHECK (nome != ''),
     cognome VARCHAR(32) CHECK (cognome != ''),
     ditta VARCHAR(64) CHECK (ditta != ''),
@@ -224,23 +228,23 @@ CREATE VIEW all_badges AS
 
 CREATE VIEW full_archivio AS
     SELECT t.* FROM
-    ((SELECT n.codice AS badge, NULL AS chiave, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, n.nome, n.cognome, n.ditta, n.telefono, n.ndoc, n.tdoc, n.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
+    ((SELECT n.codice AS badge, NULL AS chiave, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.username, a.ip, n.nome, n.cognome, n.ditta, n.telefono, n.ndoc, n.tdoc, n.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
     FROM nominativi AS n
     JOIN archivio_nominativi AS a ON n.codice = a.badge
     JOIN postazioni AS p ON a.postazione = p.id)
     UNION
-    (SELECT v1_or_v2(a.badge, a.ndoc) AS codice, NULL AS chiave, 'PROVVISORIO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, a.nome, a.cognome, a.ditta, a.telefono, a.ndoc, a.tdoc, 'OSPITE' AS assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano 
+    (SELECT v1_or_v2(a.badge, a.ndoc) AS codice, NULL AS chiave, 'PROVVISORIO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.username, a.ip, a.nome, a.cognome, a.ditta, a.telefono, a.ndoc, a.tdoc, 'OSPITE' AS assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano 
     FROM archivio_provvisori AS a
     JOIN postazioni AS p ON a.postazione = p.id)
     UNION
-    (SELECT v.codice AS badge, NULL AS chiave, 'VEICOLO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.ip, v.nome, v.cognome, v.ditta, v.telefono, v.ndoc, v.tdoc, NULL::assegnazione as assegnazione, v.tveicolo, v.targa1, v.targa2, v.targa3, v.targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano 
+    (SELECT v.codice AS badge, NULL AS chiave, 'VEICOLO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.username, a.ip, v.nome, v.cognome, v.ditta, v.telefono, v.ndoc, v.tdoc, NULL::assegnazione as assegnazione, v.tveicolo, v.targa1, v.targa2, v.targa3, v.targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano 
     FROM veicoli AS v
     JOIN archivio_veicoli AS a ON badge = a.badge
     JOIN postazioni AS p ON a.postazione = p.id)
     UNION
-    (SELECT DISTINCT b.codice AS badge, c.codice AS chiave, 'CHIAVE' AS tipo, b.cliente, b.postazione, b.data_in, b.data_out, b.ip, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, c.indirizzo, c.citta, c.edificio, c.piano 
+    (SELECT DISTINCT b.codice AS badge, c.codice AS chiave, 'CHIAVE' AS tipo, b.cliente, b.postazione, b.data_in, b.data_out, b.username, b.ip, b.nome, b.cognome, b.ditta, b.telefono, b.ndoc, b.tdoc, b.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, c.indirizzo, c.citta, c.edificio, c.piano 
     FROM (
-        SELECT a.id, a.badge, a.chiave, p.name AS postazione, a.data_in, a.data_out, a.ip, b.*
+        SELECT a.id, a.badge, a.chiave, p.name AS postazione, a.data_in, a.data_out, a.username, a.ip, b.*
         FROM nominativi AS b
         JOIN archivio_chiavi AS a ON badge = b.codice
         JOIN postazioni AS p ON a.postazione = p.id
@@ -316,71 +320,71 @@ CREATE VIEW tveicoli AS SELECT unnest(enum_range(NULL::veicolo)) AS value;
 
 /*######################################################################################################################################################*/
 
-INSERT INTO clienti (name) VALUES
-    ('Corte d''Appello'),
-    ('Montedomini');
+-- INSERT INTO clienti (name) VALUES
+--     ('Corte d''Appello'),
+--     ('Montedomini');
 
-INSERT INTO postazioni (cliente, name) VALUES
-    ('Corte d''Appello', 'Sala-controllo'),
-    ('Corte d''Appello', 'Tornelli-S.Donato'),
-    ('Corte d''Appello', 'Tornelli-Peretola'),
-    ('Corte d''Appello', 'Parcheggio-S.Donato'),
-    ('Corte d''Appello', 'Parcheggio-Peretola'),
-    ('Corte d''Appello', 'Parcheggio-3pini'),
-    ('Corte d''Appello', 'Aula-bunker'),
-    ('Corte d''Appello', 'Presidio-Pulizie'),
-    ('Corte d''Appello', 'Centralino'),
-    ('Corte d''Appello', 'Uffici'),
-    ('Montedomini', 'Desk');
+-- INSERT INTO postazioni (cliente, name) VALUES
+--     ('Corte d''Appello', 'Sala-controllo'),
+--     ('Corte d''Appello', 'Tornelli-S.Donato'),
+--     ('Corte d''Appello', 'Tornelli-Peretola'),
+--     ('Corte d''Appello', 'Parcheggio-S.Donato'),
+--     ('Corte d''Appello', 'Parcheggio-Peretola'),
+--     ('Corte d''Appello', 'Parcheggio-3pini'),
+--     ('Corte d''Appello', 'Aula-bunker'),
+--     ('Corte d''Appello', 'Presidio-Pulizie'),
+--     ('Corte d''Appello', 'Centralino'),
+--     ('Corte d''Appello', 'Uffici'),
+--     ('Montedomini', 'Desk');
 
-INSERT INTO users (name, password, permessi, pages) VALUES
-    ('admin', '$2a$10$cLLMrZEMQCU44vy7Sqsb/uQJDo3vCXV/kUR5Zgm7CvaOQQw08Q6Yu', admin_flags(), admin_flags()),
-    ('gta', '$2a$10$jeaqS/p1a4vUh9PTL/PdRepyJVZWqok7VsQK/HY4xI4SAco0ZktvG', 1 | 4 | 8, 1),
-    ('GTA', '$2a$10$jeaqS/p1a4vUh9PTL/PdRepyJVZWqok7VsQK/HY4xI4SAco0ZktvG', 1 | 4 | 8, 1),
-    ('Tornelli-SD', '$2a$10$Qz5m9H2lTeSLqGZAuP0p1ewfAjh.iMNF4XdSOpX5Rm2MrzBo.yKOi',	1, 1);
+-- INSERT INTO users (name, password, permessi, pages) VALUES
+--     ('admin', '$2a$10$cLLMrZEMQCU44vy7Sqsb/uQJDo3vCXV/kUR5Zgm7CvaOQQw08Q6Yu', admin_flags(), admin_flags()),
+--     ('gta', '$2a$10$jeaqS/p1a4vUh9PTL/PdRepyJVZWqok7VsQK/HY4xI4SAco0ZktvG', 1 | 4 | 8, 1),
+--     ('GTA', '$2a$10$jeaqS/p1a4vUh9PTL/PdRepyJVZWqok7VsQK/HY4xI4SAco0ZktvG', 1 | 4 | 8, 1),
+--     ('Tornelli-SD', '$2a$10$Qz5m9H2lTeSLqGZAuP0p1ewfAjh.iMNF4XdSOpX5Rm2MrzBo.yKOi',	1, 1);
 
-INSERT INTO postazioni_user (user_id, postazione) VALUES
-    (2, 1),
-    (2, 2),
-    (3, 1),
-    (3, 2),
-    (3, 5),
-    (4, 2);
+-- INSERT INTO postazioni_user (user_id, postazione) VALUES
+--     (2, 1),
+--     (2, 2),
+--     (3, 1),
+--     (3, 2),
+--     (3, 5),
+--     (4, 2);
 
-INSERT INTO nominativi (codice, descrizione, stato, assegnazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
-('128209809', DEFAULT, 'VALIDO', 'PORTINERIA', 'Corte d''Appello', DEFAULT, 'ALESSANDRO', 'PESCIOTTI', 'VIVENDA', DEFAULT,  DEFAULT,  DEFAULT),
-('128247119',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello', DEFAULT,  'ANGELO',  'MARTONE', 'VIVENDA', DEFAULT,  DEFAULT,  DEFAULT),
-('128205173',	DEFAULT,	'VALIDO',	'UTENTE',  'Corte d''Appello',	DEFAULT, 'GIUSEPPE',	'TABASCO',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
-('128290751',	DEFAULT,	'VALIDO',	'UTENTE',	'Corte d''Appello',	DEFAULT, 'ARMANDO',	'DI RUOCCO',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
-('128280420',	DEFAULT,	'VALIDO', 'UTENTE',	'Corte d''Appello',	DEFAULT, 'ANGELO',	'IACOPINI',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
-('128248255',	DEFAULT,	'VALIDO', 'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'SAURO',   'INNOCENTI',   'VIVENDA', DEFAULT,  DEFAULT,  DEFAULT),
-('128230909',	DEFAULT,	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ALESSANDRO',	'PANDOLFI',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
-('128208032',	DEFAULT,	'VALIDO',	'FACCHINAGGIO',	'Corte d''Appello',	DEFAULT, 'DANIELE',	'GANGUZZA',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
-('128272593',	DEFAULT,	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'MARLENY',	'EGAS',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
-('128215425',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'EMANUELE',	'MASI',	'VIVENDA', DEFAULT, DEFAULT, DEFAULT),
-('128256594',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ALESSIO',	'IANNOTTA',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
-('128209844',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'RAISSA',	'CILIBERTI',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
-('128296731',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'GIUSEPPE',	'GRECO',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
-('128239861',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ALESSIO',	'SILVESTRI',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
-('128221997',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'DARIA',	'MACALUSO',	'HUMANGEST',	DEFAULT, DEFAULT, DEFAULT),
-('128237422',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ALDO',	'TRONCONI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128272551',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ALESSIO',	'BENUCCI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128224934',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'CLAUDIA',	'TARDUCCI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128203901',	'BADGE MARCATEMPO',    'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'PATRIZIO',	'PESCE',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128213111',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ANDREA',	'PUCCI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128246798',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'NICULINA',	'BUHUCEANU',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128253403',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ANTONIO',	'SAPORITO',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128288091',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'LEANDRO',	'GHELARDONI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128200861',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'GABRIELE',	'SARTI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128232481',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ANTONIO', 'BASTA',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128247436',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'LETIZIA',	'ALBANESE',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128250114',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'MATTEO',	'DAL CORTIVO',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128253592',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'CONCETTA',	'GAZANEO',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128255315',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ANDREA',	'MECHI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128298055',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'EMILJANA',	'RROKAJ',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128225393',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'MANUEL',	'SCIONI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
-('128227568',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ERIKA',	'GIANFELICI',	'HUMANGEST',	DEFAULT, DEFAULT, DEFAULT),
-('128208112',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'STEFANO',	'CANINO',	'HUMANGEST',	DEFAULT, DEFAULT, DEFAULT);
+-- INSERT INTO nominativi (codice, descrizione, stato, assegnazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
+-- ('128209809', DEFAULT, 'VALIDO', 'PORTINERIA', 'Corte d''Appello', DEFAULT, 'ALESSANDRO', 'PESCIOTTI', 'VIVENDA', DEFAULT,  DEFAULT,  DEFAULT),
+-- ('128247119',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello', DEFAULT,  'ANGELO',  'MARTONE', 'VIVENDA', DEFAULT,  DEFAULT,  DEFAULT),
+-- ('128205173',	DEFAULT,	'VALIDO',	'UTENTE',  'Corte d''Appello',	DEFAULT, 'GIUSEPPE',	'TABASCO',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128290751',	DEFAULT,	'VALIDO',	'UTENTE',	'Corte d''Appello',	DEFAULT, 'ARMANDO',	'DI RUOCCO',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128280420',	DEFAULT,	'VALIDO', 'UTENTE',	'Corte d''Appello',	DEFAULT, 'ANGELO',	'IACOPINI',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128248255',	DEFAULT,	'VALIDO', 'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'SAURO',   'INNOCENTI',   'VIVENDA', DEFAULT,  DEFAULT,  DEFAULT),
+-- ('128230909',	DEFAULT,	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ALESSANDRO',	'PANDOLFI',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128208032',	DEFAULT,	'VALIDO',	'FACCHINAGGIO',	'Corte d''Appello',	DEFAULT, 'DANIELE',	'GANGUZZA',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128272593',	DEFAULT,	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'MARLENY',	'EGAS',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128215425',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'EMANUELE',	'MASI',	'VIVENDA', DEFAULT, DEFAULT, DEFAULT),
+-- ('128256594',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ALESSIO',	'IANNOTTA',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128209844',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'RAISSA',	'CILIBERTI',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128296731',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'GIUSEPPE',	'GRECO',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128239861',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ALESSIO',	'SILVESTRI',	'VIVENDA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128221997',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'DARIA',	'MACALUSO',	'HUMANGEST',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128237422',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ALDO',	'TRONCONI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128272551',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ALESSIO',	'BENUCCI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128224934',	DEFAULT, 'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'CLAUDIA',	'TARDUCCI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128203901',	'BADGE MARCATEMPO',    'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'PATRIZIO',	'PESCE',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128213111',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ANDREA',	'PUCCI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128246798',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'NICULINA',	'BUHUCEANU',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128253403',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ANTONIO',	'SAPORITO',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128288091',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'LEANDRO',	'GHELARDONI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128200861',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'GABRIELE',	'SARTI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128232481',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ANTONIO', 'BASTA',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128247436',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'LETIZIA',	'ALBANESE',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128250114',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'MATTEO',	'DAL CORTIVO',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128253592',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'CONCETTA',	'GAZANEO',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128255315',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ANDREA',	'MECHI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128298055',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'EMILJANA',	'RROKAJ',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128225393',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'MANUEL',	'SCIONI',	'OPEROSA',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128227568',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'ERIKA',	'GIANFELICI',	'HUMANGEST',	DEFAULT, DEFAULT, DEFAULT),
+-- ('128208112',	'BADGE MARCATEMPO',	'VALIDO',	'PORTINERIA',	'Corte d''Appello',	DEFAULT, 'STEFANO',	'CANINO',	'HUMANGEST',	DEFAULT, DEFAULT, DEFAULT);
 
 -- INSERT INTO nominativi (codice, descrizione, stato, assegnazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc) VALUES
 --     ('128212345', 'marco :-.)', 'VALIDO', 'UTENTE', 'Corte d''Appello', '2025-03-15', 'MARCO', 'PIERATTINI', 'GANZOSOFT', '055-420-69', 'AU0069420', 'CARTA IDENTITA'),

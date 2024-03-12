@@ -135,7 +135,10 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                   id="dataFine"
                   autoComplete="off"
                   ref={(el) => (formRef.current.data_in_max = el)}
-                  defaultValue={dateFormat(new Date(), "yyyy-mm-dd")}
+                  defaultValue={dateFormat(
+                    new Date().setDate(new Date().getDate() + 1),
+                    "yyyy-mm-dd"
+                  )}
                   min={formRef.current?.data_in_max?.value}
                 />
                 <label htmlFor="dataFine">resoconto fine</label>
