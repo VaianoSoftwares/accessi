@@ -55,25 +55,22 @@ type ClockStates = {
 };
 
 export default class Clock extends React.Component<{}, ClockStates> {
-  timerID!: NodeJS.Timer;
+  timerID!: NodeJS.Timeout;
 
   state = {
-    ora: dateFormat(new Date(), "HH:MM:ss"), 
-    data: dateFormat(new Date(), "dddd dd mmmm yyyy") 
+    ora: dateFormat(new Date(), "HH:MM:ss"),
+    data: dateFormat(new Date(), "dddd dd mmmm yyyy"),
   };
 
   tick() {
     this.setState({
-      ora: dateFormat(new Date(), "HH:MM:ss"), 
-      data: dateFormat(new Date(), "dddd dd mmmm yyyy") 
+      ora: dateFormat(new Date(), "HH:MM:ss"),
+      data: dateFormat(new Date(), "dddd dd mmmm yyyy"),
     });
   }
 
   componentDidMount() {
-    this.timerID = setInterval(
-      () => this.tick(),
-      1000
-    );
+    this.timerID = setInterval(() => this.tick(), 1000);
   }
 
   componentWillUnmount() {
@@ -88,4 +85,4 @@ export default class Clock extends React.Component<{}, ClockStates> {
       </div>
     );
   }
-};
+}

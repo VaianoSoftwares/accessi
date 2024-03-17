@@ -7,13 +7,13 @@ import Login from "./components/Login";
 import PageNotFound from "./components/PageNotFound";
 import AccessiNavbar from "./components/AccessiNavbar";
 import Home from "./components/Home";
-import serialPortHandler from "./utils/scannerHandler";
-import useSessionStorage from "./hooks/useSessionStorage";
 import Loader from "./components/Loader";
-import { canAccessPage, isAdmin, TLoggedUser } from "./types/users";
+import RootProvider from "./components/RootProvider";
+import { canAccessPage, isAdmin } from "./types/users";
 import { TPages } from "./types/pages";
 import { Postazione } from "./types/badges";
-import useIsMobile from "./hooks/useIsMobile";
+import useCurrentUser from "./hooks/useCurrentUser";
+import scannerHandler from "./utils/scannerHandler";
 
 const Badge = lazy(() => import("./components/Badge"));
 const Chiavi = lazy(() => import("./components/Chiavi"));
@@ -28,16 +28,15 @@ const Postazioni = lazy(() => import("./components/Postazioni"));
 const Clienti = lazy(() => import("./components/Clienti"));
 
 export default function App() {
-  const { isMobile } = useIsMobile();
-
-  const [user, setUser] = useSessionStorage<TLoggedUser | null>("user", null);
+  const { currentUser, setCurrentUser, removeCurrentUser } = useCurrentUser();
 
   const [currPostazione, setCurrPostazione] = useState<Postazione>();
 
-  const [accessiScanner, setAccessiScanner] = useState<SerialPort>();
+  const [isBadgeScannerConnected, setIsBadgeScannerConnected] = useState(false);
   const [timbraVal, setTimbraVal] = useState("");
 
-  const [chiaviScanner, setChiaviScanner] = useState<SerialPort>();
+  const [isChiaviScannerConnected, setIsChiaviScannerConnected] =
+    useState(false);
   const [prestaArr, setPrestaArr] = useState<string[]>([]);
 
   function prestaArrAdd(value: string) {
@@ -48,41 +47,32 @@ export default function App() {
     setPrestaArr((prevState) => prevState.filter((elem) => elem !== value));
   }
 
-  async function login(user: TLoggedUser) {
-    setUser(user);
-  }
-
-  async function logout() {
-    sessionStorage.clear();
-    setUser(null);
-  }
-
   async function runAccessiScanner() {
-    await serialPortHandler(
+    await scannerHandler(
       (value: string) => setTimbraVal(value),
-      setAccessiScanner
+      setIsBadgeScannerConnected
     );
   }
 
   async function runChiaviScanner() {
-    await serialPortHandler(prestaArrAdd, setChiaviScanner);
+    await scannerHandler(prestaArrAdd, setIsChiaviScannerConnected);
   }
 
   return (
     <div className="App">
-      {isMobile ? (
-        <h2>Portale web non disponibile per dispositivi mobili</h2>
-      ) : (
+      <RootProvider
+        currentUser={currentUser}
+        setCurrentUser={setCurrentUser}
+        removeCurrentUser={removeCurrentUser}
+      >
         <>
-          {user && (
+          {currentUser && (
             <AccessiNavbar
-              user={user}
-              logout={logout}
               currPostazione={currPostazione}
               setCurrPostazione={setCurrPostazione}
-              badgeScannerConnected={accessiScanner !== undefined}
+              badgeScannerConnected={isBadgeScannerConnected}
               runBadgeScanner={runAccessiScanner}
-              chiaviScannerConnected={chiaviScanner !== undefined}
+              chiaviScannerConnected={isChiaviScannerConnected}
               runChiaviScanner={runChiaviScanner}
             />
           )}
@@ -91,17 +81,16 @@ export default function App() {
             <Route
               path="home"
               element={
-                user ? <Home user={user} /> : <Navigate replace to="/login" />
+                currentUser ? <Home /> : <Navigate replace to="/login" />
               }
             />
             <Route index element={<Navigate replace to="/home" />} />
             <Route
               path="badge"
               element={
-                user && canAccessPage(user, TPages.badge) ? (
+                canAccessPage(currentUser, TPages.badge) ? (
                   <Suspense fallback={<Loader />}>
                     <Badge
-                      user={user}
                       scannedValue={timbraVal}
                       clearScannedValue={() => setTimbraVal("")}
                       tipoBadge={"NOMINATIVO"}
@@ -116,10 +105,9 @@ export default function App() {
             <Route
               path="chiavi"
               element={
-                user && canAccessPage(user, TPages.chiavi) ? (
+                canAccessPage(currentUser, TPages.chiavi) ? (
                   <Suspense fallback={<Loader />}>
                     <Chiavi
-                      user={user}
                       scanValues={prestaArr}
                       addScanValue={prestaArrAdd}
                       removeScanValue={prestaArrRemove}
@@ -135,14 +123,13 @@ export default function App() {
             <Route
               path="veicoli"
               element={
-                user && canAccessPage(user, TPages.veicoli) ? (
+                canAccessPage(currentUser, TPages.veicoli) ? (
                   <Suspense fallback={<Loader />}>
                     <Badge
-                      user={user}
                       scannedValue={timbraVal}
                       clearScannedValue={() => setTimbraVal("")}
                       tipoBadge={"VEICOLO"}
-                      currPostazione={undefined}
+                      currPostazione={currPostazione}
                     />
                   </Suspense>
                 ) : (
@@ -153,9 +140,9 @@ export default function App() {
             <Route
               path="archivio"
               element={
-                user && canAccessPage(user, TPages.archivio) ? (
+                canAccessPage(currentUser, TPages.archivio) ? (
                   <Suspense fallback={<Loader />}>
-                    <Archivio user={user} />
+                    <Archivio />
                   </Suspense>
                 ) : (
                   <PageNotFound />
@@ -165,9 +152,9 @@ export default function App() {
             <Route
               path="protocollo"
               element={
-                user && canAccessPage(user, TPages.protocollo) ? (
+                canAccessPage(currentUser, TPages.protocollo) ? (
                   <Suspense fallback={<Loader />}>
-                    <Protocollo user={user} currPostazione={currPostazione} />
+                    <Protocollo currPostazione={currPostazione} />
                   </Suspense>
                 ) : (
                   <PageNotFound />
@@ -177,9 +164,9 @@ export default function App() {
             <Route
               path="anagrafico"
               element={
-                user && canAccessPage(user, TPages.anagrafico) ? (
+                canAccessPage(currentUser, TPages.anagrafico) ? (
                   <Suspense fallback={<Loader />}>
-                    <Anagrafico user={user} />
+                    <Anagrafico />
                   </Suspense>
                 ) : (
                   <PageNotFound />
@@ -189,7 +176,7 @@ export default function App() {
             <Route
               path="admin/register"
               element={
-                user && isAdmin(user) ? (
+                isAdmin(currentUser) ? (
                   <Suspense fallback={<Loader />}>
                     <Register />
                   </Suspense>
@@ -202,7 +189,7 @@ export default function App() {
             <Route
               path="admin/users"
               element={
-                user && isAdmin(user) ? (
+                isAdmin(currentUser) ? (
                   <Suspense fallback={<Loader />}>
                     <UsersList />
                   </Suspense>
@@ -214,7 +201,7 @@ export default function App() {
             <Route
               path="admin/users/:userId"
               element={
-                user && isAdmin(user) ? (
+                isAdmin(currentUser) ? (
                   <Suspense fallback={<Loader />}>
                     <UserEdit />
                   </Suspense>
@@ -226,7 +213,7 @@ export default function App() {
             <Route
               path="admin/assegnazioni"
               element={
-                user && isAdmin(user) ? (
+                isAdmin(currentUser) ? (
                   <Suspense fallback={<Loader />}>
                     <Assegnazioni />
                   </Suspense>
@@ -238,7 +225,7 @@ export default function App() {
             <Route
               path="admin/postazioni"
               element={
-                user && isAdmin(user) ? (
+                isAdmin(currentUser) ? (
                   <Suspense fallback={<Loader />}>
                     <Postazioni />
                   </Suspense>
@@ -250,7 +237,7 @@ export default function App() {
             <Route
               path="admin/clienti"
               element={
-                user && isAdmin(user) ? (
+                isAdmin(currentUser) ? (
                   <Suspense fallback={<Loader />}>
                     <Clienti />
                   </Suspense>
@@ -262,8 +249,8 @@ export default function App() {
             <Route
               path="login"
               element={
-                !user ? (
-                  <Login login={login} />
+                currentUser === null ? (
+                  <Login />
                 ) : (
                   <Navigate replace to="/home" />
                 )
@@ -272,7 +259,7 @@ export default function App() {
           </Routes>
           <Toaster />
         </>
-      )}
+      </RootProvider>
     </div>
   );
 }

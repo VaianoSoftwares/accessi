@@ -4,7 +4,7 @@ import { Err, Ok } from "../types/index.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
 import { BaseError } from "../types/errors.js";
 import * as Validator from "../utils/validation.js";
-import { Archivio, BarcodePrefix } from "../types/archivio.js";
+import { Archivio, BarcodePrefix, TimbraBadgeData } from "../types/archivio.js";
 import { objToUpperCase } from "../utils/objToUpperCase.js";
 import { uploadDocumento } from "../files/badges.js";
 
@@ -97,7 +97,7 @@ export async function apiTimbraBadge(req: Request, res: Response) {
           ? parsed.data.badge
           : parsed.data.badge.substring(1),
       username: req.user!.name,
-      ip: req.ip,
+      ip: req.ip || "unknown",
     };
 
     let dbRes;
@@ -190,7 +190,7 @@ export async function apiTimbraChiavi(req: Request, res: Response) {
       badge,
       chiavi,
       username: req.user!.name,
-      ip: req.ip,
+      ip: req.ip || "unknown",
     });
 
     res.json(Ok(dbRes));

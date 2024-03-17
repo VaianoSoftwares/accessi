@@ -1,13 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import "./index.css";
-import BadgeDataService from "../../services/badge";
 import PostazioniDataService from "../../services/postazioni";
 import ClientiDataService from "../../services/clienti";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useContext, useState } from "react";
 import { PAGES_INFO, ADMIN_PAGES_INFO, TPages } from "../../types/pages";
 import {
-  TLoggedUser,
   TPermessi,
   canAccessPage,
   getPagesNum,
@@ -16,9 +14,9 @@ import {
 } from "../../types/users";
 import { Postazione } from "../../types/badges";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
+import { CurrentUserContext } from "../RootProvider";
 
 export default function AccessiNavbar({
-  user,
   currPostazione,
   setCurrPostazione,
   badgeScannerConnected,
@@ -27,10 +25,8 @@ export default function AccessiNavbar({
   runChiaviScanner,
   ...props
 }: {
-  user: TLoggedUser;
   currPostazione: Postazione | undefined;
   setCurrPostazione: Dispatch<SetStateAction<Postazione | undefined>>;
-  logout: () => Promise<void>;
   badgeScannerConnected: boolean;
   runBadgeScanner: () => Promise<void>;
   chiaviScannerConnected: boolean;
@@ -39,10 +35,12 @@ export default function AccessiNavbar({
   const navigate = useNavigate();
   let location = useLocation().pathname;
 
+  const { currentUser, removeCurrentUser } = useContext(CurrentUserContext)!;
+
   const [currCliente, setCurrCliente] = useState<string>();
 
   const postazioni = useQuery({
-    queryKey: ["postazioni", user.postazioni],
+    queryKey: ["postazioni", currentUser?.postazioni],
     queryFn: async (context) => {
       try {
         const response = await PostazioniDataService.get({
@@ -81,11 +79,6 @@ export default function AccessiNavbar({
     },
   });
 
-  async function logout() {
-    await props.logout();
-    navigate("/login");
-  }
-
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container-fluid">
@@ -109,7 +102,7 @@ export default function AccessiNavbar({
         </button>
         <div className="collapse navbar-collapse flex-column" id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0 w-100 my-1">
-            {getPagesNum(user) > 1 && (
+            {getPagesNum(currentUser) > 1 && (
               <li className="nav-item" key="home">
                 <Link
                   to="/home"
@@ -120,7 +113,7 @@ export default function AccessiNavbar({
               </li>
             )}
             {Array.from(PAGES_INFO.entries())
-              .filter(([page]) => canAccessPage(user, page))
+              .filter(([page]) => canAccessPage(currentUser, page))
               .map(([page, pageInfo]) => (
                 <li className="nav-item" key={page}>
                   <Link
@@ -133,7 +126,7 @@ export default function AccessiNavbar({
                   </Link>
                 </li>
               ))}
-            {isAdmin(user) && (
+            {isAdmin(currentUser) && (
               <li className="nav-item dropdown">
                 <Link
                   className="nav-link dropdown-toggle"
@@ -157,10 +150,10 @@ export default function AccessiNavbar({
                 </ul>
               </li>
             )}
-            {hasPerm(user, TPermessi.canLogout) && (
+            {hasPerm(currentUser, TPermessi.canLogout) && (
               <li className="nav-item">
-                <Link to="#" onClick={() => logout()} className="nav-link">
-                  Logout {user.name}
+                <Link to="#" onClick={removeCurrentUser} className="nav-link">
+                  Logout {currentUser?.name}
                 </Link>
               </li>
             )}
@@ -177,11 +170,11 @@ export default function AccessiNavbar({
                     // setCurrPostazione(undefined);
                   }}
                 >
-                  {isAdmin(user) && (
+                  {isAdmin(currentUser) && (
                     <option label="Tutti i clienti" value={undefined} />
                   )}
                   {clienti.data
-                    .filter((cliente) => user.clienti.includes(cliente))
+                    .filter((cliente) => currentUser?.clienti.includes(cliente))
                     .map((cliente) => (
                       <option value={cliente} key={cliente}>
                         {cliente}
@@ -210,7 +203,7 @@ export default function AccessiNavbar({
                       } satisfies Postazione);
                   }}
                 >
-                  {isAdmin(user) && <option>Tutte le postazioni</option>}
+                  {isAdmin(currentUser) && <option>Tutte le postazioni</option>}
                   {postazioni.data
                     .filter(
                       ({ cliente }) => !currCliente || cliente === currCliente
@@ -229,7 +222,7 @@ export default function AccessiNavbar({
                 </select>
               </div>
             )}
-            {canAccessPage(user, TPages.badge) && (
+            {canAccessPage(currentUser, TPages.badge) && (
               <div className="d-flex mx-1">
                 <button
                   className="btn btn-light mx-1 scan-btn"
@@ -251,7 +244,7 @@ export default function AccessiNavbar({
                 </b>
               </div>
             )}
-            {canAccessPage(user, TPages.chiavi) && (
+            {canAccessPage(currentUser, TPages.chiavi) && (
               <div className="d-flex">
                 <button
                   className="btn btn-light mx-1 scan-btn"

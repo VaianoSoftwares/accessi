@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import * as Validator from "../utils/validation.js";
 import * as UsersDB from "../db/users.js";
 import bcrypt from "bcryptjs";
@@ -7,7 +7,12 @@ import enforceBaseErr from "../utils/enforceBaseErr.js";
 import { Err, Ok } from "../types/index.js";
 import { BaseError } from "../types/errors.js";
 
-async function login(req: Request, res: Response, expiresIn: string | number) {
+async function login(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  expiresIn: string | number
+) {
   try {
     const parsed = Validator.LOGIN_SCHEMA.safeParse(req.body);
     if (parsed.success === false) {
@@ -37,10 +42,12 @@ async function login(req: Request, res: Response, expiresIn: string | number) {
       { expiresIn },
       (err, token) => {
         if (err) {
-          throw new BaseError("Impossibile eseguire login", {
-            status: 500,
-            cause: err,
-          });
+          return next(
+            new BaseError("Impossibile eseguire login", {
+              status: 500,
+              cause: err,
+            })
+          );
         }
 
         console.log(name, "logged in.");
@@ -57,15 +64,27 @@ async function login(req: Request, res: Response, expiresIn: string | number) {
   }
 }
 
-export async function apiLogin(req: Request, res: Response) {
-  return await login(req, res, "1d");
+export async function apiLogin(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  return await login(req, res, next, "1d");
 }
 
-export async function apiTmpLogin(req: Request, res: Response) {
-  return await login(req, res, "5m");
+export async function apiTmpLogin(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  return await login(req, res, next, "5m");
 }
 
-export function apiRefreshLogin(req: Request, res: Response) {
+export function apiRefreshLogin(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   try {
     const user = req.user!;
     const secret = process.env.TOKEN_SECRET!;
@@ -76,10 +95,12 @@ export function apiRefreshLogin(req: Request, res: Response) {
       { expiresIn: "1d" },
       (err, token) => {
         if (err) {
-          throw new BaseError("Impossibile eseguire login", {
-            status: 500,
-            cause: err,
-          });
+          return next(
+            new BaseError("Impossibile eseguire login", {
+              status: 500,
+              cause: err,
+            })
+          );
         }
 
         console.log(user.name, "logged in.");

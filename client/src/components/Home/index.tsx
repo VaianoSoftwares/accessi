@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./index.css";
 import {
@@ -8,15 +8,17 @@ import {
   ADMIN_PAGES_INFO,
 } from "../../types/pages";
 import {
-  TLoggedUser,
   canAccessPage,
   getFirstPage,
   getPagesNum,
   isAdmin,
 } from "../../types/users";
+import { CurrentUserContext } from "../RootProvider";
 
-export default function Home({ user }: { user: TLoggedUser }) {
+export default function Home() {
   const navigate = useNavigate();
+
+  const { currentUser } = useContext(CurrentUserContext)!;
 
   function homeCard([page, pageInfo]: [TGenericPage, IPageInfo]) {
     return (
@@ -46,17 +48,17 @@ export default function Home({ user }: { user: TLoggedUser }) {
   }
 
   useEffect(() => {
-    if (getPagesNum(user) === 1)
-      navigate(PAGES_INFO.get(getFirstPage(user))!.pathname);
-  }, [user]);
+    if (getPagesNum(currentUser) === 1)
+      navigate(PAGES_INFO.get(getFirstPage(currentUser!))!.pathname);
+  }, [currentUser]);
 
   return (
     <div className="home-wrapper">
       <div className="row mx-1">
         {Array.from(PAGES_INFO.entries())
-          .filter(([page]) => canAccessPage(user, page))
+          .filter(([page]) => canAccessPage(currentUser!, page))
           .map((page) => homeCard(page))}
-        {isAdmin(user) &&
+        {isAdmin(currentUser!) &&
           Array.from(ADMIN_PAGES_INFO.entries()).map((page) => homeCard(page))}
       </div>
     </div>

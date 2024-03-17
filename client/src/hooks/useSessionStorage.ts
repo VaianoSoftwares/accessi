@@ -11,6 +11,10 @@ export default function useSessionStorage<S>(
 
   useEffect(() => {
     sessionStorage.setItem(storageKey, JSON.stringify(value));
+
+    return () => {
+      sessionStorage.removeItem(storageKey);
+    };
   }, [value, storageKey]);
 
   return [value, setValue];

@@ -26,3 +26,5 @@ server/public/uploads/*
 
 # shell scripts
 *.sh
+
+data.sql

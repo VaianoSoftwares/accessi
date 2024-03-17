@@ -1,14 +1,16 @@
-import axios from "axios";
+import { useContext } from "react";
 import toast from "react-hot-toast";
-
-const unknownErrMsg = "unknown error";
+import { CurrentUserContext } from "../components/RootProvider";
 
 export function axiosErrHandl(err: any, msg?: string) {
+  const { removeCurrentUser } = useContext(CurrentUserContext)!;
+
   if (msg) console.error(msg, "|", err);
   else console.error(err);
 
-  if (axios.isAxiosError(err) && err.response?.data?.error?.message)
-    toast.error(err.response.data.error.message || unknownErrMsg);
-  else if (err instanceof Error) toast.error(err.message || unknownErrMsg);
-  else toast.error(err ? String(err) : unknownErrMsg);
+  const errMsg =
+    err?.response?.data?.error?.message || err?.message || "unknown error";
+  toast.error(errMsg);
+
+  if (errMsg == "Sessione scaduta") removeCurrentUser();
 }

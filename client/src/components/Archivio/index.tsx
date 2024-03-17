@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import BadgeDataService from "../../services/badge";
 import ArchivioDataService from "../../services/archivio";
 import PostazioniDataService from "../../services/postazioni";
@@ -9,14 +9,16 @@ import BadgeTable from "../BadgeTable";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import { useQuery } from "@tanstack/react-query";
 import { FormRef } from "../../types";
-import { TLoggedUser } from "../../types/users";
 import { TIPI_BADGE } from "../../types/badges";
 import { FindArchivioForm } from "../../types/forms";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
+import { CurrentUserContext } from "../RootProvider";
 
 const TABLE_ID = "archivio-table";
 
-export default function Archivio({ user }: { user: TLoggedUser }) {
+export default function Archivio() {
+  const { currentUser } = useContext(CurrentUserContext)!;
+
   const formRef = React.useRef<FormRef<FindArchivioForm>>({
     badge: null,
     chiave: null,
@@ -57,7 +59,7 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
   });
 
   const postazioni = useQuery({
-    queryKey: ["postazioni", user.postazioni],
+    queryKey: ["postazioni", currentUser?.postazioni],
     queryFn: async (context) => {
       try {
         const response = await PostazioniDataService.get({
@@ -153,7 +155,9 @@ export default function Archivio({ user }: { user: TLoggedUser }) {
                   <option key="-1"></option>
                   {clienti.isSuccess &&
                     clienti.data
-                      .filter((cliente) => user.clienti.includes(cliente))
+                      .filter((cliente) =>
+                        currentUser?.clienti.includes(cliente)
+                      )
                       .map((cliente, index) => (
                         <option value={cliente} key={index}>
                           {cliente}

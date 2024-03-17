@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef } from "react";
-import { TLoggedUser } from "../../types/users";
+import { useContext, useRef } from "react";
 import BadgeDataService from "../../services/badge";
 import ClientiDataService from "../../services/clienti";
 import toast from "react-hot-toast";
@@ -18,10 +17,13 @@ import {
 } from "../../types/badges";
 import { FormRef, GenericForm } from "../../types";
 import "./index.css";
+import { CurrentUserContext } from "../RootProvider";
 
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 
-export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
+export default function Anagrafico() {
+  const { currentUser } = useContext(CurrentUserContext)!;
+
   const formRef = useRef<FormRef<AnagraficoForm>>({
     codice: null,
     descrizione: null,
@@ -335,7 +337,9 @@ export default function Anagrafico({ user, ...props }: { user: TLoggedUser }) {
                   <option key="-1" />
                   {clienti.isSuccess &&
                     clienti.data
-                      .filter((cliente) => user.clienti.includes(cliente))
+                      .filter((cliente) =>
+                        currentUser?.clienti.includes(cliente)
+                      )
                       .map((cliente) => (
                         <option value={cliente} key={cliente}>
                           {cliente}

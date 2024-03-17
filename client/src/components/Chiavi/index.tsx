@@ -1,20 +1,19 @@
 import ArchivioDataService from "../../services/archivio";
 import "./index.css";
-import { useRef } from "react";
+import { useContext, useRef } from "react";
 import BadgeTable from "../BadgeTable";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import Clock from "../Clock";
-import { TLoggedUser } from "../../types/users";
 import { Postazione } from "../../types/badges";
 import { FindInPrestitoData, PrestitoChiaviData } from "../../types/archivio";
+import { CurrentUserContext } from "../RootProvider";
 
 export default function Chiavi({
   currPostazione,
   ...props
 }: {
-  user: TLoggedUser;
   scanValues: string[];
   addScanValue: (value: string) => void;
   removeScanValue: (value: string) => void;
@@ -25,13 +24,15 @@ export default function Chiavi({
 
   const queryClient = useQueryClient();
 
+  const { currentUser } = useContext(CurrentUserContext)!;
+
   const queryInPrestito = useQuery({
     queryKey: [
       "inPrestito",
       {
         postazioni: currPostazione
           ? [currPostazione.id]
-          : props.user.postazioni,
+          : currentUser?.postazioni,
       },
     ],
     queryFn: async (context) => {

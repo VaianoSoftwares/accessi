@@ -2,13 +2,13 @@ import UserDataService from "../../services/user";
 import "./index.css";
 import { useNavigate } from "react-router-dom";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
-import { useRef, useEffect } from "react";
-import { TLoggedUser } from "../../types/users";
+import { useRef, useEffect, useContext } from "react";
+import { CurrentUserContext } from "../RootProvider";
 
-export default function Login(props: {
-  login: (user: TLoggedUser) => Promise<void>;
-}) {
+export default function Login() {
   const navigate = useNavigate();
+
+  const { setCurrentUser } = useContext(CurrentUserContext)!;
 
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -23,7 +23,7 @@ export default function Login(props: {
           const dataResp = response.data.result;
           console.log(dataResp.name, "logged In.");
 
-          props.login({
+          setCurrentUser({
             ...dataResp,
             token: String(response.headers["x-access-token"]),
           });
@@ -58,7 +58,7 @@ export default function Login(props: {
         const dataResp = response.data.result;
         console.log(dataResp.name, "logged In.");
 
-        props.login({
+        setCurrentUser({
           ...dataResp,
           token: String(response.headers["x-access-token"]),
         });

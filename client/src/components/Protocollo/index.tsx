@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useContext, useRef } from "react";
 import { FormRef, GenericForm } from "../../types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PostazioniDataService from "../../services/postazioni";
@@ -7,18 +7,19 @@ import toast from "react-hot-toast";
 import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import "./index.css";
 import { Postazione } from "../../types/badges";
-import { TLoggedUser, isAdmin } from "../../types/users";
+import { isAdmin } from "../../types/users";
 import { ProtocolloForm } from "../../types/forms";
+import { CurrentUserContext } from "../RootProvider";
 
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 
 export default function Protocollo({
-  user,
   currPostazione,
 }: {
-  user: TLoggedUser;
   currPostazione: Postazione | undefined;
 }) {
+  const { currentUser } = useContext(CurrentUserContext)!;
+
   const formRef = useRef<FormRef<ProtocolloForm>>({
     filename: null,
     prot_descrizione: null,
@@ -69,7 +70,7 @@ export default function Protocollo({
   }
 
   const postazioni = useQuery({
-    queryKey: ["postazioni", user.postazioni],
+    queryKey: ["postazioni", currentUser?.postazioni],
     queryFn: (context) =>
       PostazioniDataService.get({
         ids: context.queryKey[1] as number[],
@@ -228,7 +229,7 @@ export default function Protocollo({
             {queryProtocollo.isSuccess
               ? queryProtocollo.data.map(({ filename, id }) => (
                   <li className="list-group-item" key={`PROT${id}-${filename}`}>
-                    {isAdmin(user) === true && (
+                    {isAdmin(currentUser) === true && (
                       <button
                         data-filename={filename}
                         data-id={id}

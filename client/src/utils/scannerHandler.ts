@@ -4,7 +4,7 @@ import utf8ArrayToStr from "./utf8ArrayToStr";
 
 export default async function runScanner(
   setValue: (value: string) => void,
-  setScanner: (value: React.SetStateAction<SerialPort | undefined>) => void
+  setIsScannerConnected: (value: React.SetStateAction<boolean>) => void
 ) {
   let port: SerialPort;
   try {
@@ -22,7 +22,7 @@ export default async function runScanner(
     return;
   }
 
-  setScanner(port);
+  setIsScannerConnected(true);
 
   console.log("Dispositivo seriale connesso", port.getInfo());
 
@@ -54,7 +54,7 @@ export default async function runScanner(
       reader.releaseLock();
       await port.close();
 
-      setScanner(undefined);
+      setIsScannerConnected(false);
 
       console.log("readScanner | Chiusa porta seriale", port.getInfo());
     }

@@ -24,7 +24,7 @@ export default class JwtAuth {
     try {
       const token = req.headers["x-access-token"] as string;
       if (!token)
-        throw new BaseError("Permessi insufficienti", { status: 403 });
+        throw new BaseError("Permessi insufficienti", { status: 401 });
 
       const secret = process.env.TOKEN_SECRET;
       if (!secret)
@@ -32,17 +32,20 @@ export default class JwtAuth {
 
       jwt.verify(token, secret, async (err, decoded) => {
         if (err || !decoded) {
-          throw new BaseError("Permessi insufficienti", { status: 401 });
+          if (err?.name == "TokenExpiredError") {
+            return next(new BaseError("Sessione scaduta", { status: 403 }));
+          }
+          return next(new BaseError("Permessi insufficienti", { status: 401 }));
         }
 
         const userId = Number.parseInt((decoded as jwt.JwtPayload).id || "");
         if (Number.isNaN(userId)) {
-          throw new BaseError("Permessi insufficienti", { status: 500 });
+          return next(new BaseError("Permessi insufficienti", { status: 500 }));
         }
 
         const { rowCount, rows } = await UsersDB.getUserById(userId);
         if (rowCount === 0)
-          throw new BaseError("Permessi insufficienti", { status: 401 });
+          return next(new BaseError("Permessi insufficienti", { status: 401 }));
 
         req.user = rows[0];
 
@@ -66,7 +69,7 @@ export default class JwtAuth {
       if (!user) {
         throw new BaseError("Server interal error", { status: 500 });
       } else if (checkBits(user.permessi, flags) === false) {
-        throw new BaseError("Permessi insufficienti", { status: 401 });
+        throw new BaseError("Permessi insufficienti", { status: 403 });
       }
 
       next();

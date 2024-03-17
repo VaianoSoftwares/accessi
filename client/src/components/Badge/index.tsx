@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import "./index.css";
 import BadgeDataService from "../../services/badge";
 import ArchivioDataService from "../../services/archivio";
@@ -20,9 +20,9 @@ import BadgePopup from "../BadgePopup";
 import {
   FindInStruttData,
   TimbraDoc,
-  InsertArchProvData,
   QueryInStrutt,
 } from "../../types/archivio";
+import { CurrentUserContext } from "../RootProvider";
 
 const TABLE_NAME = "in_strutt_table";
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
@@ -31,10 +31,8 @@ export default function Badge({
   scannedValue,
   clearScannedValue,
   currPostazione,
-  user,
   ...props
 }: {
-  user: TLoggedUser;
   scannedValue: string;
   clearScannedValue: () => void;
   tipoBadge: BadgeTipo;
@@ -51,6 +49,8 @@ export default function Badge({
   });
 
   const queryClient = useQueryClient();
+
+  const { currentUser } = useContext(CurrentUserContext)!;
 
   const assegnazioni = useQuery({
     queryKey: ["assegnazioni"],
@@ -74,7 +74,9 @@ export default function Badge({
       "inStrutt",
       {
         tipi: ["NOMINATIVO", "PROVVISORIO"],
-        postazioni: currPostazione ? [currPostazione.id] : user.postazioni,
+        postazioni: currPostazione
+          ? [currPostazione.id]
+          : currentUser?.postazioni,
       },
     ],
     queryFn: async (context) => {
@@ -187,7 +189,9 @@ export default function Badge({
       try {
         const response = await ArchivioDataService.findInStrutt({
           ...formToObj(),
-          postazioni: currPostazione ? [currPostazione.id] : user.postazioni,
+          postazioni: currPostazione
+            ? [currPostazione.id]
+            : currentUser?.postazioni,
           tipiBadge: ["NOMINATIVO", "PROVVISORIO"],
         });
         console.log("findBadges | response:", response);
@@ -373,7 +377,7 @@ export default function Badge({
           <div className="col-sm-2">
             <div className="form-buttons">
               <div className="row align-items-center justify-content-start g-0">
-                {isAdmin(user) === true && (
+                {isAdmin(currentUser) === true && (
                   <>
                     <div className="col-auto">
                       <button
@@ -418,7 +422,7 @@ export default function Badge({
                   </button>
                 </div>
                 <div className="w-100 mt-1" />
-                {isAdmin(user) === true && (
+                {isAdmin(currentUser) === true && (
                   <>
                     <div className="col">
                       <BadgePopup
@@ -435,7 +439,7 @@ export default function Badge({
                     <div className="w-100 mt-1" />
                   </>
                 )}
-                {hasPerm(user, TPermessi.excel) && (
+                {hasPerm(currentUser, TPermessi.excel) && (
                   <div className="col">
                     <button
                       onClick={() =>
@@ -448,7 +452,7 @@ export default function Badge({
                   </div>
                 )}
                 <div className="w-100 mt-1" />
-                {hasPerm(user, TPermessi.provvisori) && (
+                {hasPerm(currentUser, TPermessi.provvisori) && (
                   <div className="col">
                     <button
                       onClick={() => setIsShown.setTrue()}

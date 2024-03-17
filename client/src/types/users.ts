@@ -35,22 +35,28 @@ export type LoginUserData = Pick<TUser, "name" | "password">;
 export type InsertUserData = Omit<TUser, "id" | "clienti">;
 export type UpdateUserData = Partial<InsertUserData>;
 
-export function hasPerm(user: TUser, perm: TPermessi) {
-  return checkBits(user.permessi, perm);
+type MaybeTUser = TLoggedUser | TUser | null | undefined;
+
+function isUser(user: MaybeTUser): user is TUser {
+  return user !== null && user !== undefined;
 }
 
-export function isAdmin(user: TUser) {
-  return checkBits(user.permessi, TPermessi.admin);
+export function hasPerm(user: MaybeTUser, perm: TPermessi) {
+  return isUser(user) && checkBits(user.permessi, perm);
 }
 
-export function canAccessPage(user: TUser, page: TPages) {
-  return checkBits(user.pages, page);
+export function isAdmin(user: MaybeTUser) {
+  return isUser(user) && checkBits(user.permessi, TPermessi.admin);
 }
 
-export function getPagesNum(user: TUser) {
-  return bitCount(user.pages);
+export function canAccessPage(user: MaybeTUser, page: TPages) {
+  return isUser(user) && checkBits(user.pages, page);
 }
 
-export function getFirstPage(user: TUser) {
-  return getFirst(user.pages);
+export function getPagesNum(user: MaybeTUser) {
+  return isUser(user) ? bitCount(user.pages) : 0;
+}
+
+export function getFirstPage(user: MaybeTUser) {
+  return isUser(user) ? getFirst(user.pages) : 0;
 }

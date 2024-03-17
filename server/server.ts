@@ -6,6 +6,8 @@ import fileUpload from "express-fileupload";
 import mountRoutes from "./routes/index.js";
 import reqLogger from "./middlewares/reqLogger.js";
 import IgnoredReqs from "./middlewares/IgnoredReqs.js";
+import errorHandler from "./middlewares/errorHandler.js";
+import invalidPathHandler from "./middlewares/invalidPathHandler.js";
 
 const app = express();
 
@@ -39,7 +41,24 @@ app.use(
   })
 );
 
+// public route
+app.use("/api/v1/public", express.static(path.resolve("server", "public")));
+
 // routes
 mountRoutes(app);
+
+// manage failed request
+// app.use(errorHandler);
+
+// html page request (production mode only)
+if (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "staging") {
+  app.use(express.static(path.resolve("client", "dist")));
+  app.get("*", (_, res) => {
+    res.sendFile(path.resolve("client", "dist", "index.html"));
+  });
+}
+
+// invalid path request
+app.use(invalidPathHandler);
 
 export default app;

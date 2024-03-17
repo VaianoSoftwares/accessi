@@ -1,8 +1,13 @@
-browser=`which chromium`
-base_url="https://localhost:4316"
-username="$HOSTNAME"
-password="password1"
-headers_file="/tmp/headers.txt"
+#!/usr/bin/env bash
+set -euo pipefail
+
+browser="${3:=`which chromium`}"
+base_url="${2:="https://localhost:4316"}"
+username="${4:="$HOSTNAME"}"
+password="${1:="password1"}"
+
+headers_file=$(mktemp)
+trap "rm -f $headers_file" EXIT
 
 browser=("${browser}")
 

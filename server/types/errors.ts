@@ -18,10 +18,12 @@ export class BaseError extends Error {
     const { status, cause, context } = options;
 
     super(message, { cause });
-    this.name = this.constructor.name;
 
+    this.name = this.constructor.name;
     this.status = status || 500;
     this.context = context;
+
+    Error.captureStackTrace(this);
   }
 
   public toJSON(): object {
