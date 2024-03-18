@@ -28,6 +28,8 @@ import {
 import { getPostazioneById, getPostazioni } from "./postazioni.js";
 import { Postazione } from "../types/users.js";
 
+const getInStruttByCodiceQuery = "SELECT * FROM in_strutt WHERE codice = $1";
+
 export async function getArchivio(filter?: FindArchivioFilter) {
   const prefixText = "SELECT * FROM full_archivio";
   const filterText =
@@ -253,20 +255,19 @@ export async function timbraUscitaNominativo(data: TimbraBadgeData) {
     });
   }
 
-  const { rows: inStruttRows, rowCount: numInStruttRows } = await getInStrutt({
-    codice: data.badge,
-  });
+  const { rows: inStruttRows, rowCount: numInStruttRows } =
+    await db.query<Archivio>(getInStruttByCodiceQuery, [data.badge]);
   if (numInStruttRows === 0) {
     throw new BaseError("Badge non presente in struttura", {
       status: 400,
       context: { badge: data.badge },
     });
-  } else if (data.postazione !== inStruttRows[0].postazione) {
+  } else if (data.postazione !== inStruttRows[0].postazione_id) {
     throw new BaseError("Impossibile timbrare badge da questa postazione", {
       status: 400,
       context: {
         badge: data.badge,
-        expectedPostazione: inStruttRows[0].postazione,
+        expectedPostazione: inStruttRows[0].postazione_id,
         actualPostazione: data.postazione,
       },
     });
@@ -362,20 +363,19 @@ export async function timbraUscitaVeicolo(data: TimbraBadgeData) {
     });
   }
 
-  const { rows: inStruttRows, rowCount: numInStruttRows } = await getInStrutt({
-    codice: data.badge,
-  });
+  const { rows: inStruttRows, rowCount: numInStruttRows } =
+    await db.query<Archivio>(getInStruttByCodiceQuery, [data.badge]);
   if (numInStruttRows === 0) {
     throw new BaseError("Badge non presente in struttura", {
       status: 400,
       context: { badge: data.badge },
     });
-  } else if (data.postazione !== inStruttRows[0].postazione) {
+  } else if (data.postazione !== inStruttRows[0].postazione_id) {
     throw new BaseError("Impossibile timbrare badge da questa postazione", {
       status: 400,
       context: {
         badge: data.badge,
-        expectedPostazione: inStruttRows[0].postazione,
+        expectedPostazione: inStruttRows[0].postazione_id,
         actualPostazione: data.postazione,
       },
     });
@@ -474,20 +474,21 @@ export async function timbraUscitaProvvisorio(data: TimbraBadgeData) {
     });
   }
 
-  const { rows: inStruttRows, rowCount: numInStruttRows } = await getInStrutt({
-    codice: data.badge,
-  });
+  const { rows: inStruttRows, rowCount: numInStruttRows } = await db.query(
+    getInStruttByCodiceQuery,
+    [data.badge]
+  );
   if (numInStruttRows === 0) {
     throw new BaseError("Badge non presente in struttura", {
       status: 400,
       context: { badge: data.badge },
     });
-  } else if (data.postazione !== inStruttRows[0].postazione) {
+  } else if (data.postazione !== inStruttRows[0].postazione_id) {
     throw new BaseError("Impossibile timbrare badge da questa postazione", {
       status: 400,
       context: {
         badge: data.badge,
-        expectedPostazione: inStruttRows[0].postazione,
+        expectedPostazione: inStruttRows[0].postazione_id,
         actualPostazione: data.postazione,
       },
     });
@@ -534,12 +535,12 @@ export async function timbraUniversitario(data: TimbraUniData) {
           clienti: JSON.stringify(rows),
         },
       });
-    } else if (data.postazione !== inStruttRows[0].postazione) {
+    } else if (data.postazione !== inStruttRows[0].postazione_id) {
       throw new BaseError("Impossibile timbrare badge da questa postazione", {
         status: 400,
         context: {
           badge: data.ndoc,
-          expectedPostazione: inStruttRows[0].postazione,
+          expectedPostazione: inStruttRows[0].postazione_id,
           actualPostazione: data.postazione,
         },
       });

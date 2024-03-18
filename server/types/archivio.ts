@@ -1,4 +1,3 @@
-import { QueryResult } from "pg";
 import { BaseNominativo, BaseChiave, BaseVeicolo } from "./badges.js";
 import { FindInStruttFilter } from "../utils/validation.js";
 import { WithId } from "./index.js";
@@ -6,7 +5,7 @@ import { UploadedFile } from "express-fileupload";
 
 export interface BaseArchivio {
   badge: string;
-  postazione: number;
+  postazione: string;
   data_in: string;
   data_out: string;
   username: string;
@@ -57,7 +56,12 @@ export type Archivio = ArchivioNominativo &
 //   data_out_max?: string | null | undefined;
 // };
 
-export type TimbraBadgeData = Omit<BaseArchivio, "data_in" | "data_out">;
+export type TimbraBadgeData = Omit<
+  BaseArchivio,
+  "data_in" | "data_out" | "postazione"
+> & {
+  postazione: number;
+};
 export type TimbraChiaviData = TimbraBadgeData & { chiavi: string[] };
 export type TimbraUniData = Omit<TimbraBadgeData, "badge"> & { ndoc: string };
 export type TimbraProvEntraData = TimbraBadgeData & {
