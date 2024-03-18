@@ -2,13 +2,13 @@ import ArchivioDataService from "../../services/archivio";
 import "./index.css";
 import { useContext, useRef } from "react";
 import BadgeTable from "../BadgeTable";
-import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import Clock from "../Clock";
 import { Postazione } from "../../types/badges";
 import { FindInPrestitoData, PrestitoChiaviData } from "../../types/archivio";
 import { CurrentUserContext } from "../RootProvider";
+import useError from "../../hooks/useError";
 
 export default function Chiavi({
   currPostazione,
@@ -23,6 +23,7 @@ export default function Chiavi({
   const barcodeTxtInput = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
+  const { handleError } = useError();
 
   const { currentUser } = useContext(CurrentUserContext)!;
 
@@ -46,7 +47,7 @@ export default function Chiavi({
         }
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -60,7 +61,7 @@ export default function Chiavi({
       await queryClient.invalidateQueries({ queryKey: ["inPrestito"] });
       props.clearScanValues();
     },
-    onError: async (err) => axiosErrHandl(err, "prestaChiavi"),
+    onError: async (err) => handleError(err, "prestaChiavi"),
   });
 
   return (

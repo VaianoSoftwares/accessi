@@ -7,7 +7,6 @@ import useImage from "../../hooks/useImage";
 import { AnagraficoForm } from "../../types/forms";
 import dateFormat from "dateformat";
 import BadgeTable from "../BadgeTable";
-import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import {
   BadgeDeleteReq,
   BadgeFormDataReq,
@@ -18,11 +17,13 @@ import {
 import { FormRef, GenericForm } from "../../types";
 import "./index.css";
 import { CurrentUserContext } from "../RootProvider";
+import useError from "../../hooks/useError";
 
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 
 export default function Anagrafico() {
   const { currentUser } = useContext(CurrentUserContext)!;
+  const { handleError } = useError();
 
   const formRef = useRef<FormRef<AnagraficoForm>>({
     codice: null,
@@ -66,7 +67,7 @@ export default function Anagrafico() {
         console.log("queryClienti | response:", response);
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -83,7 +84,7 @@ export default function Anagrafico() {
         console.log("queryAssegnazioni | response:", response);
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -100,7 +101,7 @@ export default function Anagrafico() {
         console.log("queryEdifici | response:", response);
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -117,7 +118,7 @@ export default function Anagrafico() {
         console.log("queryTVeicoli | response:", response);
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -141,7 +142,7 @@ export default function Anagrafico() {
 
         return result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -166,7 +167,7 @@ export default function Anagrafico() {
 
       toast.success("Badge inserito con successo");
     },
-    onError: async (err) => axiosErrHandl(err, "insertBadge"),
+    onError: async (err) => handleError(err, "insertBadge"),
   });
 
   const updateBadge = useMutation({
@@ -186,7 +187,7 @@ export default function Anagrafico() {
 
       toast.success("Badge modificato con successo");
     },
-    onError: async (err) => axiosErrHandl(err, "updateBadge"),
+    onError: async (err) => handleError(err, "updateBadge"),
   });
 
   const deleteBadge = useMutation({
@@ -202,7 +203,7 @@ export default function Anagrafico() {
 
       toast.success("Badge eliminato con successo");
     },
-    onError: async (err) => axiosErrHandl(err, "deleteBadge"),
+    onError: async (err) => handleError(err, "deleteBadge"),
   });
 
   const [pfpUrl, { updateImage, setNoImage }] = useImage((data) =>

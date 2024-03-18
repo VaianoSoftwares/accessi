@@ -2,9 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import UserDataService from "../../services/user";
 import "./index.css";
-import { axiosErrHandl } from "../../utils/axiosErrHandl";
+import useError from "../../hooks/useError";
 
 export default function UsersList() {
+  const { handleError } = useError();
+
   const usersQuery = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
@@ -16,7 +18,7 @@ export default function UsersList() {
         }
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },

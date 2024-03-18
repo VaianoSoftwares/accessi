@@ -3,11 +3,11 @@ import { useRef } from "react";
 import UserDataService from "../../services/user";
 import PostazioniDataService from "../../services/postazioni";
 import { toast } from "react-hot-toast";
-import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { FormRef } from "../../types";
 import { PAGES_INFO } from "../../types/pages";
 import { RegisterForm } from "../../types/forms";
 import { InsertUserData, PERMESSI_INFO } from "../../types/users";
+import useError from "../../hooks/useError";
 
 function selectPermessiOptions() {
   const options = [];
@@ -34,6 +34,8 @@ function selectPagesOptions() {
 }
 
 export default function Register() {
+  const { handleError } = useError();
+
   const formRef = useRef<FormRef<RegisterForm>>({
     name: null,
     password: null,
@@ -53,7 +55,7 @@ export default function Register() {
         console.log("queryPostazioni | response:", response);
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -100,7 +102,7 @@ export default function Register() {
         console.log("register |", response.data);
         toast.success("Utente registrato con successo");
       })
-      .catch((err) => axiosErrHandl(err, "register"))
+      .catch((err) => handleError(err, "register"))
       .finally(() => clearForm());
   }
 

@@ -2,16 +2,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import UserDataService from "../../services/user";
 import PostazioniDataService from "../../services/postazioni";
-import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router";
-import { PERMESSI_INFO, TUser, UpdateUserData } from "../../types/users";
+import { PERMESSI_INFO, UpdateUserData } from "../../types/users";
 import { PAGES_INFO } from "../../types/pages";
 import { UpdateUserForm } from "../../types/forms";
 import { FormRef } from "../../types";
 import { checkBits } from "../../utils/bitwise";
+import useError from "../../hooks/useError";
 
 function selectPermessiOptions(disabled = false) {
   const options = [];
@@ -52,6 +52,7 @@ function flagsToFlagArray(
 
 export default function UserEdit() {
   const { userId } = useParams();
+  const { handleError } = useError();
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -77,7 +78,7 @@ export default function UserEdit() {
         console.log("queryPostazioni | response:", response);
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -114,7 +115,7 @@ export default function UserEdit() {
       await queryClient.invalidateQueries({ queryKey: ["users", userId] });
       toast.success("Utente aggiornato con successo");
     },
-    onError: async (err) => axiosErrHandl(err, "updateUser"),
+    onError: async (err) => handleError(err, "updateUser"),
   });
 
   const deleteUser = useMutation({
@@ -125,7 +126,7 @@ export default function UserEdit() {
       navigate("/admin/users");
       await queryClient.invalidateQueries({ queryKey: ["users"] });
     },
-    onError: async (err) => axiosErrHandl(err, "deleteUser"),
+    onError: async (err) => handleError(err, "deleteUser"),
   });
 
   function formToObj() {

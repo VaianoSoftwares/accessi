@@ -11,13 +11,14 @@ import { useQuery } from "@tanstack/react-query";
 import { FormRef } from "../../types";
 import { TIPI_BADGE } from "../../types/badges";
 import { FindArchivioForm } from "../../types/forms";
-import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { CurrentUserContext } from "../RootProvider";
+import useError from "../../hooks/useError";
 
 const TABLE_ID = "archivio-table";
 
 export default function Archivio() {
   const { currentUser } = useContext(CurrentUserContext)!;
+  const { handleError } = useError();
 
   const formRef = React.useRef<FormRef<FindArchivioForm>>({
     badge: null,
@@ -52,7 +53,7 @@ export default function Archivio() {
         }
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -71,7 +72,7 @@ export default function Archivio() {
         }
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -88,7 +89,7 @@ export default function Archivio() {
         }
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -105,7 +106,7 @@ export default function Archivio() {
         }
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },

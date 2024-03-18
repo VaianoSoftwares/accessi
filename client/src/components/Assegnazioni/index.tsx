@@ -1,17 +1,14 @@
-import React from "react";
-
+import React, { useRef, useState } from "react";
 import "./index.css";
-
 import BadgeDataService from "../../services/badge";
-
 import { TAssegnazione } from "../../types";
-
-import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BadgeTipo, TIPI_BADGE } from "../../types/badges";
+import useError from "../../hooks/useError";
 
 export default function Assegnazioni() {
   const queryClient = useQueryClient();
+  const { handleError } = useError();
 
   const queryAssegnazioni = useQuery({
     queryKey: ["assegnazioni"],
@@ -34,7 +31,7 @@ export default function Assegnazioni() {
       await queryClient.invalidateQueries({ queryKey: ["assegnazioni"] });
       nameRef.current!.value = nameRef.current!.defaultValue;
     },
-    onError: async (err) => axiosErrHandl(err, "addAssegnazione"),
+    onError: async (err) => handleError(err, "addAssegnazione"),
   });
 
   const deleteAssegnazione = useMutation({
@@ -44,11 +41,11 @@ export default function Assegnazioni() {
       console.log("deleteAssegnazione | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["assegnazioni"] });
     },
-    onError: async (err) => axiosErrHandl(err, "deleteAssegnazione"),
+    onError: async (err) => handleError(err, "deleteAssegnazione"),
   });
 
-  const [currTBadge, setCurrTBadge] = React.useState<BadgeTipo>("NOMINATIVO");
-  const nameRef = React.useRef<HTMLInputElement>(null);
+  const [currTBadge, setCurrTBadge] = useState<BadgeTipo>("NOMINATIVO");
+  const nameRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="container-fluid">

@@ -6,13 +6,12 @@ import BadgeTable from "../BadgeTable";
 import Clock from "../Clock";
 import OspitiPopup from "../OspitiPopup";
 import { FormRef, GenericForm } from "../../types";
-import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import useBool from "../../hooks/useBool";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useImage from "../../hooks/useImage";
 import useReadonlyForm from "../../hooks/useReadonlyForm";
 import { toast } from "react-hot-toast";
-import { TLoggedUser, TPermessi, hasPerm, isAdmin } from "../../types/users";
+import { TPermessi, hasPerm, isAdmin } from "../../types/users";
 import { BadgeTipo, Postazione, TDOCS } from "../../types/badges";
 import { FindInStruttForm } from "../../types/forms";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
@@ -23,6 +22,7 @@ import {
   QueryInStrutt,
 } from "../../types/archivio";
 import { CurrentUserContext } from "../RootProvider";
+import useError from "../../hooks/useError";
 
 const TABLE_NAME = "in_strutt_table";
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
@@ -52,6 +52,8 @@ export default function Badge({
 
   const { currentUser } = useContext(CurrentUserContext)!;
 
+  const { handleError } = useError();
+
   const assegnazioni = useQuery({
     queryKey: ["assegnazioni"],
     queryFn: async () => {
@@ -63,7 +65,7 @@ export default function Badge({
         }
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -90,7 +92,7 @@ export default function Badge({
         }
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -138,7 +140,7 @@ export default function Badge({
     },
     onError: async (err) => {
       setDeletedRow(undefined);
-      axiosErrHandl(err, "timbra");
+      handleError(err, "timbra");
     },
     onSettled: async () => (timeoutRunning.current = false),
   });
@@ -209,7 +211,7 @@ export default function Badge({
 
         return result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -224,7 +226,7 @@ export default function Badge({
       await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
       toast.success("Provvisorio inserito con successo in archivio");
     },
-    onError: (err) => axiosErrHandl(err, "timbra"),
+    onError: (err) => handleError(err, "timbra"),
   });
 
   function refreshPage({ form = true, image = true, refetch = true }) {

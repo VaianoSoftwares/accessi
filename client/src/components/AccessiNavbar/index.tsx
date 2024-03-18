@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import "./index.css";
 import PostazioniDataService from "../../services/postazioni";
 import ClientiDataService from "../../services/clienti";
@@ -13,8 +13,8 @@ import {
   isAdmin,
 } from "../../types/users";
 import { Postazione } from "../../types/badges";
-import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { CurrentUserContext } from "../RootProvider";
+import useError from "../../hooks/useError";
 
 export default function AccessiNavbar({
   currPostazione,
@@ -32,10 +32,11 @@ export default function AccessiNavbar({
   chiaviScannerConnected: boolean;
   runChiaviScanner: () => Promise<void>;
 }) {
-  const navigate = useNavigate();
   let location = useLocation().pathname;
 
   const { currentUser, removeCurrentUser } = useContext(CurrentUserContext)!;
+
+  const { handleError } = useError();
 
   const [currCliente, setCurrCliente] = useState<string>();
 
@@ -56,7 +57,7 @@ export default function AccessiNavbar({
           setCurrPostazione(result.length === 1 ? result[0] : undefined);
         return result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -73,7 +74,7 @@ export default function AccessiNavbar({
         console.log("queryClienti | response:", response);
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -203,7 +204,9 @@ export default function AccessiNavbar({
                       } satisfies Postazione);
                   }}
                 >
-                  {isAdmin(currentUser) && <option>Tutte le postazioni</option>}
+                  {postazioni.data.length > 1 && (
+                    <option>Tutte le postazioni</option>
+                  )}
                   {postazioni.data
                     .filter(
                       ({ cliente }) => !currCliente || cliente === currCliente

@@ -1,14 +1,16 @@
 import UserDataService from "../../services/user";
 import "./index.css";
 import { useNavigate } from "react-router-dom";
-import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { useRef, useEffect, useContext } from "react";
 import { CurrentUserContext } from "../RootProvider";
+import useError from "../../hooks/useError";
 
 export default function Login() {
   const navigate = useNavigate();
 
   const { setCurrentUser } = useContext(CurrentUserContext)!;
+
+  const { handleError } = useError();
 
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -65,7 +67,7 @@ export default function Login() {
 
         navigate("/home");
       })
-      .catch((err) => axiosErrHandl(err, "login"))
+      .catch((err) => handleError(err, "login"))
       .finally(() => {
         passwordRef.current!.value = passwordRef.current!.defaultValue;
       });

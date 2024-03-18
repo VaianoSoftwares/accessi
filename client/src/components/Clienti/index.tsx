@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import ClientiDataService from "../../services/clienti";
-import { axiosErrHandl } from "../../utils/axiosErrHandl";
+import useError from "../../hooks/useError";
 
 export default function Clienti() {
   const queryClient = useQueryClient();
+  const { handleError } = useError();
 
   const queryClienti = useQuery({
     queryKey: ["clienti"],
@@ -17,7 +18,7 @@ export default function Clienti() {
         console.log("queryClienti | response:", response);
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -31,7 +32,7 @@ export default function Clienti() {
       await queryClient.invalidateQueries({ queryKey: ["postazioni"] });
       clienteRef.current!.value = clienteRef.current!.defaultValue;
     },
-    onError: async (err) => axiosErrHandl(err, "addCliente"),
+    onError: async (err) => handleError(err, "addCliente"),
   });
 
   const deleteCliente = useMutation({
@@ -41,7 +42,7 @@ export default function Clienti() {
       await queryClient.invalidateQueries({ queryKey: ["clienti"] });
       await queryClient.invalidateQueries({ queryKey: ["postazioni"] });
     },
-    onError: async (err) => axiosErrHandl(err, "deleteCliente"),
+    onError: async (err) => handleError(err, "deleteCliente"),
   });
 
   const clienteRef = useRef<HTMLInputElement>(null);

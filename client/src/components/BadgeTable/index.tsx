@@ -1,4 +1,3 @@
-import { MouseEventHandler } from "react";
 import "./index.css";
 import dateFormat from "dateformat";
 import { HTMLElementEvent } from "../../types";

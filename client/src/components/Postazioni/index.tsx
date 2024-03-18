@@ -2,12 +2,13 @@ import { useRef, useState } from "react";
 import "./index.css";
 import ClientiDataService from "../../services/clienti";
 import PostazioniDataService from "../../services/postazioni";
-import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { InsertPostazioneData } from "../../types/badges";
+import useError from "../../hooks/useError";
 
 export default function Postazioni() {
   const queryClient = useQueryClient();
+  const { handleError } = useError();
 
   const clienti = useQuery({
     queryKey: ["clienti"],
@@ -20,7 +21,7 @@ export default function Postazioni() {
         console.log("queryClienti | response:", response);
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -37,7 +38,7 @@ export default function Postazioni() {
         console.log("queryPostazioni | response:", response);
         return response.data.result;
       } catch (e) {
-        axiosErrHandl(e);
+        handleError(e);
         return [];
       }
     },
@@ -51,7 +52,7 @@ export default function Postazioni() {
       await queryClient.invalidateQueries({ queryKey: ["postazioni"] });
       nameRef.current!.value = nameRef.current!.defaultValue;
     },
-    onError: async (err) => axiosErrHandl(err, "addPostazione"),
+    onError: async (err) => handleError(err, "addPostazione"),
   });
 
   const deletePostazione = useMutation({
@@ -60,7 +61,7 @@ export default function Postazioni() {
       console.log("deletePostazione | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["postazioni"] });
     },
-    onError: async (err) => axiosErrHandl(err, "deletePostazione"),
+    onError: async (err) => handleError(err, "deletePostazione"),
   });
 
   const [currTCliente, setCurrTCliente] = useState("");

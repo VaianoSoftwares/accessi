@@ -4,12 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PostazioniDataService from "../../services/postazioni";
 import ProtocolloDataService from "../../services/protocollo";
 import toast from "react-hot-toast";
-import { axiosErrHandl } from "../../utils/axiosErrHandl";
 import "./index.css";
 import { Postazione } from "../../types/badges";
 import { isAdmin } from "../../types/users";
 import { ProtocolloForm } from "../../types/forms";
 import { CurrentUserContext } from "../RootProvider";
+import useError from "../../hooks/useError";
 
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 
@@ -19,6 +19,7 @@ export default function Protocollo({
   currPostazione: Postazione | undefined;
 }) {
   const { currentUser } = useContext(CurrentUserContext)!;
+  const { handleError } = useError();
 
   const formRef = useRef<FormRef<ProtocolloForm>>({
     filename: null,
@@ -106,7 +107,7 @@ export default function Protocollo({
       await queryClient.invalidateQueries({ queryKey: ["protocollo"] });
       toast.success("Protocollo inserito con successo");
     },
-    onError: async (err) => axiosErrHandl(err, "insertProtocolloFile"),
+    onError: async (err) => handleError(err, "insertProtocolloFile"),
   });
 
   const deleteProtocollo = useMutation({
@@ -116,7 +117,7 @@ export default function Protocollo({
       await queryClient.invalidateQueries({ queryKey: ["protocollo"] });
       toast.success("Protocollo eliminato con successo");
     },
-    onError: async (err) => axiosErrHandl(err, "deleteProtocolloFile"),
+    onError: async (err) => handleError(err, "deleteProtocolloFile"),
   });
 
   return (

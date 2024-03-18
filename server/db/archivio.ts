@@ -179,16 +179,16 @@ export async function timbraEntrataNominativo(data: TimbraBadgeData) {
     });
   }
 
-  const { cliente: clienteBadge, scadenza, stato } = existsBadge.rows[0];
+  const { cliente: expectedCliente, scadenza, stato } = existsBadge.rows[0];
 
   const postazioneMark = await getPostazioneById(data.postazione);
-  if (postazioneMark.cliente !== clienteBadge) {
+  if (postazioneMark.cliente !== expectedCliente) {
     throw new BaseError("Impossibile timbrare badge di un altro cliente", {
       status: 400,
       context: {
         badge: data.badge,
-        clienteBadge,
-        clientePostazione: postazioneMark.cliente,
+        expectedCliente,
+        actualCliente: postazioneMark.cliente,
       },
     });
   } else if (stato !== "VALIDO") {
@@ -240,16 +240,15 @@ export async function timbraUscitaNominativo(data: TimbraBadgeData) {
     });
   }
 
-  const { cliente: clienteBadge } = existsBadge.rows[0];
-
+  const { cliente: expectedCliente } = existsBadge.rows[0];
   const postazioneMark = await getPostazioneById(data.postazione);
-  if (postazioneMark.cliente !== clienteBadge) {
+  if (postazioneMark.cliente !== expectedCliente) {
     throw new BaseError("Impossibile timbrare badge di un altro cliente", {
       status: 400,
       context: {
         badge: data.badge,
-        clienteBadge,
-        clientePostazione: postazioneMark.cliente,
+        expectedCliente,
+        actualCliente: postazioneMark.cliente,
       },
     });
   }
@@ -257,11 +256,21 @@ export async function timbraUscitaNominativo(data: TimbraBadgeData) {
   const { rows: inStruttRows, rowCount: numInStruttRows } = await getInStrutt({
     codice: data.badge,
   });
-  if (numInStruttRows === 0)
+  if (numInStruttRows === 0) {
     throw new BaseError("Badge non presente in struttura", {
       status: 400,
       context: { badge: data.badge },
     });
+  } else if (data.postazione !== inStruttRows[0].postazione) {
+    throw new BaseError("Impossibile timbrare badge da questa postazione", {
+      status: 400,
+      context: {
+        badge: data.badge,
+        expectedPostazione: inStruttRows[0].postazione,
+        actualPostazione: data.postazione,
+      },
+    });
+  }
 
   const { rowCount: updatedRowsNum } = await setRowDateOut(
     inStruttRows[0].id,
@@ -286,16 +295,16 @@ export async function timbraEntrataVeicolo(data: TimbraBadgeData) {
     });
   }
 
-  const { cliente: clienteBadge, stato } = existsBadge.rows[0];
+  const { cliente: expectedCliente, stato } = existsBadge.rows[0];
 
   const postazioneMark = await getPostazioneById(data.postazione);
-  if (postazioneMark.cliente !== clienteBadge) {
+  if (postazioneMark.cliente !== expectedCliente) {
     throw new BaseError("Impossibile timbrare badge di un altro cliente", {
       status: 400,
       context: {
         badge: data.badge,
-        clienteBadge,
-        clientePostazione: postazioneMark.cliente,
+        expectedCliente,
+        actualCliente: postazioneMark.cliente,
       },
     });
   } else if (stato !== "VALIDO") {
@@ -339,16 +348,16 @@ export async function timbraUscitaVeicolo(data: TimbraBadgeData) {
     });
   }
 
-  const { cliente: clienteBadge } = existsBadge.rows[0];
+  const { cliente: expectedCliente } = existsBadge.rows[0];
 
   const postazioneMark = await getPostazioneById(data.postazione);
-  if (postazioneMark.cliente !== clienteBadge) {
+  if (postazioneMark.cliente !== expectedCliente) {
     throw new BaseError("Impossibile timbrare badge di un altro cliente", {
       status: 400,
       context: {
         badge: data.badge,
-        clienteBadge,
-        clientePostazione: postazioneMark.cliente,
+        expectedCliente,
+        actualCliente: postazioneMark.cliente,
       },
     });
   }
@@ -356,11 +365,21 @@ export async function timbraUscitaVeicolo(data: TimbraBadgeData) {
   const { rows: inStruttRows, rowCount: numInStruttRows } = await getInStrutt({
     codice: data.badge,
   });
-  if (numInStruttRows === 0)
+  if (numInStruttRows === 0) {
     throw new BaseError("Badge non presente in struttura", {
       status: 400,
       context: { badge: data.badge },
     });
+  } else if (data.postazione !== inStruttRows[0].postazione) {
+    throw new BaseError("Impossibile timbrare badge da questa postazione", {
+      status: 400,
+      context: {
+        badge: data.badge,
+        expectedPostazione: inStruttRows[0].postazione,
+        actualPostazione: data.postazione,
+      },
+    });
+  }
 
   const { rowCount: updatedRowsNum } = await setRowDateOut(
     inStruttRows[0].id,
@@ -389,16 +408,16 @@ export async function timbraEntrataProvvisorio(data: TimbraBadgeData) {
     });
   }
 
-  const { cliente: clienteBadge } = existsBadge.rows[0];
+  const { cliente: expectedCliente } = existsBadge.rows[0];
 
   const postazioneMark = await getPostazioneById(data.postazione);
-  if (postazioneMark.cliente !== clienteBadge) {
+  if (postazioneMark.cliente !== expectedCliente) {
     throw new BaseError("Impossibile timbrare badge di un altro cliente", {
       status: 400,
       context: {
         badge: data.badge,
-        clienteBadge,
-        clientePostazione: postazioneMark.cliente,
+        expectedCliente,
+        actualCliente: postazioneMark.cliente,
       },
     });
   }
@@ -441,27 +460,36 @@ export async function timbraUscitaProvvisorio(data: TimbraBadgeData) {
     });
   }
 
-  const { cliente: clienteBadge } = existsBadge.rows[0];
+  const { cliente: expectedCliente } = existsBadge.rows[0];
 
   const postazioneMark = await getPostazioneById(data.postazione);
-  if (postazioneMark.cliente !== clienteBadge) {
+  if (postazioneMark.cliente !== expectedCliente) {
     throw new BaseError("Impossibile timbrare badge di un altro cliente", {
       status: 400,
       context: {
         badge: data.badge,
-        clienteBadge,
-        clientePostazione: postazioneMark.cliente,
+        expectedCliente,
+        actualCliente: postazioneMark.cliente,
       },
     });
   }
 
-  const { rows: inStruttRows, rowCount: numInStruttRow } = await getInStrutt({
+  const { rows: inStruttRows, rowCount: numInStruttRows } = await getInStrutt({
     codice: data.badge,
   });
-  if (numInStruttRow === 0) {
+  if (numInStruttRows === 0) {
     throw new BaseError("Badge non presente in struttura", {
       status: 400,
       context: { badge: data.badge },
+    });
+  } else if (data.postazione !== inStruttRows[0].postazione) {
+    throw new BaseError("Impossibile timbrare badge da questa postazione", {
+      status: 400,
+      context: {
+        badge: data.badge,
+        expectedPostazione: inStruttRows[0].postazione,
+        actualPostazione: data.postazione,
+      },
     });
   }
 
@@ -504,6 +532,15 @@ export async function timbraUniversitario(data: TimbraUniData) {
         context: {
           badge: data.ndoc,
           clienti: JSON.stringify(rows),
+        },
+      });
+    } else if (data.postazione !== inStruttRows[0].postazione) {
+      throw new BaseError("Impossibile timbrare badge da questa postazione", {
+        status: 400,
+        context: {
+          badge: data.ndoc,
+          expectedPostazione: inStruttRows[0].postazione,
+          actualPostazione: data.postazione,
         },
       });
     } else {
