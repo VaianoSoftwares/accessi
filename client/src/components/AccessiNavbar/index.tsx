@@ -41,12 +41,15 @@ export default function AccessiNavbar({
   const [currCliente, setCurrCliente] = useState<string>();
 
   const postazioni = useQuery({
-    queryKey: ["postazioni", currentUser?.postazioni],
+    queryKey: ["postazioni" /*currentUser?.postazioni*/],
     queryFn: async (context) => {
       try {
         const response = await PostazioniDataService.get({
-          ids: context.queryKey[1] as number[],
+          ids: currentUser?.postazioni,
         });
+        // const response = await PostazioniDataService.get({
+        //   ids: context.queryKey[1] as number[],
+        // });
         if (response.data.success === false) {
           throw response.data.error;
         }

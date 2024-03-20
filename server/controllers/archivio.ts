@@ -4,7 +4,7 @@ import { Err, Ok } from "../types/index.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
 import { BaseError } from "../types/errors.js";
 import * as Validator from "../utils/validation.js";
-import { Archivio, BarcodePrefix, TimbraBadgeData } from "../types/archivio.js";
+import { Archivio, BarcodePrefix } from "../types/archivio.js";
 import { objToUpperCase } from "../utils/objToUpperCase.js";
 import { uploadDocumento } from "../files/badges.js";
 

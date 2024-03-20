@@ -178,8 +178,8 @@ export default function Archivio() {
                   {postazioni.isSuccess &&
                     postazioni.data
                       .filter(({ name }) => name)
-                      .map(({ name }, index) => (
-                        <option value={name} key={index}>
+                      .map(({ id, name }) => (
+                        <option value={id} key={id}>
                           {name}
                         </option>
                       ))}

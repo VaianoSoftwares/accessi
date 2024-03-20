@@ -4,6 +4,7 @@
 
 .archivio-table-wrapper {
     height: 90%;
+    max-height: 750px;
     overflow: auto;
 }
 
