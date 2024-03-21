@@ -179,7 +179,7 @@ export default function Archivio() {
                     postazioni.data
                       .filter(({ name }) => name)
                       .map(({ id, name }) => (
-                        <option value={id} key={id}>
+                        <option value={name} key={id}>
                           {name}
                         </option>
                       ))}
