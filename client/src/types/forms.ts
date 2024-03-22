@@ -28,7 +28,7 @@ export type AnagraficoForm = {
 };
 
 export type FindInStruttForm = {
-  codice?: string | undefined;
+  badge?: string | undefined;
   assegnazione?: string | undefined;
   nome?: string | undefined;
   cognome?: string | undefined;
@@ -38,7 +38,7 @@ export type FindInStruttForm = {
 };
 
 export type InsertArchProvForm = {
-  codice?: string | undefined;
+  badge?: string | undefined;
   nome?: string | undefined;
   cognome?: string | undefined;
   ditta?: string | undefined;

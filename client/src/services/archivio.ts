@@ -4,7 +4,6 @@ import {
   FindInPrestitoData,
   FindInStrutt,
   FindInStruttData,
-  InsertArchProvData,
   PrestitoChiaviData,
   PrestitoChiaviRes,
   QueryInPrestito,
@@ -72,7 +71,7 @@ class ArchivioDataService extends DataServices {
   insertArchProv(data: FormData, signal?: GenericAbortSignal) {
     return super.request({
       method: "POST",
-      url: "/archivio",
+      url: "/insert-provvisorio",
       token: true,
       files: true,
       data,

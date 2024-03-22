@@ -146,6 +146,7 @@ export const FIND_BADGES_SCHEMA = z.object({
   targa2: z.string().optional(),
   targa3: z.string().optional(),
   targa4: z.string().optional(),
+  tipo: z.string().optional(),
 });
 export type FindBadgesFilter = z.infer<typeof FIND_BADGES_SCHEMA>;
 
@@ -404,6 +405,8 @@ export const TIMBRA_BADGE_SCHEMA = z.object({
     CODICE_STUDENTE_SCHEMA,
   ]),
   postazione: ID_SCHEMA("Postazione ID"),
+  ip: z.string().default("unknown"),
+  username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
 });
 
 export const TIMBRA_CHIAVI_SCHEMA = z.object({
@@ -419,6 +422,8 @@ export const TIMBRA_CHIAVI_SCHEMA = z.object({
     ])
     .array()
     .nonempty(MISSING_ATTR_ERR_MSG("Barcodes")),
+  ip: z.string().default("unknown"),
+  username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
 });
 
 export const INSERT_ARCH_PROV_SCHEMA = z.object({
@@ -434,7 +439,8 @@ export const INSERT_ARCH_PROV_SCHEMA = z.object({
   telefono: z.string().nullish(),
   ndoc: z.string().nullish(),
   tdoc: z.string().nullish(),
-  ip: z.string(),
+  ip: z.string().default("unknown"),
+  username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
 });
 export type InsertArchProvData = z.infer<typeof INSERT_ARCH_PROV_SCHEMA>;
 

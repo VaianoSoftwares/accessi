@@ -6,8 +6,8 @@ import fileUpload from "express-fileupload";
 import mountRoutes from "./routes/index.js";
 import reqLogger from "./middlewares/reqLogger.js";
 import IgnoredReqs from "./middlewares/IgnoredReqs.js";
-import errorHandler from "./middlewares/errorHandler.js";
 import invalidPathHandler from "./middlewares/invalidPathHandler.js";
+import redirectHttpReqs from "./middlewares/redirectHttpReqs.js";
 
 const app = express();
 
@@ -25,6 +25,9 @@ app.use(
     exposedHeaders: "x-access-token",
   })
 );
+
+// redirect http requests to https
+app.use(redirectHttpReqs);
 
 // serve ignored reqs
 app.use(IgnoredReqs.optionsMethod);

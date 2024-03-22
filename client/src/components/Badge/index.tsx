@@ -39,7 +39,7 @@ export default function Badge({
   currPostazione: Postazione | undefined;
 }) {
   const formRef = useRef<FormRef<FindInStruttForm>>({
-    codice: null,
+    badge: null,
     assegnazione: null,
     nome: null,
     cognome: null,
@@ -270,7 +270,7 @@ export default function Badge({
                       id="codice"
                       placeholder="codice"
                       autoComplete="off"
-                      ref={(el) => (formRef.current.codice = el)}
+                      ref={(el) => (formRef.current.badge = el)}
                     />
                     <label htmlFor="barcode">barcode</label>
                   </div>
@@ -408,13 +408,13 @@ export default function Badge({
                       if (!currPostazione) {
                         toast.error("Selezionare la postazione");
                         return;
-                      } else if (!formRef.current.codice?.value) {
+                      } else if (!formRef.current.badge?.value) {
                         toast.error("Campo Barcode mancante");
                         return;
                       }
 
                       mutateInStrutt.mutate({
-                        badge: formRef.current.codice.value,
+                        badge: formRef.current.badge.value,
                         postazione: currPostazione.id,
                       });
                     }}

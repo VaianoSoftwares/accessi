@@ -27,4 +27,9 @@ server/public/uploads/*
 # shell scripts
 *.sh
 
+# db data
 data.sql
+
+# ssl certificates
+server/certs/*
+!server/certs/.gitkeep

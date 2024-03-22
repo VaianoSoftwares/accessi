@@ -9,9 +9,11 @@ import { objToUpperCase } from "../utils/objToUpperCase.js";
 import { uploadDocumento } from "../files/badges.js";
 
 function reqDataToUpperCase<T extends object>(data: T) {
-  return objToUpperCase(data, ["cliente", "postazione"] satisfies Array<
-    keyof Archivio
-  >);
+  return objToUpperCase(data, [
+    "cliente",
+    "postazione",
+    "username",
+  ] satisfies Array<keyof Archivio>);
 }
 
 export async function apiGetArchivio(req: Request, res: Response) {
@@ -23,7 +25,6 @@ export async function apiGetArchivio(req: Request, res: Response) {
         cause: parsed.error,
       });
     }
-    console.log("parsed.data", parsed.data);
     const dbResult = await ArchivioDB.getArchivio(
       reqDataToUpperCase(parsed.data)
     );
@@ -77,7 +78,11 @@ export async function apiGetInPrestito(req: Request, res: Response) {
 
 export async function apiTimbraBadge(req: Request, res: Response) {
   try {
-    const parsed = Validator.TIMBRA_BADGE_SCHEMA.safeParse(req.body);
+    const parsed = Validator.TIMBRA_BADGE_SCHEMA.safeParse({
+      ...req.body,
+      ip: req.ip,
+      username: req.user?.name,
+    });
     if (parsed.success === false) {
       throw new BaseError(parsed.error.errors[0].message, {
         status: 400,
@@ -96,8 +101,6 @@ export async function apiTimbraBadge(req: Request, res: Response) {
         barcodeType === "UNI"
           ? parsed.data.badge
           : parsed.data.badge.substring(1),
-      username: req.user!.name,
-      ip: req.ip || "unknown",
     };
 
     let dbRes;
@@ -145,7 +148,11 @@ export async function apiTimbraBadge(req: Request, res: Response) {
 
 export async function apiTimbraChiavi(req: Request, res: Response) {
   try {
-    const parsed = Validator.TIMBRA_CHIAVI_SCHEMA.safeParse(req.body);
+    const parsed = Validator.TIMBRA_CHIAVI_SCHEMA.safeParse({
+      ...req.body,
+      ip: req.ip,
+      username: req.user?.name,
+    });
     if (parsed.success === false) {
       throw new BaseError(parsed.error.errors[0].message, {
         status: 400,
@@ -189,8 +196,6 @@ export async function apiTimbraChiavi(req: Request, res: Response) {
       ...parsed.data,
       badge,
       chiavi,
-      username: req.user!.name,
-      ip: req.ip || "unknown",
     });
 
     res.json(Ok(dbRes));
@@ -206,6 +211,7 @@ export async function apiInsertProvvisorio(req: Request, res: Response) {
     const parsed = Validator.INSERT_ARCH_PROV_SCHEMA.safeParse({
       ...req.body,
       ip: req.ip,
+      username: req.user?.name,
     });
     if (parsed.success === false) {
       throw new BaseError(parsed.error.errors[0].message, {
