@@ -4,15 +4,21 @@ import http from "http";
 import fs from "fs";
 import path from "path";
 
-const httpPort = process.env.HTTP_PORT || 4317;
-const httpsPort = process.env.HTTPS_PORT || 4316;
+const httpPort = process.env.HTTP_PORT || 4316;
+const httpsPort = process.env.HTTPS_PORT || 4317;
 
-const privateKey = fs.readFileSync(path.join("server", "certs", "server.key"));
-const certificate = fs.readFileSync(path.join("server", "certs", "server.crt"));
+const privateKey = fs.readFileSync(path.join("server", "certs", "privkey.pem"));
+const certificate = fs.readFileSync(path.join("server", "certs", "cert.pem"));
+const chain =
+  process.env.NODE_ENV == "production" || process.env.NODE_ENV == "staging"
+    ? fs.readFileSync(path.join("server", "certs", "fullchain.pem")) ||
+      undefined
+    : undefined;
 
 const httpsOptions = {
   key: privateKey,
   cert: certificate,
+  ca: chain,
 };
 
 const httpServer = http.createServer(app);
