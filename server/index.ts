@@ -10,7 +10,7 @@ const httpsPort = process.env.HTTPS_PORT || 4317;
 const privateKey = fs.readFileSync(path.join("server", "certs", "privkey.pem"));
 const certificate = fs.readFileSync(path.join("server", "certs", "cert.pem"));
 const chain =
-  process.env.NODE_ENV == "production" || process.env.NODE_ENV == "staging"
+  process.env.NODE_ENV != "development"
     ? fs.readFileSync(path.join("server", "certs", "fullchain.pem")) ||
       undefined
     : undefined;

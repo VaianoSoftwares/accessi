@@ -4,9 +4,7 @@ export default function (req: Request, res: Response, next: NextFunction) {
   console.log(
     `[${new Date().toLocaleString("it-IT", {
       timeZone: "Europe/Rome",
-    })}] Request endpoint: ${req.ip} ${req.user?.name || "unknown"} ${
-      req.method
-    } ${req.url}`
+    })}] Request endpoint: ${req.ip} ${req.method} ${req.url}`
   );
   next();
 }

@@ -54,7 +54,7 @@ mountRoutes(app);
 // app.use(errorHandler);
 
 // html page request (production mode only)
-if (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "staging") {
+if (process.env.NODE_ENV != "development") {
   app.use(express.static(path.resolve("client", "dist")));
   app.get("*", (_, res) => {
     res.sendFile(path.resolve("client", "dist", "index.html"));
