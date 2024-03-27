@@ -46,7 +46,12 @@ export type Archivio = ArchivioNominativo &
   ArchivioChiave &
   ArchivioProvvisorio &
   BaseChiave &
-  BaseVeicolo & { cliente: string; postazione_id: number };
+  BaseVeicolo & {
+    cliente: string;
+    postazione_id: number;
+    intervallo: string;
+    notte: string;
+  };
 
 // export type ArchivioFilter = Partial<Archivio> & {
 //   tipo?: string | null | undefined;

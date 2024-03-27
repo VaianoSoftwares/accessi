@@ -55,14 +55,24 @@ CREATE FUNCTION date_in_out_diff(date_in timestamp without time zone, date_out t
     PARALLEL SAFE
     RETURN (date_part('epoch', date_out - date_in) * INTERVAL '1 second')::TEXT;
 
--- CREATE FUNCTION date_trim_if_dates_equal(date_in timestamp without time zone, date_out timestamp without time zone) RETURNS timestamp without time zone AS $$
--- BEGIN
---     IF (date_trunc('day', date_in) = date_trunc('day', date_out)) THEN
---         RETURN TO_TIMESTAMP(date_out, 'HH24:MI:SS')::timestamp without time zone;
---     ELSE
---         RETURN date_out;
---     END IF;
--- END; $$ LANGUAGE plpgsql;
+CREATE FUNCTION dates_are_not_equal(date_in TIMESTAMP, date_out TIMESTAMP) RETURNS TEXT AS $$
+BEGIN
+    IF (date_trunc('day', date_in) != date_trunc('day', date_out)) THEN
+        RETURN 'SI';
+    ELSE
+        RETURN 'NO';
+    END IF;
+END; $$ LANGUAGE plpgsql;
+
+CREATE FUNCTION dates_are_not_equal(date_in timestamp without time zone, date_out timestamp without time zone) RETURNS TEXT AS $$
+BEGIN
+    IF (date_trunc('day', date_in) != date_trunc('day', date_out)) THEN
+        RETURN 'SI';
+    ELSE
+        RETURN 'NO';
+    END IF;
+END; $$ LANGUAGE plpgsql;
+
 
 CREATE TYPE tdoc AS ENUM ('CARTA IDENTITA', 'PATENTE', 'TESSERA STUDENTE');
 CREATE TYPE badge_state AS ENUM ('VALIDO', 'SCADUTO', 'REVOCATO', 'RICONSEGNATO');
@@ -242,7 +252,7 @@ CREATE VIEW all_badges AS
     FROM veicoli);
 
 CREATE VIEW full_archivio AS
-    SELECT t.badge, t.chiave, t.cliente, t.postazione, t.data_in, t.data_out, date_in_out_diff(t.data_in, t.data_out) as intervallo, t.username, t.ip, t.nome, t.cognome, t.assegnazione, t.ditta, t.ndoc, t.tdoc, t.telefono, t.tveicolo, t.targa1, t.targa2, t.targa3, t.targa4, t.indirizzo, t.citta, t.edificio, t.piano  FROM
+    SELECT t.badge, t.chiave, t.cliente, t.postazione, t.data_in, t.data_out, date_in_out_diff(t.data_in, t.data_out) as intervallo, dates_are_not_equal(t.data_in, t.data_out) as notte, t.username, t.ip, t.nome, t.cognome, t.assegnazione, t.ditta, t.ndoc, t.tdoc, t.telefono, t.tveicolo, t.targa1, t.targa2, t.targa3, t.targa4, t.indirizzo, t.citta, t.edificio, t.piano  FROM
     ((SELECT n.codice AS badge, NULL AS chiave, 'NOMINATIVO' AS tipo, p.cliente, p.name AS postazione, a.data_in, a.data_out, a.username, a.ip, n.nome, n.cognome, n.ditta, n.telefono, n.ndoc, n.tdoc, n.assegnazione, NULL::veicolo AS tveicolo, NULL AS targa1, NULL AS targa2, NULL AS targa3, NULL AS targa4, NULL AS indirizzo, NULL AS citta, NULL::edificio AS edificio, NULL AS piano
     FROM nominativi AS n
     JOIN archivio_nominativi AS a ON n.codice = a.badge
