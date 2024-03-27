@@ -114,6 +114,17 @@ export default function Archivio() {
     enabled: false,
   });
 
+  function clearForm() {
+    Object.entries(formRef.current)
+      .filter(([key, el]) => el !== null && key in formRef.current)
+      .forEach(([key, el]) => {
+        const mappedKey = key as keyof FindArchivioForm;
+        if (el instanceof HTMLInputElement) el.value = el.defaultValue;
+        else if (el instanceof HTMLSelectElement && el.options.length > 0)
+          el.value = el.options.item(0)!.value;
+      });
+  }
+
   return (
     <div className="archivio-wrapper">
       <div className="container-fluid m-1 archivio-container">
@@ -292,6 +303,12 @@ export default function Archivio() {
                   onClick={() => htmlTableToExcel(TABLE_ID, "archivio")}
                 >
                   Excel
+                </button>
+              </div>
+              <div className="w-100 mb-1" />
+              <div className="col">
+                <button className="btn btn-success" onClick={() => clearForm()}>
+                  Refresh
                 </button>
               </div>
             </div>

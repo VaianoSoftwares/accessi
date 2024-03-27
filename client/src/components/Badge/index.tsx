@@ -488,7 +488,7 @@ export default function Badge({
             }
             tableId={TABLE_NAME}
             omitedParams={["id"]}
-            obfuscatedParams={["codice"]}
+            obfuscatedParams={isAdmin(currentUser) ? undefined : ["codice"]}
             timestampParams={["data_in", "data_out"]}
           />
         )}
