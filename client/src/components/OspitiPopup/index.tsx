@@ -3,7 +3,7 @@ import Popup from "reactjs-popup";
 import "./index.css";
 import { FormRef, TEventInput } from "../../types";
 import { Postazione, TDOCS } from "../../types/badges";
-import { InsertArchProvForm } from "../../types/forms";
+import { InsertArchBadgeForm } from "../../types/forms";
 import toast from "react-hot-toast";
 
 function isCodiceFiscale(cf: string) {
@@ -21,7 +21,7 @@ export default function OspitiPopup(props: {
   insertOsp: (data: FormData) => void;
   currPostazione: Postazione | undefined;
 }) {
-  const formRef = useRef<FormRef<InsertArchProvForm>>({
+  const formRef = useRef<FormRef<InsertArchBadgeForm>>({
     badge: null,
     nome: null,
     cognome: null,
@@ -34,7 +34,7 @@ export default function OspitiPopup(props: {
 
   function createFormData() {
     const formData = new FormData();
-    formData.append("postazione", String(props.currPostazione!.id));
+    formData.append("post_id", String(props.currPostazione!.id));
     Object.entries(formRef.current)
       .filter(([_, el]) => el !== null && el.value)
       .forEach(([key, el]) => {

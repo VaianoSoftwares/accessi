@@ -69,7 +69,7 @@ export async function apiLogin(
   res: Response,
   next: NextFunction
 ) {
-  return await login(req, res, next, "1d");
+  return await login(req, res, next, "1y");
 }
 
 export async function apiTmpLogin(

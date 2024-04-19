@@ -51,11 +51,11 @@ export async function addUser(data: InsertUserData) {
 
     const userId = insertUserRes.rows[0].id;
 
-    const insertUserPostValues = Object.values(data.postazioni).flatMap(
+    const insertUserPostValues = Object.values(data.postazioniIds).flatMap(
       (value) => [userId, value]
     );
     const insertUserPostText =
-      "INSERT INTO postazioni_user (user_id, postazione) VALUES ".concat(
+      "INSERT INTO postazioni_user (user_id, post_id) VALUES ".concat(
         insertUserPostValues
           .map((_, i) => (i & 1 ? `$${i + 1})` : `($${i + 1}`))
           .join(",")
@@ -112,22 +112,22 @@ export async function updateUser({ id: userId, updateValues }: UpdateUserData) {
     );
 
     const { rows: userPostazioni } = await client.query<PostazioneUser>(
-      "SELECT * FROM postazioni_user WHERE user_id = $1",
+      "SELECT * FROM postazioni_user WHERE usr_id = $1",
       [userId]
     );
 
-    const userPostazioniIds = userPostazioni.map((p) => p.postazione);
+    const userPostazioniIds = userPostazioni.map((p) => p.post_id);
     const postazioniToAdd: number[] = [];
     const postazioniToRemove: number[] = [];
-    updateValues.postazioni?.forEach(({ checked, postazione }) => {
-      const found = userPostazioniIds.includes(postazione);
-      if (!found && checked) postazioniToAdd.push(userId, postazione);
-      else if (found && !checked) postazioniToRemove.push(userId, postazione);
+    updateValues.postazioniIds?.forEach(({ checked, post_id }) => {
+      const found = userPostazioniIds.includes(post_id);
+      if (!found && checked) postazioniToAdd.push(userId, post_id);
+      else if (found && !checked) postazioniToRemove.push(userId, post_id);
     });
 
     const insertPostazioniText =
       postazioniToAdd.length > 0
-        ? "INSERT INTO postazioni_user (user_id, postazione) VALUES ".concat(
+        ? "INSERT INTO postazioni_user (usr_id, post_id) VALUES ".concat(
             postazioniToAdd
               .map((_, i) => (i & 1 ? `$${i + 1})` : `($${i + 1}`))
               .join(",")
@@ -135,7 +135,7 @@ export async function updateUser({ id: userId, updateValues }: UpdateUserData) {
         : "";
     const deletePostazioniText =
       postazioniToRemove.length > 0
-        ? "DELETE FROM postazioni_user WHERE user_id = $1 AND ".concat(
+        ? "DELETE FROM postazioni_user WHERE usr_id = $1 AND ".concat(
             postazioniToRemove
               .map((_, i) => `postazione = $${i + 2}`)
               .join(" OR ")
@@ -189,7 +189,7 @@ export async function updatePostazioniToUser(
     await client.query("BEGIN");
 
     const postazioniUser = await client.query<PostazioneUser>(
-      "SELECT * FROM postazioni_user WHERE user_id = $1",
+      "SELECT * FROM postazioni_user WHERE usr_id = $1",
       [userId]
     );
     if (postazioniUser.rowCount === 0) {
@@ -199,25 +199,25 @@ export async function updatePostazioniToUser(
       });
     }
 
-    const postazioniToUpd = postazioniUser.rows.map((p) => p.postazione);
+    const postazioniToUpd = postazioniUser.rows.map((p) => p.post_id);
 
     const postazioniToAdd: number[] = [];
     const postazioniToRemove: number[] = [];
-    data.forEach(({ checked, postazione }) => {
-      const found = postazioniToUpd.includes(postazione);
-      if (!found && checked) postazioniToAdd.push(userId, postazione);
-      else if (found && !checked) postazioniToRemove.push(userId, postazione);
+    data.forEach(({ checked, post_id }) => {
+      const found = postazioniToUpd.includes(post_id);
+      if (!found && checked) postazioniToAdd.push(userId, post_id);
+      else if (found && !checked) postazioniToRemove.push(userId, post_id);
     });
 
     const insertPostazioniText =
-      "INSERT INTO postazioni_user (user_id, postazione) VALUES ".concat(
+      "INSERT INTO postazioni_user (usr_id, post_id) VALUES ".concat(
         postazioniToAdd
           .map((_, i) => (i & 1 ? `$${i + 1})` : `($${i + 1}`))
           .join(",")
       );
     const deletePostazioniText =
-      "DELETE FROM postazioni_user WHERE user_id = $1 AND ".concat(
-        postazioniToRemove.map((_, i) => `postazione = $${i + 2}`).join(" OR ")
+      "DELETE FROM postazioni_user WHERE usr_id = $1 AND ".concat(
+        postazioniToRemove.map((_, i) => `post_id = $${i + 2}`).join(" OR ")
       );
 
     const insertPostazioniRes = await client.query(

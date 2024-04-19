@@ -1,3 +1,5 @@
+import { WithId } from ".";
+
 export type BadgeTipo =
   | "PROVVISORIO"
   | "NOMINATIVO"
@@ -6,6 +8,13 @@ export type BadgeTipo =
   | "PERSONA";
 export type BadgeStato = "VALIDO" | "SCADUTO" | "REVOCATO" | "RICONSEGNATO";
 export type TDoc = "CARTA IDENTITA" | "PATENTE" | "TESSERA STUDENTE" | "";
+
+export enum BadgePrefix {
+  NOMINATIVO = 1,
+  PROVVISORIO,
+  CHIAVE,
+  VEICOLO,
+}
 
 export const TIPI_BADGE: ReadonlyArray<BadgeTipo> = [
   "NOMINATIVO",
@@ -26,29 +35,31 @@ export const TDOCS: ReadonlyArray<TDoc> = [
   "TESSERA STUDENTE",
 ];
 
-interface BaseBadge {
+export interface BaseBadge {
   codice: string;
   descrizione: string | null;
   stato: BadgeStato;
-  cliente: string;
-}
-
-export interface Provvisorio extends BaseBadge {
   ubicazione: string | null;
+}
+export interface Badge extends BaseBadge {
+  cliente: string;
+  proprietario: number | null;
 }
 
 export interface BaseNominativo {
   nome: string;
   cognome: string;
+  assegnazione: string;
   ditta: string | null;
   telefono: string | null;
   ndoc: string | null;
   tdoc: TDoc | null;
 }
-export interface Nominativo extends BaseBadge, BaseNominativo {
-  assegnazione: string;
+export interface BasePerson extends BaseNominativo {
   scadenza: Date | string | null;
+  cliente: string;
 }
+export type Person = WithId<BasePerson>;
 
 export interface BaseChiave {
   indirizzo: string | null;
@@ -56,33 +67,31 @@ export interface BaseChiave {
   edificio: string | null;
   piano: string | null;
 }
-export interface Chiave extends BaseBadge, BaseChiave {
-  ubicazione: string | null;
-}
+export interface Chiave extends Badge, BaseChiave {}
 
 export interface BaseVeicolo {
-  tveicolo: string | null;
-  targa1: string | null;
-  targa2: string | null;
-  targa3: string | null;
-  targa4: string | null;
+  targa: string;
+  tipo: string;
 }
-export interface Veicolo extends BaseBadge, BaseVeicolo, BaseNominativo {}
+export type Veicolo = WithId<
+  BaseVeicolo & { cliente: string; proprietario: number | null }
+>;
 
-export type Badge = Provvisorio &
-  Nominativo &
-  Chiave &
-  Veicolo & { tipo: BadgeTipo };
+export type FullBadge = Badge & Person & Chiave & Veicolo & { tipo: BadgeTipo };
 
-export type BadgeGenericReq<T> = { data: T; tipoBadge: string };
-export type BadgeFormDataReq = BadgeGenericReq<FormData>;
-export type BadgeDeleteReq = BadgeGenericReq<{ codice: string }>;
+export type BadgeDeleteReq = Pick<Badge, "codice">;
+export type PersonDeleteReq = Pick<Person, "id">;
+export type ChiaveDeleteReq = Pick<Chiave, "codice">;
+export type VeicoloDeleteReq = Pick<Veicolo, "id">;
 
-export type Postazione = {
-  id: number;
+export type InsertReqRetData<T> = { insertedRow: T };
+export type UpdateReqRetData<T> = { updatedRow: T };
+export type DeleteReqRetData<T> = { deletedRow: T };
+
+export type Postazione = WithId<{
   cliente: string;
   name: string;
-};
+}>;
 
 export type GetPostazioniFilters = { ids?: number[] };
 export type InsertPostazioneData = Omit<Postazione, "id">;

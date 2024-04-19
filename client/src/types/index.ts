@@ -1,5 +1,6 @@
-import { BadgeTipo, BadgeStato, TDoc } from "./badges";
+import { BadgeTipo } from "./badges";
 import { BaseError } from "./errors";
+import { BaseForm } from "./forms";
 
 export type Ok<T> = { success: true; result: T };
 export type Err<T> = { success: false; error: T };
@@ -10,11 +11,13 @@ export const Err = <T>(error: T): Err<T> => ({ success: false, error });
 
 export type GenericForm = Record<PropertyKey, any>;
 export type FormRef<
-  K,
+  K extends BaseForm = BaseForm,
   E extends HTMLElement = HTMLInputElement | HTMLSelectElement
 > = Record<keyof K, E | null>;
+export type ReactFormRef<K extends BaseForm = BaseForm> =
+  React.MutableRefObject<FormRef<K>>;
 
-export type WithId<T> = T & { id: string };
+export type WithId<T> = T & { id: number };
 
 export const MAX_UINT32 = 4294967295;
 

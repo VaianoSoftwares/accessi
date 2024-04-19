@@ -6,6 +6,7 @@ export interface BaseUser {
   permessi: number;
   pages: number;
 }
+export type User = WithId<BaseUser>;
 
 export interface BasePostazione {
   name: string;
@@ -14,8 +15,8 @@ export interface BasePostazione {
 export type Postazione = WithId<BasePostazione>;
 
 export interface PostazioneUser {
-  user_id: number;
-  postazione: number;
+  usr_id: number;
+  post_id: number;
 }
 
 export enum TPermessi {
@@ -37,5 +38,3 @@ export enum TPages {
 
 export type InsertUserData = BaseUser & { postazioni: Postazione[] };
 export type UpdateUserData = Partial<BaseUser>;
-
-export type User = WithId<BaseUser>;

@@ -1,22 +1,23 @@
-export interface Protocollo {
-  id: number;
+import { WithId } from "./index.js";
+
+export interface BaseProtocollo {
   descrizione: string | null;
   date: Date;
 }
 
-export interface DocProtocollo {
+export type Protocollo = WithId<BaseProtocollo>;
+
+export interface BaseDocProtocollo {
   filename: string;
   descrizione: string | null;
-  prot_id: number;
 }
 
-export interface ProtVisibileDa {
-  prot_id: number;
-  prot_user: number;
-}
+export type DocProtocollo = BaseDocProtocollo & { prot_id: number };
 
-export type FullProtocollo = Pick<Protocollo, "id" | "date"> &
-  Pick<DocProtocollo, "filename"> & {
+export type ProtVisibileDa = { prot_id: number; usr_id: number };
+
+export type FullProtocollo = Pick<BaseProtocollo, "date"> &
+  Pick<BaseDocProtocollo, "filename"> & {
     prot_descrizione: string | null;
     doc_descrizione: string | null;
     visibile_da_id: number[];

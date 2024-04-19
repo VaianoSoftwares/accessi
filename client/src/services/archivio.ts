@@ -2,14 +2,19 @@ import DataServices from "./DataServices";
 import { GenericAbortSignal } from "axios";
 import {
   FindInPrestitoData,
-  FindInStrutt,
-  FindInStruttData,
+  FindBadgeInStrutt,
+  FindBadgeInStruttData,
   PrestitoChiaviData,
   PrestitoChiaviRes,
   QueryInPrestito,
-  QueryInStrutt,
-  TimbraDoc,
-  TimbraRes,
+  QueryBadgeInStrutt,
+  TimbraBadgeDoc,
+  TimbraBadgeRes,
+  TimbraVeicoloDoc,
+  FindVeicoloInStruttData,
+  QueryVeicoloInStrutt,
+  FindVeicoloInStrutt,
+  TimbraVeicoloRes,
 } from "../types/archivio";
 
 class ArchivioDataService extends DataServices {
@@ -21,18 +26,45 @@ class ArchivioDataService extends DataServices {
     });
   }
 
-  getInStrutt(query?: FindInStruttData, signal?: GenericAbortSignal) {
-    return super.request<QueryInStrutt[]>({
-      url: "/in-struttura",
+  getBadgesInStrutt(
+    query?: FindBadgeInStruttData,
+    signal?: GenericAbortSignal
+  ) {
+    return super.request<QueryBadgeInStrutt[]>({
+      url: "/in-struttura/badges",
       token: true,
       data: query,
       signal,
     });
   }
 
-  findInStrutt(data: FindInStruttData, signal?: GenericAbortSignal) {
-    return super.request<FindInStrutt[]>({
-      url: "/in-struttura",
+  getVeicoliInStrutt(
+    query?: FindVeicoloInStruttData,
+    signal?: GenericAbortSignal
+  ) {
+    return super.request<QueryVeicoloInStrutt[]>({
+      url: "/in-struttura/veicoli",
+      token: true,
+      data: query,
+      signal,
+    });
+  }
+
+  findBadgesInStrutt(data: FindBadgeInStruttData, signal?: GenericAbortSignal) {
+    return super.request<FindBadgeInStrutt[]>({
+      url: "/in-struttura/badges",
+      token: true,
+      data,
+      signal,
+    });
+  }
+
+  findVeicoliInStrutt(
+    data: FindVeicoloInStruttData,
+    signal?: GenericAbortSignal
+  ) {
+    return super.request<FindVeicoloInStrutt[]>({
+      url: "/in-struttura/veicoli",
       token: true,
       data,
       signal,
@@ -48,10 +80,20 @@ class ArchivioDataService extends DataServices {
     });
   }
 
-  timbraBadge(data: TimbraDoc, signal?: GenericAbortSignal) {
-    return super.request<TimbraRes>({
+  timbraBadge(data: TimbraBadgeDoc, signal?: GenericAbortSignal) {
+    return super.request<TimbraBadgeRes>({
       method: "POST",
       url: "/timbra/badge",
+      token: true,
+      data,
+      signal,
+    });
+  }
+
+  timbraVeicolo(data: TimbraVeicoloDoc, signal?: GenericAbortSignal) {
+    return super.request<TimbraVeicoloRes>({
+      method: "POST",
+      url: "/timbra/veicolo",
       token: true,
       data,
       signal,
@@ -68,10 +110,21 @@ class ArchivioDataService extends DataServices {
     });
   }
 
-  insertArchProv(data: FormData, signal?: GenericAbortSignal) {
+  insertBadgeArchProv(data: FormData, signal?: GenericAbortSignal) {
     return super.request({
       method: "POST",
-      url: "/insert-provvisorio",
+      url: "/insert-provvisorio/badge",
+      token: true,
+      files: true,
+      data,
+      signal,
+    });
+  }
+
+  insertVeicoloArchProv(data: FormData, signal?: GenericAbortSignal) {
+    return super.request({
+      method: "POST",
+      url: "/insert-provvisorio/veicolo",
       token: true,
       files: true,
       data,

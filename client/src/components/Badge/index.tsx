@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import "./index.css";
-import BadgeDataService from "../../services/badge";
 import ArchivioDataService from "../../services/archivio";
+import PeopleDataService from "../../services/people";
 import BadgeTable from "../BadgeTable";
 import Clock from "../Clock";
 import OspitiPopup from "../OspitiPopup";
@@ -13,13 +13,13 @@ import useReadonlyForm from "../../hooks/useReadonlyForm";
 import { toast } from "react-hot-toast";
 import { TPermessi, hasPerm, isAdmin } from "../../types/users";
 import { BadgeTipo, Postazione, TDOCS } from "../../types/badges";
-import { FindInStruttForm } from "../../types/forms";
+import { FindBadgesInStruttForm } from "../../types/forms";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import BadgePopup from "../BadgePopup";
 import {
-  FindInStruttData,
-  TimbraDoc,
-  QueryInStrutt,
+  FindBadgeInStruttData,
+  TimbraBadgeDoc,
+  QueryBadgeInStrutt,
 } from "../../types/archivio";
 import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
@@ -38,7 +38,7 @@ export default function Badge({
   tipoBadge: BadgeTipo;
   currPostazione: Postazione | undefined;
 }) {
-  const formRef = useRef<FormRef<FindInStruttForm>>({
+  const formRef = useRef<FormRef<FindBadgesInStruttForm>>({
     badge: null,
     assegnazione: null,
     nome: null,
@@ -58,7 +58,7 @@ export default function Badge({
     queryKey: ["assegnazioni"],
     queryFn: async () => {
       try {
-        const response = await BadgeDataService.getAssegnazioni();
+        const response = await PeopleDataService.getAssegnazioni();
         console.log("queryAssegnazioni | response:", response);
         if (response.data.success === false) {
           throw response.data.error;
@@ -75,16 +75,15 @@ export default function Badge({
     queryKey: [
       "inStrutt",
       {
-        tipi: ["NOMINATIVO", "PROVVISORIO"],
-        postazioni: currPostazione
+        postazioniIds: currPostazione
           ? [currPostazione.id]
           : currentUser?.postazioni,
       },
     ],
     queryFn: async (context) => {
       try {
-        const response = await ArchivioDataService.getInStrutt(
-          context.queryKey[1] as FindInStruttData
+        const response = await ArchivioDataService.getBadgesInStrutt(
+          context.queryKey[1] as FindBadgeInStruttData
         );
         console.log("queryInStrutt | response:", response);
         if (response.data.success === false) {
@@ -99,7 +98,7 @@ export default function Badge({
   });
 
   const mutateInStrutt = useMutation({
-    mutationFn: (data: TimbraDoc) => ArchivioDataService.timbraBadge(data),
+    mutationFn: (data: TimbraBadgeDoc) => ArchivioDataService.timbraBadge(data),
     onSuccess: async (response) => {
       console.log("timbra | response:", response);
       if (response.data.success === false) {
@@ -145,7 +144,7 @@ export default function Badge({
     onSettled: async () => (timeoutRunning.current = false),
   });
 
-  const [deletedRow, setDeletedRow] = useState<QueryInStrutt>();
+  const [deletedRow, setDeletedRow] = useState<QueryBadgeInStrutt>();
   const [isShown, setIsShown] = useBool(false);
   const [readonlyForm, setReadonlyForm] = useReadonlyForm((condition) => {
     refreshPage({
@@ -153,7 +152,6 @@ export default function Badge({
       form: condition,
       refetch: false,
     });
-    console.log("home | readonlyForm:", condition);
   });
   const timeoutRunning = useRef(false);
 
@@ -162,10 +160,12 @@ export default function Badge({
   );
 
   function formToObj() {
-    const obj: FindInStruttForm = {};
+    const obj: FindBadgesInStruttForm = {};
     Object.entries(formRef.current)
       .filter(([, el]) => el !== null)
-      .forEach(([key, el]) => (obj[key as keyof FindInStruttForm] = el!.value));
+      .forEach(
+        ([key, el]) => (obj[key as keyof FindBadgesInStruttForm] = el!.value)
+      );
     return obj;
   }
 
@@ -173,7 +173,7 @@ export default function Badge({
     Object.entries(formRef.current)
       .filter(([key, el]) => el !== null && key in formRef.current)
       .forEach(([key, el]) => {
-        const mappedKey = key as keyof FindInStruttForm;
+        const mappedKey = key as keyof FindBadgesInStruttForm;
         if (el instanceof HTMLInputElement)
           el.value = obj[mappedKey] || el.defaultValue;
         else if (el instanceof HTMLSelectElement && el.options.length > 0)
@@ -189,12 +189,11 @@ export default function Badge({
     queryKey: ["findInStrutt"],
     queryFn: async () => {
       try {
-        const response = await ArchivioDataService.findInStrutt({
+        const response = await ArchivioDataService.findBadgesInStrutt({
           ...formToObj(),
-          postazioni: currPostazione
+          postazioniIds: currPostazione
             ? [currPostazione.id]
             : currentUser?.postazioni,
-          tipiBadge: ["NOMINATIVO", "PROVVISORIO"],
         });
         console.log("findBadges | response:", response);
 
@@ -220,7 +219,8 @@ export default function Badge({
   });
 
   const insertArchProv = useMutation({
-    mutationFn: (data: FormData) => ArchivioDataService.insertArchProv(data),
+    mutationFn: (data: FormData) =>
+      ArchivioDataService.insertBadgeArchProv(data),
     onSuccess: async (response) => {
       console.log("insertArchProv | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
@@ -242,7 +242,7 @@ export default function Badge({
     console.log("Scanner accessi | scannedValue:", scannedValue);
     mutateInStrutt.mutate({
       badge: scannedValue,
-      postazione: currPostazione.id,
+      post_id: currPostazione.id,
     });
     clearScannedValue();
   }, [scannedValue]);
@@ -415,7 +415,7 @@ export default function Badge({
 
                       mutateInStrutt.mutate({
                         badge: formRef.current.badge.value,
-                        postazione: currPostazione.id,
+                        post_id: currPostazione.id,
                       });
                     }}
                     className="btn btn-success badge-form-btn"

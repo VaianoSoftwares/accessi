@@ -1,27 +1,28 @@
 import { Request, Response } from "express";
-import * as BadgesDB from "../db/badges.js";
+import * as ChiaviDB from "../db/chiavi.js";
 import { Err, Ok } from "../types/index.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
 import * as Validator from "../utils/validation.js";
 import { BaseError } from "../types/errors.js";
 import createBarcode from "../utils/barcodeGen.js";
-import { Badge, BadgePrefix } from "../types/badges.js";
+import { BadgePrefix } from "../types/badges.js";
 import { objToUpperCase } from "../utils/objToUpperCase.js";
+import { Chiave } from "../types/chiavi.js";
 
 function reqDataToUpperCase<T extends object>(data: T) {
-  return objToUpperCase(data, ["cliente"] satisfies Array<keyof Badge>);
+  return objToUpperCase(data, ["cliente"] satisfies Array<keyof Chiave>);
 }
 
-export async function apiGetBadges(req: Request, res: Response) {
+export async function apiGetChiavi(req: Request, res: Response) {
   try {
-    const parsed = Validator.GET_BADGES_SCHEMA.safeParse(req.query);
+    const parsed = Validator.GET_CHIAVI_SCHEMA.safeParse(req.query);
     if (parsed.success === false) {
       throw new BaseError(parsed.error.errors[0].message, {
         status: 400,
         cause: parsed.error,
       });
     }
-    const dbRes = await BadgesDB.getBadges(reqDataToUpperCase(parsed.data));
+    const dbRes = await ChiaviDB.getChiavi(reqDataToUpperCase(parsed.data));
     res.json(Ok(dbRes.rows));
   } catch (e) {
     const error = enforceBaseErr(e);
@@ -30,9 +31,9 @@ export async function apiGetBadges(req: Request, res: Response) {
   }
 }
 
-export async function apiInsertBadge(req: Request, res: Response) {
+export async function apiInsertChiavi(req: Request, res: Response) {
   try {
-    const parsed = Validator.INSERT_BADGE_SCHEMA.safeParse(req.body);
+    const parsed = Validator.INSERT_CHIAVE_SCHEMA.safeParse(req.body);
     if (parsed.success === false) {
       throw new BaseError(parsed.error.errors[0].message, {
         status: 400,
@@ -40,30 +41,20 @@ export async function apiInsertBadge(req: Request, res: Response) {
       });
     }
 
-    parsed.data.proprietario = parsed.data.provvisorio
-      ? undefined
-      : parsed.data.proprietario;
-
     const codice = createBarcode(
       parsed.data,
-      parsed.data.provvisorio
-        ? BadgePrefix.PROVVISORIO
-        : BadgePrefix.NOMINATIVO,
+      BadgePrefix.CHIAVE,
       parsed.data.cliente
     );
 
-    const dbRes = await BadgesDB.insertBadge(
+    const dbRes = await ChiaviDB.insertChiave(
       reqDataToUpperCase({
+        ...parsed.data,
         codice,
-        descrizione: parsed.data.descrizione,
-        stato: parsed.data.stato,
-        ubicazione: parsed.data.ubicazione,
-        cliente: parsed.data.cliente,
-        proprietario: parsed.data.proprietario,
       })
     );
     if (dbRes.rowCount === 0) {
-      throw new BaseError("Impossibile inserire badge", {
+      throw new BaseError("Impossibile inserire chiave", {
         status: 500,
         context: { codice },
       });
@@ -77,7 +68,7 @@ export async function apiInsertBadge(req: Request, res: Response) {
   }
 }
 
-export async function apiUpdateBadge(req: Request, res: Response) {
+export async function apiUpdateChiave(req: Request, res: Response) {
   try {
     const parsed = Validator.UPDATE_BADGE_SCHEMA.safeParse({
       codice: req.params.codice,
@@ -92,12 +83,12 @@ export async function apiUpdateBadge(req: Request, res: Response) {
 
     const { codice, updateData } = parsed.data;
 
-    const dbRes = await BadgesDB.updateBadge({
+    const dbRes = await ChiaviDB.updateChiave({
       codice,
       updateData: reqDataToUpperCase(updateData),
     });
     if (dbRes.rowCount === 0) {
-      throw new BaseError("Impossibile modificare badge", {
+      throw new BaseError("Impossibile modificare chiave", {
         status: 500,
         context: { codice },
       });
@@ -111,7 +102,7 @@ export async function apiUpdateBadge(req: Request, res: Response) {
   }
 }
 
-export async function apiDeleteBadge(req: Request, res: Response) {
+export async function apiDeleteChiave(req: Request, res: Response) {
   try {
     const parsed = Validator.DELETE_BADGE_SCHEMA.safeParse(req.params.codice);
     if (parsed.success === false) {
@@ -123,9 +114,9 @@ export async function apiDeleteBadge(req: Request, res: Response) {
 
     const codice = parsed.data;
 
-    const dbRes = await BadgesDB.deleteBadge(codice);
+    const dbRes = await ChiaviDB.deleteChiave(codice);
     if (dbRes.rowCount === 0) {
-      throw new BaseError("Impossibile eliminare badge", {
+      throw new BaseError("Impossibile eliminare chiave", {
         status: 500,
         context: { codice },
       });

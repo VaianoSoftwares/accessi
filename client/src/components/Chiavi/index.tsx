@@ -31,7 +31,7 @@ export default function Chiavi({
     queryKey: [
       "inPrestito",
       {
-        postazioni: currPostazione
+        postazioniIds: currPostazione
           ? [currPostazione.id]
           : currentUser?.postazioni,
       },
@@ -121,7 +121,7 @@ export default function Chiavi({
 
                 mutateInPrestito.mutate({
                   barcodes: props.scanValues,
-                  postazione: currPostazione.id,
+                  post_id: currPostazione.id,
                 });
               }}
             >

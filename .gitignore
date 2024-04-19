@@ -28,8 +28,8 @@ server/public/uploads/*
 *.sh
 
 # db data
-accessi.sql
-data.sql
+accessi*.sql
+data*.sql
 
 # ssl certificates
 server/certs/*

@@ -1,7 +1,13 @@
 import DataServices from "./DataServices";
 import { GenericAbortSignal } from "axios";
 import { TAssegnazione } from "../types";
-import { Badge, BadgeDeleteReq, BadgeFormDataReq } from "../types/badges";
+import {
+  Badge,
+  BadgeDeleteReq,
+  DeleteReqRetData,
+  InsertReqRetData,
+  UpdateReqRetData,
+} from "../types/badges";
 
 class BadgesDataService extends DataServices {
   getAll(signal?: GenericAbortSignal) {
@@ -12,9 +18,8 @@ class BadgesDataService extends DataServices {
     return super.request<Badge[]>({ token: true, data: query, signal });
   }
 
-  insert({ data, tipoBadge }: BadgeFormDataReq, signal?: GenericAbortSignal) {
-    return super.request({
-      url: `/${tipoBadge}`,
+  insert(data: FormData, signal?: GenericAbortSignal) {
+    return super.request<InsertReqRetData<Badge>>({
       method: "POST",
       token: true,
       data,
@@ -23,9 +28,9 @@ class BadgesDataService extends DataServices {
     });
   }
 
-  update({ data, tipoBadge }: BadgeFormDataReq, signal?: GenericAbortSignal) {
-    return super.request({
-      url: `/${tipoBadge}/${data.get("codice")}`,
+  update(data: FormData, signal?: GenericAbortSignal) {
+    return super.request<UpdateReqRetData<Badge>>({
+      url: `/${data.get("codice")}`,
       method: "PUT",
       token: true,
       data,
@@ -34,9 +39,9 @@ class BadgesDataService extends DataServices {
     });
   }
 
-  delete({ data, tipoBadge }: BadgeDeleteReq, signal?: GenericAbortSignal) {
-    return super.request({
-      url: `/${tipoBadge}/${data.codice}`,
+  delete(data: BadgeDeleteReq, signal?: GenericAbortSignal) {
+    return super.request<DeleteReqRetData<Badge>>({
+      url: `/${data.codice}`,
       method: "DELETE",
       token: true,
       signal,
@@ -61,18 +66,6 @@ class BadgesDataService extends DataServices {
       data,
       signal,
     });
-  }
-
-  getAssegnazioni(signal?: GenericAbortSignal) {
-    return super.request<string[]>({ url: "/assegnazioni", signal });
-  }
-
-  getEdifici(signal?: GenericAbortSignal) {
-    return super.request<string[]>({ url: "/edifici", signal });
-  }
-
-  getTVeicoli(signal?: GenericAbortSignal) {
-    return super.request<string[]>({ url: "/tveicoli", signal });
   }
 
   _getAssegnazioni(signal?: GenericAbortSignal) {

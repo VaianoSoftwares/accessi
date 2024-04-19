@@ -1,9 +1,7 @@
-import { BadgeTipo } from "./badges";
-
-export type QueryInStrutt = {
+export type QueryBadgeInStrutt = {
   id: string;
   codice: string;
-  tipo: string;
+  descrizione: string;
   assegnazione: string;
   cliente: string;
   postazione: string;
@@ -13,10 +11,40 @@ export type QueryInStrutt = {
   data_in: Date | string;
 };
 
-export type FindInStrutt = {
+export type FindBadgeInStrutt = {
   codice: string;
-  tipo: string;
+  descrizione: string;
   assegnazione: string;
+  cliente: string;
+  postazione: string;
+  nome: string;
+  cognome: string;
+  ditta: string;
+  ndoc: string;
+  tdoc: string;
+  telefono: string;
+  data_in: Date | string;
+};
+
+export type QueryVeicoloInStrutt = {
+  id: string;
+  targa: string;
+  descrizione: string;
+  assegnazione: string;
+  tveicolo: string;
+  cliente: string;
+  postazione: string;
+  nome: string;
+  cognome: string;
+  ditta: string;
+  data_in: Date | string;
+};
+
+export type FindVeicoloInStrutt = {
+  targa: string;
+  descrizione: string;
+  assegnazione: string;
+  tveicolo: string;
   cliente: string;
   postazione: string;
   nome: string;
@@ -63,18 +91,30 @@ export type FindInPrestito = {
   data_in: Date | string;
 };
 
-export type InsertArchProvData = {
+export type InsertArchBadgeData = {
   codice: string;
   nome?: string;
   cognome?: string;
   ditta?: string;
   telefono?: string;
-  ndoc: string;
-  tdoc: string;
-  postazione: number;
+  ndoc?: string;
+  tdoc?: string;
+  post_id: number;
 };
 
-export type FindInStruttData = {
+export type InsertArchVeicoloData = {
+  targa: string;
+  nome?: string;
+  cognome?: string;
+  ditta?: string;
+  telefono?: string;
+  ndoc?: string;
+  tdoc?: string;
+  post_id: number;
+  tveicolo: string;
+};
+
+export type FindBadgeInStruttData = {
   codice?: string | undefined;
   assegnazione?: string | undefined;
   nome?: string | undefined;
@@ -82,27 +122,48 @@ export type FindInStruttData = {
   ditta?: string | undefined;
   ndoc?: string | undefined;
   tdoc?: string | undefined;
-  tipiBadge?: BadgeTipo[] | undefined;
   clienti?: string[] | undefined;
-  postazioni?: number[] | undefined;
+  postazioniIds?: number[] | undefined;
 };
 
-export type TimbraDoc = {
+export type FindVeicoloInStruttData = {
+  targa?: string | undefined;
+  assegnazione?: string | undefined;
+  nome?: string | undefined;
+  cognome?: string | undefined;
+  ditta?: string | undefined;
+  ndoc?: string | undefined;
+  tdoc?: string | undefined;
+  clienti?: string[] | undefined;
+  postazioniIds?: number[] | undefined;
+};
+
+export type TimbraBadgeDoc = {
   badge: string;
-  postazione: number;
+  post_id: number;
+};
+
+export type TimbraVeicoloDoc = {
+  targa: string;
+  post_id: number;
 };
 
 export type PrestitoChiaviData = {
   barcodes: string[];
-  postazione: number;
+  post_id: number;
 };
 
 export type FindInPrestitoData = {
-  postazioni: number[];
+  postazioniIds: number[];
 };
 
-export type TimbraRes = {
-  row: QueryInStrutt;
+export type TimbraBadgeRes = {
+  row: QueryBadgeInStrutt;
+  isEntering: boolean;
+};
+
+export type TimbraVeicoloRes = {
+  row: QueryVeicoloInStrutt;
   isEntering: boolean;
 };
 

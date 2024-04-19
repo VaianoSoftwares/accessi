@@ -1,6 +1,7 @@
 import z from "zod";
-import { STATI_BADGE, TDOCS, TIPI_BADGE } from "../types/badges.js";
+import { TIPI_BADGE } from "../types/badges.js";
 import { BarcodePrefix } from "../types/archivio.js";
+import { TDOCS } from "../types/people.js";
 
 function MISSING_ATTR_ERR_MSG(attribute: string) {
   return `Campo ${attribute} risulta mancante`;
@@ -36,7 +37,7 @@ const BARCODE_LEN_ERR_MSG = `Barcode deve contenere esattamente ${BARCODE_LEN} c
 const ID_STUD_LEN = 7;
 const ID_STUD_LEN_ERR_MSG = `Codice studente deve contenere esattamente ${ID_STUD_LEN} cifre`;
 
-function ID_SCHEMA(attrName = "ID") {
+export function ID_SCHEMA(attrName = "ID") {
   return z.coerce
     .number({ required_error: MISSING_ATTR_ERR_MSG(attrName) })
     .nonnegative(ATTR_NUM_NEGATIVE(attrName));
@@ -65,7 +66,7 @@ export const REGISTER_SCHEMA = z.object({
   pages: z
     .number({ required_error: MISSING_ATTR_ERR_MSG("Permessi") })
     .nonnegative(ATTR_NUM_NEGATIVE("pagine")),
-  postazioni: z
+  postazioniIds: z
     .array(ID_SCHEMA("Postazione ID"))
     .nonempty(MISSING_ATTR_ERR_MSG("Postazioni")),
 });
@@ -78,11 +79,11 @@ export const UPDATE_USER_SCHEMA = z.object({
     password: PASSWORD_SCHEMA.optional(),
     permessi: z.number().nonnegative(ATTR_NUM_NEGATIVE("permessi")).optional(),
     pages: z.number().nonnegative(ATTR_NUM_NEGATIVE("pagine")).optional(),
-    postazioni: z
+    postazioniIds: z
       .array(
         z.object({
           checked: z.boolean(),
-          postazione: ID_SCHEMA("Postazione ID"),
+          post_id: ID_SCHEMA("Postazione ID"),
         })
       )
       .nonempty()
@@ -95,7 +96,7 @@ export const UPD_POST_USR_SCHEMA = z
   .array(
     z.object({
       checked: z.boolean(),
-      postazione: ID_SCHEMA("Postazione ID"),
+      post_id: ID_SCHEMA("Postazione ID"),
     })
   )
   .nonempty();
@@ -124,160 +125,167 @@ export const CODICE_SCHEMA = z.union([
   CODICE_VEICOLO_SCHEMA,
 ]);
 
-export const FIND_BADGES_SCHEMA = z.object({
-  codice: CODICE_SCHEMA.optional(),
-  descrizione: z.string().optional(),
-  assegnazione: z.string().optional(),
-  stato: z.enum(STATI_BADGE).optional(),
-  cliente: z.string().optional(),
-  nome: z.string().optional(),
-  cognome: z.string().optional(),
-  telefono: z.string().optional(),
-  ditta: z.string().optional(),
-  tdoc: z.enum(TDOCS).optional(),
-  ndoc: z.string().optional(),
-  ubicazione: z.string().optional(),
-  indirizzo: z.string().optional(),
-  citta: z.string().optional(),
-  edificio: z.string().optional(),
-  piano: z.string().optional(),
-  tveicolo: z.string().optional(),
-  targa1: z.string().optional(),
-  targa2: z.string().optional(),
-  targa3: z.string().optional(),
-  targa4: z.string().optional(),
-  tipo: z.string().optional(),
-});
-export type FindBadgesFilter = z.infer<typeof FIND_BADGES_SCHEMA>;
-
-export const INSERT_NOM_SCHEMA = z.object({
-  codice: CODICE_NOM_SCHEMA.nullish(),
-  descrizione: z.string().nullish(),
+export const GET_PEOPLES_SCHEMA = z.object({
+  id: ID_SCHEMA("Person ID").nullish(),
+  nome: z.string().nullish(),
+  cognome: z.string().nullish(),
   assegnazione: z.string().nullish(),
-  stato: z.enum(STATI_BADGE).nullish(),
-  cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
+  ditta: z.string().nullish(),
+  ndoc: z.string().nullish(),
+  tdoc: z.string().nullish(),
+  telefono: z.string().nullish(),
+  scadenza: z.coerce.date().nullish(),
+  cliente: z.string().nullish(),
+});
+export type FindPeoplesFilter = z.infer<typeof GET_PEOPLES_SCHEMA>;
+
+export const INSERT_PERSON_SCHEMA = z.object({
   nome: z.string({ required_error: MISSING_ATTR_ERR_MSG("Nome") }),
   cognome: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cognome") }),
-  telefono: z.string().nullish(),
-  ditta: z.string().nullish(),
-  tdoc: z.enum(TDOCS).nullish(),
-  ndoc: z.string().nullish(),
-  scadenza: z.coerce.date().nullish(),
+  assegnazione: z.string().default("UTENTE"),
+  ditta: z.string().optional(),
+  ndoc: z.string().optional(),
+  tdoc: z.string().optional(),
+  telefono: z.string().optional(),
+  scadenza: z.coerce.date().optional(),
+  cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
 });
-export type InsertNominativoData = z.infer<typeof INSERT_NOM_SCHEMA>;
+export type InsertPersonData = z.infer<typeof INSERT_PERSON_SCHEMA>;
 
-export const UPDATE_NOM_SCHEMA = z.object({
-  codice: CODICE_NOM_SCHEMA,
+export const UPDATE_PERSON_SCHEMA = z.object({
+  id: ID_SCHEMA("Person ID"),
   updateData: z.object({
-    codice: CODICE_NOM_SCHEMA.optional(),
-    descrizione: z.string().optional(),
-    assegnazione: z.string().optional(),
-    stato: z.enum(STATI_BADGE).optional(),
-    cliente: z.string().optional(),
     nome: z.string().optional(),
     cognome: z.string().optional(),
-    telefono: z.string().optional(),
+    assegnazione: z.string().optional(),
     ditta: z.string().optional(),
-    tdoc: z.enum(TDOCS).optional(),
     ndoc: z.string().optional(),
+    tdoc: z.string().optional(),
+    telefono: z.string().optional(),
     scadenza: z.coerce.date().optional(),
+    cliente: z.string().optional(),
   }),
 });
-export type UpdateNominativoData = z.infer<typeof UPDATE_NOM_SCHEMA>;
+export type UpdatePersonData = z.infer<typeof UPDATE_PERSON_SCHEMA>;
 
-export const INSERT_PROVV_SCHEMA = z.object({
-  codice: CODICE_PROV_SCHEMA.nullish(),
+export const GET_BADGES_SCHEMA = z.object({
+  codice: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).nullish(),
   descrizione: z.string().nullish(),
-  stato: z.enum(STATI_BADGE).default("VALIDO"),
-  cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
+  stato: z.string().nullish(),
+  cliente: z.string().nullish(),
+  proprietario: ID_SCHEMA("Proprietario ID").nullish(),
   ubicazione: z.string().nullish(),
+  provvisorio: z.coerce.boolean().optional(),
 });
-export type InsertProvvisorioData = z.infer<typeof INSERT_PROVV_SCHEMA>;
+export type FindBadgesFilter = z.infer<typeof GET_BADGES_SCHEMA>;
 
-export const UPDATE_PROVV_SCHEMA = z.object({
-  codice: CODICE_PROV_SCHEMA,
+export const INSERT_BADGE_SCHEMA = z.object({
+  descrizione: z.string().optional(),
+  stato: z.string().default("VALIDO"),
+  cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
+  proprietario: ID_SCHEMA("Proprietario ID").optional(),
+  ubicazione: z.string().optional(),
+  provvisorio: z.coerce.boolean().default(false),
+});
+export type InsertBadgeData = z.infer<typeof INSERT_BADGE_SCHEMA>;
+
+export const UPDATE_BADGE_SCHEMA = z.object({
+  codice: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]),
   updateData: z.object({
-    codice: CODICE_PROV_SCHEMA.optional(),
     descrizione: z.string().optional(),
-    stato: z.enum(STATI_BADGE).optional(),
-    cliente: z.string().optional(),
+    stato: z.string().optional(),
+    cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
+    proprietario: ID_SCHEMA("Proprietario ID").optional(),
     ubicazione: z.string().optional(),
   }),
 });
-export type UpdateProvvisorioData = z.infer<typeof UPDATE_PROVV_SCHEMA>;
+export type UpdateBadgeData = z.infer<typeof UPDATE_BADGE_SCHEMA>;
 
-export const INSERT_CHIAVE_SCHEMA = z.object({
+export const DELETE_BADGE_SCHEMA = z.union([
+  CODICE_NOM_SCHEMA,
+  CODICE_PROV_SCHEMA,
+]);
+
+export const GET_VEICOLI_SCHEMA = z.object({
+  id: ID_SCHEMA("Person ID").nullish(),
+  targa: z.string().nullish(),
+  tipo: z.string().nullish(),
+  descrizione: z.string().nullish(),
+  stato: z.string().nullish(),
+  cliente: z.string().nullish(),
+  proprietario: ID_SCHEMA("Proprietario ID").nullish(),
+});
+export type FindVeicoliFilter = z.infer<typeof GET_VEICOLI_SCHEMA>;
+
+export const INSERT_VEICOLO_SCHEMA = z.object({
+  targa: z.string({ required_error: MISSING_ATTR_ERR_MSG("Targa") }),
+  tipo: z.string().default("GENERICO"),
+  descrizione: z.string().optional(),
+  stato: z.string().default("VALIDO"),
+  cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
+  proprietario: ID_SCHEMA("Proprietario ID"),
+});
+export type InsertVeicoloData = z.infer<typeof INSERT_VEICOLO_SCHEMA>;
+
+export const UPDATE_VEICOLO_SCHEMA = z.object({
+  id: ID_SCHEMA("Veicolo ID"),
+  updateData: z.object({
+    targa: z.string().optional(),
+    tipo: z.string().optional(),
+    descrizione: z.string().optional(),
+    stato: z.string().optional(),
+    cliente: z.string().optional(),
+    proprietario: ID_SCHEMA("Proprietario ID").optional(),
+  }),
+});
+export type UpdateVeicoloData = z.infer<typeof UPDATE_VEICOLO_SCHEMA>;
+
+export const GET_CHIAVI_SCHEMA = z.object({
   codice: CODICE_CHIAVE_SCHEMA.nullish(),
   descrizione: z.string().nullish(),
-  cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
-  ubicazione: z.string().nullish(),
+  stato: z.string().nullish(),
+  cliente: z.string().nullish(),
+  proprietario: ID_SCHEMA("Proprietario ID").nullish(),
   indirizzo: z.string().nullish(),
-  citta: z.string().nullish(),
   edificio: z.string().nullish(),
+  citta: z.string().nullish(),
   piano: z.string().nullish(),
+  ubicazione: z.string().nullish(),
+});
+export type FindChiaviFilter = z.infer<typeof GET_CHIAVI_SCHEMA>;
+
+export const INSERT_CHIAVE_SCHEMA = z.object({
+  descrizione: z.string().optional(),
+  stato: z.string().default("VALIDO"),
+  cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
+  proprietario: ID_SCHEMA("Proprietario ID").optional(),
+  indirizzo: z.string().optional(),
+  edificio: z.string().optional(),
+  citta: z.string().optional(),
+  piano: z.string().optional(),
+  ubicazione: z.string().nullish(),
 });
 export type InsertChiaveData = z.infer<typeof INSERT_CHIAVE_SCHEMA>;
 
 export const UPDATE_CHIAVE_SCHEMA = z.object({
   codice: CODICE_CHIAVE_SCHEMA,
   updateData: z.object({
-    codice: CODICE_CHIAVE_SCHEMA.optional(),
     descrizione: z.string().optional(),
+    stato: z.string().optional(),
     cliente: z.string().optional(),
-    ubicazione: z.string().optional(),
+    proprietario: ID_SCHEMA("Proprietario ID").optional(),
     indirizzo: z.string().optional(),
-    citta: z.string().optional(),
     edificio: z.string().optional(),
+    citta: z.string().optional(),
     piano: z.string().optional(),
+    ubicazione: z.string().nullish(),
   }),
 });
 export type UpdateChiaveData = z.infer<typeof UPDATE_CHIAVE_SCHEMA>;
 
-export const INSERT_VEICOLO_SCHEMA = z.object({
-  codice: CODICE_VEICOLO_SCHEMA.nullish(),
-  descrizione: z.string().nullish(),
-  assegnazione: z.string().nullish(),
-  stato: z.enum(STATI_BADGE).default("VALIDO"),
-  cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
-  nome: z.string({ required_error: MISSING_ATTR_ERR_MSG("Nome") }),
-  cognome: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cognome") }),
-  telefono: z.string().nullish(),
-  ditta: z.string().nullish(),
-  tdoc: z.enum(TDOCS).nullish(),
-  ndoc: z.string().nullish(),
-  tveicolo: z.string().nullish(),
-  targa1: z.string().nullish(),
-  targa2: z.string().nullish(),
-  targa3: z.string().nullish(),
-  targa4: z.string().nullish(),
-});
-export type InsertVeicoloData = z.infer<typeof INSERT_VEICOLO_SCHEMA>;
-
-export const UPDATE_VEICOLO_SCHEMA = z.object({
-  codice: CODICE_VEICOLO_SCHEMA,
-  updateData: z.object({
-    codice: CODICE_VEICOLO_SCHEMA.optional(),
-    descrizione: z.string().optional(),
-    assegnazione: z.string().optional(),
-    stato: z.enum(STATI_BADGE).optional(),
-    cliente: z.string().optional(),
-    nome: z.string().optional(),
-    cognome: z.string().optional(),
-    telefono: z.string().optional(),
-    ditta: z.string().optional(),
-    tdoc: z.enum(TDOCS).optional(),
-    ndoc: z.string().optional(),
-    tveicolo: z.string().optional(),
-    targa1: z.string().optional(),
-    targa2: z.string().optional(),
-    targa3: z.string().optional(),
-    targa4: z.string().optional(),
-  }),
-});
-export type UpdateVeicoloData = z.infer<typeof UPDATE_VEICOLO_SCHEMA>;
-
-export const FIND_ARCHIVIO_SCHEMA = z.object({
+export const GET_ARCHIVIO_SCHEMA = z.object({
   badge: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
+  targa: z.string().optional(),
   chiave: CODICE_CHIAVE_SCHEMA.optional(),
   tipo: z.enum(TIPI_BADGE).optional(),
   data_in_min: z.coerce.date().optional(),
@@ -285,27 +293,25 @@ export const FIND_ARCHIVIO_SCHEMA = z.object({
   data_out_min: z.coerce.date().optional(),
   data_out_max: z.coerce.date().optional(),
   postazione: z.string().optional(),
-  postazione_id: ID_SCHEMA("ID Postazione").optional(),
+  post_id: ID_SCHEMA("ID Postazione").optional(),
   ip: z.string().optional(),
+  username: z.string().optional(),
   nome: z.string().optional(),
   cognome: z.string().optional(),
   telefono: z.string().optional(),
   ditta: z.string().optional(),
   tdoc: z.enum(TDOCS).optional(),
   ndoc: z.string().optional(),
+  scadenza: z.coerce.date().optional(),
   indirizzo: z.string().optional(),
   citta: z.string().optional(),
   edificio: z.string().optional(),
   piano: z.string().optional(),
-  targa1: z.string().optional(),
-  targa2: z.string().optional(),
-  targa3: z.string().optional(),
-  targa4: z.string().optional(),
   tveicolo: z.string().optional(),
 });
-export type FindArchivioFilter = z.infer<typeof FIND_ARCHIVIO_SCHEMA>;
+export type FindArchivioFilter = z.infer<typeof GET_ARCHIVIO_SCHEMA>;
 
-export const FIND_IN_STRUTT_SCHEMA = z.object({
+export const GET_IN_STRUTT_BADGES_SCHEMA = z.object({
   id: ID_SCHEMA().optional(),
   badge: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
   codice: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
@@ -313,29 +319,48 @@ export const FIND_IN_STRUTT_SCHEMA = z.object({
   tipi: z.enum(TIPI_BADGE).array().nonempty().optional(),
   data_in_min: z.coerce.date().optional(),
   data_in_max: z.coerce.date().optional(),
-  postazione: ID_SCHEMA("ID Postazione").optional(),
-  postazioni: ID_SCHEMA("ID Postazione").array().nonempty().optional(),
+  post_id: ID_SCHEMA("ID Postazione").optional(),
+  postazioniIds: ID_SCHEMA("ID Postazione").array().nonempty().optional(),
   nome: z.string().optional(),
   cognome: z.string().optional(),
   telefono: z.string().optional(),
   ditta: z.string().optional(),
   tdoc: z.enum(TDOCS).optional(),
   ndoc: z.string().optional(),
-  targa1: z.string().optional(),
-  targa2: z.string().optional(),
-  targa3: z.string().optional(),
-  targa4: z.string().optional(),
+});
+export type FindInStruttBadgesFilter = z.infer<
+  typeof GET_IN_STRUTT_BADGES_SCHEMA
+>;
+
+export const GET_IN_STRUTT_VEICOLI_SCHEMA = z.object({
+  id: ID_SCHEMA().optional(),
+  targa: z.string().optional(),
+  veicolo: z.string().optional(),
+  tipo: z.enum(TIPI_BADGE).optional(),
+  tipi: z.enum(TIPI_BADGE).array().nonempty().optional(),
+  data_in_min: z.coerce.date().optional(),
+  data_in_max: z.coerce.date().optional(),
+  post_id: ID_SCHEMA("ID Postazione").optional(),
+  postazioniIds: ID_SCHEMA("ID Postazione").array().nonempty().optional(),
+  nome: z.string().optional(),
+  cognome: z.string().optional(),
+  telefono: z.string().optional(),
+  ditta: z.string().optional(),
+  tdoc: z.enum(TDOCS).optional(),
+  ndoc: z.string().optional(),
   tveicolo: z.string().optional(),
 });
-export type FindInStruttFilter = z.infer<typeof FIND_IN_STRUTT_SCHEMA>;
+export type FindInStruttVeicoliFilter = z.infer<
+  typeof GET_IN_STRUTT_VEICOLI_SCHEMA
+>;
 
 export const FIND_IN_PRESTITO_SCHEMA = z.object({
   badge: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
   chiave: CODICE_CHIAVE_SCHEMA.optional(),
   data_in_min: z.coerce.date().optional(),
   data_in_max: z.coerce.date().optional(),
-  postazione: ID_SCHEMA("ID Postazione").optional(),
-  postazioni: ID_SCHEMA("ID Postazione").array().nonempty().optional(),
+  post_id: ID_SCHEMA("ID Postazione").optional(),
+  postazioniIds: ID_SCHEMA("ID Postazione").array().nonempty().optional(),
   nome: z.string().optional(),
   cognome: z.string().optional(),
   telefono: z.string().optional(),
@@ -351,42 +376,32 @@ export type FindInPrestitoFilter = z.infer<typeof FIND_IN_PRESTITO_SCHEMA>;
 
 const BARCODE_NOM_ENTRA_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-  .startsWith(BarcodePrefix.nominativoEntra, "Barcode non valido")
+  .startsWith(BarcodePrefix.nominativoIn, "Barcode non valido")
   .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
   .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
 const BARCODE_NOM_ESCE_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-  .startsWith(BarcodePrefix.nominativoEsce, "Barcode non valido")
+  .startsWith(BarcodePrefix.nominativoOut, "Barcode non valido")
   .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
   .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
 const BARCODE_PROV_ENTRA_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-  .startsWith(BarcodePrefix.provvisorioEntra, "Barcode non valido")
+  .startsWith(BarcodePrefix.provvisorioIn, "Barcode non valido")
   .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
   .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
 const BARCODE_PROV_ESCE_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-  .startsWith(BarcodePrefix.provvisorioEsce, "Barcode non valido")
+  .startsWith(BarcodePrefix.provvisorioOut, "Barcode non valido")
   .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
   .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
 const BARCODE_CHIAVE_ENTRA_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-  .startsWith(BarcodePrefix.chiaveEntra, "Barcode non valido")
+  .startsWith(BarcodePrefix.chiaveIn, "Barcode non valido")
   .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
   .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
 const BARCODE_CHIAVE_ESCE_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-  .startsWith(BarcodePrefix.chiaveEsce, "Barcode non valido")
-  .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
-  .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
-const BARCODE_VEICOLO_ENTRA_SCHEMA = z
-  .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-  .startsWith(BarcodePrefix.veicoloEntra, "Barcode non valido")
-  .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
-  .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
-const BARCODE_VEICOLO_ESCE_SCHEMA = z
-  .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-  .startsWith(BarcodePrefix.veicoloEsce, "Barcode non valido")
+  .startsWith(BarcodePrefix.chiaveOut, "Barcode non valido")
   .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
   .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
 const CODICE_STUDENTE_SCHEMA = z
@@ -400,17 +415,24 @@ export const TIMBRA_BADGE_SCHEMA = z.object({
     BARCODE_NOM_ESCE_SCHEMA,
     BARCODE_PROV_ENTRA_SCHEMA,
     BARCODE_PROV_ESCE_SCHEMA,
-    BARCODE_VEICOLO_ENTRA_SCHEMA,
-    BARCODE_VEICOLO_ESCE_SCHEMA,
     CODICE_STUDENTE_SCHEMA,
   ]),
-  postazione: ID_SCHEMA("Postazione ID"),
+  post_id: ID_SCHEMA("Postazione ID"),
   ip: z.string().default("unknown"),
   username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
 });
+export type TimbraBadgeData = z.infer<typeof TIMBRA_BADGE_SCHEMA>;
+
+export const TIMBRA_VEICOLO_SCHEMA = z.object({
+  targa: z.string({ required_error: MISSING_ATTR_ERR_MSG("Targa") }),
+  post_id: ID_SCHEMA("Postazione ID"),
+  ip: z.string().default("unknown"),
+  username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
+});
+export type TimbraVeicoloData = z.infer<typeof TIMBRA_VEICOLO_SCHEMA>;
 
 export const TIMBRA_CHIAVI_SCHEMA = z.object({
-  postazione: ID_SCHEMA("Postazione ID"),
+  post_id: ID_SCHEMA("Postazione ID"),
   barcodes: z
     .union([
       BARCODE_CHIAVE_ENTRA_SCHEMA,
@@ -425,24 +447,42 @@ export const TIMBRA_CHIAVI_SCHEMA = z.object({
   ip: z.string().default("unknown"),
   username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
 });
+// export type TimbraChiaviData = z.infer<typeof TIMBRA_CHIAVI_SCHEMA>;
 
-export const INSERT_ARCH_PROV_SCHEMA = z.object({
+export const INSERT_ARCH_BADGE_SCHEMA = z.object({
   badge: z.union([
     BARCODE_PROV_ENTRA_SCHEMA,
     BARCODE_PROV_ESCE_SCHEMA,
     CODICE_PROV_SCHEMA,
   ]),
-  postazione: ID_SCHEMA("Postazione ID"),
-  nome: z.string().nullish(),
-  cognome: z.string().nullish(),
-  ditta: z.string().nullish(),
-  telefono: z.string().nullish(),
-  ndoc: z.string().nullish(),
-  tdoc: z.string().nullish(),
+  post_id: ID_SCHEMA("Postazione ID"),
   ip: z.string().default("unknown"),
   username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
+  nome: z.string().optional(),
+  cognome: z.string().optional(),
+  assegnazione: z.string().default("OSPITE"),
+  ditta: z.string().optional(),
+  telefono: z.string().optional(),
+  ndoc: z.string().optional(),
+  tdoc: z.string().optional(),
 });
-export type InsertArchProvData = z.infer<typeof INSERT_ARCH_PROV_SCHEMA>;
+export type InsertArchBadgeData = z.infer<typeof INSERT_ARCH_BADGE_SCHEMA>;
+
+export const INSERT_ARCH_VEICOLO_SCHEMA = z.object({
+  targa: z.string({ required_error: MISSING_ATTR_ERR_MSG("Targa") }),
+  post_id: ID_SCHEMA("Postazione ID"),
+  ip: z.string().default("unknown"),
+  username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
+  nome: z.string().optional(),
+  cognome: z.string().optional(),
+  assegnazione: z.string().default("OSPITE"),
+  ditta: z.string().optional(),
+  telefono: z.string().optional(),
+  ndoc: z.string().optional(),
+  tdoc: z.string().optional(),
+  tveicolo: z.string().default("GENERICO"),
+});
+export type InsertArchVeicoloData = z.infer<typeof INSERT_ARCH_VEICOLO_SCHEMA>;
 
 export const GET_PROTOCOLLI_SCHEMA = z.object({
   id: ID_SCHEMA("Prot ID").optional(),
@@ -451,7 +491,7 @@ export const GET_PROTOCOLLI_SCHEMA = z.object({
   filename: z.string().optional(),
   dataInizio: z.coerce.date().optional(),
   dataFine: z.coerce.date().optional(),
-  postazioneId: ID_SCHEMA("User ID").optional(),
+  post_id: ID_SCHEMA("User ID").optional(),
   postazioneName: z.string().optional(),
 });
 export type GetProtocolliFilter = z.infer<typeof GET_PROTOCOLLI_SCHEMA>;

@@ -1,3 +1,54 @@
+export type BaseForm = Partial<{
+  [key: string]: string | string[] | undefined;
+}>;
+
+export type PeopleForm = {
+  id?: string | undefined;
+  nome?: string | undefined;
+  cognome?: string | undefined;
+  assegnazione?: string | undefined;
+  ditta?: string | undefined;
+  tdoc?: string | undefined;
+  ndoc?: string | undefined;
+  telefono?: string | undefined;
+  scadenza?: string | undefined;
+  pfp?: string | undefined;
+  privacy?: string | undefined;
+  documento?: string | undefined;
+  cliente?: string | undefined;
+};
+
+export type BadgesForm = {
+  codice?: string | undefined;
+  descrizione?: string | undefined;
+  stato?: string | undefined;
+  ubicazione?: string | undefined;
+  cliente?: string | undefined;
+  proprietario?: string[] | undefined;
+  provvisorio?: string | undefined;
+};
+
+export type ChiaviForm = {
+  codice?: string | undefined;
+  descrizione?: string | undefined;
+  stato?: string | undefined;
+  ubicazione?: string | undefined;
+  cliente?: string | undefined;
+  indirizzo?: string | undefined;
+  citta?: string | undefined;
+  edificio?: string | undefined;
+  piano?: string | undefined;
+  proprietario?: string[] | undefined;
+};
+
+export type VeicoliForm = {
+  id?: string | undefined;
+  targa?: string | undefined;
+  tipo?: string | undefined;
+  proprietario?: string[] | undefined;
+  cliente?: string[] | undefined;
+};
+
 export type AnagraficoForm = {
   codice?: string | undefined;
   descrizione?: string | undefined;
@@ -27,7 +78,7 @@ export type AnagraficoForm = {
   targa4?: string | undefined;
 };
 
-export type FindInStruttForm = {
+export type FindBadgesInStruttForm = {
   badge?: string | undefined;
   assegnazione?: string | undefined;
   nome?: string | undefined;
@@ -37,7 +88,18 @@ export type FindInStruttForm = {
   tdoc?: string | undefined;
 };
 
-export type InsertArchProvForm = {
+export type FindVeicoliInStruttForm = {
+  targa?: string | undefined;
+  assegnazione?: string | undefined;
+  nome?: string | undefined;
+  cognome?: string | undefined;
+  ditta?: string | undefined;
+  ndoc?: string | undefined;
+  tdoc?: string | undefined;
+  tveicolo?: string | undefined;
+};
+
+export type InsertArchBadgeForm = {
   badge?: string | undefined;
   nome?: string | undefined;
   cognome?: string | undefined;
@@ -45,6 +107,18 @@ export type InsertArchProvForm = {
   telefono?: string | undefined;
   ndoc?: string | undefined;
   tdoc?: string | undefined;
+  documento?: string | undefined;
+};
+
+export type InsertArchVeicoloForm = {
+  targa?: string | undefined;
+  nome?: string | undefined;
+  cognome?: string | undefined;
+  ditta?: string | undefined;
+  telefono?: string | undefined;
+  ndoc?: string | undefined;
+  tdoc?: string | undefined;
+  tveicolo?: string | undefined;
   documento?: string | undefined;
 };
 

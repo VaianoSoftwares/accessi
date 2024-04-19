@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import BadgeDataService from "../../services/badge";
+import PeopleDataService from "../../services/people";
 import ArchivioDataService from "../../services/archivio";
 import PostazioniDataService from "../../services/postazioni";
 import ClientiDataService from "../../services/clienti";
@@ -46,7 +46,7 @@ export default function Archivio() {
     queryKey: ["assegnazioni"],
     queryFn: async () => {
       try {
-        const response = await BadgeDataService.getAssegnazioni();
+        const response = await PeopleDataService.getAssegnazioni();
         console.log("queryAssegnazioni | response:", response);
         if (response.data.success === false) {
           throw response.data.error;

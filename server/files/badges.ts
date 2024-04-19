@@ -7,7 +7,7 @@ import { UPLOADS_DIR } from "./index.js";
 
 async function uploadFile(
   prefix: string,
-  key: string,
+  key: number,
   file: UploadedFile,
   options: { expectedExt: string; maxSize: number }
 ) {
@@ -33,7 +33,7 @@ async function uploadFile(
   return { fileName: newName, filePath };
 }
 
-async function deleteFile(prefix: string, key: string) {
+async function deleteFile(prefix: string, key: number) {
   const fileName = `${prefix}${key}.jpg`;
   const filePath = path.resolve(UPLOADS_DIR, fileName);
 
@@ -44,32 +44,32 @@ async function deleteFile(prefix: string, key: string) {
   return { fileName, filePath };
 }
 
-export async function uploadPfp(barcode: string, pfp: UploadedFile) {
-  return await uploadFile("PFP_", barcode, pfp, {
+export async function uploadPfp(id: number, pfp: UploadedFile) {
+  return await uploadFile("PFP_", id, pfp, {
     expectedExt: ".jpg",
     maxSize: 50 * 1024,
   });
 }
-export async function deletePfp(barcode: string) {
-  return await deleteFile("PFP_", barcode);
+export async function deletePfp(id: number) {
+  return await deleteFile("PFP_", id);
 }
 
-export async function uploadPrivacy(barcode: string, privacy: UploadedFile) {
-  return await uploadFile("PRIVACY_", barcode, privacy, {
+export async function uploadPrivacy(id: number, privacy: UploadedFile) {
+  return await uploadFile("PRIVACY_", id, privacy, {
     expectedExt: ".pdf",
     maxSize: 50 * 1024 * 1024,
   });
 }
-export async function deletePrivacy(barcode: string) {
-  return await deleteFile("PRIVACY_", barcode);
+export async function deletePrivacy(id: number) {
+  return await deleteFile("PRIVACY_", id);
 }
 
-export async function uploadDocumento(barcode: string, file: UploadedFile) {
-  return await uploadFile("DOC_", barcode, file, {
+export async function uploadDocumento(id: number, file: UploadedFile) {
+  return await uploadFile("DOC_", id, file, {
     expectedExt: ".jpg",
     maxSize: 50 * 1024 * 1024,
   });
 }
-export async function deleteDocumento(barcode: string) {
-  return await deleteFile("DOC_", barcode);
+export async function deleteDocumento(id: number) {
+  return await deleteFile("DOC_", id);
 }

@@ -18,7 +18,7 @@ function reqDataToUpperCase<T extends object>(data: T) {
 
 export async function apiGetArchivio(req: Request, res: Response) {
   try {
-    const parsed = Validator.FIND_ARCHIVIO_SCHEMA.safeParse(req.query);
+    const parsed = Validator.GET_ARCHIVIO_SCHEMA.safeParse(req.query);
     if (parsed.success === false) {
       throw new BaseError(parsed.error.errors[0].message, {
         status: 400,
@@ -36,16 +36,36 @@ export async function apiGetArchivio(req: Request, res: Response) {
   }
 }
 
-export async function apiGetInStrutt(req: Request, res: Response) {
+export async function apiGetBadgesInStrutt(req: Request, res: Response) {
   try {
-    const parsed = Validator.FIND_IN_STRUTT_SCHEMA.safeParse(req.query);
+    const parsed = Validator.GET_IN_STRUTT_BADGES_SCHEMA.safeParse(req.query);
     if (parsed.success === false) {
       throw new BaseError(parsed.error.errors[0].message, {
         status: 400,
         cause: parsed.error,
       });
     }
-    const dbResult = await ArchivioDB.getInStrutt(
+    const dbResult = await ArchivioDB.getBadgesInStrutt(
+      reqDataToUpperCase(parsed.data)
+    );
+    res.json(Ok(dbResult.rows));
+  } catch (e) {
+    const error = enforceBaseErr(e);
+    console.error(error);
+    res.status(error.status).json(Err(error.toJSON()));
+  }
+}
+
+export async function apiGetVeicoliInStrutt(req: Request, res: Response) {
+  try {
+    const parsed = Validator.GET_IN_STRUTT_VEICOLI_SCHEMA.safeParse(req.query);
+    if (parsed.success === false) {
+      throw new BaseError(parsed.error.errors[0].message, {
+        status: 400,
+        cause: parsed.error,
+      });
+    }
+    const dbResult = await ArchivioDB.getVeicoliInStrutt(
       reqDataToUpperCase(parsed.data)
     );
     res.json(Ok(dbResult.rows));
@@ -90,54 +110,60 @@ export async function apiTimbraBadge(req: Request, res: Response) {
       });
     }
 
-    const barcodeType =
-      parsed.data.badge.length === 10
-        ? parsed.data.badge.substring(0, 2)
-        : "UNI";
+    const { badge } = parsed.data;
+
+    const barcodeType = badge.length === 10 ? badge.substring(0, 2) : "UNI";
 
     const timbraData = {
       ...parsed.data,
-      badge:
-        barcodeType === "UNI"
-          ? parsed.data.badge
-          : parsed.data.badge.substring(1),
+      badge: badge.length === 10 ? badge.substring(1) : badge,
     };
 
     let dbRes;
     switch (barcodeType) {
-      case BarcodePrefix.provvisorioEntra:
-        dbRes = await ArchivioDB.timbraEntrataProvvisorio(timbraData);
+      case BarcodePrefix.nominativoIn:
+        dbRes = await ArchivioDB.timbraBadgeIn(timbraData);
         break;
-      case BarcodePrefix.provvisorioEsce:
-        dbRes = await ArchivioDB.timbraUscitaProvvisorio(timbraData);
+
+      case BarcodePrefix.nominativoOut:
+        dbRes = await ArchivioDB.timbraBadgeOut(timbraData);
         break;
-      case BarcodePrefix.nominativoEntra:
-        dbRes = await ArchivioDB.timbraEntrataNominativo(timbraData);
+
+      case BarcodePrefix.provvisorioIn:
+        dbRes = await ArchivioDB.timbraBadgeProvIn(timbraData);
         break;
-      case BarcodePrefix.nominativoEsce:
-        dbRes = await ArchivioDB.timbraUscitaNominativo(timbraData);
+
+      case BarcodePrefix.provvisorioOut:
+        dbRes = await ArchivioDB.timbraBadgeProvOut(timbraData);
         break;
-      case BarcodePrefix.veicoloEntra:
-        dbRes = await ArchivioDB.timbraEntrataVeicolo(timbraData);
-        break;
-      case BarcodePrefix.veicoloEsce:
-        dbRes = await ArchivioDB.timbraUscitaVeicolo(timbraData);
-        break;
-      case "UNI":
-        dbRes = await ArchivioDB.timbraUniversitario({
-          postazione: timbraData.postazione,
-          username: req.user!.name,
-          ip: timbraData.ip,
-          ndoc: timbraData.badge,
-        });
-        break;
+
       default:
-        throw new BaseError("Prefisso Barcode non valido", {
-          status: 400,
-          context: { badge: timbraData.badge },
-        });
+        dbRes = await ArchivioDB.timbraUniversitario(timbraData);
+        break;
     }
 
+    res.json(Ok(dbRes));
+  } catch (e) {
+    const error = enforceBaseErr(e);
+    console.error(error);
+    res.status(error.status).json(Err(error.toJSON()));
+  }
+}
+
+export async function apiTimbraVeicolo(req: Request, res: Response) {
+  try {
+    const parsed = Validator.TIMBRA_VEICOLO_SCHEMA.safeParse({
+      ...req.body,
+      ip: req.ip,
+      username: req.user?.name,
+    });
+    if (parsed.success === false) {
+      throw new BaseError(parsed.error.errors[0].message, {
+        status: 400,
+        cause: parsed.error,
+      });
+    }
+    const dbRes = await ArchivioDB.timbraVeicolo(parsed.data);
     res.json(Ok(dbRes));
   } catch (e) {
     const error = enforceBaseErr(e);
@@ -206,9 +232,9 @@ export async function apiTimbraChiavi(req: Request, res: Response) {
   }
 }
 
-export async function apiInsertProvvisorio(req: Request, res: Response) {
+export async function apiInsertBadgeProvvisorio(req: Request, res: Response) {
   try {
-    const parsed = Validator.INSERT_ARCH_PROV_SCHEMA.safeParse({
+    const parsed = Validator.INSERT_ARCH_BADGE_SCHEMA.safeParse({
       ...req.body,
       ip: req.ip,
       username: req.user?.name,
@@ -220,7 +246,7 @@ export async function apiInsertProvvisorio(req: Request, res: Response) {
       });
     }
 
-    const dbResult = await ArchivioDB.insertProvvisorio(
+    const dbResult = await ArchivioDB.insertBadgeProvvisorio(
       reqDataToUpperCase({
         ...parsed.data,
         badge:
@@ -229,13 +255,18 @@ export async function apiInsertProvvisorio(req: Request, res: Response) {
             : parsed.data.badge,
       })
     );
+    if (!dbResult.rowCount) {
+      throw new BaseError("Impossibile inserire provvisorio", { status: 400 });
+    }
+
+    const archId = dbResult.rows[0].id;
 
     let uploadedFile;
     const documento = Array.isArray(req.files?.documento)
       ? req.files?.documento[0]
       : req.files?.documento;
     if (documento) {
-      uploadedFile = await uploadDocumento(parsed.data.badge, documento);
+      uploadedFile = await uploadDocumento(archId, documento);
     }
 
     res.json(Ok({ ...dbResult, uploadedFile }));
@@ -246,126 +277,41 @@ export async function apiInsertProvvisorio(req: Request, res: Response) {
   }
 }
 
-// export async function apiTimbraEntrataNominativo(req: Request, res: Response) {
-//   try {
-//     const parsed = Validator.TIMBRA_BADGE_SCHEMA.safeParse(req.body);
-//     if (parsed.success === false) {
-//       throw new BaseError(parsed.error.errors[0].message, {
-//         status: 400,
-//         cause: parsed.error,
-//       });
-//     }
+export async function apiInsertVeicoloProvvisorio(req: Request, res: Response) {
+  try {
+    const parsed = Validator.INSERT_ARCH_VEICOLO_SCHEMA.safeParse({
+      ...req.body,
+      ip: req.ip,
+      username: req.user?.name,
+    });
+    if (parsed.success === false) {
+      throw new BaseError(parsed.error.errors[0].message, {
+        status: 400,
+        cause: parsed.error,
+      });
+    }
 
-//     const dbResult = await ArchivioDB.timbraEntrataNominativo({
-//       ...parsed.data,
-//       badge: parsed.data.badge.substring(1),
-//       ip: req.ip,
-//     });
+    const dbResult = await ArchivioDB.insertBadgeProvvisorio(
+      reqDataToUpperCase(parsed.data as any)
+    );
+    if (!dbResult.rowCount) {
+      throw new BaseError("Impossibile inserire provvisorio", { status: 400 });
+    }
 
-//     res.json(Ok(dbResult));
-//   } catch (e) {
-//     const error = enforceBaseErr(e);
-//     console.error(error.message);
-//     res.status(error.status).json(Err(error.toJSON()));
-//   }
-// }
+    const archId = dbResult.rows[0].id;
 
-// export async function apiTimbraUscitaNominativo(req: Request, res: Response) {
-//   try {
-//     const badge = String(req.body.badge);
-//     if (!String(badge).startsWith("10"))
-//       throw new BaseError("Barcode non valido", { status: 400 });
+    let uploadedFile;
+    const documento = Array.isArray(req.files?.documento)
+      ? req.files?.documento[0]
+      : req.files?.documento;
+    if (documento) {
+      uploadedFile = await uploadDocumento(archId, documento);
+    }
 
-//     const dbResult = await ArchivioDB.timbraUscitaNominativo({
-//       badge: badge.substring(1),
-//       postazione: 1,
-//     });
-
-//     res.json(Ok(dbResult));
-//   } catch (e) {
-//     const error = enforceBaseErr(e);
-//     console.error(error.message);
-//     res.status(error.status).json(Err(error.toJSON()));
-//   }
-// }
-
-// export async function apiTimbraEntrataVeicolo(req: Request, res: Response) {
-//   try {
-//     const parsed = Validator.TIMBRA_BADGE_SCHEMA.safeParse(req.body);
-//     if (parsed.success === false) {
-//       throw new BaseError(parsed.error.errors[0].message, {
-//         status: 400,
-//         cause: parsed.error,
-//       });
-//     }
-
-//     const dbResult = await ArchivioDB.timbraEntrataVeicolo({
-//       ...parsed.data,
-//       badge: parsed.data.badge.substring(1),
-//       ip: req.ip,
-//     });
-
-//     res.json(Ok(dbResult));
-//   } catch (e) {
-//     const error = enforceBaseErr(e);
-//     console.error(error.message);
-//     res.status(error.status).json(Err(error.toJSON()));
-//   }
-// }
-
-// export async function apiTimbraUscitaVeicolo(req: Request, res: Response) {
-//   try {
-//     const badge = String(req.body.badge);
-//     if (!String(badge).startsWith("13"))
-//       throw new BaseError("Barcode non valido", { status: 400 });
-
-//     const dbResult = await ArchivioDB.timbraUscitaVeicolo({
-//       badge: badge.substring(1),
-//       postazione: 1,
-//     });
-
-//     res.json(Ok(dbResult));
-//   } catch (e) {
-//     const error = enforceBaseErr(e);
-//     console.error(error.message);
-//     res.status(error.status).json(Err(error.toJSON()));
-//   }
-// }
-
-// export async function apiTimbraEntrataProvvisorio(req: Request, res: Response) {
-//   try {
-//     const badge = String(req.body.badge);
-//     if (!String(badge).startsWith("01"))
-//       throw new BaseError("Barcode non valido", { status: 400 });
-
-//     const dbResult = await ArchivioDB.timbraEntrataProvvisorio({
-//       badge: badge.substring(1),
-//       postazione: 1,
-//     });
-
-//     res.json(Ok(dbResult));
-//   } catch (e) {
-//     const error = enforceBaseErr(e);
-//     console.error(error.message);
-//     res.status(error.status).json(Err(error.toJSON()));
-//   }
-// }
-
-// export async function apiTimbraUscitaProvvisorio(req: Request, res: Response) {
-//   try {
-//     const badge = String(req.body.badge);
-//     if (!String(badge).startsWith("11"))
-//       throw new BaseError("Barcode non valido", { status: 400 });
-
-//     const dbResult = await ArchivioDB.timbraUscitaProvvisorio({
-//       badge: badge.substring(1),
-//       postazione: 1,
-//     });
-
-//     res.json(Ok(dbResult));
-//   } catch (e) {
-//     const error = enforceBaseErr(e);
-//     console.error(error.message);
-//     res.status(error.status).json(Err(error.toJSON()));
-//   }
-// }
+    res.json(Ok({ ...dbResult, uploadedFile }));
+  } catch (e) {
+    const error = enforceBaseErr(e);
+    console.error(error.message);
+    res.status(error.status).json(Err(error.toJSON()));
+  }
+}
