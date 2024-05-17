@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { TLoggedUser } from "../types/users";
+import { TUser } from "../types/users";
 import useSessionStorage from "./useSessionStorage";
 import { useNavigate } from "react-router-dom";
 
@@ -7,7 +7,7 @@ const storageKey = "user";
 
 export default function useCurrentUser() {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useSessionStorage<TLoggedUser | null>(
+  const [currentUser, setCurrentUser] = useSessionStorage<TUser | null>(
     storageKey,
     null
   );
@@ -23,5 +23,5 @@ export default function useCurrentUser() {
     setCurrentUser(null);
   }
 
-  return { currentUser, setCurrentUser, removeCurrentUser };
+  return { currentUser, setCurrentUser, removeCurrentUser } as const;
 }

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, Link } from "react-router-dom";
 import "./index.css";
+import UserDataService from "../../services/user";
 import PostazioniDataService from "../../services/postazioni";
 import ClientiDataService from "../../services/clienti";
 import { Dispatch, SetStateAction, useContext, useState } from "react";
@@ -83,6 +84,15 @@ export default function AccessiNavbar({
     },
   });
 
+  async function logout() {
+    try {
+      removeCurrentUser();
+      await UserDataService.logout();
+    } catch (e) {
+      handleError(e);
+    }
+  }
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container-fluid">
@@ -156,7 +166,11 @@ export default function AccessiNavbar({
             )}
             {hasPerm(currentUser, TPermessi.canLogout) && (
               <li className="nav-item">
-                <Link to="#" onClick={removeCurrentUser} className="nav-link">
+                <Link
+                  to="#"
+                  onClick={async () => await logout()}
+                  className="nav-link"
+                >
                   Logout {currentUser?.name}
                 </Link>
               </li>

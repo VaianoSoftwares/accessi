@@ -11,7 +11,7 @@ import Loader from "./components/Loader";
 import RootProvider from "./components/RootProvider";
 import { canAccessPage, isAdmin } from "./types/users";
 import { TPages } from "./types/pages";
-import { Postazione } from "./types/badges";
+import { BadgeType, Postazione } from "./types/badges";
 import useCurrentUser from "./hooks/useCurrentUser";
 import scannerHandler from "./utils/scannerHandler";
 
@@ -93,7 +93,7 @@ export default function App() {
                     <Badge
                       scannedValue={timbraVal}
                       clearScannedValue={() => setTimbraVal("")}
-                      tipoBadge={"NOMINATIVO"}
+                      tipoBadge={BadgeType.NOMINATIVO}
                       currPostazione={currPostazione}
                     />
                   </Suspense>
@@ -128,7 +128,7 @@ export default function App() {
                     <Badge
                       scannedValue={timbraVal}
                       clearScannedValue={() => setTimbraVal("")}
-                      tipoBadge={"VEICOLO"}
+                      tipoBadge={BadgeType.VEICOLO}
                       currPostazione={currPostazione}
                     />
                   </Suspense>

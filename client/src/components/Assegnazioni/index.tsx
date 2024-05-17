@@ -3,7 +3,7 @@ import "./index.css";
 import BadgeDataService from "../../services/badge";
 import { TAssegnazione } from "../../types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BadgeTipo, TIPI_BADGE } from "../../types/badges";
+import { BadgeType, TIPI_BADGE } from "../../types/badges";
 import useError from "../../hooks/useError";
 
 export default function Assegnazioni() {
@@ -44,7 +44,7 @@ export default function Assegnazioni() {
     onError: async (err) => handleError(err, "deleteAssegnazione"),
   });
 
-  const [currTBadge, setCurrTBadge] = useState<BadgeTipo>("NOMINATIVO");
+  const [currTBadge, setCurrTBadge] = useState<BadgeType>(BadgeType.NOMINATIVO);
   const nameRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -56,8 +56,8 @@ export default function Assegnazioni() {
             className="form-select form-select-sm"
             id="tipo-badge"
             placeholder="tipo badge"
-            onChange={(e) => setCurrTBadge(e.target.value as BadgeTipo)}
-            defaultValue="BADGE"
+            onChange={(e) => setCurrTBadge(e.target.value as BadgeType)}
+            defaultValue={BadgeType.NOMINATIVO}
           >
             {TIPI_BADGE.map((tipo, index) => (
               <option value={tipo} key={index}>

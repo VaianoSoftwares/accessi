@@ -1,7 +1,6 @@
 import z from "zod";
-import { TIPI_BADGE } from "../types/badges.js";
+import { TDOCS, TIPI_BADGE, STATI_BADGE, BadgeState } from "../types/badges.js";
 import { BarcodePrefix } from "../types/archivio.js";
-import { TDOCS } from "../types/people.js";
 
 function MISSING_ATTR_ERR_MSG(attribute: string) {
   return `Campo ${attribute} risulta mancante`;
@@ -118,168 +117,269 @@ export const CODICE_VEICOLO_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Codice") })
   .startsWith(BarcodePrefix.veicoloGenerico, "Codice non valido")
   .length(CODICE_LEN, CODICE_LEN_ERR_MSG);
+export const CODICE_STUDENTE_SCHEMA = z
+  .string({ required_error: MISSING_ATTR_ERR_MSG("Codice") })
+  .regex(/^\d+$/, "Codice studente deve contenere solo cifre numeriche")
+  .length(ID_STUD_LEN, ID_STUD_LEN_ERR_MSG);
+export const CODICE_PROV_OR_STUD_SCHEMA = z.union([
+  CODICE_PROV_SCHEMA,
+  CODICE_STUDENTE_SCHEMA,
+]);
 export const CODICE_SCHEMA = z.union([
   CODICE_NOM_SCHEMA,
   CODICE_PROV_SCHEMA,
   CODICE_CHIAVE_SCHEMA,
   CODICE_VEICOLO_SCHEMA,
+  CODICE_STUDENTE_SCHEMA,
 ]);
 
-export const GET_PEOPLES_SCHEMA = z.object({
-  id: ID_SCHEMA("Person ID").nullish(),
-  nome: z.string().nullish(),
-  cognome: z.string().nullish(),
-  assegnazione: z.string().nullish(),
-  ditta: z.string().nullish(),
-  ndoc: z.string().nullish(),
-  tdoc: z.string().nullish(),
-  telefono: z.string().nullish(),
+export const ZUC_COD_SCHEMA = z
+  .string({ required_error: MISSING_ATTR_ERR_MSG("Codice Zucchetti") })
+  .regex(/^\d+$/, "Codice Zucchetti deve contenere solo cifre numeriche")
+  .length(6, "Codice Zucchetti deve avere lunghezza 6");
+
+export const GET_NOMINATIVI_SCHEMA = z.object({
+  codice: CODICE_NOM_SCHEMA.nullish(),
+  descrizione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  stato: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  cliente: z.string().nullish(),
+  nome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  cognome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  assegnazione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  ditta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  ndoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  tdoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  telefono: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
   scadenza: z.coerce.date().nullish(),
-  cliente: z.string().nullish(),
+  zuc_cod: ZUC_COD_SCHEMA.nullish(),
 });
-export type FindPeoplesFilter = z.infer<typeof GET_PEOPLES_SCHEMA>;
+export type FindNominativiFilter = z.infer<typeof GET_NOMINATIVI_SCHEMA>;
 
-export const INSERT_PERSON_SCHEMA = z.object({
-  nome: z.string({ required_error: MISSING_ATTR_ERR_MSG("Nome") }),
-  cognome: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cognome") }),
-  assegnazione: z.string().default("UTENTE"),
-  ditta: z.string().optional(),
-  ndoc: z.string().optional(),
-  tdoc: z.string().optional(),
-  telefono: z.string().optional(),
-  scadenza: z.coerce.date().optional(),
+export const INSERT_NOMINATIVO_SCHEMA = z.object({
+  descrizione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  stato: z.enum(STATI_BADGE).default(BadgeState.VALIDO),
   cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
+  nome: z
+    .string({ required_error: MISSING_ATTR_ERR_MSG("Nome") })
+    .transform((val) => val.toUpperCase()),
+  cognome: z
+    .string({ required_error: MISSING_ATTR_ERR_MSG("Cognome") })
+    .transform((val) => val.toUpperCase()),
+  assegnazione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  ditta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  ndoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  tdoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  telefono: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  scadenza: z.coerce.date().nullish(),
+  zuc_cod: ZUC_COD_SCHEMA,
 });
-export type InsertPersonData = z.infer<typeof INSERT_PERSON_SCHEMA>;
+export type InsertNominativoData = z.infer<typeof INSERT_NOMINATIVO_SCHEMA>;
 
-export const UPDATE_PERSON_SCHEMA = z.object({
-  id: ID_SCHEMA("Person ID"),
-  updateData: z.object({
-    nome: z.string().optional(),
-    cognome: z.string().optional(),
-    assegnazione: z.string().optional(),
-    ditta: z.string().optional(),
-    ndoc: z.string().optional(),
-    tdoc: z.string().optional(),
-    telefono: z.string().optional(),
-    scadenza: z.coerce.date().optional(),
-    cliente: z.string().optional(),
-  }),
+export const UPDATE_NOMINATIVO_SCHEMA = z.object({
+  codice: CODICE_NOM_SCHEMA,
+  updateData: GET_NOMINATIVI_SCHEMA.omit({ codice: true }),
 });
-export type UpdatePersonData = z.infer<typeof UPDATE_PERSON_SCHEMA>;
+export type UpdateNominativoData = z.infer<typeof UPDATE_NOMINATIVO_SCHEMA>;
 
-export const GET_BADGES_SCHEMA = z.object({
-  codice: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).nullish(),
-  descrizione: z.string().nullish(),
-  stato: z.string().nullish(),
+export const GET_PROVVISORI_SCHEMA = z.object({
+  codice: CODICE_PROV_OR_STUD_SCHEMA.nullish(),
+  descrizione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  stato: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
   cliente: z.string().nullish(),
-  proprietario: ID_SCHEMA("Proprietario ID").nullish(),
-  ubicazione: z.string().nullish(),
-  provvisorio: z.coerce.boolean().optional(),
+  ubicazione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
 });
-export type FindBadgesFilter = z.infer<typeof GET_BADGES_SCHEMA>;
+export type FindProvvisoriFilter = z.infer<typeof GET_PROVVISORI_SCHEMA>;
 
-export const INSERT_BADGE_SCHEMA = z.object({
-  descrizione: z.string().optional(),
-  stato: z.string().default("VALIDO"),
+export const INSERT_PROVVISORIO_SCHEMA = z.object({
+  descrizione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  stato: z.enum(STATI_BADGE).default(BadgeState.VALIDO),
   cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
-  proprietario: ID_SCHEMA("Proprietario ID").optional(),
-  ubicazione: z.string().optional(),
-  provvisorio: z.coerce.boolean().default(false),
+  ubicazione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
 });
-export type InsertBadgeData = z.infer<typeof INSERT_BADGE_SCHEMA>;
+export type InsertProvvisorioData = z.infer<typeof INSERT_PROVVISORIO_SCHEMA>;
 
-export const UPDATE_BADGE_SCHEMA = z.object({
-  codice: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]),
-  updateData: z.object({
-    descrizione: z.string().optional(),
-    stato: z.string().optional(),
-    cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
-    proprietario: ID_SCHEMA("Proprietario ID").optional(),
-    ubicazione: z.string().optional(),
-  }),
+export const UPDATE_PROVVISORIO_SCHEMA = z.object({
+  codice: CODICE_PROV_OR_STUD_SCHEMA,
+  updateData: GET_PROVVISORI_SCHEMA.omit({ codice: true }),
 });
-export type UpdateBadgeData = z.infer<typeof UPDATE_BADGE_SCHEMA>;
-
-export const DELETE_BADGE_SCHEMA = z.union([
-  CODICE_NOM_SCHEMA,
-  CODICE_PROV_SCHEMA,
-]);
+export type UpdateProvvisorioData = z.infer<typeof UPDATE_PROVVISORIO_SCHEMA>;
 
 export const GET_VEICOLI_SCHEMA = z.object({
-  id: ID_SCHEMA("Person ID").nullish(),
-  targa: z.string().nullish(),
-  tipo: z.string().nullish(),
-  descrizione: z.string().nullish(),
-  stato: z.string().nullish(),
+  codice: CODICE_VEICOLO_SCHEMA.nullish(),
+  targa: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  tipo: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  descrizione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  stato: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
   cliente: z.string().nullish(),
-  proprietario: ID_SCHEMA("Proprietario ID").nullish(),
+  proprietario: CODICE_NOM_SCHEMA.nullish(),
 });
 export type FindVeicoliFilter = z.infer<typeof GET_VEICOLI_SCHEMA>;
 
 export const INSERT_VEICOLO_SCHEMA = z.object({
-  targa: z.string({ required_error: MISSING_ATTR_ERR_MSG("Targa") }),
-  tipo: z.string().default("GENERICO"),
-  descrizione: z.string().optional(),
-  stato: z.string().default("VALIDO"),
+  targa: z
+    .string({ required_error: MISSING_ATTR_ERR_MSG("Targa") })
+    .transform((val) => val.toUpperCase()),
+  tipo: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .default("GENERICO"),
+  descrizione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  stato: z.enum(STATI_BADGE).default(BadgeState.VALIDO),
   cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
-  proprietario: ID_SCHEMA("Proprietario ID"),
+  proprietario: CODICE_NOM_SCHEMA,
 });
 export type InsertVeicoloData = z.infer<typeof INSERT_VEICOLO_SCHEMA>;
 
 export const UPDATE_VEICOLO_SCHEMA = z.object({
-  id: ID_SCHEMA("Veicolo ID"),
-  updateData: z.object({
-    targa: z.string().optional(),
-    tipo: z.string().optional(),
-    descrizione: z.string().optional(),
-    stato: z.string().optional(),
-    cliente: z.string().optional(),
-    proprietario: ID_SCHEMA("Proprietario ID").optional(),
-  }),
+  codice: CODICE_VEICOLO_SCHEMA,
+  updateData: GET_VEICOLI_SCHEMA.omit({ codice: true }),
 });
 export type UpdateVeicoloData = z.infer<typeof UPDATE_VEICOLO_SCHEMA>;
 
 export const GET_CHIAVI_SCHEMA = z.object({
   codice: CODICE_CHIAVE_SCHEMA.nullish(),
-  descrizione: z.string().nullish(),
-  stato: z.string().nullish(),
+  descrizione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  stato: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
   cliente: z.string().nullish(),
-  proprietario: ID_SCHEMA("Proprietario ID").nullish(),
-  indirizzo: z.string().nullish(),
-  edificio: z.string().nullish(),
-  citta: z.string().nullish(),
-  piano: z.string().nullish(),
-  ubicazione: z.string().nullish(),
+  proprietario: CODICE_NOM_SCHEMA.nullish(),
+  indirizzo: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  edificio: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  citta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  piano: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  ubicazione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
 });
 export type FindChiaviFilter = z.infer<typeof GET_CHIAVI_SCHEMA>;
 
 export const INSERT_CHIAVE_SCHEMA = z.object({
-  descrizione: z.string().optional(),
-  stato: z.string().default("VALIDO"),
+  descrizione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  stato: z.enum(STATI_BADGE).default(BadgeState.VALIDO),
   cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
-  proprietario: ID_SCHEMA("Proprietario ID").optional(),
-  indirizzo: z.string().optional(),
-  edificio: z.string().optional(),
-  citta: z.string().optional(),
-  piano: z.string().optional(),
-  ubicazione: z.string().nullish(),
+  proprietario: CODICE_NOM_SCHEMA.nullish(),
+  indirizzo: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  edificio: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .default("GENERICO"),
+  citta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  piano: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  ubicazione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
 });
 export type InsertChiaveData = z.infer<typeof INSERT_CHIAVE_SCHEMA>;
 
 export const UPDATE_CHIAVE_SCHEMA = z.object({
   codice: CODICE_CHIAVE_SCHEMA,
-  updateData: z.object({
-    descrizione: z.string().optional(),
-    stato: z.string().optional(),
-    cliente: z.string().optional(),
-    proprietario: ID_SCHEMA("Proprietario ID").optional(),
-    indirizzo: z.string().optional(),
-    edificio: z.string().optional(),
-    citta: z.string().optional(),
-    piano: z.string().optional(),
-    ubicazione: z.string().nullish(),
-  }),
+  updateData: GET_CHIAVI_SCHEMA.omit({ codice: true }),
 });
 export type UpdateChiaveData = z.infer<typeof UPDATE_CHIAVE_SCHEMA>;
 
@@ -296,18 +396,48 @@ export const GET_ARCHIVIO_SCHEMA = z.object({
   post_id: ID_SCHEMA("ID Postazione").optional(),
   ip: z.string().optional(),
   username: z.string().optional(),
-  nome: z.string().optional(),
-  cognome: z.string().optional(),
-  telefono: z.string().optional(),
-  ditta: z.string().optional(),
+  nome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  cognome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  telefono: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  ditta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
   tdoc: z.enum(TDOCS).optional(),
-  ndoc: z.string().optional(),
+  ndoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
   scadenza: z.coerce.date().optional(),
-  indirizzo: z.string().optional(),
-  citta: z.string().optional(),
-  edificio: z.string().optional(),
-  piano: z.string().optional(),
-  tveicolo: z.string().optional(),
+  indirizzo: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  citta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  edificio: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  piano: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  tveicolo: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
 });
 export type FindArchivioFilter = z.infer<typeof GET_ARCHIVIO_SCHEMA>;
 
@@ -321,12 +451,27 @@ export const GET_IN_STRUTT_BADGES_SCHEMA = z.object({
   data_in_max: z.coerce.date().optional(),
   post_id: ID_SCHEMA("ID Postazione").optional(),
   postazioniIds: ID_SCHEMA("ID Postazione").array().nonempty().optional(),
-  nome: z.string().optional(),
-  cognome: z.string().optional(),
-  telefono: z.string().optional(),
-  ditta: z.string().optional(),
+  nome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  cognome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  telefono: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  ditta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
   tdoc: z.enum(TDOCS).optional(),
-  ndoc: z.string().optional(),
+  ndoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
 });
 export type FindInStruttBadgesFilter = z.infer<
   typeof GET_IN_STRUTT_BADGES_SCHEMA
@@ -334,21 +479,46 @@ export type FindInStruttBadgesFilter = z.infer<
 
 export const GET_IN_STRUTT_VEICOLI_SCHEMA = z.object({
   id: ID_SCHEMA().optional(),
-  targa: z.string().optional(),
-  veicolo: z.string().optional(),
+  codice: CODICE_VEICOLO_SCHEMA.optional(),
+  targa: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  veicolo: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
   tipo: z.enum(TIPI_BADGE).optional(),
   tipi: z.enum(TIPI_BADGE).array().nonempty().optional(),
   data_in_min: z.coerce.date().optional(),
   data_in_max: z.coerce.date().optional(),
   post_id: ID_SCHEMA("ID Postazione").optional(),
   postazioniIds: ID_SCHEMA("ID Postazione").array().nonempty().optional(),
-  nome: z.string().optional(),
-  cognome: z.string().optional(),
-  telefono: z.string().optional(),
-  ditta: z.string().optional(),
+  nome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  cognome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  telefono: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  ditta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
   tdoc: z.enum(TDOCS).optional(),
-  ndoc: z.string().optional(),
-  tveicolo: z.string().optional(),
+  ndoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  tveicolo: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
 });
 export type FindInStruttVeicoliFilter = z.infer<
   typeof GET_IN_STRUTT_VEICOLI_SCHEMA
@@ -361,16 +531,43 @@ export const FIND_IN_PRESTITO_SCHEMA = z.object({
   data_in_max: z.coerce.date().optional(),
   post_id: ID_SCHEMA("ID Postazione").optional(),
   postazioniIds: ID_SCHEMA("ID Postazione").array().nonempty().optional(),
-  nome: z.string().optional(),
-  cognome: z.string().optional(),
-  telefono: z.string().optional(),
-  ditta: z.string().optional(),
+  nome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  cognome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  telefono: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  ditta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
   tdoc: z.enum(TDOCS).optional(),
-  ndoc: z.string().optional(),
-  indirizzo: z.string().optional(),
-  citta: z.string().optional(),
-  edificio: z.string().optional(),
-  piano: z.string().optional(),
+  ndoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  indirizzo: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  citta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  edificio: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  piano: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
 });
 export type FindInPrestitoFilter = z.infer<typeof FIND_IN_PRESTITO_SCHEMA>;
 
@@ -404,13 +601,9 @@ const BARCODE_CHIAVE_ESCE_SCHEMA = z
   .startsWith(BarcodePrefix.chiaveOut, "Barcode non valido")
   .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
   .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
-const CODICE_STUDENTE_SCHEMA = z
-  .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
-  .regex(/^\d+$/, "Codice studente deve contenere solo cifre numeriche")
-  .length(ID_STUD_LEN, ID_STUD_LEN_ERR_MSG);
 
 export const TIMBRA_BADGE_SCHEMA = z.object({
-  badge: z.union([
+  badge_cod: z.union([
     BARCODE_NOM_ENTRA_SCHEMA,
     BARCODE_NOM_ESCE_SCHEMA,
     BARCODE_PROV_ENTRA_SCHEMA,
@@ -450,7 +643,7 @@ export const TIMBRA_CHIAVI_SCHEMA = z.object({
 // export type TimbraChiaviData = z.infer<typeof TIMBRA_CHIAVI_SCHEMA>;
 
 export const INSERT_ARCH_BADGE_SCHEMA = z.object({
-  badge: z.union([
+  badge_cod: z.union([
     BARCODE_PROV_ENTRA_SCHEMA,
     BARCODE_PROV_ESCE_SCHEMA,
     CODICE_PROV_SCHEMA,
@@ -458,31 +651,84 @@ export const INSERT_ARCH_BADGE_SCHEMA = z.object({
   post_id: ID_SCHEMA("Postazione ID"),
   ip: z.string().default("unknown"),
   username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
-  nome: z.string().optional(),
-  cognome: z.string().optional(),
-  assegnazione: z.string().default("OSPITE"),
-  ditta: z.string().optional(),
-  telefono: z.string().optional(),
-  ndoc: z.string().optional(),
-  tdoc: z.string().optional(),
+  nome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  cognome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  assegnazione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .default("OSPITE"),
+  ditta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  telefono: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  ndoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  tdoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
 });
 export type InsertArchBadgeData = z.infer<typeof INSERT_ARCH_BADGE_SCHEMA>;
 
 export const INSERT_ARCH_VEICOLO_SCHEMA = z.object({
-  targa: z.string({ required_error: MISSING_ATTR_ERR_MSG("Targa") }),
+  targa: z
+    .string({ required_error: MISSING_ATTR_ERR_MSG("Targa") })
+    .transform((val) => val.toUpperCase()),
   post_id: ID_SCHEMA("Postazione ID"),
   ip: z.string().default("unknown"),
   username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
-  nome: z.string().optional(),
-  cognome: z.string().optional(),
-  assegnazione: z.string().default("OSPITE"),
-  ditta: z.string().optional(),
-  telefono: z.string().optional(),
-  ndoc: z.string().optional(),
-  tdoc: z.string().optional(),
-  tveicolo: z.string().default("GENERICO"),
+  nome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  cognome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  assegnazione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .default("OSPITE"),
+  ditta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  telefono: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  ndoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  tdoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  tveicolo: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .default("GENERICO"),
 });
 export type InsertArchVeicoloData = z.infer<typeof INSERT_ARCH_VEICOLO_SCHEMA>;
+
+export const GET_RESOCONTO_SCHEMA = z.object({
+  minDate: z.coerce.date().optional(),
+  maxDate: z.coerce.date().optional(),
+});
+export type GetResocontoFilter = z.infer<typeof GET_RESOCONTO_SCHEMA>;
 
 export const GET_PROTOCOLLI_SCHEMA = z.object({
   id: ID_SCHEMA("Prot ID").optional(),

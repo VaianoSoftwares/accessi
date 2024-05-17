@@ -2,8 +2,11 @@ export type BaseForm = Partial<{
   [key: string]: string | string[] | undefined;
 }>;
 
-export type PeopleForm = {
-  id?: string | undefined;
+export type AnagraficoForm = {
+  codice?: string | undefined;
+  descrizione?: string | undefined;
+  stato?: string | undefined;
+  cliente?: string | undefined;
   nome?: string | undefined;
   cognome?: string | undefined;
   assegnazione?: string | undefined;
@@ -15,17 +18,41 @@ export type PeopleForm = {
   pfp?: string | undefined;
   privacy?: string | undefined;
   documento?: string | undefined;
-  cliente?: string | undefined;
+  ubicazione?: string | undefined;
+  indirizzo?: string | undefined;
+  citta?: string | undefined;
+  edificio?: string | undefined;
+  piano?: string | undefined;
+  proprietario?: string[] | undefined;
+  targa?: string | undefined;
+  tipo?: string | undefined;
+  zuc_cod?: string | undefined;
 };
 
-export type BadgesForm = {
+export type NominativiForm = {
+  codice?: string | undefined;
+  descrizione?: string | undefined;
+  stato?: string | undefined;
+  cliente?: string | undefined;
+  nome?: string | undefined;
+  cognome?: string | undefined;
+  assegnazione?: string | undefined;
+  ditta?: string | undefined;
+  tdoc?: string | undefined;
+  ndoc?: string | undefined;
+  telefono?: string | undefined;
+  scadenza?: string | undefined;
+  pfp?: string | undefined;
+  privacy?: string | undefined;
+  documento?: string | undefined;
+};
+
+export type ProvvisoriForm = {
   codice?: string | undefined;
   descrizione?: string | undefined;
   stato?: string | undefined;
   ubicazione?: string | undefined;
   cliente?: string | undefined;
-  proprietario?: string[] | undefined;
-  provvisorio?: string | undefined;
 };
 
 export type ChiaviForm = {
@@ -42,44 +69,17 @@ export type ChiaviForm = {
 };
 
 export type VeicoliForm = {
-  id?: string | undefined;
+  codice?: string | undefined;
+  descrizione?: string | undefined;
+  stato?: string | undefined;
   targa?: string | undefined;
   tipo?: string | undefined;
   proprietario?: string[] | undefined;
   cliente?: string[] | undefined;
 };
 
-export type AnagraficoForm = {
-  codice?: string | undefined;
-  descrizione?: string | undefined;
-  tipo?: string | undefined;
-  assegnazione?: string | undefined;
-  stato?: string | undefined;
-  ubicazione?: string | undefined;
-  cliente?: string | undefined;
-  nome?: string | undefined;
-  cognome?: string | undefined;
-  telefono?: string | undefined;
-  ditta?: string | undefined;
-  tdoc?: string | undefined;
-  ndoc?: string | undefined;
-  scadenza?: string | undefined;
-  pfp?: string | undefined;
-  privacy?: string | undefined;
-  documento?: string | undefined;
-  indirizzo?: string | undefined;
-  citta?: string | undefined;
-  edificio?: string | undefined;
-  piano?: string | undefined;
-  tveicolo?: string | undefined;
-  targa1?: string | undefined;
-  targa2?: string | undefined;
-  targa3?: string | undefined;
-  targa4?: string | undefined;
-};
-
 export type FindBadgesInStruttForm = {
-  badge?: string | undefined;
+  badge_cod?: string | undefined;
   assegnazione?: string | undefined;
   nome?: string | undefined;
   cognome?: string | undefined;
@@ -100,7 +100,7 @@ export type FindVeicoliInStruttForm = {
 };
 
 export type InsertArchBadgeForm = {
-  badge?: string | undefined;
+  badge_cod?: string | undefined;
   nome?: string | undefined;
   cognome?: string | undefined;
   ditta?: string | undefined;
@@ -154,3 +154,8 @@ export type RegisterForm = {
 };
 
 export type UpdateUserForm = RegisterForm;
+
+export type GetResocontoForm = {
+  minDate?: string | undefined;
+  maxDate?: string | undefined;
+};

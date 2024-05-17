@@ -1,47 +1,53 @@
 import Router from "express-promise-router";
-import * as UsersCtrl from "../controllers/users.js";
+import UsersController from "../controllers/users.js";
 import JwtAuth from "../middlewares/JwtAuth.js";
 
 const router = Router();
 
 export default router;
 
-router.get("/", JwtAuth.verifyToken, JwtAuth.isAdmin, UsersCtrl.apiGetAllUsers);
+router.get(
+  "/",
+  JwtAuth.verifyToken,
+  JwtAuth.isAdmin,
+  UsersController.apiGetAllUsers
+);
 router.get(
   "/:id",
   JwtAuth.verifyToken,
   JwtAuth.isAdmin,
-  UsersCtrl.apiGetUserById
+  UsersController.apiGetUserById
 );
 router.put(
   "/:id",
   JwtAuth.verifyToken,
   JwtAuth.isAdmin,
-  UsersCtrl.apiUpdateUser
+  UsersController.apiUpdateUser
 );
 router.delete(
   "/:id",
   JwtAuth.verifyToken,
   JwtAuth.isAdmin,
-  UsersCtrl.apiDeleteUser
+  UsersController.apiDeleteUser
 );
 router.post(
   "/register",
   JwtAuth.verifyToken,
   JwtAuth.isAdmin,
-  UsersCtrl.apiRegister
+  UsersController.apiRegister
 );
-router.post("/login", UsersCtrl.apiLogin);
-router.post("/login/tmp", UsersCtrl.apiTmpLogin);
+router.post("/login", UsersController.apiLogin);
+router.post("/login/tmp", UsersController.apiTmpLogin);
 router.post(
   "/login/refresh",
   JwtAuth.verifyToken,
   JwtAuth.isDevice,
-  UsersCtrl.apiRefreshLogin
+  UsersController.apiRefreshLogin
 );
+router.post("/logout", JwtAuth.verifyToken, UsersController.apiLogout);
 router.put(
   "/:id/postazioni",
   JwtAuth.verifyToken,
   JwtAuth.isAdmin,
-  UsersCtrl.apiUpdatePostazioniUser
+  UsersController.apiUpdatePostazioniUser
 );

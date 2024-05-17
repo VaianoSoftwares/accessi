@@ -20,7 +20,7 @@ html, body {
 }
 
 .one-third-col {
-  width: 33% !important;
+  width: calc(100% / 3) !important;
 }
 .half-col {
   width: 50% !important;

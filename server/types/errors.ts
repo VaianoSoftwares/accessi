@@ -1,12 +1,4 @@
-type Jsonable =
-  | string
-  | number
-  | boolean
-  | null
-  | undefined
-  | readonly Jsonable[]
-  | { readonly [key: string]: Jsonable }
-  | { toJSON(): Jsonable };
+import { Jsonable } from "./index.js";
 
 type BaseErrorOptions = { status?: number; cause?: Error; context?: Jsonable };
 

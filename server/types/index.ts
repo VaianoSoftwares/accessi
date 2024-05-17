@@ -1,5 +1,15 @@
 import { BaseError } from "./errors.js";
 
+export type Jsonable =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | readonly Jsonable[]
+  | { readonly [key: string]: Jsonable }
+  | { toJSON(): Jsonable };
+
 export type WithId<T> = T & { id: number };
 
 export type Ok<T> = { success: true; result: T };

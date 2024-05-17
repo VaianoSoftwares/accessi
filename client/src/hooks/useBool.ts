@@ -1,11 +1,6 @@
 import { useState } from "react";
 
-type TUseBool = [
-  boolean,
-  { setTrue: () => void; setFalse: () => void; setToggle: () => void }
-];
-
-export default function useBool(initialState = false): TUseBool {
+export default function useBool(initialState = false) {
   const [state, setState] = useState(initialState);
 
   function setTrue() {
@@ -20,5 +15,5 @@ export default function useBool(initialState = false): TUseBool {
     setState((prev) => !prev);
   }
 
-  return [state, { setTrue, setFalse, setToggle }];
+  return [state, { setTrue, setFalse, setToggle }] as const;
 }

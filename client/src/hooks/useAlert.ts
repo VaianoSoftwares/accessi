@@ -1,14 +1,7 @@
 import { useState } from "react";
 import { TAlert } from "../types";
 
-type TUseAlert = [
-  TAlert | null,
-  { openAlert: (alert: TAlert) => void; closeAlert: () => void }
-];
-
-export default function useAlert(
-  initialState: TAlert | null = null
-): TUseAlert {
+export default function useAlert(initialState: TAlert | null = null) {
   const [state, setState] = useState<TAlert | null>(initialState);
 
   function openAlert(alert: TAlert) {
@@ -19,5 +12,5 @@ export default function useAlert(
     setState(null);
   }
 
-  return [state, { openAlert, closeAlert }];
+  return [state, { openAlert, closeAlert }] as const;
 }

@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import "./index.css";
 import ArchivioDataService from "../../services/archivio";
-import PeopleDataService from "../../services/people";
+import NominativiDataService from "../../services/nominativo";
 import BadgeTable from "../BadgeTable";
 import Clock from "../Clock";
 import OspitiPopup from "../OspitiPopup";
@@ -12,7 +12,7 @@ import useImage from "../../hooks/useImage";
 import useReadonlyForm from "../../hooks/useReadonlyForm";
 import { toast } from "react-hot-toast";
 import { TPermessi, hasPerm, isAdmin } from "../../types/users";
-import { BadgeTipo, Postazione, TDOCS } from "../../types/badges";
+import { BadgeType, Postazione, TDOCS } from "../../types/badges";
 import { FindBadgesInStruttForm } from "../../types/forms";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import BadgePopup from "../BadgePopup";
@@ -35,11 +35,11 @@ export default function Badge({
 }: {
   scannedValue: string;
   clearScannedValue: () => void;
-  tipoBadge: BadgeTipo;
+  tipoBadge: BadgeType;
   currPostazione: Postazione | undefined;
 }) {
   const formRef = useRef<FormRef<FindBadgesInStruttForm>>({
-    badge: null,
+    badge_cod: null,
     assegnazione: null,
     nome: null,
     cognome: null,
@@ -58,7 +58,7 @@ export default function Badge({
     queryKey: ["assegnazioni"],
     queryFn: async () => {
       try {
-        const response = await PeopleDataService.getAssegnazioni();
+        const response = await NominativiDataService.getAssegnazioni();
         console.log("queryAssegnazioni | response:", response);
         if (response.data.success === false) {
           throw response.data.error;
@@ -241,7 +241,7 @@ export default function Badge({
 
     console.log("Scanner accessi | scannedValue:", scannedValue);
     mutateInStrutt.mutate({
-      badge: scannedValue,
+      badge_cod: scannedValue,
       post_id: currPostazione.id,
     });
     clearScannedValue();
@@ -270,7 +270,7 @@ export default function Badge({
                       id="codice"
                       placeholder="codice"
                       autoComplete="off"
-                      ref={(el) => (formRef.current.badge = el)}
+                      ref={(el) => (formRef.current.badge_cod = el)}
                     />
                     <label htmlFor="barcode">barcode</label>
                   </div>
@@ -408,13 +408,13 @@ export default function Badge({
                       if (!currPostazione) {
                         toast.error("Selezionare la postazione");
                         return;
-                      } else if (!formRef.current.badge?.value) {
+                      } else if (!formRef.current.badge_cod?.value) {
                         toast.error("Campo Barcode mancante");
                         return;
                       }
 
                       mutateInStrutt.mutate({
-                        badge: formRef.current.badge.value,
+                        badge_cod: formRef.current.badge_cod.value,
                         post_id: currPostazione.id,
                       });
                     }}

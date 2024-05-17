@@ -27,18 +27,16 @@ export type TUser = {
   postazioni: number[];
 };
 
-export type TLoggedUser = TUser & {
-  token: string;
-};
-
 export type LoginUserData = Pick<TUser, "name" | "password">;
 export type InsertUserData = Omit<TUser, "id" | "clienti">;
 export type UpdateUserData = Partial<InsertUserData>;
 
-type MaybeTUser = TLoggedUser | TUser | null | undefined;
+type MaybeTUser = TUser | null | undefined;
 
 function isUser(user: MaybeTUser): user is TUser {
-  return user !== null && user !== undefined;
+  return (
+    user !== null && user !== undefined && "permessi" in user && "pages" in user
+  );
 }
 
 export function hasPerm(user: MaybeTUser, perm: TPermessi) {

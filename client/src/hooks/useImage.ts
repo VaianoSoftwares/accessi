@@ -1,13 +1,5 @@
 import { useState } from "react";
 
-type TUseImage = [
-  string,
-  {
-    updateImage: (image: unknown) => void;
-    setNoImage: () => void;
-  }
-];
-
 function defaultUrlFormatter(data: unknown) {
   return String(data);
 }
@@ -15,7 +7,7 @@ function defaultUrlFormatter(data: unknown) {
 export default function useImage(
   urlFormatter: (data: unknown) => string = defaultUrlFormatter,
   initialState: string = ""
-): TUseImage {
+) {
   const [imageUrl, setImageUrl] = useState(initialState);
 
   function updateImage(data: unknown) {
@@ -44,5 +36,5 @@ export default function useImage(
       updateImage,
       setNoImage,
     },
-  ];
+  ] as const;
 }

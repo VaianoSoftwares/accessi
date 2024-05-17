@@ -29,8 +29,11 @@ server/public/uploads/*
 
 # db data
 accessi*.sql
-data*.sql
+# data*.sql
 
 # ssl certificates
 server/certs/*
 !server/certs/.gitkeep
+
+# docker dir
+/code

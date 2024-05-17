@@ -1,45 +1,59 @@
 import Router from "express-promise-router";
-import * as ArchivioCtrl from "../controllers/archivio.js";
+import ArchivioController from "../controllers/archivio.js";
 import JwtAuth from "../middlewares/JwtAuth.js";
 
 const router = Router();
 
 export default router;
 
-router.get("/", JwtAuth.verifyToken, ArchivioCtrl.apiGetArchivio);
+router.get("/", JwtAuth.verifyToken, ArchivioController.apiGetArchivio);
 
 router.get(
   "/in-struttura/badges",
   JwtAuth.verifyToken,
-  ArchivioCtrl.apiGetBadgesInStrutt
+  ArchivioController.apiGetBadgesInStrutt
 );
 router.get(
   "/in-struttura/veicoli",
   JwtAuth.verifyToken,
-  ArchivioCtrl.apiGetVeicoliInStrutt
+  ArchivioController.apiGetVeicoliInStrutt
 );
 
-router.get("/in-prestito", JwtAuth.verifyToken, ArchivioCtrl.apiGetInPrestito);
+router.get(
+  "/in-prestito",
+  JwtAuth.verifyToken,
+  ArchivioController.apiGetInPrestito
+);
 
-router.post("/timbra/badge", JwtAuth.verifyToken, ArchivioCtrl.apiTimbraBadge);
+router.post(
+  "/timbra/badge",
+  JwtAuth.verifyToken,
+  ArchivioController.apiTimbraBadge
+);
 router.post(
   "/timbra/veicolo",
   JwtAuth.verifyToken,
-  ArchivioCtrl.apiTimbraVeicolo
+  ArchivioController.apiTimbraVeicolo
 );
 router.post(
   "/timbra/chiavi",
   JwtAuth.verifyToken,
-  ArchivioCtrl.apiTimbraChiavi
+  ArchivioController.apiTimbraChiavi
 );
 
 router.post(
   "/insert-provvisorio/badge",
   JwtAuth.verifyToken,
-  ArchivioCtrl.apiInsertBadgeProvvisorio
+  ArchivioController.apiInsertBadgeProvvisorio
 );
 router.post(
   "/insert-provvisorio/veicolo",
   JwtAuth.verifyToken,
-  ArchivioCtrl.apiInsertBadgeProvvisorio
+  ArchivioController.apiInsertBadgeProvvisorio
+);
+
+router.get(
+  "/resoconto",
+  JwtAuth.verifyToken,
+  ArchivioController.apiGetResoconto
 );

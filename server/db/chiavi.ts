@@ -4,55 +4,46 @@ import {
   InsertChiaveData,
   UpdateChiaveData,
 } from "../utils/validation.js";
-import { Chiave, ChiaveNominativo } from "../types/chiavi.js";
+import { Chiave, ChiaveNominativo } from "../types/badges.js";
 
-export async function getChiavi(filter?: FindChiaviFilter) {
-  const prefixText = "SELECT * FROM chiavi";
-  const filterText =
-    filter &&
-    Object.entries(filter)
-      .filter(([, value]) => value)
-      .map(([key, value], i) =>
-        typeof value === "string" ? `${key} LIKE $${i + 1}` : `${key}=$${i + 1}`
-      )
-      .join(" AND ");
+const tableName = "chiavi";
 
-  const queryText = filterText
-    ? [prefixText, "WHERE", filterText].join(" ")
-    : prefixText;
-  const queryValues =
-    filter &&
-    Object.values(filter)
-      .filter((value) => value)
-      .map((value) => (typeof value !== "string" ? value : `%${value}%`))
-      .flat();
+export default class ChiaviDB {
+  public static async getChiavi(filter?: FindChiaviFilter) {
+    const { queryText, queryValues } = db.getSelectRowQuery(tableName, {
+      selections: filter,
+    });
+    return await db.query(queryText, queryValues);
+  }
 
-  return await db.query(queryText, queryValues);
-}
+  public static async insertChiave(data: InsertChiaveData) {
+    return await db.insertRow(tableName, data);
+  }
 
-export async function insertChiave(data: InsertChiaveData) {
-  return await db.insertRow("chiavi", data);
-}
+  public static async updateChiave(data: UpdateChiaveData) {
+    return await db.updateRows(tableName, data.updateData, {
+      codice: data.codice,
+    });
+  }
 
-export async function updateChiave(data: UpdateChiaveData) {
-  return await db.updateRows("chiavi", data.updateData, {
-    codice: data.codice,
-  });
-}
+  public static async deleteChiave(codice: string) {
+    return await db.deleteRows(tableName, { codice });
+  }
 
-export async function deleteChiave(codice: string) {
-  return await db.deleteRows("chiavi", { codice });
-}
+  public static async getEdifici() {
+    return await db.query<{ value: string }>("SELECT * FROM edifici");
+  }
 
-export async function getChiaveByCodice(codice: string) {
-  return await db.query<Chiave>("SELECT * FROM chiavi WHERE codice = $1", [
-    codice,
-  ]);
-}
+  public static async getChiaveByCodice(codice: string) {
+    return await db.query<Chiave>("SELECT * FROM chiavi WHERE codice = $1", [
+      codice,
+    ]);
+  }
 
-export async function getChiaveNominativoByCodice(codice: string) {
-  return await db.query<ChiaveNominativo>(
-    "SELECT * FROM chiavi JOIN people ON proprietario = id WHERE codice = $1",
-    [codice]
-  );
+  public static async getChiaveNominativoByCodice(codice: string) {
+    return await db.query<ChiaveNominativo>(
+      "SELECT * FROM chiavi JOIN people ON proprietario = id WHERE codice = $1",
+      [codice]
+    );
+  }
 }

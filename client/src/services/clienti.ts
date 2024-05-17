@@ -9,7 +9,6 @@ class ClientiDataService extends DataServices {
   insert(data: { cliente: string }, signal?: GenericAbortSignal) {
     return super.request({
       method: "POST",
-      token: true,
       data,
       signal,
     });
@@ -17,7 +16,6 @@ class ClientiDataService extends DataServices {
 
   delete(cliente: string, signal?: GenericAbortSignal) {
     return super.request({
-      token: true,
       signal,
       method: "DELETE",
       url: `/${cliente}`,

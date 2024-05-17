@@ -139,7 +139,7 @@ export type FindVeicoloInStruttData = {
 };
 
 export type TimbraBadgeDoc = {
-  badge: string;
+  badge_cod: string;
   post_id: number;
 };
 

@@ -25,10 +25,7 @@ export default function Login() {
           const dataResp = response.data.result;
           console.log(dataResp.name, "logged In.");
 
-          setCurrentUser({
-            ...dataResp,
-            token: String(response.headers["x-access-token"]),
-          });
+          setCurrentUser(dataResp);
         })
         .catch((err) => {
           console.error("retriveUser |", err);
@@ -60,10 +57,7 @@ export default function Login() {
         const dataResp = response.data.result;
         console.log(dataResp.name, "logged In.");
 
-        setCurrentUser({
-          ...dataResp,
-          token: String(response.headers["x-access-token"]),
-        });
+        setCurrentUser(dataResp);
 
         navigate("/home");
       })

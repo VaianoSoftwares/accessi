@@ -1,5 +1,6 @@
-import pkg, { QueryResultRow } from "pg";
-const { Pool } = pkg;
+import pg, { QueryResultRow } from "pg";
+const { Pool } = pg;
+pg.types.setTypeParser(20, BigInt);
 
 const pool = new Pool();
 
@@ -24,7 +25,46 @@ export function getClient() {
   return pool.connect();
 }
 
-export function getInsertRowQuery(tableName: string, insertData: object) {
+export function getSelectRowQuery(
+  tableName: string,
+  options: { selections?: Record<PropertyKey, any>; projections?: string[] }
+) {
+  const { selections, projections } = options;
+
+  let queryText = `SELECT ${
+    projections ? projections.join(",") : "*"
+  } FROM ${tableName}`;
+  const queryValues: any[] = [];
+
+  const selectionStr =
+    selections &&
+    Object.entries(selections)
+      .filter(([, value]) => value !== undefined && value !== "")
+      .map(([key, value], i) => {
+        switch (typeof value) {
+          case "string":
+            queryValues.push(`%${value}%`);
+            return `${key} LIKE $${i + 1}`;
+          case "number":
+          case "boolean":
+            queryValues.push(value);
+            return `${key}=$${i + 1}`;
+          case "object":
+            return value === null ? `${key} IS NULL` : "";
+          default:
+        }
+      })
+      .filter((str) => str)
+      .join(" AND ");
+  queryText += selectionStr ? ` WHERE ${selectionStr}` : "";
+
+  return { queryText, queryValues };
+}
+
+export function getInsertRowQuery(
+  tableName: string,
+  insertData: Record<PropertyKey, any>
+) {
   const rowFields = Object.keys(insertData);
   const rowFieldsText = rowFields.join(",");
   const rowValuesText = rowFields.map((_, i) => `$${i + 1}`).join(",");
@@ -45,8 +85,8 @@ export function getInsertRowQuery(tableName: string, insertData: object) {
 
 export function getUpdateRowsQuery(
   tableName: string,
-  updateData: object,
-  filter?: object
+  updateData: Record<PropertyKey, any>,
+  filter?: Record<PropertyKey, any>
 ) {
   let i = 1;
 
@@ -80,7 +120,10 @@ export function getUpdateRowsQuery(
   return { queryText, queryValues };
 }
 
-export function getDeleteRowsQuery(tableName: string, filter?: object) {
+export function getDeleteRowsQuery(
+  tableName: string,
+  filter?: Record<PropertyKey, any>
+) {
   const prefixText = `DELETE FROM ${tableName}`;
   const filterText =
     filter &&
@@ -99,7 +142,7 @@ export function getDeleteRowsQuery(tableName: string, filter?: object) {
 
 export async function insertRow<T extends QueryResultRow>(
   tableName: string,
-  insertData: object
+  insertData: Record<PropertyKey, any>
 ) {
   const { queryText, queryValues } = getInsertRowQuery(tableName, insertData);
   return await query<T>(queryText, queryValues);
@@ -107,8 +150,8 @@ export async function insertRow<T extends QueryResultRow>(
 
 export async function updateRows<T extends QueryResultRow>(
   tableName: string,
-  updateData: object,
-  filter?: object
+  updateData: Record<PropertyKey, any>,
+  filter?: Record<PropertyKey, any>
 ) {
   const { queryText, queryValues } = getUpdateRowsQuery(
     tableName,
@@ -120,7 +163,7 @@ export async function updateRows<T extends QueryResultRow>(
 
 export async function deleteRows<T extends QueryResultRow>(
   tableName: string,
-  filter?: object
+  filter?: Record<PropertyKey, any>
 ) {
   const { queryText, queryValues } = getDeleteRowsQuery(tableName, filter);
   return await query<T>(queryText, queryValues);

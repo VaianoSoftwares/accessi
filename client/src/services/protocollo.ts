@@ -5,12 +5,11 @@ import { FullProtocollo } from "../types/protocolli";
 
 class ProtocolloDataServices extends DataServices {
   getAll(signal?: GenericAbortSignal) {
-    return super.request<FullProtocollo[]>({ token: true, signal });
+    return super.request<FullProtocollo[]>({ signal });
   }
 
   find(query: GenericForm, signal?: GenericAbortSignal) {
     return super.request<FullProtocollo[]>({
-      token: true,
       data: query,
       signal,
     });
@@ -19,7 +18,6 @@ class ProtocolloDataServices extends DataServices {
   insert(data: FormData, signal?: GenericAbortSignal) {
     return super.request({
       method: "POST",
-      token: true,
       files: true,
       data,
       signal,
@@ -29,7 +27,6 @@ class ProtocolloDataServices extends DataServices {
   delete(id: number, signal?: GenericAbortSignal) {
     return super.request({
       method: "DELETE",
-      token: true,
       url: `/${id}`,
       signal,
     });

@@ -1,0 +1,31 @@
+name: vero-open
+
+services:
+  pg-db:
+    image: postgres:latest
+    restart: always
+    env_file: ./.env
+    ports:
+      - $PGPORT:$PGPORT
+    volumes:
+      - pg-db-data:/var/lib/postgres/data
+
+  nodejs-server:
+    depends_on:
+      - pg-db
+    build:
+      - context: ./vero-open
+      - dockerfile: Dockerfile
+    restart: always
+    env_file: ./.env
+    ports:
+      - $HTTP_PORT:$HTTP_PORT
+      - $HTTPS_PORT:$HTTPS_PORT
+    volumes:
+      - server-uploads:./server/public/uploads
+    stdin_open: true
+    tty: true
+
+volumes:
+  pg-db-data: {}
+  server-uploads: {}

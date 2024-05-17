@@ -15,7 +15,6 @@ type TReqData = GenericForm | FormData;
 
 type TReqOptions = {
   url?: string;
-  token?: boolean;
   files?: boolean;
   method?: TMethod;
   data?: TReqData;
@@ -29,12 +28,8 @@ export default abstract class DataServices {
     return ["POST", "PUT", "PATCH"].includes(method);
   }
 
-  private static getHeaders(token = false, files = false) {
+  private static getHeaders(files = false) {
     const headers: RawAxiosRequestHeaders = {};
-    token &&
-      (headers["x-access-token"] = JSON.parse(
-        sessionStorage.getItem("user") || '{"token":""}'
-      ).token);
     files && (headers["Content-Type"] = "multipart/form-data");
     return headers;
   }
@@ -55,13 +50,12 @@ export default abstract class DataServices {
 
   protected async request<T = any>({
     url = "",
-    token = false,
     files = false,
     method = "GET",
     data,
     signal = undefined,
   }: TReqOptions): TAxiosResp<T> {
-    const headers = DataServices.getHeaders(token, files);
+    const headers = DataServices.getHeaders(files);
 
     const completeUrl =
       data instanceof FormData || DataServices.isFormDataMethod(method)
@@ -70,15 +64,35 @@ export default abstract class DataServices {
 
     switch (method) {
       case "GET":
-        return await axios.get(completeUrl, { headers, signal });
+        return await axios.get(completeUrl, {
+          headers,
+          signal,
+          withCredentials: true,
+        });
       case "DELETE":
-        return await axios.delete(completeUrl, { headers, signal });
+        return await axios.delete(completeUrl, {
+          headers,
+          signal,
+          withCredentials: true,
+        });
       case "POST":
-        return await axios.post(completeUrl, data, { headers, signal });
+        return await axios.post(completeUrl, data, {
+          headers,
+          signal,
+          withCredentials: true,
+        });
       case "PUT":
-        return await axios.put(completeUrl, data, { headers, signal });
+        return await axios.put(completeUrl, data, {
+          headers,
+          signal,
+          withCredentials: true,
+        });
       case "PATCH":
-        return await axios.patch(completeUrl, data, { headers, signal });
+        return await axios.patch(completeUrl, data, {
+          headers,
+          signal,
+          withCredentials: true,
+        });
     }
   }
 }

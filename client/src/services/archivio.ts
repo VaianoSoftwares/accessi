@@ -16,11 +16,11 @@ import {
   FindVeicoloInStrutt,
   TimbraVeicoloRes,
 } from "../types/archivio";
+import { GetResocontoForm } from "../types/forms";
 
 class ArchivioDataService extends DataServices {
   getArchivio(query: Record<string, string>, signal?: GenericAbortSignal) {
     return super.request<object[]>({
-      token: true,
       data: query,
       signal,
     });
@@ -32,7 +32,6 @@ class ArchivioDataService extends DataServices {
   ) {
     return super.request<QueryBadgeInStrutt[]>({
       url: "/in-struttura/badges",
-      token: true,
       data: query,
       signal,
     });
@@ -44,7 +43,6 @@ class ArchivioDataService extends DataServices {
   ) {
     return super.request<QueryVeicoloInStrutt[]>({
       url: "/in-struttura/veicoli",
-      token: true,
       data: query,
       signal,
     });
@@ -53,7 +51,6 @@ class ArchivioDataService extends DataServices {
   findBadgesInStrutt(data: FindBadgeInStruttData, signal?: GenericAbortSignal) {
     return super.request<FindBadgeInStrutt[]>({
       url: "/in-struttura/badges",
-      token: true,
       data,
       signal,
     });
@@ -65,7 +62,6 @@ class ArchivioDataService extends DataServices {
   ) {
     return super.request<FindVeicoloInStrutt[]>({
       url: "/in-struttura/veicoli",
-      token: true,
       data,
       signal,
     });
@@ -74,7 +70,6 @@ class ArchivioDataService extends DataServices {
   getInPrestito(query: FindInPrestitoData, signal?: GenericAbortSignal) {
     return super.request<QueryInPrestito[]>({
       url: "/in-prestito",
-      token: true,
       signal,
       data: query,
     });
@@ -84,7 +79,6 @@ class ArchivioDataService extends DataServices {
     return super.request<TimbraBadgeRes>({
       method: "POST",
       url: "/timbra/badge",
-      token: true,
       data,
       signal,
     });
@@ -94,7 +88,6 @@ class ArchivioDataService extends DataServices {
     return super.request<TimbraVeicoloRes>({
       method: "POST",
       url: "/timbra/veicolo",
-      token: true,
       data,
       signal,
     });
@@ -104,7 +97,6 @@ class ArchivioDataService extends DataServices {
     return super.request<PrestitoChiaviRes>({
       method: "POST",
       url: "/timbra/chiavi",
-      token: true,
       data,
       signal,
     });
@@ -114,7 +106,6 @@ class ArchivioDataService extends DataServices {
     return super.request({
       method: "POST",
       url: "/insert-provvisorio/badge",
-      token: true,
       files: true,
       data,
       signal,
@@ -125,8 +116,15 @@ class ArchivioDataService extends DataServices {
     return super.request({
       method: "POST",
       url: "/insert-provvisorio/veicolo",
-      token: true,
       files: true,
+      data,
+      signal,
+    });
+  }
+
+  getResoconto(data: GetResocontoForm, signal?: GenericAbortSignal) {
+    return super.request({
+      url: "/resoconto",
       data,
       signal,
     });

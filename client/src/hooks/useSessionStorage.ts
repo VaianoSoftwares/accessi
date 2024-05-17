@@ -1,9 +1,9 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function useSessionStorage<S>(
   storageKey: string,
   fallbackState: S
-): [S, Dispatch<SetStateAction<S>>] {
+) {
   const [value, setValue] = useState<S>(() => {
     const storageValue = sessionStorage.getItem(storageKey);
     return storageValue ? JSON.parse(storageValue) : fallbackState;
@@ -17,5 +17,5 @@ export default function useSessionStorage<S>(
     };
   }, [value, storageKey]);
 
-  return [value, setValue];
+  return [value, setValue] as const;
 }

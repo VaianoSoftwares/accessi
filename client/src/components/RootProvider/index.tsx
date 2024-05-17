@@ -1,10 +1,10 @@
 import { createContext } from "react";
-import { TLoggedUser } from "../../types/users";
+import { TUser } from "../../types/users";
 import useIsMobile from "../../hooks/useIsMobile";
 
 type UseCurrentUserReturn = {
-  currentUser: TLoggedUser | null;
-  setCurrentUser: (value: React.SetStateAction<TLoggedUser | null>) => void;
+  currentUser: TUser | null;
+  setCurrentUser: (value: React.SetStateAction<TUser | null>) => void;
   removeCurrentUser: () => void;
 };
 type Props = {

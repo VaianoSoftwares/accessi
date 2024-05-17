@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import * as UsersDB from "../db/users.js";
+import UsersDB from "../db/users.js";
 import { BaseError } from "../types/errors.js";
 import { TPermessi, User } from "../types/users.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
@@ -20,9 +20,9 @@ declare module "express-serve-static-core" {
 }
 
 export default class JwtAuth {
-  static verifyToken(req: Request, res: Response, next: NextFunction) {
+  public static verifyToken(req: Request, res: Response, next: NextFunction) {
     try {
-      const token = req.headers["x-access-token"] as string;
+      const token = req.cookies?.token ? String(req.cookies.token) : "";
       if (!token)
         throw new BaseError("Permessi insufficienti", { status: 401 });
 
@@ -80,11 +80,11 @@ export default class JwtAuth {
     }
   }
 
-  static isAdmin(req: Request, res: Response, next: NextFunction) {
+  public static isAdmin(req: Request, res: Response, next: NextFunction) {
     return JwtAuth.checkPermessi(req, res, next, TPermessi.admin);
   }
 
-  static isDevice(req: Request, res: Response, next: NextFunction) {
+  public static isDevice(req: Request, res: Response, next: NextFunction) {
     return JwtAuth.checkPermessi(req, res, next, TPermessi.device);
   }
 }

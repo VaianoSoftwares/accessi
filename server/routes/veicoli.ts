@@ -1,5 +1,5 @@
 import Router from "express-promise-router";
-import * as VeicoliCtrl from "../controllers/veicoli.js";
+import VeicoliController from "../controllers/veicoli.js";
 import JwtAuth from "../middlewares/JwtAuth.js";
 
 const router = Router();
@@ -7,19 +7,24 @@ const router = Router();
 export default router;
 
 router
-  .get("/", JwtAuth.verifyToken, VeicoliCtrl.apiGetVeicoli)
-  .post("/", JwtAuth.verifyToken, JwtAuth.isAdmin, VeicoliCtrl.apiInsertVeicolo)
-  .put(
-    "/:id",
+  .get("/", JwtAuth.verifyToken, VeicoliController.apiGetVeicoli)
+  .post(
+    "/",
     JwtAuth.verifyToken,
     JwtAuth.isAdmin,
-    VeicoliCtrl.apiUpdateVeicolo
+    VeicoliController.apiInsertVeicolo
+  )
+  .put(
+    "/:codice",
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    VeicoliController.apiUpdateVeicolo
   )
   .delete(
-    "/:id",
+    "/:codice",
     JwtAuth.verifyToken,
     JwtAuth.isAdmin,
-    VeicoliCtrl.apiDeleteVeicolo
+    VeicoliController.apiDeleteVeicolo
   );
 
-router.get("/tveicoli", VeicoliCtrl.apiGetTVeicoli);
+router.get("/tveicoli", VeicoliController.apiGetTVeicoli);

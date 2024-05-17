@@ -1,29 +1,29 @@
 import Router from "express-promise-router";
-import * as PeoplesCtrl from "../controllers/people.js";
+import ChiaviController from "../controllers/chiavi.js";
 import JwtAuth from "../middlewares/JwtAuth.js";
 
 const router = Router();
 
 export default router;
 
-router.get("/", JwtAuth.verifyToken, PeoplesCtrl.apiGetPeoples);
+router.get("/", JwtAuth.verifyToken, ChiaviController.apiGetChiavi);
 router.post(
   "/",
   JwtAuth.verifyToken,
   JwtAuth.isAdmin,
-  PeoplesCtrl.apiInsertPerson
+  ChiaviController.apiInsertChiave
 );
 router.put(
   "/:codice",
   JwtAuth.verifyToken,
   JwtAuth.isAdmin,
-  PeoplesCtrl.apiUpdatePerson
+  ChiaviController.apiUpdateChiave
 );
 router.delete(
   "/:codice",
   JwtAuth.verifyToken,
   JwtAuth.isAdmin,
-  PeoplesCtrl.apiDeletePerson
+  ChiaviController.apiDeleteChiave
 );
 
-router.get("/edifici", PeoplesCtrl.apiGetAssegnazioni);
+router.get("/edifici", ChiaviController.apiGetEdifici);

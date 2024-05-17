@@ -22,7 +22,7 @@ export default function OspitiPopup(props: {
   currPostazione: Postazione | undefined;
 }) {
   const formRef = useRef<FormRef<InsertArchBadgeForm>>({
-    badge: null,
+    badge_cod: null,
     nome: null,
     cognome: null,
     ditta: null,
@@ -91,7 +91,7 @@ export default function OspitiPopup(props: {
                   className="form-control form-control-sm"
                   id="osp-codice"
                   placeholder="codice"
-                  ref={(el) => (formRef.current.badge = el)}
+                  ref={(el) => (formRef.current.badge_cod = el)}
                   required
                 />
                 <label htmlFor="osp-codice">codice</label>

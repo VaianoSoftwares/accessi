@@ -1,4 +1,4 @@
-import { BadgeTipo } from "./badges";
+import { BadgeType } from "./badges";
 import { BaseError } from "./errors";
 import { BaseForm } from "./forms";
 
@@ -30,7 +30,7 @@ export type HTMLElementEvent<T extends HTMLElement = HTMLElement> = Event & {
 };
 
 export type TAssegnazione = {
-  badge: BadgeTipo;
+  badge: BadgeType;
   name: string;
 };
 

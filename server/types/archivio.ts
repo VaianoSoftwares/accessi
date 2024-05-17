@@ -1,7 +1,5 @@
-import { BaseChiave } from "./chiavi.js";
+import { BaseBadge, BaseChiave, BaseNominativo } from "./badges.js";
 import { WithId } from "./index.js";
-import { BasePerson } from "./people.js";
-import { BaseVeicolo } from "./veicoli.js";
 
 export enum BarcodePrefix {
   nominativoIn = "01",
@@ -27,33 +25,30 @@ export interface BaseArchivio {
 }
 
 export interface BaseArchivioBadge extends BaseArchivio {
-  badge: string;
+  badge_cod: string;
 }
 export interface BaseArchivioVeicolo extends BaseArchivio {
-  vehicle_id: number;
+  targa: string;
 }
-export interface BaseArchivioChiave extends BaseArchivio {
-  badge: string;
-  chiave: string;
+export interface BaseArchivioChiave extends BaseArchivioBadge {
+  chiave_cod: string;
 }
 
-export type BaseArchivioBadgeProv = BaseArchivio &
-  Partial<Omit<BasePerson, "scadenza">> & { badge: string };
-export type BaseArchivioVeicoloProv = BaseArchivio &
-  Partial<Omit<BasePerson, "scadenza">> &
-  Pick<BaseVeicolo, "targa"> & { tveicolo: string };
+export type BaseArchivioBadgeProv = BaseArchivioBadge & BaseNominativo;
+export type BaseArchivioVeicoloProv = BaseArchivioVeicolo &
+  BaseNominativo & { tveicolo: string };
 
-export type ArchivioBadge = WithId<BaseArchivioBadge>;
+export type ArchivioNominativo = WithId<BaseArchivioBadge>;
 export type ArchivioVeicolo = WithId<BaseArchivioVeicolo>;
 export type ArchivioChiave = WithId<BaseArchivioChiave>;
-export type ArchivioBadgeProv = WithId<BaseArchivioBadgeProv>;
+export type ArchivioProvvisorio = WithId<BaseArchivioBadgeProv>;
 export type ArchivioVeicoloProv = WithId<BaseArchivioVeicoloProv>;
 
 export type Archivio = Omit<BaseArchivio, "post_id"> &
-  BasePerson &
+  BaseNominativo &
   BaseChiave & {
     badge: string;
-    veicolo: string;
+    targa: string;
     chiave: string;
     tipo: string;
     provvisorio: string;
@@ -64,32 +59,29 @@ export type Archivio = Omit<BaseArchivio, "post_id"> &
   };
 
 export type BadgeInStrutt = WithId<
-  Pick<BasePerson, "nome" | "cognome" | "assegnazione" | "ditta"> & {
-    codice: string;
-    cliente: string;
-    postazione: string;
-    data_in: string;
-  }
+  Pick<BaseNominativo, "nome" | "cognome" | "assegnazione" | "ditta"> &
+    Pick<BaseArchivio, "data_in"> &
+    Pick<BaseBadge, "codice" | "cliente"> & {
+      postazione: string;
+    }
 >;
 export type VeicoloInStrutt = WithId<
-  Pick<BasePerson, "nome" | "cognome" | "assegnazione" | "ditta"> & {
-    targa: string;
-    tveicolo: string;
-    cliente: string;
-    postazione: string;
-    data_in: string;
-  }
+  Pick<BaseNominativo, "nome" | "cognome" | "assegnazione" | "ditta"> &
+    Pick<BaseArchivioVeicoloProv, "targa" | "data_in" | "tveicolo"> &
+    Pick<BaseBadge, "cliente"> & {
+      postazione: string;
+    }
 >;
 
 export type FullBadgeInStrutt = BadgeInStrutt &
-  BasePerson & { post_id: number };
+  BaseNominativo & { post_id: number };
 export type FullVeicoloInStrutt = VeicoloInStrutt &
-  BasePerson & { post_id: number };
+  BaseNominativo & { post_id: number };
 
 export type TimbraChiaviData = Pick<
   BaseArchivio,
   "post_id" | "ip" | "username"
 > & {
-  badge: string;
+  badge_cod: string;
   chiavi: string[];
 };

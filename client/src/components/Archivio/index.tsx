@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
-import PeopleDataService from "../../services/people";
 import ArchivioDataService from "../../services/archivio";
 import PostazioniDataService from "../../services/postazioni";
 import ClientiDataService from "../../services/clienti";
+import NominativiDataService from "../../services/nominativo";
 import "./index.css";
 import dateFormat from "dateformat";
 import BadgeTable from "../BadgeTable";
@@ -13,6 +13,7 @@ import { TIPI_BADGE } from "../../types/badges";
 import { FindArchivioForm } from "../../types/forms";
 import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
+import createResocontoFile from "../../utils/createTimbratureFile";
 
 const TABLE_ID = "archivio-table";
 
@@ -46,7 +47,7 @@ export default function Archivio() {
     queryKey: ["assegnazioni"],
     queryFn: async () => {
       try {
-        const response = await PeopleDataService.getAssegnazioni();
+        const response = await NominativiDataService.getAssegnazioni();
         console.log("queryAssegnazioni | response:", response);
         if (response.data.success === false) {
           throw response.data.error;
@@ -114,11 +115,28 @@ export default function Archivio() {
     enabled: false,
   });
 
+  async function getResocontoBtnEvHandler() {
+    try {
+      const reqData = {
+        minDate: formRef.current.data_in_min?.value,
+        maxDate: formRef.current.data_in_max?.value,
+      };
+
+      const response = await ArchivioDataService.getResoconto(reqData);
+      if (response.data.success === false) {
+        throw response.data.error;
+      }
+
+      createResocontoFile(response.data.result);
+    } catch (e) {
+      handleError(e);
+    }
+  }
+
   function clearForm() {
-    Object.entries(formRef.current)
-      .filter(([key, el]) => el !== null && key in formRef.current)
-      .forEach(([key, el]) => {
-        const mappedKey = key as keyof FindArchivioForm;
+    Object.values(formRef.current)
+      .filter((el) => el !== null)
+      .forEach((el) => {
         if (el instanceof HTMLInputElement) el.value = el.defaultValue;
         else if (el instanceof HTMLSelectElement && el.options.length > 0)
           el.value = el.options.item(0)!.value;
@@ -294,6 +312,15 @@ export default function Archivio() {
                   onClick={() => queryArchivio.refetch()}
                 >
                   Cerca
+                </button>
+              </div>
+              <div className="w-100 mb-1" />
+              <div className="col">
+                <button
+                  className="btn btn-success"
+                  onClick={async () => await getResocontoBtnEvHandler()}
+                >
+                  Resoconto
                 </button>
               </div>
               <div className="w-100 mb-1" />

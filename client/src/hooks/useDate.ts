@@ -1,12 +1,10 @@
 import { useState } from "react";
 
-type TUseDate = [Date, { incrDate: () => void; decrDate: () => void }];
-
 function addMonthsToDate(date: Date, months: number) {
   return new Date(date.setMonth(date.getMonth() + months));
 }
 
-export default function useDate(initialValue = new Date()): TUseDate {
+export default function useDate(initialValue = new Date()) {
   const [value, setValue] = useState(initialValue);
 
   function incrDate() {
@@ -17,5 +15,5 @@ export default function useDate(initialValue = new Date()): TUseDate {
     setValue(addMonthsToDate(value, -1));
   }
 
-  return [value, { incrDate, decrDate }];
+  return [value, { incrDate, decrDate }] as const;
 }

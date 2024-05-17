@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-browser="${2:=`which chromium`}"
-base_url="${1:="https://localhost:4317"}"
-username="${3:="$HOSTNAME"}"
+browser="${2:-`which chromium`}"
+base_url="${1:-"https://localhost:4317"}"
+username="${3:-"$HOSTNAME"}"
 
 headers_file=$(mktemp)
 trap "rm -f $headers_file" EXIT

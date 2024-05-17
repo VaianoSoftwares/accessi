@@ -18,7 +18,6 @@ class PostazioniDataService extends DataServices {
   insert(data: InsertPostazioneData, signal?: GenericAbortSignal) {
     return super.request({
       method: "POST",
-      token: true,
       data,
       signal,
     });
@@ -26,7 +25,6 @@ class PostazioniDataService extends DataServices {
 
   delete(id: number, signal?: AbortSignal) {
     return super.request({
-      token: true,
       signal,
       method: "DELETE",
       url: `/${id}`,

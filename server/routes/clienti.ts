@@ -1,5 +1,5 @@
 import Router from "express-promise-router";
-import * as ClientiCtrl from "../controllers/clienti.js";
+import ClientiController from "../controllers/clienti.js";
 import JwtAuth from "../middlewares/JwtAuth.js";
 
 const router = Router();
@@ -8,11 +8,15 @@ export default router;
 
 router
   .route("/")
-  .get(ClientiCtrl.apiGetClienti)
-  .post(JwtAuth.verifyToken, JwtAuth.isAdmin, ClientiCtrl.apiInsertCliente);
+  .get(ClientiController.apiGetClienti)
+  .post(
+    JwtAuth.verifyToken,
+    JwtAuth.isAdmin,
+    ClientiController.apiInsertCliente
+  );
 router.delete(
   "/:cliente",
   JwtAuth.verifyToken,
   JwtAuth.isAdmin,
-  ClientiCtrl.apiDeleteCliente
+  ClientiController.apiDeleteCliente
 );

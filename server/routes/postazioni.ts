@@ -1,5 +1,5 @@
 import Router from "express-promise-router";
-import * as PostazioniCtrl from "../controllers/postazioni.js";
+import PostazioniController from "../controllers/postazioni.js";
 import JwtAuth from "../middlewares/JwtAuth.js";
 
 const router = Router();
@@ -8,15 +8,15 @@ export default router;
 
 router
   .route("/")
-  .get(PostazioniCtrl.apiGetPostazioni)
+  .get(PostazioniController.apiGetPostazioni)
   .post(
     JwtAuth.verifyToken,
     JwtAuth.isAdmin,
-    PostazioniCtrl.apiInsertPostazione
+    PostazioniController.apiInsertPostazione
   );
 router.delete(
   "/:id",
   JwtAuth.verifyToken,
   JwtAuth.isAdmin,
-  PostazioniCtrl.apiDeletePostazione
+  PostazioniController.apiDeletePostazione
 );

@@ -1,6 +1,6 @@
 import {
+  BadgeDeleteReq,
   Chiave,
-  ChiaveDeleteReq,
   DeleteReqRetData,
   InsertReqRetData,
   UpdateReqRetData,
@@ -10,17 +10,16 @@ import { GenericAbortSignal } from "axios";
 
 class ChiaviDataService extends DataServices {
   getAll(signal?: GenericAbortSignal) {
-    return super.request<Chiave[]>({ token: true, signal });
+    return super.request<Chiave[]>({ signal });
   }
 
   find(query: Record<string, string>, signal?: GenericAbortSignal) {
-    return super.request<Chiave[]>({ token: true, data: query, signal });
+    return super.request<Chiave[]>({ data: query, signal });
   }
 
   insert(data: FormData, signal?: GenericAbortSignal) {
     return super.request<InsertReqRetData<Chiave>>({
       method: "POST",
-      token: true,
       data,
       signal,
     });
@@ -30,17 +29,15 @@ class ChiaviDataService extends DataServices {
     return super.request<UpdateReqRetData<Chiave>>({
       url: `/${data.get("id")}`,
       method: "PUT",
-      token: true,
       data,
       signal,
     });
   }
 
-  delete(data: ChiaveDeleteReq, signal?: GenericAbortSignal) {
+  delete(data: BadgeDeleteReq, signal?: GenericAbortSignal) {
     return super.request<DeleteReqRetData<Chiave>>({
       url: `/${data.codice}`,
       method: "DELETE",
-      token: true,
       signal,
     });
   }

@@ -3,11 +3,13 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import fileUpload from "express-fileupload";
+import cookieParser from "cookie-parser";
 import mountRoutes from "./routes/index.js";
 import reqLogger from "./middlewares/reqLogger.js";
 import IgnoredReqs from "./middlewares/IgnoredReqs.js";
 import invalidPathHandler from "./middlewares/invalidPathHandler.js";
 import redirectHttpReqs from "./middlewares/redirectHttpReqs.js";
+import errorHandler from "./middlewares/errorHandler.js";
 
 const app = express();
 
@@ -16,13 +18,17 @@ if (process.env.NODE_ENV == "development") {
   dotenv.config();
 }
 
+// use cookie parser
+app.use(cookieParser());
+
 // print out request endpoint url & method
 app.use(reqLogger);
 
 // use cors middleware
 app.use(
   cors({
-    exposedHeaders: "x-access-token",
+    origin: true,
+    credentials: true,
   })
 );
 
@@ -51,7 +57,7 @@ app.use("/api/v1/public", express.static(path.resolve("server", "public")));
 mountRoutes(app);
 
 // manage failed request
-// app.use(errorHandler);
+app.use(errorHandler);
 
 // html page request (production mode only)
 if (process.env.NODE_ENV != "development") {

@@ -13,7 +13,6 @@ class UserDataService extends DataServices {
     return super.request({
       method: "POST",
       url: "/register",
-      token: true,
       data,
       signal,
     });
@@ -28,18 +27,24 @@ class UserDataService extends DataServices {
     });
   }
 
+  logout(signal?: GenericAbortSignal) {
+    return super.request({
+      method: "POST",
+      url: "/logout",
+      signal,
+    });
+  }
+
   deviceLogin(signal?: GenericAbortSignal) {
     return super.request<TUser>({
       method: "POST",
       url: "/login/refresh",
-      token: true,
       signal,
     });
   }
 
   getAllUsers(signal?: GenericAbortSignal) {
     return super.request<TUser[]>({
-      token: true,
       signal,
     });
   }
@@ -47,7 +52,6 @@ class UserDataService extends DataServices {
   getUser({ id }: { id: string }, signal?: GenericAbortSignal) {
     return super.request<TUser>({
       url: `/${id}`,
-      token: true,
       signal,
     });
   }
@@ -59,7 +63,6 @@ class UserDataService extends DataServices {
     return super.request({
       url: `/${id}`,
       method: "PUT",
-      token: true,
       data: user,
       signal,
     });
@@ -69,7 +72,6 @@ class UserDataService extends DataServices {
     return super.request({
       url: `/${id}`,
       method: "DELETE",
-      token: true,
       signal,
     });
   }
@@ -78,7 +80,6 @@ class UserDataService extends DataServices {
     return super.request({
       url: "/permessi",
       data,
-      token: true,
       signal,
     });
   }
@@ -87,7 +88,6 @@ class UserDataService extends DataServices {
     return super.request({
       method: "POST",
       url: "/permessi",
-      token: true,
       data,
       signal,
     });
@@ -97,7 +97,6 @@ class UserDataService extends DataServices {
     return super.request({
       method: "DELETE",
       url: "/permessi",
-      token: true,
       data: { _id },
       signal,
     });

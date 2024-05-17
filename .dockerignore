@@ -1,0 +1,34 @@
+# dependencies
+/node_modules
+/tmp
+
+# tsc server build files
+/dist
+/build
+
+# vscode configs
+/.vscode
+
+# tmp upload files
+server/tmp/*
+
+# server public dir files
+server/public/uploads/*
+
+# shell scripts
+*.sh
+
+# db data
+accessi*.sql
+data*.sql
+
+# ssl certificates
+server/certs/*
+
+# docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# c-scanner utility
+/c-scanner

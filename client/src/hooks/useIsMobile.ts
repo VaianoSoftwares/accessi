@@ -27,7 +27,7 @@ const useIsMobile = (breakpoint = 768) => {
     };
   }, []);
 
-  return { isMobile };
+  return { isMobile } as const;
 };
 
 export default useIsMobile;

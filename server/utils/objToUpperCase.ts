@@ -4,11 +4,9 @@ export function objToUpperCase<T extends object>(
 ): T {
   return Object.fromEntries(
     Object.entries(obj).map(([key, value]) => {
-      if (caseSensitiveAttributes?.includes(key)) return [key, value];
-      else if (typeof value === "string") return [key, value.toUpperCase()];
-      return Array.isArray(value)
-        ? [key, value.map((v) => (typeof v === "string" ? v.toUpperCase() : v))]
-        : [key, value];
+      if (typeof value === "string" && !caseSensitiveAttributes?.includes(key))
+        return [key, value.toUpperCase()];
+      else return [key, value];
     })
   ) as T;
 }

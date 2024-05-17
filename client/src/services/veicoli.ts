@@ -1,4 +1,5 @@
 import {
+  BadgeDeleteReq,
   DeleteReqRetData,
   InsertReqRetData,
   UpdateReqRetData,
@@ -9,17 +10,16 @@ import { GenericAbortSignal } from "axios";
 
 class VeicoliDataService extends DataServices {
   getAll(signal?: GenericAbortSignal) {
-    return super.request<Veicolo[]>({ token: true, signal });
+    return super.request<Veicolo[]>({ signal });
   }
 
   find(query: Record<string, string>, signal?: GenericAbortSignal) {
-    return super.request<Veicolo[]>({ token: true, data: query, signal });
+    return super.request<Veicolo[]>({ data: query, signal });
   }
 
   insert(data: FormData, signal?: GenericAbortSignal) {
     return super.request<InsertReqRetData<Veicolo>>({
       method: "POST",
-      token: true,
       data,
       signal,
     });
@@ -27,19 +27,17 @@ class VeicoliDataService extends DataServices {
 
   update(data: FormData, signal?: GenericAbortSignal) {
     return super.request<UpdateReqRetData<Veicolo>>({
-      url: `/${data.get("id")}`,
+      url: `/${data.get("codice")}`,
       method: "PUT",
-      token: true,
       data,
       signal,
     });
   }
 
-  delete(data: { id: number }, signal?: GenericAbortSignal) {
+  delete(data: BadgeDeleteReq, signal?: GenericAbortSignal) {
     return super.request<DeleteReqRetData<Veicolo>>({
-      url: `/${data.id}`,
+      url: `/${data.codice}`,
       method: "DELETE",
-      token: true,
       signal,
     });
   }
