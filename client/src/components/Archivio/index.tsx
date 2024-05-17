@@ -13,7 +13,7 @@ import { TIPI_BADGE } from "../../types/badges";
 import { FindArchivioForm } from "../../types/forms";
 import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
-import createResocontoFile from "../../utils/createTimbratureFile";
+import createTracciatoFile from "../../utils/createTimbratureFile";
 
 const TABLE_ID = "archivio-table";
 
@@ -115,19 +115,19 @@ export default function Archivio() {
     enabled: false,
   });
 
-  async function getResocontoBtnEvHandler() {
+  async function getTracciatoBtnEvHandler() {
     try {
       const reqData = {
         minDate: formRef.current.data_in_min?.value,
         maxDate: formRef.current.data_in_max?.value,
       };
 
-      const response = await ArchivioDataService.getResoconto(reqData);
+      const response = await ArchivioDataService.getTracciato(reqData);
       if (response.data.success === false) {
         throw response.data.error;
       }
 
-      createResocontoFile(response.data.result);
+      createTracciatoFile(response.data.result);
     } catch (e) {
       handleError(e);
     }
@@ -318,9 +318,9 @@ export default function Archivio() {
               <div className="col">
                 <button
                   className="btn btn-success"
-                  onClick={async () => await getResocontoBtnEvHandler()}
+                  onClick={async () => await getTracciatoBtnEvHandler()}
                 >
-                  Resoconto
+                  Tracciato
                 </button>
               </div>
               <div className="w-100 mb-1" />

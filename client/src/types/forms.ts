@@ -155,7 +155,7 @@ export type RegisterForm = {
 
 export type UpdateUserForm = RegisterForm;
 
-export type GetResocontoForm = {
+export type GetTracciatoForm = {
   minDate?: string | undefined;
   maxDate?: string | undefined;
 };

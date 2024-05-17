@@ -1,4 +1,5 @@
 export default function createResocontoFile(content: string) {
+  console.log(content);
   const rawData = new Blob([content], { type: "text/plain" });
   const fileUrl = window.URL.createObjectURL(rawData);
 

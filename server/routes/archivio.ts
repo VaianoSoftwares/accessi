@@ -53,7 +53,7 @@ router.post(
 );
 
 router.get(
-  "/resoconto",
+  "/tracciato",
   JwtAuth.verifyToken,
-  ArchivioController.apiGetResoconto
+  ArchivioController.apiGetTracciati
 );

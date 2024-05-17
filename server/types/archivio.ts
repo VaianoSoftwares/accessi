@@ -85,3 +85,11 @@ export type TimbraChiaviData = Pick<
   badge_cod: string;
   chiavi: string[];
 };
+
+export type Tracciato = {
+  alt_cod: string;
+  data_in: string | Date;
+  data_out: string | Date;
+  formatted_data_in: string;
+  formatted_data_out: string;
+};

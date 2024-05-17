@@ -12,6 +12,7 @@ import {
   ArchivioVeicoloProv,
   ArchivioNominativo,
   ArchivioProvvisorio,
+  Tracciato,
 } from "../types/archivio.js";
 import { BaseError } from "../types/errors.js";
 import {
@@ -209,7 +210,7 @@ export default class ArchivioDB {
       : [prefixText, "ORDER BY data_in DESC"].join(" ");
     const queryValues =
       filter &&
-      Object.entries(filter)
+      Object.values(filter)
         .filter((value) => value)
         .map((value) =>
           Array.isArray(value) || typeof value !== "string"
@@ -348,6 +349,15 @@ export default class ArchivioDB {
 
     const archId = fullInStruttRows[0].id;
 
+    const { rowCount: numInStruttRows, rows: inStruttRows } =
+      await ArchivioDB.getBadgesInStrutt({ id: archId });
+    if (!numInStruttRows) {
+      throw new BaseError("Impossibile reperire badge in struttura", {
+        status: 500,
+        context: { archId, badgeCode },
+      });
+    }
+
     const { rowCount: updatedRowsNum } = await ArchivioDB.setArchRowDate(
       archId,
       ArchTableName.NOMINATIVI,
@@ -356,15 +366,6 @@ export default class ArchivioDB {
     if (!updatedRowsNum) {
       throw new BaseError("Impossibile timbrare badge", {
         status: 400,
-        context: { archId, badgeCode },
-      });
-    }
-
-    const { rowCount: numInStruttRows, rows: inStruttRows } =
-      await ArchivioDB.getBadgesInStrutt({ id: archId });
-    if (!numInStruttRows) {
-      throw new BaseError("Impossibile reperire badge in struttura", {
-        status: 500,
         context: { archId, badgeCode },
       });
     }
@@ -498,6 +499,15 @@ export default class ArchivioDB {
 
     const archId = fullInStruttRows[0].id;
 
+    const { rowCount: numInStruttRows, rows: inStruttRows } =
+      await ArchivioDB.getBadgesInStrutt({ id: archId });
+    if (!numInStruttRows) {
+      throw new BaseError("Impossibile reperire badge in struttura", {
+        status: 500,
+        context: { archId, badgeCode },
+      });
+    }
+
     const { rowCount: numUpdatedRows } = await ArchivioDB.setArchRowDate(
       archId,
       ArchTableName.PROVVISORI,
@@ -506,15 +516,6 @@ export default class ArchivioDB {
     if (!numUpdatedRows) {
       throw new BaseError("Impossibile timbrare badge", {
         status: 400,
-        context: { archId, badgeCode },
-      });
-    }
-
-    const { rowCount: numInStruttRows, rows: inStruttRows } =
-      await ArchivioDB.getBadgesInStrutt({ id: archId });
-    if (!numInStruttRows) {
-      throw new BaseError("Impossibile reperire badge in struttura", {
-        status: 500,
         context: { archId, badgeCode },
       });
     }
@@ -770,6 +771,15 @@ export default class ArchivioDB {
         });
       }
 
+      const { rows: inStruttRows, rowCount: numInStruttRows } =
+        await ArchivioDB.getBadgesInStrutt({ id: archId });
+      if (!numInStruttRows) {
+        throw new BaseError("Impossibile reperire badge in struttura", {
+          status: 500,
+          context: { archId, badgeCode },
+        });
+      }
+
       const { rowCount: numUpdatedRows } = await ArchivioDB.setArchRowDate(
         archId,
         ArchTableName.PROVVISORI,
@@ -777,15 +787,6 @@ export default class ArchivioDB {
       );
       if (!numUpdatedRows) {
         throw new BaseError("Impossibile timbrare badge", {
-          status: 500,
-          context: { archId, badgeCode },
-        });
-      }
-
-      const { rows: inStruttRows, rowCount: numInStruttRows } =
-        await ArchivioDB.getBadgesInStrutt({ id: archId });
-      if (!numInStruttRows) {
-        throw new BaseError("Impossibile reperire badge in struttura", {
           status: 500,
           context: { archId, badgeCode },
         });
@@ -876,7 +877,7 @@ export default class ArchivioDB {
         id: number;
         chiave: string;
       }>(
-        `SELECT id, chiave FROM ${ArchTableName.CHIAVI} WHERE data_out > date_trunc('second', CURRENT_TIMESTAMP) AND badge = $1 AND cliente = $2`,
+        `SELECT id, chiave FROM in_prestito WHERE data_out > date_trunc('second', CURRENT_TIMESTAMP) AND badge_cod = $1 AND cliente = $2`,
         [badgeCode, actualCliente]
       );
 
@@ -943,8 +944,8 @@ export default class ArchivioDB {
     }
   }
 
-  public static async getResoconto(filter: GetResocontoFilter) {
-    const prefixText = "SELECT value FROM resoconto_arch";
+  public static async getTracciati(filter: GetResocontoFilter) {
+    const prefixText = "SELECT * FROM tracciati";
     const filterText =
       filter &&
       Object.entries(filter)
@@ -952,9 +953,9 @@ export default class ArchivioDB {
         .map(([key], i) => {
           switch (key) {
             case "minDate":
-              return `${key} >= ${i + 1}`;
+              return `data_in >= $${i + 1}`;
             case "maxDate":
-              return `${key} <= ${i + 1}`;
+              return `data_in <= $${i + 1}`;
           }
         })
         .join(" AND ");
@@ -962,6 +963,6 @@ export default class ArchivioDB {
       ? [prefixText, filterText].join(" WHERE ")
       : prefixText;
     const queryValues = Object.values(filter).filter((v) => v);
-    return await db.query<{ value: string }>(queryText, queryValues);
+    return await db.query<Tracciato>(queryText, queryValues);
   }
 }

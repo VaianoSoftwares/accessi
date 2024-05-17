@@ -199,10 +199,10 @@ export default class ArchivioController {
           const prefix = barcode.substring(0, 1);
 
           switch (prefix) {
-            case "0":
+            case "1":
               badgeCode = barcode;
               break;
-            case "2":
+            case "3":
               chiavi.push(barcode);
               break;
           }
@@ -326,7 +326,7 @@ export default class ArchivioController {
     }
   }
 
-  public static async apiGetResoconto(
+  public static async apiGetTracciati(
     req: Request,
     res: Response,
     next: NextFunction
@@ -340,8 +340,14 @@ export default class ArchivioController {
         });
       }
 
-      const dbResult = await ArchivioDB.getResoconto(parsed.data);
-      const result = dbResult.rows.join("\n");
+      const dbResult = await ArchivioDB.getTracciati(parsed.data);
+      const result = dbResult.rows
+        .map((row) => {
+          const parsedCod = row.alt_cod.padStart(6, "0");
+          return `43 ${parsedCod} ${row.formatted_data_in} I 0950 00 P\n43 ${parsedCod} ${row.formatted_data_out} U 0950 00 P`;
+        })
+        .join("\n");
+      console.log(result);
 
       res.json(Ok(result));
     } catch (e) {

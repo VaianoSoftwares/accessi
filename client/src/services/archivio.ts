@@ -16,7 +16,7 @@ import {
   FindVeicoloInStrutt,
   TimbraVeicoloRes,
 } from "../types/archivio";
-import { GetResocontoForm } from "../types/forms";
+import { GetTracciatoForm } from "../types/forms";
 
 class ArchivioDataService extends DataServices {
   getArchivio(query: Record<string, string>, signal?: GenericAbortSignal) {
@@ -122,9 +122,9 @@ class ArchivioDataService extends DataServices {
     });
   }
 
-  getResoconto(data: GetResocontoForm, signal?: GenericAbortSignal) {
+  getTracciato(data: GetTracciatoForm, signal?: GenericAbortSignal) {
     return super.request({
-      url: "/resoconto",
+      url: "/tracciato",
       data,
       signal,
     });

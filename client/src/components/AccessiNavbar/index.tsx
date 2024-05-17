@@ -17,6 +17,9 @@ import { Postazione } from "../../types/badges";
 import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 
+const green_check_path = "/green-checkmark-icon.svg";
+const red_x_path = "/red-x-icon.svg";
+
 export default function AccessiNavbar({
   currPostazione,
   setCurrPostazione,
@@ -245,45 +248,31 @@ export default function AccessiNavbar({
             {canAccessPage(currentUser, TPages.badge) && (
               <div className="d-flex mx-1">
                 <button
-                  className="btn btn-light mx-1 scan-btn"
+                  className="scanner-btn btn btn-light mx-1 scan-btn"
                   onClick={async () => await runBadgeScanner()}
                   type="button"
                 >
-                  Badge Scanner
-                </button>{" "}
-                <b
-                  className="navbar-text scan-status-txt"
-                  style={
-                    badgeScannerConnected
-                      ? { color: "green" }
-                      : { color: "red" }
-                  }
-                >
-                  {!badgeScannerConnected && "Non "}
-                  {"Connesso"}
-                </b>
+                  <p className="scanner-btn-txt">Badge Scanner</p>
+                  <img
+                    className="scanner-icon"
+                    src={badgeScannerConnected ? green_check_path : red_x_path}
+                  />
+                </button>
               </div>
             )}
             {canAccessPage(currentUser, TPages.chiavi) && (
               <div className="d-flex">
                 <button
-                  className="btn btn-light mx-1 scan-btn"
+                  className="scanner-btn btn btn-light mx-1 scan-btn"
                   onClick={async () => await runChiaviScanner()}
                   type="button"
                 >
-                  Chiavi Scanner
-                </button>{" "}
-                <b
-                  className="navbar-text scan-status-txt"
-                  style={
-                    chiaviScannerConnected
-                      ? { color: "green" }
-                      : { color: "red" }
-                  }
-                >
-                  {!chiaviScannerConnected && "Non "}
-                  {"Connesso"}
-                </b>
+                  <p className="scanner-btn-txt">Chiavi Scanner</p>
+                  <img
+                    className="scanner-icon"
+                    src={chiaviScannerConnected ? green_check_path : red_x_path}
+                  />
+                </button>
               </div>
             )}
           </ul>

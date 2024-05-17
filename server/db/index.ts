@@ -1,6 +1,9 @@
 import pg, { QueryResultRow } from "pg";
 const { Pool } = pg;
-pg.types.setTypeParser(20, BigInt);
+pg.types.setTypeParser(20, (v) => {
+  const vAsInt = Number.parseInt(v);
+  return Number.isSafeInteger(vAsInt) ? vAsInt : null;
+});
 
 const pool = new Pool();
 

@@ -63,9 +63,8 @@ CREATE OR REPLACE FUNCTION now_or_24h_later(TIMESTAMP = CURRENT_TIMESTAMP) RETUR
     ELSE date_trunc('second', CURRENT_TIMESTAMP) END;
 $$ LANGUAGE SQL;
 
-CREATE OR REPLACE FUNCTION get_resoconto_date(TIMESTAMP) RETURNS TEXT AS $$
-    SELECT lpad(extract(day from timestamp $1)::text,2,'0')||'/'||lpad(extract(month from timestamp $1)::text,2,'0')||'/'||extract(year from timestamp $1)::text||' '||$1::timestamp::time;
-
+CREATE OR REPLACE FUNCTION get_tracciato_date(TIMESTAMP) RETURNS TEXT AS $$
+    SELECT lpad(extract(day from $1)::text,2,'0')||'/'||lpad(extract(month from $1)::text,2,'0')||'/'||extract(year from $1)::text||' '||$1::timestamp::time;
 $$ LANGUAGE SQL;
 
 CREATE TABLE IF NOT EXISTS clienti(
@@ -128,8 +127,8 @@ CREATE TABLE IF NOT EXISTS chiavi(
     indirizzo VARCHAR(128) CHECK (indirizzo != ''),
     citta VARCHAR(64) CHECK (citta != ''),
     edificio VARCHAR(32) NOT NULL DEFAULT 'GENERICO' CHECK (is_typeof(edificio, 'building_type')),
-    piano VARCHAR(16) CHECK (piano != ''),
-    proprietario VARCHAR(9) NOT NULL REFERENCES nominativi (codice),
+    piano TEXT CHECK (piano != ''),
+    proprietario VARCHAR(9) REFERENCES nominativi (codice),
     CONSTRAINT invalid_chiave_barcode CHECK (left(codice, 1) = '3' AND length(codice) = 9 AND (codice ~ '^[0-9]+$'))
 );
 
@@ -146,7 +145,7 @@ CREATE TABLE IF NOT EXISTS veicoli(
 
 CREATE TABLE IF NOT EXISTS archivio_nominativi(
     id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
-    badge_cod VARCHAR(9) UNIQUE NOT NULL REFERENCES nominativi (codice),
+    badge_cod VARCHAR(9) NOT NULL REFERENCES nominativi (codice),
     post_id INT NOT NULL REFERENCES postazioni (id),
     data_in TIMESTAMP NOT NULL DEFAULT date_trunc('second', CURRENT_TIMESTAMP),
     data_out TIMESTAMP NOT NULL DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '24 hours'),
@@ -157,7 +156,7 @@ CREATE TABLE IF NOT EXISTS archivio_nominativi(
 
 CREATE TABLE IF NOT EXISTS archivio_provvisori(
     id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
-    badge_cod VARCHAR(9) UNIQUE NOT NULL REFERENCES provvisori (codice),
+    badge_cod VARCHAR(9) NOT NULL REFERENCES provvisori (codice),
     post_id INT NOT NULL REFERENCES postazioni (id),
     data_in TIMESTAMP NOT NULL DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '23 hours 59 minutes'),
     data_out TIMESTAMP NOT NULL DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '24 hours'),
@@ -175,7 +174,7 @@ CREATE TABLE IF NOT EXISTS archivio_provvisori(
 
 CREATE TABLE IF NOT EXISTS archivio_veicoli(
     id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
-    targa VARCHAR(32) UNIQUE NOT NULL REFERENCES veicoli (targa),
+    targa VARCHAR(32) NOT NULL REFERENCES veicoli (targa),
     post_id INT NOT NULL REFERENCES postazioni (id),
     data_in TIMESTAMP NOT NULL DEFAULT date_trunc('second', CURRENT_TIMESTAMP),
     data_out TIMESTAMP NOT NULL DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '24 hours'),
@@ -186,7 +185,7 @@ CREATE TABLE IF NOT EXISTS archivio_veicoli(
 
 CREATE TABLE IF NOT EXISTS archivio_veicoli_prov(
     id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
-    targa VARCHAR(32) UNIQUE NOT NULL,
+    targa VARCHAR(32) NOT NULL,
     post_id INT NOT NULL REFERENCES postazioni (id),
     data_in TIMESTAMP NOT NULL DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '23 hours 59 minutes'),
     data_out TIMESTAMP NOT NULL DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '24 hours'),
@@ -254,13 +253,7 @@ CREATE TABLE IF NOT EXISTS prot_visibile_da(
 --     assegnazione TEXT,
 --     tveicolo TEXT,
 --     ditta TEXT,
---     ndoc TEXT,
---     tdoc TEXT,
---     telefono TEXT,
---     scadenza DATE,
---     indirizzo TEXT,
---     edificio TEXT,
---     citta TEXT,
+--     ndoc TEXT,ctualCliente
 --     piano TEXT
 -- );
 
@@ -268,14 +261,7 @@ CREATE TABLE IF NOT EXISTS prot_visibile_da(
 --     WITH alt_archivio_nominativi AS (
 --         SELECT a.id, n.codice AS badge, NULL AS targa, NULL AS chiave, 'BADGE' AS tipo, 'NO' AS provvisorio, dates_are_not_equal(a.data_in) AS notte, date_in_out_diff(a.data_in) AS tempo_in_strutt, po.cliente, po.name AS postazione, a.data_in, now_or_24h_later(a.data_in) AS data_out, a.username, a.ip, n.nome, n.cognome, n.assegnazione AS assengazione, NULL AS tveicolo, n.ditta, n.ndoc, n.tdoc AS tdoc, n.telefono, n.scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta, NULL AS piano
 --         FROM nominativi AS n
---         JOIN archivio_nominativi AS a ON n.codice = a.badge_cod
---         JOIN postazioni AS po ON a.post_id = po.id 
---     ),
---     alt_archivio_provvisori AS (
---         SELECT a.id, a.badge_cod AS badge, NULL AS targa, NULL AS chiave, 'BADGE' AS tipo, 'SI' AS provvisorio, dates_are_not_equal(a.data_in) AS notte, date_in_out_diff(a.data_in) AS tempo_in_strutt, po.cliente, po.name AS postazione, a.data_in, now_or_24h_later(a.data_in) AS data_out, a.username, a.ip, a.nome, a.cognome, a.assegnazione AS assegnazione, NULL AS tveicolo, a.ditta, a.ndoc, a.tdoc AS tdoc, a.telefono, NULL::DATE AS scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta, NULL AS piano
---         FROM archivio_provvisori AS a
---         JOIN postazioni AS po ON a.post_id = po.id
---     ),
+--         JOIN archivio_nominativictualCliente
 --     alt_archivio_veicoli AS (
 --         SELECT a.id, NULL AS badge, ve.targa, NULL AS chiave, 'VEICOLO' AS tipo, 'NO' AS provvisorio, dates_are_not_equal(a.data_in) AS notte, date_in_out_diff(a.data_in) AS tempo_in_strutt, po.cliente, po.name AS postazione, a.data_in, now_or_24h_later(a.data_in) AS data_out, a.username, a.ip, n.nome, n.cognome, n.assegnazione AS assegnazione, ve.tipo AS tveicolo, n.ditta, n.ndoc, n.tdoc AS tdoc, n.telefono, n.scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta, NULL AS piano
 --         FROM nominativi AS n
@@ -375,13 +361,13 @@ CREATE TABLE IF NOT EXISTS prot_visibile_da(
 
 CREATE VIEW full_archivio AS
     WITH full_archivio_nominativi AS (
-        SELECT n.codice AS badge, NULL AS targa, NULL AS chiave, 'BADGE' AS tipo, 'NO' AS provvisorio, dates_are_not_equal(a.data_in, a.data_out) AS notte, date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt, po.cliente, po.name AS postazione, a.data_in, a.data_out, a.username, a.ip, n.nome, n.cognome, n.assegnazione, NULL::veh_type AS tveicolo, n.ditta, n.ndoc, n.tdoc, n.telefono, n.scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta, NULL AS piano
+        SELECT n.codice AS badge, NULL AS targa, NULL AS chiave, 'BADGE' AS tipo, 'NO' AS provvisorio, dates_are_not_equal(a.data_in, a.data_out) AS notte, date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt, po.cliente, po.name AS postazione, a.data_in, a.data_out, a.username, a.ip, n.nome, n.cognome, n.assegnazione, NULL AS tveicolo, n.ditta, n.ndoc, n.tdoc, n.telefono, n.scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta, NULL AS piano
         FROM nominativi AS n
         JOIN archivio_nominativi AS a ON n.codice = a.badge_cod
         JOIN postazioni AS po ON a.post_id = po.id 
     ),
     full_archivio_provvisori AS (
-        SELECT a.badge_cod AS badge, NULL AS targa, NULL AS chiave, 'BADGE' AS tipo, 'SI' AS provvisorio, dates_are_not_equal(a.data_in, a.data_out) AS notte, date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt, po.cliente, po.name AS postazione, a.data_in, a.data_out, a.username, a.ip, a.nome, a.cognome, a.assegnazione, NULL::veh_type AS tveicolo, a.ditta, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta, NULL AS piano
+        SELECT a.badge_cod AS badge, NULL AS targa, NULL AS chiave, 'BADGE' AS tipo, 'SI' AS provvisorio, dates_are_not_equal(a.data_in, a.data_out) AS notte, date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt, po.cliente, po.name AS postazione, a.data_in, a.data_out, a.username, a.ip, a.nome, a.cognome, a.assegnazione, NULL AS tveicolo, a.ditta, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta, NULL AS piano
         FROM archivio_provvisori AS a
         JOIN postazioni AS po ON a.post_id = po.id
     ),
@@ -398,7 +384,7 @@ CREATE VIEW full_archivio AS
         JOIN postazioni AS po ON a.post_id = po.id
     ),
     full_archivio_chiavi AS (
-        SELECT t1.codice AS badge, NULL AS targa, t2.codice AS chiave, 'CHIAVE' AS tipo, 'NO' AS provvisorio, dates_are_not_equal(t1.data_in, t1.data_out) AS notte, date_in_out_diff(t1.data_in, t1.data_out) AS tempo_in_strutt, t1.cliente, t1.postazione, t1.data_in, t1.data_out, t1.username, t1.ip, t1.nome, t1.cognome, t1.assegnazione, NULL::veh_type AS tveicolo, t1.ditta, t1.ndoc, t1.tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta, CAST(t2.edificio AS TEXT) AS edificio, t2.piano
+        SELECT t1.codice AS badge, NULL AS targa, t2.codice AS chiave, 'CHIAVE' AS tipo, 'NO' AS provvisorio, dates_are_not_equal(t1.data_in, t1.data_out) AS notte, date_in_out_diff(t1.data_in, t1.data_out) AS tempo_in_strutt, t1.cliente, t1.postazione, t1.data_in, t1.data_out, t1.username, t1.ip, t1.nome, t1.cognome, t1.assegnazione, NULL AS tveicolo, t1.ditta, t1.ndoc, t1.tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta, CAST(t2.edificio AS TEXT) AS edificio, t2.piano
         FROM (
             SELECT n.codice, po.cliente, po.name AS postazione, a.data_in, a.data_out, a.username, a.ip, a.chiave_cod, n.nome, n.cognome, n.ditta, n.assegnazione, n.ndoc, n.tdoc, n.telefono, n.scadenza
             FROM nominativi AS n
@@ -426,8 +412,8 @@ CREATE VIEW full_archivio AS
     WHERE data_out < CURRENT_TIMESTAMP
     ORDER BY data_in DESC, data_out DESC;
 
-CREATE VIEW resoconto_arch AS
-    SELECT '43 '||badge_cod||' '||get_resoconto_date(a.data_in)||' I 0950 00 P\n43 '||n.alt_cod||' '||get_resoconto_date(a.data_out)||' U 0950 00 P' AS value
+CREATE VIEW tracciati AS
+    SELECT n.alt_cod, get_tracciato_date(a.data_in) AS formatted_data_in, get_tracciato_date(a.data_out) AS formatted_data_out, data_in, data_out
     FROM archivio_nominativi AS a
     JOIN nominativi AS n ON a.badge_cod = n.codice
     WHERE data_out < CURRENT_TIMESTAMP;
