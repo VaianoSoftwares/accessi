@@ -586,7 +586,6 @@ export default function Anagrafico() {
                   <select
                     className="form-select form-select-sm"
                     id="assegnazione"
-                    placeholder="assegnazione"
                     ref={(el) => (formRef.current.assegnazione = el)}
                   >
                     <option key="-1" />
@@ -615,7 +614,6 @@ export default function Anagrafico() {
                   <select
                     className="form-select form-select-sm"
                     id="tdoc"
-                    placeholder="tipo documento"
                     ref={(el) => (formRef.current.tdoc = el)}
                   >
                     <option key="-1" />
@@ -746,7 +744,6 @@ export default function Anagrafico() {
               <select
                 className="form-select form-select-sm"
                 id="edificio"
-                placeholder="edificio"
                 ref={(el) => (formRef.current.edificio = el)}
               >
                 <option key="-1" />
@@ -786,7 +783,6 @@ export default function Anagrafico() {
               <select
                 className="form-select form-select-sm"
                 id="proprietario"
-                placeholder="proprietario"
                 ref={(el) => (formRef.current.proprietario = el)}
               >
                 <option key="-1" />
@@ -819,7 +815,6 @@ export default function Anagrafico() {
               <select
                 className="form-select form-select-sm"
                 id="tveicolo"
-                placeholder="tipo veicolo"
                 ref={(el) => (formRef.current.tipo = el)}
               >
                 <option key="-1" />
@@ -836,7 +831,6 @@ export default function Anagrafico() {
               <select
                 className="form-select form-select-sm"
                 id="proprietario"
-                placeholder="proprietario"
                 ref={(el) => (formRef.current.proprietario = el)}
               >
                 <option key="-1" />
@@ -935,7 +929,6 @@ export default function Anagrafico() {
                 <select
                   className="form-select form-select-sm"
                   id="stato"
-                  placeholder="stato"
                   ref={(el) => (formRef.current.stato = el)}
                 >
                   <option key="-1" />
@@ -951,7 +944,6 @@ export default function Anagrafico() {
                 <select
                   className="form-select form-select-sm"
                   id="cliente"
-                  placeholder="cliente"
                   ref={(el) => (formRef.current.cliente = el)}
                 >
                   <option key="-1" />

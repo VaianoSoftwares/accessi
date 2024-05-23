@@ -278,7 +278,6 @@ export default function Badge({
                     <select
                       className="form-select form-select-sm"
                       id="assegnazione"
-                      placeholder="assegnazione"
                       ref={(el) => (formRef.current.assegnazione = el)}
                     >
                       <option key="-1" disabled={readonlyForm === true} />
@@ -325,7 +324,6 @@ export default function Badge({
                     <select
                       className="form-select form-select-sm"
                       id="tdoc"
-                      placeholder="tipo documento"
                       ref={(el) => (formRef.current.tdoc = el)}
                     >
                       <option key="-1" disabled={readonlyForm === true} />
@@ -414,13 +412,35 @@ export default function Badge({
                       }
 
                       mutateInStrutt.mutate({
-                        badge_cod: formRef.current.badge_cod.value,
+                        badge_cod: "0".concat(formRef.current.badge_cod.value),
                         post_id: currPostazione.id,
                       });
                     }}
                     className="btn btn-success badge-form-btn"
                   >
-                    Timbra
+                    Entra
+                  </button>
+                </div>
+                <div className="w-100 mt-1" />
+                <div className="col">
+                  <button
+                    onClick={() => {
+                      if (!currPostazione) {
+                        toast.error("Selezionare la postazione");
+                        return;
+                      } else if (!formRef.current.badge_cod?.value) {
+                        toast.error("Campo Barcode mancante");
+                        return;
+                      }
+
+                      mutateInStrutt.mutate({
+                        badge_cod: "1".concat(formRef.current.badge_cod.value),
+                        post_id: currPostazione.id,
+                      });
+                    }}
+                    className="btn btn-success badge-form-btn"
+                  >
+                    Esci
                   </button>
                 </div>
                 <div className="w-100 mt-1" />

@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS nominativi(
     tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'doc_type')),
     scadenza DATE,
     cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
-    alt_cod VARCHAR(6) NOT NULL,
+    zuc_cod VARCHAR(6) NOT NULL,
     CONSTRAINT invalid_nom_barcode CHECK (left(codice, 1) = '1' AND length(codice) = 9 AND (codice ~ '^[0-9]+$'))
 );
 
@@ -413,7 +413,7 @@ CREATE VIEW full_archivio AS
     ORDER BY data_in DESC, data_out DESC;
 
 CREATE VIEW tracciati AS
-    SELECT n.alt_cod, get_tracciato_date(a.data_in) AS formatted_data_in, get_tracciato_date(a.data_out) AS formatted_data_out, data_in, data_out
+    SELECT n.zuc_cod, get_tracciato_date(a.data_in) AS formatted_data_in, get_tracciato_date(a.data_out) AS formatted_data_out, data_in, data_out
     FROM archivio_nominativi AS a
     JOIN nominativi AS n ON a.badge_cod = n.codice
     WHERE data_out < CURRENT_TIMESTAMP;

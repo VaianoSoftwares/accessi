@@ -73,7 +73,7 @@ export interface BaseNominativo {
 }
 
 export interface Nominativo extends BaseBadge, BaseNominativo {
-  alt_cod: string;
+  zuc_cod: string;
 }
 
 export interface BaseChiave {
