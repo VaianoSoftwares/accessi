@@ -75,7 +75,6 @@ export default function Postazioni() {
           <select
             className="form-select form-select-sm"
             id="cliente"
-            placeholder="cliente"
             onChange={(e) => setCurrTCliente(e.target.value)}
             defaultValue=""
           >

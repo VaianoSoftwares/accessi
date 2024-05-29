@@ -36,7 +36,7 @@
     cursor: default;
 }
 
-.scanner-btn .scanner-icon {
+.scanner-btn img {
     min-width: 20px;
     min-height: 20px;
     width: 20px;
@@ -45,7 +45,7 @@
     padding-left: 2px;
 }
 
-.scanner-btn .scanner-btn-txt {
+.scanner-btn p {
     float: left;
     padding-right: 2px;
 }

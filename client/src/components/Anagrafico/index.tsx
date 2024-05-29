@@ -20,8 +20,10 @@ import { FormRef, GenericForm } from "../../types";
 import "./index.css";
 import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
+import { Link } from "react-router-dom";
 
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
+const UPLOADS_DIR = "/api/v1/public/uploads/";
 const TABLE_ID = "anagrafico-table";
 
 export default function Anagrafico() {
@@ -508,6 +510,9 @@ export default function Anagrafico() {
             case "checkbox":
               el.checked = false;
               break;
+            case "file":
+              el.value = "";
+              break;
             default:
               el.value = obj[key] || el.defaultValue;
           }
@@ -524,7 +529,7 @@ export default function Anagrafico() {
   );
 
   const [pfpUrl, { updateImage, setNoImage }] = useImage((data) =>
-    data ? `${PROXY}/api/v1/public/uploads/PFP_${data}.jpg` : ""
+    data ? `${PROXY}${UPLOADS_DIR}PFP_${data}.jpg` : ""
   );
 
   function getCurrentForm(formType: BadgeType) {
@@ -855,7 +860,10 @@ export default function Anagrafico() {
       <BadgeTable
         content={content}
         tableId={TABLE_ID}
+        keyAttribute="codice"
         dateParams={["scadenza"]}
+        linkParams={["privacy", "documento"]}
+        linkParser={(value: string) => <Link to={`${PROXY}${UPLOADS_DIR}${value}`} >{value}</Link>}
         clickRowEvent={async (e) => {
           const codice = e.target.parentElement?.dataset["key"];
           if (!codice) return;
@@ -871,7 +879,6 @@ export default function Anagrafico() {
               return await findVeicoli.refetch();
           }
         }}
-        keyAttribute="codice"
       />
     );
 

@@ -30,10 +30,6 @@
 .pfp-container {
     border: 2px solid green;
     aspect-ratio: 1 / 1;
-    /* width: 200px;
-    height: 200px; */
-    /* max-width: 200px;
-    max-height: 200px; */
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
@@ -65,10 +61,24 @@
 }
 
 .badge-form-btn {
-    width: 95px;
+    width: 100px;
     height: 35px;
 }
 
 .badge-form-b {
     font-size: 14px;
+}
+
+.toggle-form-btn img {
+    min-width: 20px;
+    min-height: 20px;
+    width: 20px;
+    height: 20px;
+    float: right;
+    padding-left: 2px;
+}
+
+.toggle-form-btn p {
+    float: left;
+    padding-right: 2px;
 }

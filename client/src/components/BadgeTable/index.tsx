@@ -8,11 +8,13 @@ export default function BadgeTable({
 }: {
   content: Record<PropertyKey, any>[];
   tableId?: string;
+  keyAttribute?: string;
   omitedParams?: string[];
   obfuscatedParams?: string[];
   timestampParams?: string[];
   dateParams?: string[];
-  keyAttribute?: string;
+  linkParams?: string[];
+  linkParser?: (value: any) => any;
   clickRowEvent?: (e: HTMLElementEvent) => void;
 }) {
   function parseTableTdContent({ key, value }: { key: string; value: any }) {
@@ -24,6 +26,8 @@ export default function BadgeTable({
       return new Date(value).toLocaleString("it-IT", {
         timeZone: "Europe/Rome",
       });
+    else if (props?.linkParams?.includes?.(key))
+        return props?.linkParser?.(value);
     else return value;
   }
 

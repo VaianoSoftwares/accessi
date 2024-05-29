@@ -122,7 +122,10 @@ export default class NominativiController {
         updateData,
       });
 
-      const uploadedFiles = await this.uploadFiles(codice, req.files);
+      const uploadedFiles = await NominativiController.uploadFiles(
+        codice,
+        req.files
+      );
 
       if (!dbRes.rowCount && uploadedFiles.length === 0) {
         throw new BaseError("Impossibile modificare badge", {

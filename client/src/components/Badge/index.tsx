@@ -27,6 +27,9 @@ import useError from "../../hooks/useError";
 const TABLE_NAME = "in_strutt_table";
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 
+const green_check_path = "/green-checkmark-icon.svg";
+const red_x_path = "/red-x-icon.svg";
+
 export default function Badge({
   scannedValue,
   clearScannedValue,
@@ -251,7 +254,7 @@ export default function Badge({
     <div id="badge-wrapper">
       <div className="container-fluid m-1 badge-container">
         <div className="row justify-content-start align-items-start submit-form">
-          <div className="col-6 badge-form">
+          <div className="col-7 badge-form">
             <div className="row my-1">
               <div className="col-3">
                 <div
@@ -374,7 +377,7 @@ export default function Badge({
               </div>
             </div>
           </div>
-          <div className="col-sm-2">
+          <div className="col-sm-1">
             <div className="form-buttons">
               <div className="row align-items-center justify-content-start g-0">
                 {isAdmin(currentUser) === true && (
@@ -382,20 +385,13 @@ export default function Badge({
                     <div className="col-auto">
                       <button
                         onClick={() => setReadonlyForm.setToggle()}
-                        className="btn btn-success badge-form-btn"
+                        className="btn btn-secondary badge-form-btn toggle-form-btn"
                       >
-                        Form
+                        <p>Form</p>
+                        <img
+                          src={readonlyForm ? red_x_path : green_check_path}
+                        />
                       </button>
-                    </div>
-                    <div className="col-auto mx-2 badge-form-b">
-                      <b
-                        style={
-                          readonlyForm ? { color: "red" } : { color: "green" }
-                        }
-                      >
-                        {readonlyForm && "Non "}
-                        {"Attivo"}
-                      </b>
                     </div>
                     <div className="w-100 mt-1" />
                   </>

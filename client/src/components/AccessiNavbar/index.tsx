@@ -252,9 +252,8 @@ export default function AccessiNavbar({
                   onClick={async () => await runBadgeScanner()}
                   type="button"
                 >
-                  <p className="scanner-btn-txt">Badge Scanner</p>
+                  <p>Badge Scanner</p>
                   <img
-                    className="scanner-icon"
                     src={badgeScannerConnected ? green_check_path : red_x_path}
                   />
                 </button>

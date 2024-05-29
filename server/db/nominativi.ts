@@ -10,10 +10,12 @@ const tableName = "nominativi";
 
 export default class NominativiDB {
   public static async getNominativi(filter?: FindNominativiFilter) {
-    const { queryText, queryValues } = db.getSelectRowQuery(tableName, {
-      selections: filter,
-    });
-    console.log({ queryText, queryValues });
+    const { queryText, queryValues } = db.getSelectRowQuery(
+      "nominativi_w_docs",
+      {
+        selections: filter,
+      }
+    );
     return await db.query(queryText, queryValues);
   }
 

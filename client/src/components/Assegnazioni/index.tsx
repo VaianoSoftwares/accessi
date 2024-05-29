@@ -55,7 +55,6 @@ export default function Assegnazioni() {
           <select
             className="form-select form-select-sm"
             id="tipo-badge"
-            placeholder="tipo badge"
             onChange={(e) => setCurrTBadge(e.target.value as BadgeType)}
             defaultValue={BadgeType.NOMINATIVO}
           >

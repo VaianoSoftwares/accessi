@@ -144,7 +144,6 @@ export default function OspitiPopup(props: {
                 <select
                   className="form-select form-select-sm"
                   id="osp-tdoc"
-                  placeholder="tipo documento"
                   ref={(el) => (formRef.current.tdoc = el)}
                   defaultValue={"CARTA IDENTITA"}
                   required

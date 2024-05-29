@@ -164,7 +164,6 @@ export default function Protocollo({
                 className="form-select form-select-sm"
                 id="visibileDa"
                 ref={(el) => (formRef.current.visibileDa = el)}
-                placeholder="Visibile Da"
                 multiple
               >
                 {postazioni.isSuccess &&

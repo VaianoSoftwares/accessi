@@ -14,8 +14,11 @@ import { FindArchivioForm } from "../../types/forms";
 import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import createTracciatoFile from "../../utils/createTimbratureFile";
+import { Link } from "react-router-dom";
 
 const TABLE_ID = "archivio-table";
+const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
+const UPLOADS_DIR = "/api/v1/public/uploads/";
 
 export default function Archivio() {
   const { currentUser } = useContext(CurrentUserContext)!;
@@ -179,7 +182,6 @@ export default function Archivio() {
                 <select
                   className="form-select form-select-sm"
                   id="cliente"
-                  placeholder="cliente"
                   ref={(el) => (formRef.current.cliente = el)}
                 >
                   <option key="-1"></option>
@@ -200,7 +202,6 @@ export default function Archivio() {
                 <select
                   className="form-select form-select-sm"
                   id="postazione"
-                  placeholder="postazione"
                   ref={(el) => (formRef.current.postazione = el)}
                 >
                   <option key="-1"></option>
@@ -240,7 +241,6 @@ export default function Archivio() {
                 <select
                   className="form-select form-select-sm"
                   id="assegnazione"
-                  placeholder="assegnazione"
                   ref={(el) => (formRef.current.assegnazione = el)}
                 >
                   <option key="-1"></option>
@@ -290,7 +290,6 @@ export default function Archivio() {
                 <select
                   className="form-select form-select-sm"
                   id="tipo"
-                  placeholder="tipo"
                   ref={(el) => (formRef.current.tipo = el)}
                 >
                   <option key="-1"></option>
@@ -348,6 +347,8 @@ export default function Archivio() {
             content={queryArchivio.data}
             tableId={TABLE_ID}
             timestampParams={["data_in", "data_out"]}
+            linkParams={["documento"]}
+            linkParser={(value: string) => <Link to={`${PROXY}${UPLOADS_DIR}${value}`} >{value}</Link>}
           />
         )}
       </div>
