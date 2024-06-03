@@ -4,7 +4,7 @@ import "./index.css";
 import UserDataService from "../../services/user";
 import PostazioniDataService from "../../services/postazioni";
 import ClientiDataService from "../../services/clienti";
-import { Dispatch, SetStateAction, useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { PAGES_INFO, ADMIN_PAGES_INFO, TPages } from "../../types/pages";
 import {
   TPermessi,
@@ -30,7 +30,7 @@ export default function AccessiNavbar({
   ...props
 }: {
   currPostazione: Postazione | undefined;
-  setCurrPostazione: Dispatch<SetStateAction<Postazione | undefined>>;
+  setCurrPostazione: React.Dispatch<React.SetStateAction<Postazione | undefined>>;
   badgeScannerConnected: boolean;
   runBadgeScanner: () => Promise<void>;
   chiaviScannerConnected: boolean;
@@ -223,9 +223,10 @@ export default function AccessiNavbar({
                         name: name!,
                       } satisfies Postazione);
                   }}
+                  value={currPostazione?.id || 0}
                 >
                   {postazioni.data.length > 1 && (
-                    <option>Tutte le postazioni</option>
+                    <option key={-1}>Tutte le postazioni</option>
                   )}
                   {postazioni.data
                     .filter(

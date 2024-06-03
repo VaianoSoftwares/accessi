@@ -34,12 +34,14 @@ export default function Badge({
   scannedValue,
   clearScannedValue,
   currPostazione,
+  clearCurrPostazione,
   ...props
 }: {
   scannedValue: string;
   clearScannedValue: () => void;
   tipoBadge: BadgeType;
   currPostazione: Postazione | undefined;
+  clearCurrPostazione: () => void,
 }) {
   const formRef = useRef<FormRef<FindBadgesInStruttForm>>({
     badge_cod: null,
@@ -144,7 +146,10 @@ export default function Badge({
       setDeletedRow(undefined);
       handleError(err, "timbra");
     },
-    onSettled: async () => (timeoutRunning.current = false),
+    onSettled: async () => {
+      timeoutRunning.current = false; 
+      clearCurrPostazione();
+    },
   });
 
   const [deletedRow, setDeletedRow] = useState<QueryBadgeInStrutt>();

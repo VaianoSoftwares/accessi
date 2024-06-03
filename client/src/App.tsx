@@ -31,6 +31,9 @@ export default function App() {
   const { currentUser, setCurrentUser, removeCurrentUser } = useCurrentUser();
 
   const [currPostazione, setCurrPostazione] = useState<Postazione>();
+  function clearCurrPostazione() {
+    setCurrPostazione(undefined);
+  }
 
   const [isBadgeScannerConnected, setIsBadgeScannerConnected] = useState(false);
   const [timbraVal, setTimbraVal] = useState("");
@@ -95,6 +98,7 @@ export default function App() {
                       clearScannedValue={() => setTimbraVal("")}
                       tipoBadge={BadgeType.NOMINATIVO}
                       currPostazione={currPostazione}
+                      clearCurrPostazione={clearCurrPostazione}
                     />
                   </Suspense>
                 ) : (
@@ -130,6 +134,7 @@ export default function App() {
                       clearScannedValue={() => setTimbraVal("")}
                       tipoBadge={BadgeType.VEICOLO}
                       currPostazione={currPostazione}
+                      clearCurrPostazione={clearCurrPostazione}
                     />
                   </Suspense>
                 ) : (
