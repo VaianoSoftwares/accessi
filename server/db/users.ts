@@ -52,7 +52,7 @@ export default class UsersDB {
 
       const userId = insertUserRes.rows[0].id;
 
-      const insertUserPostValues = Object.values(data.postazioniIds).flatMap(
+      const insertUserPostValues = Object.values(data.postazioni_ids).flatMap(
         (value) => [userId, value]
       );
       const insertUserPostText =
@@ -104,7 +104,7 @@ export default class UsersDB {
       const { queryText: updUsersQueryText, queryValues: updUsersQueryValues } =
         db.getUpdateRowsQuery(
           "users",
-          { ...updateValues, postazioni: undefined },
+          { ...updateValues, postazioni_ids: undefined },
           { id: userId }
         );
       const updateUserRes = await client.query<User>(
@@ -120,7 +120,7 @@ export default class UsersDB {
       const userPostazioniIds = userPostazioni.map((p) => p.post_id);
       const postazioniToAdd: number[] = [];
       const postazioniToRemove: number[] = [];
-      updateValues.postazioniIds?.forEach(({ checked, post_id }) => {
+      updateValues.postazioni_ids?.forEach(({ checked, post_id }) => {
         const found = userPostazioniIds.includes(post_id);
         if (!found && checked) postazioniToAdd.push(userId, post_id);
         else if (found && !checked) postazioniToRemove.push(userId, post_id);
@@ -138,7 +138,7 @@ export default class UsersDB {
         postazioniToRemove.length > 0
           ? "DELETE FROM postazioni_user WHERE usr_id = $1 AND ".concat(
               postazioniToRemove
-                .map((_, i) => `postazione = $${i + 2}`)
+                .map((_, i) => `post_id = $${i + 2}`)
                 .join(" OR ")
             )
           : "";
@@ -151,7 +151,13 @@ export default class UsersDB {
         userId,
         ...postazioniToRemove,
       ]);
-
+      console.log(
+        updateValues,
+        insertPostazioniText,
+        postazioniToAdd,
+        deletePostazioniText,
+        postazioniToRemove
+      );
       if (
         !updateUserRes.rowCount &&
         !insertPostazioniRes.rowCount &&

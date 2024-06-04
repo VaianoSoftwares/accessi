@@ -24,7 +24,7 @@ export type TUser = {
   permessi: number;
   pages: number;
   clienti: string[];
-  postazioni: number[];
+  postazioni_ids: number[];
 };
 
 export type LoginUserData = Pick<TUser, "name" | "password">;

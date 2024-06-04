@@ -71,7 +71,7 @@ export default function Protocollo({
   }
 
   const postazioni = useQuery({
-    queryKey: ["postazioni", currentUser?.postazioni],
+    queryKey: ["postazioni", currentUser?.postazioni_ids],
     queryFn: (context) =>
       PostazioniDataService.get({
         ids: context.queryKey[1] as number[],

@@ -49,7 +49,7 @@ export default function AccessiNavbar({
     queryFn: async (context) => {
       try {
         const response = await PostazioniDataService.get({
-          ids: currentUser?.postazioni,
+          ids: currentUser?.postazioni_ids,
         });
         // const response = await PostazioniDataService.get({
         //   ids: context.queryKey[1] as number[],

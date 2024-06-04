@@ -64,7 +64,7 @@ export default function Archivio() {
   });
 
   const postazioni = useQuery({
-    queryKey: ["postazioni", currentUser?.postazioni],
+    queryKey: ["postazioni", currentUser?.postazioni_ids],
     queryFn: async (context) => {
       try {
         const response = await PostazioniDataService.get({

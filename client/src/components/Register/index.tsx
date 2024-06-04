@@ -39,7 +39,7 @@ export default function Register() {
   const formRef = useRef<FormRef<RegisterForm>>({
     name: null,
     password: null,
-    postazioni: null,
+    postazioni_ids: null,
     pages: null,
     permessi: null,
   });
@@ -67,7 +67,7 @@ export default function Register() {
       .filter(([, el]) => el !== null)
       .forEach(([key, el]) => {
         switch (key) {
-          case "postazioni":
+          case "postazioni_ids":
             if (!(el instanceof HTMLSelectElement)) return;
             obj[key] = Array.from(el.selectedOptions, (option) =>
               Number.parseInt(option.value)
@@ -165,7 +165,7 @@ export default function Register() {
           <select
             className="form-control form-control-sm"
             id="postazioni"
-            ref={(el) => (formRef.current.postazioni = el)}
+            ref={(el) => (formRef.current.postazioni_ids = el)}
             multiple
             required
           >

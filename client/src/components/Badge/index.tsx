@@ -82,7 +82,7 @@ export default function Badge({
       {
         postazioniIds: currPostazione
           ? [currPostazione.id]
-          : currentUser?.postazioni,
+          : currentUser?.postazioni_ids,
       },
     ],
     queryFn: async (context) => {
@@ -109,6 +109,8 @@ export default function Badge({
       if (response.data.success === false) {
         throw response.data.error;
       }
+
+      clearCurrPostazione();
 
       if (timeoutRunning.current === true) return;
       timeoutRunning.current = true;
@@ -147,8 +149,7 @@ export default function Badge({
       handleError(err, "timbra");
     },
     onSettled: async () => {
-      timeoutRunning.current = false; 
-      clearCurrPostazione();
+      timeoutRunning.current = false;
     },
   });
 
@@ -201,7 +202,7 @@ export default function Badge({
           ...formToObj(),
           postazioniIds: currPostazione
             ? [currPostazione.id]
-            : currentUser?.postazioni,
+            : currentUser?.postazioni_ids,
         });
         console.log("findBadges | response:", response);
 
@@ -243,8 +244,22 @@ export default function Badge({
     refetch && queryInStrutt.refetch();
   }
 
+  function timbraBtnClickEvent(barcodePrefix: "0" | "1") {
+    if (!currPostazione && currentUser?.postazioni_ids.length !== 1) {
+      toast.error("Selezionare la postazione");
+      return;
+    } else if (!formRef.current.badge_cod?.value) {
+      toast.error("Campo Barcode mancante");
+      return;
+    }
+
+    mutateInStrutt.mutate({
+      badge_cod: barcodePrefix.concat(formRef.current.badge_cod.value),
+      post_id: currPostazione?.id || currentUser!.postazioni_ids[0],
+    });
+  }
+
   useEffect(() => {
-    console.log("scannerEvent", scannedValue, currPostazione);
     if (!scannedValue || !currPostazione) return;
 
     console.log("Scanner accessi | scannedValue:", scannedValue);
@@ -403,20 +418,7 @@ export default function Badge({
                 )}
                 <div className="col">
                   <button
-                    onClick={() => {
-                      if (!currPostazione) {
-                        toast.error("Selezionare la postazione");
-                        return;
-                      } else if (!formRef.current.badge_cod?.value) {
-                        toast.error("Campo Barcode mancante");
-                        return;
-                      }
-
-                      mutateInStrutt.mutate({
-                        badge_cod: "0".concat(formRef.current.badge_cod.value),
-                        post_id: currPostazione.id,
-                      });
-                    }}
+                    onClick={() => timbraBtnClickEvent("0")}
                     className="btn btn-success badge-form-btn"
                   >
                     Entra
@@ -425,20 +427,7 @@ export default function Badge({
                 <div className="w-100 mt-1" />
                 <div className="col">
                   <button
-                    onClick={() => {
-                      if (!currPostazione) {
-                        toast.error("Selezionare la postazione");
-                        return;
-                      } else if (!formRef.current.badge_cod?.value) {
-                        toast.error("Campo Barcode mancante");
-                        return;
-                      }
-
-                      mutateInStrutt.mutate({
-                        badge_cod: "1".concat(formRef.current.badge_cod.value),
-                        post_id: currPostazione.id,
-                      });
-                    }}
+                    onClick={() => timbraBtnClickEvent("1")}
                     className="btn btn-success badge-form-btn"
                   >
                     Esci

@@ -97,6 +97,7 @@ export function getUpdateRowsQuery(
     .filter(([, value]) => value)
     .map(([key]) => `${key}=$${i++}`)
     .join(",");
+  if (!updateText) return { queryText: "", queryValues: [] };
   const updateValues = Object.values(updateData).filter(
     (value) => value !== "" && value !== undefined
   );

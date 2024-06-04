@@ -18,7 +18,7 @@ export default function BadgeTable({
   clickRowEvent?: (e: HTMLElementEvent) => void;
 }) {
   function parseTableTdContent({ key, value }: { key: string; value: any }) {
-    if (props?.obfuscatedParams?.includes?.(key)) return "XXXXX";
+    if (props?.obfuscatedParams?.includes?.(key)) return "******";
     else if (value === "" || value === null || value === undefined) return "";
     else if (props?.dateParams?.includes?.(key))
       return dateFormat(value, "dd/mm/yyyy");

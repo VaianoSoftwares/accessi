@@ -33,7 +33,7 @@ export default function Chiavi({
       {
         postazioniIds: currPostazione
           ? [currPostazione.id]
-          : currentUser?.postazioni,
+          : currentUser?.postazioni_ids,
       },
     ],
     queryFn: async (context) => {

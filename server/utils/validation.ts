@@ -65,7 +65,7 @@ export const REGISTER_SCHEMA = z.object({
   pages: z
     .number({ required_error: MISSING_ATTR_ERR_MSG("Permessi") })
     .nonnegative(ATTR_NUM_NEGATIVE("pagine")),
-  postazioniIds: z
+  postazioni_ids: z
     .array(ID_SCHEMA("Postazione ID"))
     .nonempty(MISSING_ATTR_ERR_MSG("Postazioni")),
 });
@@ -78,7 +78,7 @@ export const UPDATE_USER_SCHEMA = z.object({
     password: PASSWORD_SCHEMA.optional(),
     permessi: z.number().nonnegative(ATTR_NUM_NEGATIVE("permessi")).optional(),
     pages: z.number().nonnegative(ATTR_NUM_NEGATIVE("pagine")).optional(),
-    postazioniIds: z
+    postazioni_ids: z
       .array(
         z.object({
           checked: z.boolean(),

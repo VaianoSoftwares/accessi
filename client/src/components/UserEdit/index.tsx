@@ -60,7 +60,7 @@ export default function UserEdit() {
   const formRef = useRef<FormRef<UpdateUserForm>>({
     name: null,
     password: null,
-    postazioni: null,
+    postazioni_ids: null,
     pages: null,
     permessi: null,
   });
@@ -100,7 +100,7 @@ export default function UserEdit() {
         password: "password",
         permessi: flagsToFlagArray(result.permessi, PERMESSI_INFO.keys()),
         pages: flagsToFlagArray(result.pages, PAGES_INFO.keys()),
-        postazioni: result.postazioni.map((p) => String(p)),
+        postazioni_ids: result.postazioni_ids.map((p) => String(p)),
       });
 
       return result;
@@ -137,11 +137,11 @@ export default function UserEdit() {
       )
       .forEach(([key, el]) => {
         switch (key) {
-          case "postazioni":
+          case "postazioni_ids":
             if (!(el instanceof HTMLSelectElement)) return;
-            obj[key] = Array.from(el.selectedOptions, (option) =>
-              Number.parseInt(option.value)
-            ).filter((v) => !Number.isNaN(v));
+            obj[key] = Array.from(el.options, (option) =>
+              {return {post_id: Number.parseInt(option.value), checked: option.selected}}
+            ).filter(({post_id}) => !Number.isNaN(post_id));
             break;
           case "permessi":
           case "pages":
@@ -232,6 +232,7 @@ export default function UserEdit() {
                 id="permessi"
                 multiple
                 value={readOnlyForm.permessi}
+                onChange={() => {}}
               >
                 {selectPermessiOptions(true)}
               </select>
@@ -256,6 +257,7 @@ export default function UserEdit() {
                 id="pages"
                 multiple
                 value={readOnlyForm.pages}
+                onChange={() => {}}
               >
                 {selectPagesOptions(true)}
               </select>
@@ -279,7 +281,8 @@ export default function UserEdit() {
                 className="form-control form-control-sm"
                 id="postazioni"
                 multiple
-                value={readOnlyForm.postazioni}
+                value={readOnlyForm.postazioni_ids}
+                onChange={() => {}}
               >
                 {selectPostazioniOptions(true)}
               </select>
@@ -289,7 +292,7 @@ export default function UserEdit() {
               <select
                 className="form-control form-control-sm"
                 id="new-postazioni"
-                ref={(el) => (formRef.current.postazioni = el)}
+                ref={(el) => (formRef.current.postazioni_ids = el)}
                 multiple
               >
                 {selectPostazioniOptions()}

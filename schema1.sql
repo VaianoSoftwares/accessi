@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS nominativi(
     tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'doc_type')),
     scadenza DATE,
     cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
-    zuc_cod VARCHAR(6) UNIQUE NOT NULL,
+    zuc_cod VARCHAR(6) UNIQUE CHECK (length(zuc_cod) = 6 AND (zuc_cod ~ '^[0-9]+$')),
     CONSTRAINT invalid_nom_barcode CHECK (left(codice, 1) = '1' AND length(codice) = 9 AND (codice ~ '^[0-9]+$'))
 );
 
@@ -416,7 +416,7 @@ CREATE VIEW tracciati AS
     SELECT n.zuc_cod, get_tracciato_date(a.data_in) AS formatted_data_in, get_tracciato_date(a.data_out) AS formatted_data_out, data_in, data_out
     FROM archivio_nominativi AS a
     JOIN nominativi AS n ON a.badge_cod = n.codice
-    WHERE data_out < CURRENT_TIMESTAMP;
+    WHERE zuc_cod IS NOT NULL AND data_out < CURRENT_TIMESTAMP;
 
 CREATE VIEW full_in_strutt_badges AS
     WITH full_archivio_nominativi AS (
@@ -496,7 +496,7 @@ CREATE VIEW full_users AS
         SELECT DISTINCT p.id FROM postazioni AS p
         LEFT JOIN postazioni_user AS pu ON p.id = pu.post_id
         WHERE u.id = pu.usr_id OR u.permessi = admin_flags()
-    ) AS postazioni
+    ) AS postazioni_ids
     FROM users AS u;
 
 CREATE VIEW full_protocolli AS
