@@ -87,7 +87,7 @@ export type TimbraChiaviData = Pick<
 };
 
 export type Tracciato = {
-  alt_cod: string;
+  zuc_cod: string;
   data_in: string | Date;
   data_out: string | Date;
   formatted_data_in: string;

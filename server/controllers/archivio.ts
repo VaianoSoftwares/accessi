@@ -342,10 +342,10 @@ export default class ArchivioController {
 
       const dbResult = await ArchivioDB.getTracciati(parsed.data);
       const result = dbResult.rows
-        .map((row) => {
-          const parsedCod = row.alt_cod.padStart(6, "0");
-          return `43 ${parsedCod} ${row.formatted_data_in} I 0950 00 P\n43 ${parsedCod} ${row.formatted_data_out} U 0950 00 P`;
-        })
+        .map(
+          (row) =>
+            `43 ${row.zuc_cod} ${row.formatted_data_in} I 0950 00 P\n43 ${row.zuc_cod} ${row.formatted_data_out} U 0950 00 P`
+        )
         .join("\n");
       console.log(result);
 
