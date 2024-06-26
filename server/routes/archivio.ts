@@ -7,6 +7,7 @@ const router = Router();
 export default router;
 
 router.get("/", JwtAuth.verifyToken, ArchivioController.apiGetArchivio);
+router.post("/", JwtAuth.verifyToken, ArchivioController.apiUpdateArchivio);
 
 router.get(
   "/in-struttura/badges",
@@ -16,6 +17,7 @@ router.get(
 router.get(
   "/in-struttura/veicoli",
   JwtAuth.verifyToken,
+  JwtAuth.canUpdateArchivio,
   ArchivioController.apiGetVeicoliInStrutt
 );
 
@@ -57,3 +59,5 @@ router.get(
   JwtAuth.verifyToken,
   ArchivioController.apiGetTracciati
 );
+
+router.post("/pausa", JwtAuth.verifyToken, ArchivioController.apiPausa);

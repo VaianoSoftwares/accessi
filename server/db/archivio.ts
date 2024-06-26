@@ -25,6 +25,7 @@ import {
   InsertArchVeicoloData,
   TimbraBadgeData,
   TimbraVeicoloData,
+  UpdateArchivioData,
 } from "../utils/validation.js";
 import PostazioniDB from "./postazioni.js";
 import { Postazione } from "../types/users.js";
@@ -85,11 +86,11 @@ export default class ArchivioDB {
 
   public static async getBadgesInStrutt(filter?: FindInStruttBadgesFilter) {
     let i = 1;
-    const prefixText = `SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
-    const filterText =
+    const prefixText = `SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, data_in, pausa FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
+    let filterText =
       filter &&
       Object.entries(filter)
-        .filter(([, value]) => value)
+        .filter(([key, value]) => value && key !== "pausa")
         .map(([key, value]) => {
           switch (key) {
             case "postazioniIds":
@@ -112,14 +113,21 @@ export default class ArchivioDB {
         })
         .join(" AND ");
 
+    if (filter?.pausa === true) {
+      const filterCondition = "pausa IS TRUE";
+      filterText = filterText
+        ? [filterText, filterCondition].join(" OR ")
+        : filterCondition;
+    }
+
     const queryText = filterText
       ? [prefixText, "WHERE", filterText].join(" ")
       : prefixText;
     const queryValues =
       filter &&
-      Object.values(filter)
-        .filter((value) => value)
-        .map((value) =>
+      Object.entries(filter)
+        .filter(([key, value]) => value && key !== "pausa")
+        .map(([, value]) =>
           Array.isArray(value) || typeof value !== "string"
             ? value
             : `%${value}%`
@@ -964,5 +972,77 @@ export default class ArchivioDB {
       : prefixText;
     const queryValues = Object.values(filter).filter((v) => v);
     return await db.query<Tracciato>(queryText, queryValues);
+  }
+
+  public static async pausa(data: TimbraBadgeData) {
+    const client = await db.getClient();
+    try {
+      await client.query("BEGIN");
+
+      const { rows: inStruttRows, rowCount: numInStruttRows } =
+        await client.query<FullBadgeInStrutt>(
+          `SELECT * FROM ${ArchTableName.FULL_BADGES_IN_STRUTT} WHERE codice = $1`,
+          [data.badge_cod]
+        );
+      if (!numInStruttRows) {
+        throw new BaseError("Badge non presente in struttura", {
+          status: 400,
+          context: { badge_cod: data.badge_cod },
+        });
+      }
+
+      const archId = inStruttRows[0].id;
+      const isInPausa = inStruttRows[0].pausa;
+      if (!isInPausa && data.post_id != inStruttRows[0].post_id) {
+        throw new BaseError(
+          "Impossibile timbrare badge da un'altra postazione",
+          {
+            status: 400,
+            context: {
+              archId,
+              expectedPostazione: inStruttRows[0].post_id,
+              actualPostazione: data.post_id,
+            },
+          }
+        );
+      }
+
+      const { rows: updatedRows, rowCount: numUpdatedRows } =
+        await client.query(
+          `UPDATE ${ArchTableName.NOMINATIVI} SET data_out = CURRENT_TIMESTAMP WHERE id = $1`,
+          [archId]
+        );
+      const { queryText: insertQueryText, queryValues: insertQueryValues } =
+        db.getInsertRowQuery(ArchTableName.NOMINATIVI, {
+          ...data,
+          pausa: !isInPausa,
+        });
+      const { rows: insertedRows, rowCount: numInsertedRows } =
+        await client.query(insertQueryText, insertQueryValues);
+
+      if (!numInsertedRows || !numUpdatedRows) {
+        throw new BaseError("Impossibile completare operazione", {
+          status: 500,
+          context: { badge_cod: data.badge_cod },
+        });
+      }
+
+      await client.query("COMMIT");
+
+      return { in: insertedRows[0], out: updatedRows[0] };
+    } catch (e) {
+      await client.query("ROLLBACK");
+      throw e;
+    } finally {
+      client.release();
+    }
+  }
+
+  public static async updateArchivio(data: UpdateArchivioData) {
+    return await db.updateRows(
+      ArchTableName.NOMINATIVI,
+      { data_in: data.data_in, data_out: data.data_out },
+      { id: data.id }
+    );
   }
 }

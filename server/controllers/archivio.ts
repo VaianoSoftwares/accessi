@@ -347,8 +347,52 @@ export default class ArchivioController {
             `43 ${row.zuc_cod} ${row.formatted_data_in} I 0950 00 P\n43 ${row.zuc_cod} ${row.formatted_data_out} U 0950 00 P`
         )
         .join("\n");
-      console.log(result);
 
+      res.json(Ok(result));
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  public static async apiPausa(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const parsed = Validator.PAUSA_SCHEMA.safeParse({
+        ...req.body,
+        ip: req.ip,
+        username: req.user?.name,
+      });
+      if (parsed.success === false) {
+        throw new BaseError(parsed.error.errors[0].message, {
+          status: 400,
+          cause: parsed.error,
+        });
+      }
+
+      const result = await ArchivioDB.pausa(parsed.data);
+      res.json(Ok(result));
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  public static async apiUpdateArchivio(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const parsed = Validator.UPDATE_ARCHIVIO_SCHEMA.safeParse(req.body);
+      if (parsed.success === false) {
+        throw new BaseError(parsed.error.errors[0].message, {
+          status: 400,
+          cause: parsed.error,
+        });
+      }
+      const result = await ArchivioDB.updateArchivio(parsed.data);
       res.json(Ok(result));
     } catch (e) {
       next(e);

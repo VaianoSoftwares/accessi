@@ -27,7 +27,8 @@ export default function BadgeTable({
         timeZone: "Europe/Rome",
       });
     else if (props?.linkParams?.includes?.(key))
-        return props?.linkParser?.(value);
+      return props?.linkParser?.(value);
+    else if (typeof value === "boolean") return value ? "SI" : "NO";
     else return value;
   }
 

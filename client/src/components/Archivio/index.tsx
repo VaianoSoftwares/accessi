@@ -7,7 +7,7 @@ import "./index.css";
 import dateFormat from "dateformat";
 import BadgeTable from "../BadgeTable";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormRef } from "../../types";
 import { TIPI_BADGE } from "../../types/badges";
 import { FindArchivioForm } from "../../types/forms";
@@ -15,6 +15,9 @@ import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import createTracciatoFile from "../../utils/createTimbratureFile";
 import { Link } from "react-router-dom";
+import { UpdateArchivioData } from "../../types/archivio";
+import { TPermessi, hasPerm } from "../../types/users";
+import toast from "react-hot-toast";
 
 const TABLE_ID = "archivio-table";
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
@@ -23,6 +26,8 @@ const UPLOADS_DIR = "/api/v1/public/uploads/";
 export default function Archivio() {
   const { currentUser } = useContext(CurrentUserContext)!;
   const { handleError } = useError();
+
+  const queryClient = useQueryClient();
 
   const formRef = React.useRef<FormRef<FindArchivioForm>>({
     badge: null,
@@ -36,6 +41,9 @@ export default function Archivio() {
     ditta: null,
     data_in_min: null,
     data_in_max: null,
+    data_in: null,
+    data_out: null,
+    id: null,
   });
 
   function formToObj(): FindArchivioForm {
@@ -118,6 +126,19 @@ export default function Archivio() {
     enabled: false,
   });
 
+  const updateArchivio = useMutation({
+    mutationFn: (data: UpdateArchivioData) =>
+      ArchivioDataService.updateArchivio(data),
+    onSuccess: async (response) => {
+      console.log("updateArchivio | response:", response);
+      if (response.data.success === false) {
+        throw response.data.error;
+      }
+      await queryClient.invalidateQueries({ queryKey: ["archivio"] });
+    },
+    onError: (e) => handleError(e, "updateArchivio"),
+  });
+
   async function getTracciatoBtnEvHandler() {
     try {
       const reqData = {
@@ -174,7 +195,7 @@ export default function Archivio() {
                     new Date().setDate(new Date().getDate() + 1),
                     "yyyy-mm-dd"
                   )}
-                  min={formRef.current?.data_in_max?.value}
+                  // min={formRef.current?.data_in_max?.value}
                 />
                 <label htmlFor="dataFine">resoconto fine</label>
               </div>
@@ -301,6 +322,41 @@ export default function Archivio() {
                 </select>
                 <label htmlFor="tipo">tipo</label>
               </div>
+              {hasPerm(currentUser, TPermessi.updateArchivio) && (
+                <>
+                  <div className="w-100 mb-1" />
+                  <div className="form-floating col-sm-3">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="arch_id"
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.id = el)}
+                    />
+                    <label htmlFor="arch_id">archivio ID</label>
+                  </div>
+                  <div className="form-floating col-sm-3">
+                    <input
+                      type="date"
+                      className="form-control form-control-sm"
+                      id="data_in"
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.data_in = el)}
+                    />
+                    <label htmlFor="data_in">data ingresso</label>
+                  </div>
+                  <div className="form-floating col-sm-3">
+                    <input
+                      type="date"
+                      className="form-control form-control-sm"
+                      id="data_out"
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.data_out = el)}
+                    />
+                    <label htmlFor="data_out">data uscita</label>
+                  </div>
+                </>
+              )}
             </div>
           </div>
           <div className="col-1 archivio-form-btns">
@@ -331,6 +387,30 @@ export default function Archivio() {
                   Excel
                 </button>
               </div>
+              {hasPerm(currentUser, TPermessi.updateArchivio) && (
+                <>
+                  <div className="w-100 mb-1" />
+                  <div className="col">
+                    <button
+                      className="btn btn-success"
+                      onClick={() => {
+                        const archId = formRef.current.id?.value;
+                        if (!archId) {
+                          toast.error("Campo Archivio ID mancante");
+                          return;
+                        }
+                        updateArchivio.mutate({
+                          id: archId,
+                          data_in: formRef.current.data_in?.value,
+                          data_out: formRef.current.data_out?.value,
+                        });
+                      }}
+                    >
+                      Refresh
+                    </button>
+                  </div>
+                </>
+              )}
               <div className="w-100 mb-1" />
               <div className="col">
                 <button className="btn btn-success" onClick={() => clearForm()}>
@@ -348,7 +428,9 @@ export default function Archivio() {
             tableId={TABLE_ID}
             timestampParams={["data_in", "data_out"]}
             linkParams={["documento"]}
-            linkParser={(value: string) => <Link to={`${PROXY}${UPLOADS_DIR}${value}`} >{value}</Link>}
+            linkParser={(value: string) => (
+              <Link to={`${PROXY}${UPLOADS_DIR}${value}`}>{value}</Link>
+            )}
           />
         )}
       </div>

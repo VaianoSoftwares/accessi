@@ -8,6 +8,7 @@ export enum TPermessi {
   canLogout = 2,
   excel = 4,
   provvisori = 8,
+  updateArchivio = 16,
 }
 
 export const PERMESSI_INFO: ReadonlyMap<TPermessi, string> = new Map([
@@ -15,6 +16,7 @@ export const PERMESSI_INFO: ReadonlyMap<TPermessi, string> = new Map([
   [TPermessi.canLogout, "canLogout"],
   [TPermessi.excel, "excel"],
   [TPermessi.provvisori, "provvisori"],
+  [TPermessi.updateArchivio, "updateArchivio"],
 ]);
 
 export type TUser = {

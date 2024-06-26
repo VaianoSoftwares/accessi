@@ -26,6 +26,7 @@ export interface BaseArchivio {
 
 export interface BaseArchivioBadge extends BaseArchivio {
   badge_cod: string;
+  pausa: boolean;
 }
 export interface BaseArchivioVeicolo extends BaseArchivio {
   targa: string;
@@ -61,7 +62,8 @@ export type Archivio = Omit<BaseArchivio, "post_id"> &
 export type BadgeInStrutt = WithId<
   Pick<BaseNominativo, "nome" | "cognome" | "assegnazione" | "ditta"> &
     Pick<BaseArchivio, "data_in"> &
-    Pick<BaseBadge, "codice" | "cliente"> & {
+    Pick<BaseBadge, "codice" | "cliente"> &
+    Pick<BaseArchivioBadge, "pausa"> & {
       postazione: string;
     }
 >;

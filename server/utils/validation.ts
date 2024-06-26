@@ -472,6 +472,7 @@ export const GET_IN_STRUTT_BADGES_SCHEMA = z.object({
     .string()
     .transform((val) => val.toUpperCase())
     .optional(),
+  pausa: z.coerce.boolean().optional(),
 });
 export type FindInStruttBadgesFilter = z.infer<
   typeof GET_IN_STRUTT_BADGES_SCHEMA
@@ -642,6 +643,19 @@ export const TIMBRA_CHIAVI_SCHEMA = z.object({
 });
 // export type TimbraChiaviData = z.infer<typeof TIMBRA_CHIAVI_SCHEMA>;
 
+export const PAUSA_SCHEMA = z.object({
+  badge_cod: z
+    .union([
+      BARCODE_NOM_ENTRA_SCHEMA,
+      BARCODE_NOM_ESCE_SCHEMA,
+      CODICE_NOM_SCHEMA,
+    ])
+    .transform((value) => (value.length === 9 ? value : value.substring(1))),
+  post_id: ID_SCHEMA("Postazione ID"),
+  ip: z.string().default("unknown"),
+  username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
+});
+
 export const INSERT_ARCH_BADGE_SCHEMA = z.object({
   badge_cod: z.union([
     BARCODE_PROV_ENTRA_SCHEMA,
@@ -780,3 +794,10 @@ export const UPDATE_POSTAZIONE_SCHEMA = z.object({
     postazione: z.string().optional(),
   }),
 });
+
+export const UPDATE_ARCHIVIO_SCHEMA = z.object({
+  id: ID_SCHEMA("Archivio ID"),
+  data_in: z.coerce.date().optional(),
+  data_out: z.coerce.date().optional(),
+});
+export type UpdateArchivioData = z.infer<typeof UPDATE_ARCHIVIO_SCHEMA>;

@@ -87,4 +87,12 @@ export default class JwtAuth {
   public static isDevice(req: Request, res: Response, next: NextFunction) {
     return JwtAuth.checkPermessi(req, res, next, TPermessi.device);
   }
+
+  public static canUpdateArchivio(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    return JwtAuth.checkPermessi(req, res, next, TPermessi.updateArchivio);
+  }
 }

@@ -41,7 +41,7 @@ export default function Badge({
   clearScannedValue: () => void;
   tipoBadge: BadgeType;
   currPostazione: Postazione | undefined;
-  clearCurrPostazione: () => void,
+  clearCurrPostazione: () => void;
 }) {
   const formRef = useRef<FormRef<FindBadgesInStruttForm>>({
     badge_cod: null,
@@ -83,6 +83,7 @@ export default function Badge({
         postazioniIds: currPostazione
           ? [currPostazione.id]
           : currentUser?.postazioni_ids,
+        pausa: true,
       },
     ],
     queryFn: async (context) => {
@@ -146,6 +147,50 @@ export default function Badge({
     },
     onError: async (err) => {
       setDeletedRow(undefined);
+      handleError(err, "timbra");
+    },
+    onSettled: async () => {
+      timeoutRunning.current = false;
+    },
+  });
+
+  const mutatePausa = useMutation({
+    mutationFn: (data: TimbraBadgeDoc) => ArchivioDataService.pausa(data),
+    onSuccess: async (response) => {
+      console.log("timbra | response:", response);
+      if (response.data.success === false) {
+        throw response.data.error;
+      }
+
+      clearCurrPostazione();
+
+      if (timeoutRunning.current === true) return;
+      timeoutRunning.current = true;
+
+      await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
+
+      const { in: timbraRow } = response.data.result;
+
+      if (readonlyForm === true) {
+        setForm(timbraRow);
+        updateImage(timbraRow.codice);
+      }
+
+      const badgeTable = document.getElementById(TABLE_NAME);
+      const firstRow = badgeTable
+        ? (badgeTable as HTMLTableElement).tBodies[0].rows[0]
+        : null;
+      firstRow && (firstRow.style.backgroundColor = "green");
+
+      setTimeout(() => {
+        firstRow && (firstRow.style.backgroundColor = "white");
+        if (readonlyForm === true) {
+          clearForm();
+          setNoImage();
+        }
+      }, 1000);
+    },
+    onError: async (err) => {
       handleError(err, "timbra");
     },
     onSettled: async () => {
@@ -244,7 +289,7 @@ export default function Badge({
     refetch && queryInStrutt.refetch();
   }
 
-  function timbraBtnClickEvent(barcodePrefix: "0" | "1") {
+  function timbraBtnClickEvent(barcodePrefix: "0" | "1", pausa: boolean) {
     if (!currPostazione && currentUser?.postazioni_ids.length !== 1) {
       toast.error("Selezionare la postazione");
       return;
@@ -253,10 +298,15 @@ export default function Badge({
       return;
     }
 
-    mutateInStrutt.mutate({
-      badge_cod: barcodePrefix.concat(formRef.current.badge_cod.value),
+    const timbraData = {
+      badge_cod: pausa
+        ? formRef.current.badge_cod.value
+        : barcodePrefix.concat(formRef.current.badge_cod.value),
       post_id: currPostazione?.id || currentUser!.postazioni_ids[0],
-    });
+    };
+
+    if (pausa) mutatePausa.mutate(timbraData);
+    else mutateInStrutt.mutate(timbraData);
   }
 
   useEffect(() => {
@@ -418,7 +468,7 @@ export default function Badge({
                 )}
                 <div className="col">
                   <button
-                    onClick={() => timbraBtnClickEvent("0")}
+                    onClick={() => timbraBtnClickEvent("0", false)}
                     className="btn btn-success badge-form-btn"
                   >
                     Entra
@@ -427,10 +477,19 @@ export default function Badge({
                 <div className="w-100 mt-1" />
                 <div className="col">
                   <button
-                    onClick={() => timbraBtnClickEvent("1")}
+                    onClick={() => timbraBtnClickEvent("1", false)}
                     className="btn btn-success badge-form-btn"
                   >
                     Esci
+                  </button>
+                </div>
+                <div className="w-100 mt-1" />
+                <div className="col">
+                  <button
+                    onClick={() => timbraBtnClickEvent("0", true)}
+                    className="btn btn-success badge-form-btn"
+                  >
+                    Pausa
                   </button>
                 </div>
                 <div className="w-100 mt-1" />

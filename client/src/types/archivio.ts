@@ -9,6 +9,7 @@ export type QueryBadgeInStrutt = {
   cognome: string;
   ditta: string;
   data_in: Date | string;
+  pausa: boolean;
 };
 
 export type FindBadgeInStrutt = {
@@ -24,6 +25,7 @@ export type FindBadgeInStrutt = {
   tdoc: string;
   telefono: string;
   data_in: Date | string;
+  pausa: boolean;
 };
 
 export type QueryVeicoloInStrutt = {
@@ -170,4 +172,10 @@ export type TimbraVeicoloRes = {
 export type PrestitoChiaviRes = {
   in: { rows: QueryInPrestito }[];
   out: { rows: QueryInPrestito }[];
+};
+
+export type UpdateArchivioData = {
+  data_in?: Date | string | undefined;
+  data_out?: Date | string | undefined;
+  id: number | string;
 };
