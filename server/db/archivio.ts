@@ -1009,7 +1009,7 @@ export default class ArchivioDB {
 
       const { rows: updatedRows, rowCount: numUpdatedRows } =
         await client.query(
-          `UPDATE ${ArchTableName.NOMINATIVI} SET data_out = CURRENT_TIMESTAMP WHERE id = $1`,
+          `UPDATE ${ArchTableName.NOMINATIVI} SET data_out = date_trunc('second', CURRENT_TIMESTAMP) WHERE id = $1`,
           [archId]
         );
       const { queryText: insertQueryText, queryValues: insertQueryValues } =
