@@ -472,6 +472,7 @@ export const GET_IN_STRUTT_BADGES_SCHEMA = z.object({
     .string()
     .transform((val) => val.toUpperCase())
     .optional(),
+  cliente: z.string().optional(),
   pausa: z.coerce.boolean().optional(),
 });
 export type FindInStruttBadgesFilter = z.infer<

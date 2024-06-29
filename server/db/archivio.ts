@@ -86,11 +86,11 @@ export default class ArchivioDB {
 
   public static async getBadgesInStrutt(filter?: FindInStruttBadgesFilter) {
     let i = 1;
-    const prefixText = `SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, data_in, pausa FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
+    const prefixText = `SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
     let filterText =
       filter &&
       Object.entries(filter)
-        .filter(([key, value]) => value && key !== "pausa")
+        .filter(([key, value]) => value && !["cliente", "pausa"].includes(key))
         .map(([key, value]) => {
           switch (key) {
             case "postazioniIds":
@@ -114,10 +114,11 @@ export default class ArchivioDB {
         .join(" AND ");
 
     if (filter?.pausa === true) {
-      const filterCondition = "pausa IS TRUE";
-      filterText = filterText
-        ? [filterText, filterCondition].join(" OR ")
-        : filterCondition;
+      const filterTokens = ["postazione = 'PAUSA'"];
+      if (filter.cliente)
+        filterTokens[0] = filterTokens[0].concat(` AND cliente = $${i}`);
+      if (filterText) filterTokens.unshift(filterText);
+      filterText = ["(", filterTokens.join(" OR "), ")"].join("");
     }
 
     const queryText = filterText
@@ -126,14 +127,16 @@ export default class ArchivioDB {
     const queryValues =
       filter &&
       Object.entries(filter)
-        .filter(([key, value]) => value && key !== "pausa")
+        .filter(([key, value]) => value && !["cliente", "pausa"].includes(key))
         .map(([, value]) =>
           Array.isArray(value) || typeof value !== "string"
             ? value
             : `%${value}%`
         )
         .flat();
-    console.log({ queryText, queryValues });
+    if (filter?.pausa === true && filter.cliente)
+      queryValues?.push(filter.cliente);
+
     return await db.query<BadgeInStrutt>(queryText, queryValues);
   }
 
@@ -979,21 +982,68 @@ export default class ArchivioDB {
     try {
       await client.query("BEGIN");
 
+      const badgeCode = data.badge_cod;
+      const existsBadge = await client.query<Nominativo>(
+        NominativiDB.getNominativoByCodiceQueryText,
+        [badgeCode]
+      );
+      if (!existsBadge.rowCount) {
+        throw new BaseError("Badge non esistente", {
+          status: 400,
+          context: { badgeCode },
+        });
+      }
+
+      const existsReqPost = await client.query<Postazione>(
+        PostazioniDB.getPostazioneByIdQueryText,
+        [data.post_id]
+      );
+      if (!existsReqPost.rowCount) {
+        throw new BaseError("Postazione non esistente", {
+          status: 400,
+          context: { postId: data.post_id },
+        });
+      } else if (existsReqPost.rows[0].name === "PAUSA") {
+        throw new BaseError("Postazione non valida", {
+          status: 400,
+          context: { postId: data.post_id },
+        });
+      }
+
+      const reqPostazione = existsReqPost.rows[0];
+
+      const existsPausaPostazione = await client.query<Postazione>(
+        "SELECT * FROM postazioni WHERE name = 'PAUSA' AND cliente = $1",
+        [reqPostazione.cliente]
+      );
+      if (!existsPausaPostazione.rowCount) {
+        throw new BaseError(
+          "Pausa non disponibile per il cliente selezionato",
+          {
+            status: 400,
+            context: { cliente: reqPostazione.cliente },
+          }
+        );
+      }
+
+      const pausaPostId = existsPausaPostazione.rows[0].id;
+
       const { rows: inStruttRows, rowCount: numInStruttRows } =
         await client.query<FullBadgeInStrutt>(
           `SELECT * FROM ${ArchTableName.FULL_BADGES_IN_STRUTT} WHERE codice = $1`,
-          [data.badge_cod]
+          [badgeCode]
         );
       if (!numInStruttRows) {
         throw new BaseError("Badge non presente in struttura", {
           status: 400,
-          context: { badge_cod: data.badge_cod },
+          context: { badgeCode },
         });
       }
 
       const archId = inStruttRows[0].id;
-      const isInPausa = inStruttRows[0].pausa;
-      if (!isInPausa && data.post_id != inStruttRows[0].post_id) {
+
+      const isInPausa = inStruttRows[0].postazione === "PAUSA";
+      if (!isInPausa && reqPostazione.id != inStruttRows[0].post_id) {
         throw new BaseError(
           "Impossibile timbrare badge da un'altra postazione",
           {
@@ -1001,10 +1051,22 @@ export default class ArchivioDB {
             context: {
               archId,
               expectedPostazione: inStruttRows[0].post_id,
-              actualPostazione: data.post_id,
+              actualPostazione: reqPostazione.id,
             },
           }
         );
+      } else if (
+        isInPausa &&
+        reqPostazione.cliente !== inStruttRows[0].cliente
+      ) {
+        throw new BaseError("Impossibile timbrare badge da un altro cliente", {
+          status: 400,
+          context: {
+            archId,
+            expectedCliente: inStruttRows[0].cliente,
+            actualCliente: reqPostazione.cliente,
+          },
+        });
       }
 
       const { rows: updatedRows, rowCount: numUpdatedRows } =
@@ -1012,18 +1074,19 @@ export default class ArchivioDB {
           `UPDATE ${ArchTableName.NOMINATIVI} SET data_out = date_trunc('second', CURRENT_TIMESTAMP) WHERE id = $1`,
           [archId]
         );
+
+      const insertQueryData = isInPausa
+        ? data
+        : { ...data, post_id: pausaPostId };
       const { queryText: insertQueryText, queryValues: insertQueryValues } =
-        db.getInsertRowQuery(ArchTableName.NOMINATIVI, {
-          ...data,
-          pausa: !isInPausa,
-        });
+        db.getInsertRowQuery(ArchTableName.NOMINATIVI, insertQueryData);
       const { rows: insertedRows, rowCount: numInsertedRows } =
         await client.query(insertQueryText, insertQueryValues);
 
       if (!numInsertedRows || !numUpdatedRows) {
         throw new BaseError("Impossibile completare operazione", {
           status: 500,
-          context: { badge_cod: data.badge_cod },
+          context: { badgeCode },
         });
       }
 

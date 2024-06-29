@@ -84,6 +84,7 @@ export default function Badge({
           ? [currPostazione.id]
           : currentUser?.postazioni_ids,
         pausa: true,
+        cliente: currPostazione?.cliente,
       },
     ],
     queryFn: async (context) => {
@@ -289,7 +290,7 @@ export default function Badge({
     refetch && queryInStrutt.refetch();
   }
 
-  function timbraBtnClickEvent(barcodePrefix: "0" | "1", pausa: boolean) {
+  function timbraBtnClickEvent(pausa: boolean, barcodePrefix = "0") {
     if (!currPostazione && currentUser?.postazioni_ids.length !== 1) {
       toast.error("Selezionare la postazione");
       return;
@@ -466,33 +467,38 @@ export default function Badge({
                     <div className="w-100 mt-1" />
                   </>
                 )}
-                <div className="col">
-                  <button
-                    onClick={() => timbraBtnClickEvent("0", false)}
-                    className="btn btn-success badge-form-btn"
-                  >
-                    Entra
-                  </button>
-                </div>
-                <div className="w-100 mt-1" />
-                <div className="col">
-                  <button
-                    onClick={() => timbraBtnClickEvent("1", false)}
-                    className="btn btn-success badge-form-btn"
-                  >
-                    Esci
-                  </button>
-                </div>
-                <div className="w-100 mt-1" />
-                <div className="col">
-                  <button
-                    onClick={() => timbraBtnClickEvent("0", true)}
-                    className="btn btn-success badge-form-btn"
-                  >
-                    Pausa
-                  </button>
-                </div>
-                <div className="w-100 mt-1" />
+                {currPostazione !== undefined &&
+                  currPostazione.name !== "PAUSA" && (
+                    <>
+                      <div className="col">
+                        <button
+                          onClick={() => timbraBtnClickEvent(false, "0")}
+                          className="btn btn-success badge-form-btn"
+                        >
+                          Entra
+                        </button>
+                      </div>
+                      <div className="w-100 mt-1" />
+                      <div className="col">
+                        <button
+                          onClick={() => timbraBtnClickEvent(false, "1")}
+                          className="btn btn-success badge-form-btn"
+                        >
+                          Esci
+                        </button>
+                      </div>
+                      <div className="w-100 mt-1" />
+                      <div className="col">
+                        <button
+                          onClick={() => timbraBtnClickEvent(true)}
+                          className="btn btn-success badge-form-btn"
+                        >
+                          Pausa
+                        </button>
+                      </div>
+                      <div className="w-100 mt-1" />
+                    </>
+                  )}
                 {isAdmin(currentUser) === true && (
                   <>
                     <div className="col">

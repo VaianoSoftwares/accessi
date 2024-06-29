@@ -347,7 +347,7 @@ export default class ArchivioController {
             `43 ${row.zuc_cod} ${row.formatted_data_in} I 0950 00 P\n43 ${row.zuc_cod} ${row.formatted_data_out} U 0950 00 P`
         )
         .join("\n");
-
+      console.log("tracciato", dbResult.rows, result);
       res.json(Ok(result));
     } catch (e) {
       next(e);

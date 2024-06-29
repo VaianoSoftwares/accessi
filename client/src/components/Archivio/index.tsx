@@ -229,9 +229,9 @@ export default function Archivio() {
                   {postazioni.isSuccess &&
                     postazioni.data
                       .filter(({ name }) => name)
-                      .map(({ id, name }) => (
+                      .map(({ id, cliente, name }) => (
                         <option value={name} key={id}>
-                          {name}
+                          {cliente} - {name}
                         </option>
                       ))}
                 </select>
@@ -325,6 +325,7 @@ export default function Archivio() {
               {hasPerm(currentUser, TPermessi.updateArchivio) && (
                 <>
                   <div className="w-100 mb-1" />
+                  <hr></hr>
                   <div className="form-floating col-sm-3">
                     <input
                       type="text"
@@ -406,7 +407,7 @@ export default function Archivio() {
                         });
                       }}
                     >
-                      Refresh
+                      Modifica Data
                     </button>
                   </div>
                 </>

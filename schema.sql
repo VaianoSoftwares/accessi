@@ -151,7 +151,6 @@ CREATE TABLE IF NOT EXISTS archivio_nominativi(
     data_out TIMESTAMP NOT NULL DEFAULT date_trunc('second', CURRENT_TIMESTAMP + interval '24 hours'),
     username VARCHAR(64) NOT NULL REFERENCES users (name),
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
-    pausa BOOLEAN DEFAULT FALSE,
     CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in)
 );
 
@@ -446,14 +445,14 @@ CREATE VIEW tracciati AS
 
 CREATE VIEW full_in_strutt_badges AS
     WITH full_archivio_nominativi AS (
-        SELECT a.id, n.codice, n.descrizione, po.cliente, po.name AS postazione, a.data_in, n.nome, n.cognome, n.assegnazione, n.ditta, n.ndoc, n.tdoc, n.telefono, n.scadenza, a.pausa, po.id AS post_id
+        SELECT a.id, n.codice, n.descrizione, po.cliente, po.name AS postazione, a.data_in, n.nome, n.cognome, n.assegnazione, n.ditta, n.ndoc, n.tdoc, n.telefono, n.scadenza, po.id AS post_id
         FROM nominativi AS n
         JOIN archivio_nominativi AS a ON n.codice = a.badge_cod
         JOIN postazioni AS po ON a.post_id = po.id
         WHERE is_in_strutt(data_in, data_out)
     ),
     full_archivio_provvisori AS (
-        SELECT a.id, a.badge_cod AS codice, NULL AS descrizione, po.cliente, po.name AS postazione, a.data_in, a.nome, a.cognome, a.assegnazione, a.ditta, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, FALSE AS pausa, po.id AS post_id
+        SELECT a.id, a.badge_cod AS codice, NULL AS descrizione, po.cliente, po.name AS postazione, a.data_in, a.nome, a.cognome, a.assegnazione, a.ditta, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, po.id AS post_id
         FROM archivio_provvisori AS a
         JOIN postazioni AS po ON a.post_id = po.id
         WHERE is_in_strutt(data_in, data_out)
@@ -490,7 +489,7 @@ CREATE VIEW full_in_strutt_veicoli AS
     ORDER BY data_in DESC;
 
 CREATE VIEW in_strutt_badges AS
-    SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, data_in, pausa FROM full_in_strutt_badges;
+    SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM full_in_strutt_badges;
 
 CREATE VIEW in_strutt_veicoli AS
     SELECT id, targa, descrizione, tveicolo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM full_in_strutt_veicoli;
