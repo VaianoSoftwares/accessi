@@ -14,6 +14,7 @@ INSERT INTO public.postazioni (id, cliente, name) VALUES (22, 'Corte d''Appello'
 INSERT INTO public.postazioni (id, cliente, name) VALUES (24, 'Corte d''Appello', 'Casellario');
 INSERT INTO public.postazioni (id, cliente, name) VALUES (27, 'Corte d''Appello', 'Aule');
 INSERT INTO public.postazioni (id, cliente, name) VALUES (28, 'Corte d''Appello', 'Centralino');
+INSERT INTO public.postazioni (id, cliente, name) VALUES (29, 'Corte d''Appello', 'PAUSA');
 
 INSERT INTO public.users (id, name, password, permessi, pages) VALUES (1, 'admin', '$2a$10$cLLMrZEMQCU44vy7Sqsb/uQJDo3vCXV/kUR5Zgm7CvaOQQw08Q6Yu', -1, -1);
 INSERT INTO public.users (id, name, password, permessi, pages) VALUES (2, 'gta', '$2a$10$jeaqS/p1a4vUh9PTL/PdRepyJVZWqok7VsQK/HY4xI4SAco0ZktvG', 13, 1);
@@ -87,3 +88,9 @@ INSERT INTO public.nominativi (codice, descrizione, stato, assegnazione, cliente
 INSERT INTO public.nominativi (codice, descrizione, stato, assegnazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc, zuc_cod) VALUES (140552877, 'BADGE MARCATEMPO', 'VALIDO', 'PORTINERIA', 'Corte d''Appello', NULL, 'SARA', 'GREMENTIERI', 'HUMANGEST', NULL, NULL, NULL, NULL);
 INSERT INTO public.nominativi (codice, descrizione, stato, assegnazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc, zuc_cod) VALUES (147962387, 'BADGE MARCATEMPO', 'VALIDO', 'PORTINERIA', 'Corte d''Appello', NULL, 'DARIA', 'MACALUSO', 'VIVENDA', NULL, NULL, NULL, '434720');
 INSERT INTO public.nominativi (codice, descrizione, stato, assegnazione, cliente, scadenza, nome, cognome, ditta, telefono, ndoc, tdoc, zuc_cod) VALUES (147344763, 'BADGE MARCATEMPO', 'VALIDO', 'PORTINERIA', 'Corte d''Appello', NULL, 'ERIKA', 'GIANFELICI', 'VIVENDA', NULL, NULL, NULL, '434719');
+
+SELECT pg_catalog.setval('public.arch_ids', 1, false);
+SELECT pg_catalog.setval('public.barcode_ids', 70, true);
+SELECT pg_catalog.setval('public.postazioni_id_seq', 29, true);
+SELECT pg_catalog.setval('public.protocolli_id_seq', 1, false);
+SELECT pg_catalog.setval('public.users_id_seq', 14, true);

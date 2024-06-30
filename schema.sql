@@ -257,111 +257,9 @@ CREATE TABLE IF NOT EXISTS prot_visibile_da(
 --     piano TEXT
 -- );
 
--- CREATE VIEW alt_archivio AS
---     WITH alt_archivio_nominativi AS (
---         SELECT a.id, n.codice AS badge, NULL AS targa, NULL AS chiave, 'BADGE' AS tipo, 'NO' AS provvisorio, dates_are_not_equal(a.data_in) AS notte, date_in_out_diff(a.data_in) AS tempo_in_strutt, po.cliente, po.name AS postazione, a.data_in, now_or_24h_later(a.data_in) AS data_out, a.username, a.ip, n.nome, n.cognome, n.assegnazione AS assengazione, NULL AS tveicolo, n.ditta, n.ndoc, n.tdoc AS tdoc, n.telefono, n.scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta, NULL AS piano
---         FROM nominativi AS n
---         JOIN archivio_nominativictualCliente
---     alt_archivio_veicoli AS (
---         SELECT a.id, NULL AS badge, ve.targa, NULL AS chiave, 'VEICOLO' AS tipo, 'NO' AS provvisorio, dates_are_not_equal(a.data_in) AS notte, date_in_out_diff(a.data_in) AS tempo_in_strutt, po.cliente, po.name AS postazione, a.data_in, now_or_24h_later(a.data_in) AS data_out, a.username, a.ip, n.nome, n.cognome, n.assegnazione AS assegnazione, ve.tipo AS tveicolo, n.ditta, n.ndoc, n.tdoc AS tdoc, n.telefono, n.scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta, NULL AS piano
---         FROM nominativi AS n
---         JOIN veicoli AS ve ON n.codice = ve.proprietario
---         JOIN archivio_veicoli AS a ON ve.targa = a.targa
---         JOIN postazioni AS po ON a.post_id = po.id 
---     ),
---     alt_archivio_veicoli_prov AS (
---         SELECT a.id, NULL AS badge, a.targa, NULL AS chiave, 'VEICOLO' AS tipo, 'SI' AS provvisorio, dates_are_not_equal(a.data_in) AS notte, date_in_out_diff(a.data_in) AS tempo_in_strutt, po.cliente, po.name AS postazione, a.data_in, now_or_24h_later(a.data_in) AS data_out, a.username, a.ip, a.nome, a.cognome, a.assegnazione AS assegnazione, a.tveicolo AS tveicolo, a.ditta, a.ndoc, a.tdoc AS tdoc, a.telefono, NULL::DATE AS scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta, NULL AS piano
---         FROM archivio_veicoli_prov AS a
---         JOIN postazioni AS po ON a.post_id = po.id
---     ),
---     alt_archivio_chiavi AS (
---         SELECT t1.id, t1.codice AS badge, NULL AS targa, t2.codice AS chiave, 'CHIAVE' AS tipo, 'NO' AS provvisorio, dates_are_not_equal(t1.data_in) AS notte, date_in_out_diff(t1.data_in) AS tempo_in_strutt, t1.cliente, t1.postazione, t1.data_in, now_or_24h_later(t1.data_in) AS data_out, t1.username, t1.ip, t1.nome, t1.cognome, t1.assegnazione AS assegnazione, NULL AS tveicolo, t1.ditta, t1.ndoc, t1.tdoc AS tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta, t2.edificio AS edificio, t2.piano
---         FROM (
---             SELECT a.id, n.codice, po.cliente, po.name AS postazione, a.data_in, a.username, a.ip, a.chiave_cod, n.nome, n.cognome, n.ditta, n.assegnazione, n.ndoc, n.tdoc, n.telefono, n.scadenza
---             FROM nominativi AS n
---             JOIN archivio_chiavi AS a ON n.codice = a.badge_cod
---             JOIN postazioni AS po ON a.post_id = po.id
---         ) AS t1
---         JOIN (
---             SELECT ch.*
---             FROM chiavi AS ch
---             JOIN archivio_chiavi AS a ON ch.codice = a.chiave_cod
---         ) AS t2 ON t1.chiave_cod = t2.codice
---     )
---     SELECT t.*
---     FROM (
---         (SELECT * FROM alt_archivio_nominativi)
---         UNION
---         (SELECT * FROM alt_archivio_provvisori)
---         UNION
---         (SELECT * FROM alt_archivio_veicoli)
---         UNION
---         (SELECT * FROM alt_archivio_veicoli_prov)
---         UNION
---         (SELECT * FROM alt_archivio_chiavi)
---     ) AS t
---     ORDER BY data_in DESC, data_out DESC;
-
--- CREATE VIEW full_in_strutt_badges AS
---     WITH full_archivio_nominativi AS (
---         SELECT a.id, n.codice, n.descrizione, po.cliente, po.name AS postazione, a.data_in, n.nome, n.cognome, n.assegnazione, n.ditta, n.ndoc, n.tdoc, n.telefono, n.scadenza, po.id AS post_id
---         FROM nominativi AS n
---         JOIN archivio_nominativi AS a ON n.codice = a.badge_cod
---         JOIN postazioni AS po ON a.post_id = po.id
---     ),
---     full_archivio_provvisori AS (
---         SELECT a.id, a.badge_cod AS codice, NULL AS descrizione, po.cliente, po.name AS postazione, a.data_in, a.nome, a.cognome, a.assegnazione, a.ditta, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, po.id AS post_id
---         FROM archivio_provvisori AS a
---         JOIN postazioni AS po ON a.post_id = po.id
---     )
---     SELECT t.*
---     FROM (
---         (SELECT * FROM full_archivio_nominativi)
---         UNION
---         (SELECT * FROM full_archivio_provvisori)
---     ) AS t
---     ORDER BY data_in DESC;
-
--- CREATE VIEW full_in_strutt_veicoli AS
---     WITH full_archivio_veicoli AS (
---         SELECT a.id, ve.targa, ve.descrizione, ve.tipo AS tveicolo, po.cliente, po.name AS postazione, a.data_in, n.nome, n.cognome, n.assegnazione, n.ditta, n.ndoc, n.tdoc, n.telefono, n.scadenza, po.id AS post_id
---         FROM nominativi AS n
---         JOIN veicoli AS ve ON n.codice = ve.proprietario
---         JOIN archivio_veicoli AS a ON ve.targa = a.targa
---         JOIN postazioni AS po ON a.post_id = po.id
---     ),
---     full_archivio_veicoli_prov AS (
---         SELECT a.id, a.targa, NULL AS descrizione, a.tveicolo, po.cliente, po.name AS postazione, a.data_in, a.nome, a.cognome, a.assegnazione, a.ditta, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, po.id AS post_id
---         FROM archivio_veicoli_prov AS a
---         JOIN postazioni AS po ON a.post_id = po.id
---     )
---     SELECT t.*
---     FROM (
---         (SELECT * FROM full_archivio_veicoli)
---         UNION
---         (SELECT * FROM full_archivio_veicoli_prov)
---     ) AS t
---     WHERE data_in IS NOT NULL
---     ORDER BY data_in DESC;
-
--- CREATE VIEW in_prestito AS
---     SELECT t1.id, t1.codice AS badge, t2.codice AS chiave, t1.cliente, t1.postazione, t1.data_in, t1.nome, t1.cognome, t1.assegnazione, t1.ditta, t1.ndoc, t1.tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta, t2.edificio, t2.piano, t1.post_id
---     FROM (
---         SELECT a.id, n.codice, po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.chiave_cod, n.nome, n.cognome, n.ditta, n.assegnazione, n.ndoc, n.tdoc, n.telefono, n.scadenza
---         FROM nominativi AS n
---         JOIN archivio_chiavi AS a ON n.codice = a.badge_cod
---         JOIN postazioni AS po ON a.post_id = po.id
---     ) AS t1
---     JOIN (
---         SELECT ch.*
---         FROM chiavi AS ch
---         JOIN archivio_chiavi AS a ON ch.codice = a.chiave_cod
---     ) AS t2 ON t1.chiave_cod = t2.codice
---     ORDER BY data_in DESC;
-
 CREATE VIEW full_archivio AS
     WITH full_archivio_nominativi AS (
-        SELECT n.codice AS badge, n.nome, n.cognome, n.assegnazione, NULL AS targa, NULL AS chiave, 'BADGE' AS tipo, 'NO' AS provvisorio,
+        SELECT a.id, n.codice AS badge, n.nome, n.cognome, n.assegnazione, NULL AS targa, NULL AS chiave, 'BADGE' AS tipo, 'NO' AS provvisorio,
         po.cliente, po.name AS postazione, a.data_in, a.data_out,
         date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
         dates_are_not_equal(a.data_in, a.data_out) AS notte,
@@ -372,7 +270,7 @@ CREATE VIEW full_archivio AS
         JOIN postazioni AS po ON a.post_id = po.id 
     ),
     full_archivio_provvisori AS (
-        SELECT a.badge_cod AS badge, a.nome, a.cognome, a.assegnazione, NULL AS targa, NULL AS chiave, 'BADGE' AS tipo, 
+        SELECT a.id, a.badge_cod AS badge, a.nome, a.cognome, a.assegnazione, NULL AS targa, NULL AS chiave, 'BADGE' AS tipo, 
         'SI' AS provvisorio, po.cliente, po.name AS postazione, a.data_in, a.data_out,
         date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
         dates_are_not_equal(a.data_in, a.data_out) AS notte,
@@ -382,7 +280,7 @@ CREATE VIEW full_archivio AS
         JOIN postazioni AS po ON a.post_id = po.id
     ),
     full_archivio_veicoli AS (
-        SELECT NULL AS badge, n.nome, n.cognome, n.assegnazione, ve.targa, NULL AS chiave, 'VEICOLO' AS tipo, 'NO' AS provvisorio,
+        SELECT a.id, NULL AS badge, n.nome, n.cognome, n.assegnazione, ve.targa, NULL AS chiave, 'VEICOLO' AS tipo, 'NO' AS provvisorio,
         po.cliente, po.name AS postazione, a.data_in, a.data_out,
         date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
         dates_are_not_equal(a.data_in, a.data_out) AS notte,
@@ -394,7 +292,7 @@ CREATE VIEW full_archivio AS
         JOIN postazioni AS po ON a.post_id = po.id 
     ),
     full_archivio_veicoli_prov AS (
-        SELECT NULL AS badge, a.nome, a.cognome, a.assegnazione, a.targa, NULL AS chiave, 'VEICOLO' AS tipo,
+        SELECT a.id, NULL AS badge, a.nome, a.cognome, a.assegnazione, a.targa, NULL AS chiave, 'VEICOLO' AS tipo,
         'SI' AS provvisorio, po.cliente, po.name AS postazione, a.data_in, a.data_out,
         date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
         dates_are_not_equal(a.data_in, a.data_out) AS notte,
@@ -404,14 +302,14 @@ CREATE VIEW full_archivio AS
         JOIN postazioni AS po ON a.post_id = po.id
     ),
     full_archivio_chiavi AS (
-        SELECT t1.codice AS badge, t1.nome, t1.cognome, t1.assegnazione, NULL AS targa, t2.codice AS chiave, 'CHIAVE' AS tipo,
+        SELECT t1.id, t1.codice AS badge, t1.nome, t1.cognome, t1.assegnazione, NULL AS targa, t2.codice AS chiave, 'CHIAVE' AS tipo,
         'NO' AS provvisorio, t1.cliente, t1.postazione, t1.data_in, t1.data_out,
         date_in_out_diff(t1.data_in, t1.data_out) AS tempo_in_strutt,
         dates_are_not_equal(t1.data_in, t1.data_out) AS notte,
         NULL AS tveicolo, t1.ditta, t1.ndoc, t1.tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta,
         CAST(t2.edificio AS TEXT) AS edificio, t2.piano, t1.username, t1.ip, NULL AS documento
         FROM (
-            SELECT n.codice, po.cliente, po.name AS postazione, a.data_in, a.data_out, a.username, a.ip, a.chiave_cod, n.nome, n.cognome, n.ditta, n.assegnazione, n.ndoc, n.tdoc, n.telefono, n.scadenza
+            SELECT a.id, n.codice, po.cliente, po.name AS postazione, a.data_in, a.data_out, a.username, a.ip, a.chiave_cod, n.nome, n.cognome, n.ditta, n.assegnazione, n.ndoc, n.tdoc, n.telefono, n.scadenza
             FROM nominativi AS n
             JOIN archivio_chiavi AS a ON n.codice = a.badge_cod
             JOIN postazioni AS po ON a.post_id = po.id

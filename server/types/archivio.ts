@@ -44,19 +44,21 @@ export type ArchivioChiave = WithId<BaseArchivioChiave>;
 export type ArchivioProvvisorio = WithId<BaseArchivioBadgeProv>;
 export type ArchivioVeicoloProv = WithId<BaseArchivioVeicoloProv>;
 
-export type Archivio = Omit<BaseArchivio, "post_id"> &
-  BaseNominativo &
-  BaseChiave & {
-    badge: string;
-    targa: string;
-    chiave: string;
-    tipo: string;
-    provvisorio: string;
-    notte: string;
-    cliente: string;
-    postazione: string;
-    tveicolo: string;
-  };
+export type Archivio = WithId<
+  Omit<BaseArchivio, "post_id"> &
+    BaseNominativo &
+    BaseChiave & {
+      badge: string;
+      targa: string;
+      chiave: string;
+      tipo: string;
+      provvisorio: string;
+      notte: string;
+      cliente: string;
+      postazione: string;
+      tveicolo: string;
+    }
+>;
 
 export type BadgeInStrutt = WithId<
   Pick<BaseNominativo, "nome" | "cognome" | "assegnazione" | "ditta"> &
