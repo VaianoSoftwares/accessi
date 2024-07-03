@@ -39,6 +39,7 @@ export default function Anagrafico() {
     cognome: null,
     assegnazione: null,
     ditta: null,
+    cod_fisc: null,
     tdoc: null,
     ndoc: null,
     telefono: null,
@@ -674,6 +675,16 @@ export default function Anagrafico() {
                   <label htmlFor="zuc_doc">cod zucchetti</label>
                 </div>
                 <div className="w-100" />
+                <div className="form-floating col-sm-4">
+                  <input
+                    type="text"
+                    className="form-control form-control-sm"
+                    id="cod_fisc"
+                    autoComplete="off"
+                    ref={(el) => (formRef.current.cod_fisc = el)}
+                  />
+                  <label htmlFor="cod_fisc">codice fiscale</label>
+                </div>
                 <div className="col-sm-4 input-group custom-input-file one-third-col">
                   <label htmlFor="privacy" className="input-group-text">
                     privacy
@@ -863,7 +874,9 @@ export default function Anagrafico() {
         keyAttribute="codice"
         dateParams={["scadenza"]}
         linkParams={["privacy", "documento"]}
-        linkParser={(value: string) => <Link to={`${PROXY}${UPLOADS_DIR}${value}`} >{value}</Link>}
+        linkParser={(value: string) => (
+          <Link to={`${PROXY}${UPLOADS_DIR}${value}`}>{value}</Link>
+        )}
         clickRowEvent={async (e) => {
           const codice = e.target.parentElement?.dataset["key"];
           if (!codice) return;

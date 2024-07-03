@@ -51,6 +51,11 @@ const PASSWORD_SCHEMA = z
   .min(PSW_MIN_LEN, PSW_TOO_SHORT_ERR_MSG)
   .max(PSW_MAX_LEN, PSW_TOO_LONG_ERR_MSG);
 
+const COD_FISC_SCHEMA = z
+  .string({ required_error: MISSING_ATTR_ERR_MSG("Codice fiscale") })
+  .length(16, "Codice fiscale deve essere lungo 16 caratteri")
+  .transform((val) => val.toUpperCase());
+
 export const LOGIN_SCHEMA = z.object({
   name: USERNAME_SCHEMA,
   password: PASSWORD_SCHEMA,
@@ -165,6 +170,7 @@ export const GET_NOMINATIVI_SCHEMA = z.object({
     .string()
     .transform((val) => val.toUpperCase())
     .nullish(),
+  cod_fisc: COD_FISC_SCHEMA.nullish(),
   ndoc: z
     .string()
     .transform((val) => val.toUpperCase())
@@ -203,6 +209,7 @@ export const INSERT_NOMINATIVO_SCHEMA = z.object({
     .string()
     .transform((val) => val.toUpperCase())
     .nullish(),
+  cod_fisc: COD_FISC_SCHEMA.nullish(),
   ndoc: z
     .string()
     .transform((val) => val.toUpperCase())
@@ -412,6 +419,7 @@ export const GET_ARCHIVIO_SCHEMA = z.object({
     .string()
     .transform((val) => val.toUpperCase())
     .optional(),
+  cod_fisc: COD_FISC_SCHEMA.optional(),
   tdoc: z.enum(TDOCS).optional(),
   ndoc: z
     .string()
@@ -682,6 +690,7 @@ export const INSERT_ARCH_BADGE_SCHEMA = z.object({
     .string()
     .transform((val) => val.toUpperCase())
     .optional(),
+  cod_fisc: COD_FISC_SCHEMA.optional(),
   telefono: z
     .string()
     .transform((val) => val.toUpperCase())
@@ -720,6 +729,7 @@ export const INSERT_ARCH_VEICOLO_SCHEMA = z.object({
     .string()
     .transform((val) => val.toUpperCase())
     .optional(),
+  cod_fisc: COD_FISC_SCHEMA.optional(),
   telefono: z
     .string()
     .transform((val) => val.toUpperCase())

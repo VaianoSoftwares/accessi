@@ -26,6 +26,7 @@ export default function OspitiPopup(props: {
     nome: null,
     cognome: null,
     ditta: null,
+    cod_fisc: null,
     telefono: null,
     ndoc: null,
     tdoc: null,
@@ -167,6 +168,16 @@ export default function OspitiPopup(props: {
                   ref={(el) => (formRef.current.telefono = el)}
                 />
                 <label htmlFor="osp-telefono">telefono</label>
+              </div>
+              <div className="form-floating col-sm-4">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  id="cod_fisc"
+                  autoComplete="off"
+                  ref={(el) => (formRef.current.cod_fisc = el)}
+                />
+                <label htmlFor="cod_fisc">codice fiscale</label>
               </div>
               <div className="col-sm-4 input-group custom-input-file one-third-col">
                 <label htmlFor="documento" className="input-group-text">

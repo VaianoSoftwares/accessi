@@ -11,6 +11,7 @@ export type AnagraficoForm = {
   cognome?: string | undefined;
   assegnazione?: string | undefined;
   ditta?: string | undefined;
+  cod_fisc?: string | undefined;
   tdoc?: string | undefined;
   ndoc?: string | undefined;
   telefono?: string | undefined;
@@ -38,6 +39,7 @@ export type NominativiForm = {
   cognome?: string | undefined;
   assegnazione?: string | undefined;
   ditta?: string | undefined;
+  cod_fisc?: string | undefined;
   tdoc?: string | undefined;
   ndoc?: string | undefined;
   telefono?: string | undefined;
@@ -104,6 +106,7 @@ export type InsertArchBadgeForm = {
   nome?: string | undefined;
   cognome?: string | undefined;
   ditta?: string | undefined;
+  cod_fisc?: string | undefined;
   telefono?: string | undefined;
   ndoc?: string | undefined;
   tdoc?: string | undefined;
@@ -115,6 +118,7 @@ export type InsertArchVeicoloForm = {
   nome?: string | undefined;
   cognome?: string | undefined;
   ditta?: string | undefined;
+  cod_fisc?: string | undefined;
   telefono?: string | undefined;
   ndoc?: string | undefined;
   tdoc?: string | undefined;

@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS nominativi(
     cognome VARCHAR(32) NOT NULL CHECK (cognome != ''),
     assegnazione VARCHAR(32) NOT NULL DEFAULT 'UTENTE' CHECK (is_typeof(assegnazione, 'assign_type')),
     ditta VARCHAR(64) CHECK (ditta != ''),
+    cod_fisc VARCHAR(16) CHECK (length(cod_fisc) = 16),
     telefono VARCHAR(32) CHECK (telefono != ''),
     ndoc VARCHAR(32) CHECK (ndoc != ''),
     tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'doc_type')),
@@ -166,6 +167,7 @@ CREATE TABLE IF NOT EXISTS archivio_provvisori(
     cognome VARCHAR(32) NOT NULL CHECK (cognome != ''),
     assegnazione VARCHAR(32) NOT NULL DEFAULT 'OSPITE' CHECK (is_typeof(assegnazione, 'assign_type')),
     ditta VARCHAR(64) CHECK (ditta != ''),
+    cod_fisc VARCHAR(16) CHECK (length(cod_fisc) = 16),
     telefono VARCHAR(32) CHECK (telefono != ''),
     ndoc VARCHAR(32) CHECK (ndoc != ''),
     tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'doc_type')),
@@ -195,6 +197,7 @@ CREATE TABLE IF NOT EXISTS archivio_veicoli_prov(
     cognome VARCHAR(32) NOT NULL CHECK (cognome != ''),
     assegnazione VARCHAR(32) NOT NULL DEFAULT 'OSPITE' CHECK (is_typeof(assegnazione, 'assign_type')),
     ditta VARCHAR(64) CHECK (ditta != ''),
+    cod_fisc VARCHAR(16) CHECK (length(cod_fisc) = 16),
     telefono VARCHAR(32) CHECK (telefono != ''),
     ndoc VARCHAR(32) CHECK (ndoc != ''),
     tdoc VARCHAR(32) CHECK (tdoc = 'CARTA IDENTITA' OR tdoc = 'PATENTE' OR tdoc = 'TESSERA STUDENTE'),
@@ -263,7 +266,7 @@ CREATE VIEW full_archivio AS
         po.cliente, po.name AS postazione, a.data_in, a.data_out,
         date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
         dates_are_not_equal(a.data_in, a.data_out) AS notte,
-        NULL AS tveicolo, n.ditta, n.ndoc, n.tdoc, n.telefono, n.scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta,
+        NULL AS tveicolo, n.ditta, n.cod_fisc, n.ndoc, n.tdoc, n.telefono, n.scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta,
         NULL AS piano, a.username, a.ip, NULL AS documento
         FROM nominativi AS n
         JOIN archivio_nominativi AS a ON n.codice = a.badge_cod
@@ -274,7 +277,7 @@ CREATE VIEW full_archivio AS
         'SI' AS provvisorio, po.cliente, po.name AS postazione, a.data_in, a.data_out,
         date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
         dates_are_not_equal(a.data_in, a.data_out) AS notte,
-        NULL AS tveicolo, a.ditta, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, NULL AS indirizzo, NULL AS edificio,
+        NULL AS tveicolo, a.ditta, a.cod_fisc, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, NULL AS indirizzo, NULL AS edificio,
         NULL AS citta, NULL AS piano, a.username, a.ip, 'DOCP_'||a.badge_cod||'.pdf' AS documento
         FROM archivio_provvisori AS a
         JOIN postazioni AS po ON a.post_id = po.id
@@ -284,7 +287,7 @@ CREATE VIEW full_archivio AS
         po.cliente, po.name AS postazione, a.data_in, a.data_out,
         date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
         dates_are_not_equal(a.data_in, a.data_out) AS notte,
-        ve.tipo AS tveicolo, n.ditta, n.ndoc, n.tdoc, n.telefono, n.scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta,
+        ve.tipo AS tveicolo, n.ditta, n.cod_fisc, n.ndoc, n.tdoc, n.telefono, n.scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta,
         NULL AS piano, a.username, a.ip, NULL AS documento
         FROM nominativi AS n
         JOIN veicoli AS ve ON n.codice = ve.proprietario
@@ -296,7 +299,7 @@ CREATE VIEW full_archivio AS
         'SI' AS provvisorio, po.cliente, po.name AS postazione, a.data_in, a.data_out,
         date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
         dates_are_not_equal(a.data_in, a.data_out) AS notte,
-        a.tveicolo, a.ditta, a.ndoc, a.tdoc, a.telefono,
+        a.tveicolo, a.ditta, a.cod_fisc, a.ndoc, a.tdoc, a.telefono,
         NULL::DATE AS scadenza, NULL AS indirizzo, NULL AS edificio, NULL AS citta, NULL AS piano, a.username, a.ip, NULL AS documento
         FROM archivio_veicoli_prov AS a
         JOIN postazioni AS po ON a.post_id = po.id
@@ -306,7 +309,7 @@ CREATE VIEW full_archivio AS
         'NO' AS provvisorio, t1.cliente, t1.postazione, t1.data_in, t1.data_out,
         date_in_out_diff(t1.data_in, t1.data_out) AS tempo_in_strutt,
         dates_are_not_equal(t1.data_in, t1.data_out) AS notte,
-        NULL AS tveicolo, t1.ditta, t1.ndoc, t1.tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta,
+        NULL AS tveicolo, t1.ditta, t1.cod_fisc, t1.ndoc, t1.tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta,
         CAST(t2.edificio AS TEXT) AS edificio, t2.piano, t1.username, t1.ip, NULL AS documento
         FROM (
             SELECT a.id, n.codice, po.cliente, po.name AS postazione, a.data_in, a.data_out, a.username, a.ip, a.chiave_cod, n.nome, n.cognome, n.ditta, n.assegnazione, n.ndoc, n.tdoc, n.telefono, n.scadenza
@@ -343,14 +346,14 @@ CREATE VIEW tracciati AS
 
 CREATE VIEW full_in_strutt_badges AS
     WITH full_archivio_nominativi AS (
-        SELECT a.id, n.codice, n.descrizione, po.cliente, po.name AS postazione, a.data_in, n.nome, n.cognome, n.assegnazione, n.ditta, n.ndoc, n.tdoc, n.telefono, n.scadenza, po.id AS post_id
+        SELECT a.id, n.codice, n.descrizione, po.cliente, po.name AS postazione, a.data_in, n.nome, n.cognome, n.assegnazione, n.ditta, n.cod_fisc, n.ndoc, n.tdoc, n.telefono, n.scadenza, po.id AS post_id
         FROM nominativi AS n
         JOIN archivio_nominativi AS a ON n.codice = a.badge_cod
         JOIN postazioni AS po ON a.post_id = po.id
         WHERE is_in_strutt(data_in, data_out)
     ),
     full_archivio_provvisori AS (
-        SELECT a.id, a.badge_cod AS codice, NULL AS descrizione, po.cliente, po.name AS postazione, a.data_in, a.nome, a.cognome, a.assegnazione, a.ditta, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, po.id AS post_id
+        SELECT a.id, a.badge_cod AS codice, NULL AS descrizione, po.cliente, po.name AS postazione, a.data_in, a.nome, a.cognome, a.assegnazione, a.ditta, a.cod_fisc, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, po.id AS post_id
         FROM archivio_provvisori AS a
         JOIN postazioni AS po ON a.post_id = po.id
         WHERE is_in_strutt(data_in, data_out)
@@ -365,7 +368,7 @@ CREATE VIEW full_in_strutt_badges AS
 
 CREATE VIEW full_in_strutt_veicoli AS
     WITH full_archivio_veicoli AS (
-        SELECT a.id, ve.targa, ve.descrizione, ve.tipo AS tveicolo, po.cliente, po.name AS postazione, a.data_in, n.nome, n.cognome, n.assegnazione, n.ditta, n.ndoc, n.tdoc, n.telefono, n.scadenza, po.id AS post_id
+        SELECT a.id, ve.targa, ve.descrizione, ve.tipo AS tveicolo, po.cliente, po.name AS postazione, a.data_in, n.nome, n.cognome, n.assegnazione, n.ditta, n.cod_fisc, n.ndoc, n.tdoc, n.telefono, n.scadenza, po.id AS post_id
         FROM nominativi AS n
         JOIN veicoli AS ve ON n.codice = ve.proprietario
         JOIN archivio_veicoli AS a ON ve.targa = a.targa
@@ -373,7 +376,7 @@ CREATE VIEW full_in_strutt_veicoli AS
         WHERE is_in_strutt(data_in, data_out)
     ),
     full_archivio_veicoli_prov AS (
-        SELECT a.id, a.targa, NULL AS descrizione, a.tveicolo, po.cliente, po.name AS postazione, a.data_in, a.nome, a.cognome, a.assegnazione, a.ditta, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, po.id AS post_id
+        SELECT a.id, a.targa, NULL AS descrizione, a.tveicolo, po.cliente, po.name AS postazione, a.data_in, a.nome, a.cognome, a.assegnazione, a.ditta, a.cod_fisc, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, po.id AS post_id
         FROM archivio_veicoli_prov AS a
         JOIN postazioni AS po ON a.post_id = po.id
         WHERE is_in_strutt(data_in, data_out)

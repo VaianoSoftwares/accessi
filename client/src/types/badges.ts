@@ -61,6 +61,7 @@ export interface BaseNominativo {
   cognome: string;
   assegnazione: string;
   ditta: string | null;
+  cod_fisc: string | null;
   ndoc: string | null;
   tdoc: DocType | null;
   telefono: string | null;
