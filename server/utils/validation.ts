@@ -808,7 +808,11 @@ export const UPDATE_POSTAZIONE_SCHEMA = z.object({
 
 export const UPDATE_ARCHIVIO_SCHEMA = z.object({
   id: ID_SCHEMA("Archivio ID"),
-  data_in: z.coerce.date().optional(),
-  data_out: z.coerce.date().optional(),
+  updateData: z.object({
+    data_in: z.coerce.date().optional(),
+    ora_in: z.coerce.date().optional(),
+    data_out: z.coerce.date().optional(),
+    ora_out: z.coerce.date().optional(),
+  }),
 });
 export type UpdateArchivioData = z.infer<typeof UPDATE_ARCHIVIO_SCHEMA>;

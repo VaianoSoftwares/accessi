@@ -13,6 +13,7 @@ export default function BadgeTable({
   obfuscatedParams?: string[];
   timestampParams?: string[];
   dateParams?: string[];
+  timeParams?: string[];
   linkParams?: string[];
   linkParser?: (value: any) => any;
   clickRowEvent?: (e: HTMLElementEvent) => void;
@@ -22,7 +23,14 @@ export default function BadgeTable({
     else if (value === "" || value === null || value === undefined) return "";
     else if (props?.dateParams?.includes?.(key))
       return dateFormat(value, "dd/mm/yyyy");
-    else if (props?.timestampParams?.includes?.(key))
+    else if (props?.timeParams?.includes?.(key)) {
+      let valueAsDate = new Date();
+      const valueTokens = String(value).split(":");
+      valueAsDate.setHours(Number.parseInt(valueTokens[0]));
+      valueAsDate.setMinutes(Number.parseInt(valueTokens[1]));
+      valueAsDate.setSeconds(Number.parseInt(valueTokens[2]));
+      return dateFormat(valueAsDate, "HH:MM:ss");
+    } else if (props?.timestampParams?.includes?.(key))
       return new Date(value).toLocaleString("it-IT", {
         timeZone: "Europe/Rome",
       });

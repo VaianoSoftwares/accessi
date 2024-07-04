@@ -43,6 +43,8 @@ export default function Archivio() {
     data_in_max: null,
     data_in: null,
     data_out: null,
+    ora_in: null,
+    ora_out: null,
     id: null,
   });
 
@@ -427,7 +429,8 @@ export default function Archivio() {
           <BadgeTable
             content={queryArchivio.data}
             tableId={TABLE_ID}
-            timestampParams={["data_in", "data_out"]}
+            dateParams={["data_in", "data_out"]}
+            timeParams={["ora_in", "ora_out"]}
             linkParams={["documento"]}
             linkParser={(value: string) => (
               <Link to={`${PROXY}${UPLOADS_DIR}${value}`}>{value}</Link>

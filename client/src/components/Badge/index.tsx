@@ -142,7 +142,6 @@ export default function Badge({
           clearForm();
           setNoImage();
         }
-
         setDeletedRow(undefined);
       }, 1000);
     },
@@ -181,7 +180,7 @@ export default function Badge({
       const firstRow = badgeTable
         ? (badgeTable as HTMLTableElement).tBodies[0].rows[0]
         : null;
-      firstRow && (firstRow.style.backgroundColor = "green");
+      firstRow && (firstRow.style.backgroundColor = "gold");
 
       setTimeout(() => {
         firstRow && (firstRow.style.backgroundColor = "white");
@@ -564,7 +563,8 @@ export default function Badge({
             tableId={TABLE_NAME}
             omitedParams={["id"]}
             obfuscatedParams={isAdmin(currentUser) ? undefined : ["codice"]}
-            timestampParams={["data_in", "data_out"]}
+            dateParams={["data_in", "data_out"]}
+            timeParams={["ora_in", "ora_out"]}
           />
         )}
       </div>

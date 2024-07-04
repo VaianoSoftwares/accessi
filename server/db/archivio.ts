@@ -57,13 +57,13 @@ export default class ArchivioDB {
         .map(([key, value], i) => {
           switch (key) {
             case "data_in_min":
-              return `data_in>=$${i + 1}`;
+              return `(data_in+ora_in)>=$${i + 1}`;
             case "data_in_max":
-              return `data_in<=$${i + 1}`;
+              return `(data_in+ora_in)<=$${i + 1}`;
             case "data_out_min":
-              return `data_out>=$${i + 1}`;
+              return `(data_out+ora_out)>=$${i + 1}`;
             case "data_out_max":
-              return `data_out<=$${i + 1}`;
+              return `(data_out+ora_out)<=$${i + 1}`;
             default:
               return typeof value === "string"
                 ? `${key} LIKE $${i + 1}`
@@ -86,7 +86,7 @@ export default class ArchivioDB {
 
   public static async getBadgesInStrutt(filter?: FindInStruttBadgesFilter) {
     let i = 1;
-    const prefixText = `SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
+    const prefixText = `SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, data_in, ora_in FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
     let filterText =
       filter &&
       Object.entries(filter)
@@ -102,9 +102,9 @@ export default class ArchivioDB {
                   ].join("")
                 : "";
             case "data_in_min":
-              return `data_in>=$${i++}`;
+              return `(data_in+ora_in)>=$${i++}`;
             case "data_in_max":
-              return `data_in<=$${i++}`;
+              return `(data_in+ora_in)<=$${i++}`;
             default:
               return typeof value === "string"
                 ? `${key} LIKE $${i++}`
@@ -142,7 +142,7 @@ export default class ArchivioDB {
 
   public static async getVeicoliInStrutt(filter?: FindInStruttVeicoliFilter) {
     let i = 1;
-    const prefixText = `SELECT id, targa, descrizione, tveicolo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM ${ArchTableName.FULL_VEICOLI_IN_STRUTT}`;
+    const prefixText = `SELECT id, targa, descrizione, tveicolo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in, ora_in FROM ${ArchTableName.FULL_VEICOLI_IN_STRUTT}`;
     const filterText =
       filter &&
       Object.entries(filter)
@@ -158,9 +158,9 @@ export default class ArchivioDB {
                   ].join("")
                 : "";
             case "data_in_min":
-              return `data_in>=$${i++}`;
+              return `(data_in+ora_in)>=$${i++}`;
             case "data_in_max":
-              return `data_in<=$${i++}`;
+              return `(data_in+ora_in)<=$${i++}`;
             default:
               return typeof value === "string"
                 ? `${key} LIKE $${i++}`
@@ -189,7 +189,7 @@ export default class ArchivioDB {
   public static async getInPrestito(filter?: FindInPrestitoFilter) {
     let i = 1;
     const prefixText =
-      "SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, indirizzo, citta, edificio, piano, data_in FROM in_prestito";
+      "SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, indirizzo, citta, edificio, piano, data_in, ora_in FROM in_prestito";
     const filterText =
       filter &&
       Object.entries(filter)
@@ -205,9 +205,9 @@ export default class ArchivioDB {
                   ].join("")
                 : "";
             case "data_in_min":
-              return `data_in>=$${i++}`;
+              return `(data_in+ora_in)>=$${i++}`;
             case "data_in_max":
-              return `data_in<=$${i++}`;
+              return `(data_in+ora_in)<=$${i++}`;
             default:
               return typeof value === "string"
                 ? `${key} LIKE $${i++}`
@@ -239,7 +239,7 @@ export default class ArchivioDB {
     inOrOut: "in" | "out"
   ) {
     return await db.query<T>(
-      `UPDATE ${tableName} SET data_${inOrOut} = date_trunc('second', CURRENT_TIMESTAMP) WHERE id = $1 RETURNING id`,
+      `UPDATE ${tableName} SET data_${inOrOut} = CURRENT_DATE, ora_${inOrOut} = CURRENT_TIME(0) WHERE id = $1 RETURNING id`,
       [id]
     );
   }
@@ -888,7 +888,7 @@ export default class ArchivioDB {
         id: number;
         chiave: string;
       }>(
-        `SELECT id, chiave FROM in_prestito WHERE data_out > date_trunc('second', CURRENT_TIMESTAMP) AND badge_cod = $1 AND cliente = $2`,
+        `SELECT id, chiave FROM in_prestito WHERE (data_out + ora_out) > date_trunc('second', CURRENT_TIMESTAMP) AND badge_cod = $1 AND cliente = $2`,
         [badgeCode, actualCliente]
       );
 
@@ -932,7 +932,7 @@ export default class ArchivioDB {
       const chiaviOutText = [
         "UPDATE",
         ArchTableName.CHIAVI,
-        "SET data_out = date_trunc('second', CURRENT_TIMESTAMP) WHERE",
+        "SET data_out = CURRENT_DATE, ora_out = CURRENT_TIME(0) WHERE",
         chiaviOut.map((_, i) => `id = $${i + 1}`).join(" OR "),
         "RETURNING *",
       ].join(" ");
@@ -964,9 +964,9 @@ export default class ArchivioDB {
         .map(([key], i) => {
           switch (key) {
             case "minDate":
-              return `data_in >= $${i + 1}`;
+              return `(data_in + ora_in) >= $${i + 1}`;
             case "maxDate":
-              return `data_in <= $${i + 1}`;
+              return `(data_in + ora_in) <= $${i + 1}`;
           }
         })
         .join(" AND ");
@@ -1071,7 +1071,7 @@ export default class ArchivioDB {
 
       const { rows: updatedRows, rowCount: numUpdatedRows } =
         await client.query(
-          `UPDATE ${ArchTableName.NOMINATIVI} SET data_out = date_trunc('second', CURRENT_TIMESTAMP) WHERE id = $1`,
+          `UPDATE ${ArchTableName.NOMINATIVI} SET data_out = CURRENT_DATE, ora_out = CURRENT_TIME(0) WHERE id = $1`,
           [archId]
         );
 
@@ -1101,11 +1101,7 @@ export default class ArchivioDB {
     }
   }
 
-  public static async updateArchivio(data: UpdateArchivioData) {
-    return await db.updateRows(
-      ArchTableName.NOMINATIVI,
-      { data_in: data.data_in, data_out: data.data_out },
-      { id: data.id }
-    );
+  public static async updateArchivio({ id, updateData }: UpdateArchivioData) {
+    return await db.updateRows(ArchTableName.NOMINATIVI, updateData, { id });
   }
 }

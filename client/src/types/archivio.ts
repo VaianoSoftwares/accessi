@@ -9,6 +9,7 @@ export type QueryBadgeInStrutt = {
   cognome: string;
   ditta: string;
   data_in: Date | string;
+  ora_in: Date | string;
 };
 
 export type FindBadgeInStrutt = {
@@ -24,6 +25,7 @@ export type FindBadgeInStrutt = {
   tdoc: string;
   telefono: string;
   data_in: Date | string;
+  ora_in: Date | string;
 };
 
 export type QueryVeicoloInStrutt = {
@@ -38,6 +40,7 @@ export type QueryVeicoloInStrutt = {
   cognome: string;
   ditta: string;
   data_in: Date | string;
+  ora_in: Date | string;
 };
 
 export type FindVeicoloInStrutt = {
@@ -54,6 +57,7 @@ export type FindVeicoloInStrutt = {
   tdoc: string;
   telefono: string;
   data_in: Date | string;
+  ora_in: Date | string;
 };
 
 export type QueryInPrestito = {
@@ -70,6 +74,7 @@ export type QueryInPrestito = {
   edificio: string;
   piano: string;
   data_in: Date | string;
+  ora_in: Date | string;
 };
 
 export type FindInPrestito = {
@@ -89,6 +94,7 @@ export type FindInPrestito = {
   edificio: string;
   piano: string;
   data_in: Date | string;
+  ora_in: Date | string;
 };
 
 export type InsertArchBadgeData = {
@@ -174,6 +180,8 @@ export type PrestitoChiaviRes = {
 
 export type UpdateArchivioData = {
   data_in?: Date | string | undefined;
+  ora_in?: Date | string | undefined;
   data_out?: Date | string | undefined;
+  ora_out?: Date | string | undefined;
   id: number | string;
 };
