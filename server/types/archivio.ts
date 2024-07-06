@@ -18,9 +18,7 @@ export enum BarcodePrefix {
 
 export interface BaseArchivio {
   data_in: string;
-  ora_in: string;
   data_out: string;
-  ora_out: string;
   username: string;
   ip: string;
   post_id: number;
@@ -64,14 +62,14 @@ export type Archivio = WithId<
 
 export type BadgeInStrutt = WithId<
   Pick<BaseNominativo, "nome" | "cognome" | "assegnazione" | "ditta"> &
-    Pick<BaseArchivio, "data_in" | "ora_in"> &
+    Pick<BaseArchivio, "data_in"> &
     Pick<BaseBadge, "codice" | "cliente"> & {
       postazione: string;
     }
 >;
 export type VeicoloInStrutt = WithId<
   Pick<BaseNominativo, "nome" | "cognome" | "assegnazione" | "ditta"> &
-    Pick<BaseArchivioVeicoloProv, "targa" | "data_in" | "ora_in" | "tveicolo"> &
+    Pick<BaseArchivioVeicoloProv, "targa" | "data_in" | "tveicolo"> &
     Pick<BaseBadge, "cliente"> & {
       postazione: string;
     }
@@ -93,9 +91,7 @@ export type TimbraChiaviData = Pick<
 export type Tracciato = {
   zuc_cod: string;
   data_in: string | Date;
-  ora_in: string | Date;
   data_out: string | Date;
-  ora_out: string | Date;
   formatted_data_in: string;
   formatted_data_out: string;
 };

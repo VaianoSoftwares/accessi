@@ -43,8 +43,6 @@ export default function Archivio() {
     data_in_max: null,
     data_in: null,
     data_out: null,
-    ora_in: null,
-    ora_out: null,
     id: null,
   });
 
@@ -340,7 +338,7 @@ export default function Archivio() {
                   </div>
                   <div className="form-floating col-sm-3">
                     <input
-                      type="date"
+                      type="datetime-local"
                       className="form-control form-control-sm"
                       id="data_in"
                       autoComplete="off"
@@ -350,7 +348,7 @@ export default function Archivio() {
                   </div>
                   <div className="form-floating col-sm-3">
                     <input
-                      type="date"
+                      type="datetime-local"
                       className="form-control form-control-sm"
                       id="data_out"
                       autoComplete="off"
@@ -429,8 +427,7 @@ export default function Archivio() {
           <BadgeTable
             content={queryArchivio.data}
             tableId={TABLE_ID}
-            dateParams={["data_in", "data_out"]}
-            timeParams={["ora_in", "ora_out"]}
+            timestampParams={["data_in", "data_out"]}
             linkParams={["documento"]}
             linkParser={(value: string) => (
               <Link to={`${PROXY}${UPLOADS_DIR}${value}`}>{value}</Link>

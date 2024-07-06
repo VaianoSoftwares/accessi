@@ -82,3 +82,13 @@
     float: left;
     padding-right: 2px;
 }
+
+table.added-row tbody tr:first-child td {
+    background-color: green;
+}
+table.removed-row tbody tr:first-child td {
+    background-color: red;
+}
+table.updated-row tbody tr:first-child td {
+    background-color: gold;
+}

@@ -23,6 +23,7 @@ import {
 } from "../../types/archivio";
 import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
+import { timeout } from "../../utils/timeout";
 
 const TABLE_NAME = "in_strutt_table";
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
@@ -112,8 +113,6 @@ export default function Badge({
         throw response.data.error;
       }
 
-      clearCurrPostazione();
-
       if (timeoutRunning.current === true) return;
       timeoutRunning.current = true;
 
@@ -129,28 +128,31 @@ export default function Badge({
       }
 
       const badgeTable = document.getElementById(TABLE_NAME);
-      const firstRow = badgeTable
-        ? (badgeTable as HTMLTableElement).tBodies[0].rows[0]
-        : null;
-      if (firstRow) {
-        firstRow.style.backgroundColor = isEntering === true ? "green" : "red";
+      if (badgeTable) {
+        badgeTable.classList.add(
+          isEntering === true ? "added-row" : "removed-row"
+        );
       }
 
-      setTimeout(() => {
-        if (firstRow) firstRow.style.backgroundColor = "white";
-        if (readonlyForm === true) {
-          clearForm();
-          setNoImage();
-        }
-        setDeletedRow(undefined);
-      }, 1000);
+      await timeout(1000);
+
+      if (badgeTable) {
+        badgeTable.classList.remove("added-row", "removed-row", "updated-row");
+      }
+      if (readonlyForm === true) {
+        clearForm();
+        setNoImage();
+      }
+
+      setDeletedRow(undefined);
+      await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
+      clearCurrPostazione();
+
+      timeoutRunning.current = false;
     },
     onError: async (err) => {
       setDeletedRow(undefined);
       handleError(err, "timbra");
-    },
-    onSettled: async () => {
-      timeoutRunning.current = false;
     },
   });
 
@@ -162,12 +164,12 @@ export default function Badge({
         throw response.data.error;
       }
 
-      clearCurrPostazione();
-
       if (timeoutRunning.current === true) return;
       timeoutRunning.current = true;
 
       await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
+
+      setDeletedRow(undefined);
 
       const { in: timbraRow } = response.data.result;
 
@@ -177,24 +179,28 @@ export default function Badge({
       }
 
       const badgeTable = document.getElementById(TABLE_NAME);
-      const firstRow = badgeTable
-        ? (badgeTable as HTMLTableElement).tBodies[0].rows[0]
-        : null;
-      firstRow && (firstRow.style.backgroundColor = "gold");
+      if (badgeTable) {
+        badgeTable.classList.add("updated-row");
+      }
 
-      setTimeout(() => {
-        firstRow && (firstRow.style.backgroundColor = "white");
-        if (readonlyForm === true) {
-          clearForm();
-          setNoImage();
-        }
-      }, 1000);
+      await timeout(1000);
+
+      if (badgeTable) {
+        badgeTable.classList.remove("added-row", "removed-row", "updated-row");
+      }
+      if (readonlyForm === true) {
+        clearForm();
+        setNoImage();
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
+      clearCurrPostazione();
+
+      timeoutRunning.current = false;
     },
     onError: async (err) => {
+      setDeletedRow(undefined);
       handleError(err, "timbra");
-    },
-    onSettled: async () => {
-      timeoutRunning.current = false;
     },
   });
 
@@ -563,8 +569,7 @@ export default function Badge({
             tableId={TABLE_NAME}
             omitedParams={["id"]}
             obfuscatedParams={isAdmin(currentUser) ? undefined : ["codice"]}
-            dateParams={["data_in", "data_out"]}
-            timeParams={["ora_in", "ora_out"]}
+            timestampParams={["data_in", "data_out"]}
           />
         )}
       </div>

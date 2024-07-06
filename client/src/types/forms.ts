@@ -139,9 +139,7 @@ export type FindArchivioForm = {
   data_in_min?: string | undefined;
   data_in_max?: string | undefined;
   data_in?: string | undefined;
-  ora_in?: string | undefined;
   data_out?: string | undefined;
-  ora_out?: string | undefined;
   id?: string | undefined;
 };
 
