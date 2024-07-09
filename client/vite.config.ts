@@ -5,12 +5,12 @@ import react from "@vitejs/plugin-react-swc";
 export default defineConfig({
   plugins: [react()],
   server: {
-    https: {
-      cert: "../server/certs/cert.pem",
-      key: "../server/certs/privkey.pem",
-    },
+    // https: {
+    //   cert: "../server/certs/cert.pem",
+    //   key: "../server/certs/privkey.pem",
+    // },
     proxy: {
-      "*": "https://localhost:4317",
+      "*": "http://localhost:4316",
     },
   },
 });

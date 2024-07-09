@@ -97,15 +97,15 @@ CREATE TABLE IF NOT EXISTS postazioni_user(
 CREATE TABLE IF NOT EXISTS nominativi(
     codice VARCHAR(9) PRIMARY KEY DEFAULT next_barcode('1'),
     descrizione TEXT CHECK (descrizione != ''),
-    stato VARCHAR(32) NOT NULL DEFAULT 'VALIDO' CHECK (is_typeof(stato, 'badge_state')),
+    stato VARCHAR(32) NOT NULL DEFAULT 'VALIDO' CHECK (is_typeof(stato, 'public.badge_state')),
     nome VARCHAR(32) NOT NULL CHECK (nome != ''),
     cognome VARCHAR(32) NOT NULL CHECK (cognome != ''),
-    assegnazione VARCHAR(32) NOT NULL DEFAULT 'UTENTE' CHECK (is_typeof(assegnazione, 'assign_type')),
+    assegnazione VARCHAR(32) NOT NULL DEFAULT 'UTENTE' CHECK (is_typeof(assegnazione, 'public.assign_type')),
     ditta VARCHAR(64) CHECK (ditta != ''),
     cod_fisc VARCHAR(16) CHECK (length(cod_fisc) = 16),
     telefono VARCHAR(32) CHECK (telefono != ''),
     ndoc VARCHAR(32) CHECK (ndoc != ''),
-    tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'doc_type')),
+    tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'public.doc_type')),
     scadenza DATE,
     cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
     zuc_cod VARCHAR(6) UNIQUE CHECK (length(zuc_cod) = 6 AND (zuc_cod ~ '^[0-9]+$')),
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS nominativi(
 CREATE TABLE IF NOT EXISTS provvisori(
     codice VARCHAR(9) PRIMARY KEY DEFAULT next_barcode('2'),
     descrizione TEXT CHECK (descrizione != ''),
-    stato VARCHAR(32) NOT NULL DEFAULT 'VALIDO' CHECK (is_typeof(stato, 'badge_state')),
+    stato VARCHAR(32) NOT NULL DEFAULT 'VALIDO' CHECK (is_typeof(stato, 'public.badge_state')),
     ubicazione VARCHAR(32) CHECK (ubicazione != ''),
     cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
     CONSTRAINT invalid_prov_barcode CHECK (((left(codice, 1) = '2' AND length(codice) = 9) OR length(codice) = 7) AND (codice ~ '^[0-9]+$'))
@@ -124,12 +124,12 @@ CREATE TABLE IF NOT EXISTS provvisori(
 CREATE TABLE IF NOT EXISTS chiavi(
     codice VARCHAR(9) PRIMARY KEY DEFAULT next_barcode('3'),
     descrizione TEXT CHECK (descrizione != ''),
-    stato VARCHAR(32) NOT NULL DEFAULT 'VALIDO' CHECK (is_typeof(stato, 'badge_state')),
+    stato VARCHAR(32) NOT NULL DEFAULT 'VALIDO' CHECK (is_typeof(stato, 'public.badge_state')),
     ubicazione VARCHAR(32) CHECK (ubicazione != ''),
     cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
     indirizzo VARCHAR(128) CHECK (indirizzo != ''),
     citta VARCHAR(64) CHECK (citta != ''),
-    edificio VARCHAR(32) NOT NULL DEFAULT 'GENERICO' CHECK (is_typeof(edificio, 'building_type')),
+    edificio VARCHAR(32) NOT NULL DEFAULT 'GENERICO' CHECK (is_typeof(edificio, 'public.building_type')),
     piano TEXT CHECK (piano != ''),
     proprietario VARCHAR(9) REFERENCES nominativi (codice),
     CONSTRAINT invalid_chiave_barcode CHECK (left(codice, 1) = '3' AND length(codice) = 9 AND (codice ~ '^[0-9]+$'))
@@ -139,9 +139,9 @@ CREATE TABLE IF NOT EXISTS veicoli(
     codice VARCHAR(9) PRIMARY KEY DEFAULT next_barcode('4'),
     targa VARCHAR(32) UNIQUE NOT NULL CHECK (targa != ''),
     descrizione TEXT CHECK (descrizione != ''),
-    stato VARCHAR(32) NOT NULL DEFAULT 'VALIDO' CHECK (is_typeof(stato, 'badge_state')),
+    stato VARCHAR(32) NOT NULL DEFAULT 'VALIDO' CHECK (is_typeof(stato, 'public.badge_state')),
     cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
-    tipo VARCHAR(32) NOT NULL DEFAULT 'GENERICO' CHECK (is_typeof(tipo, 'veh_type')),
+    tipo VARCHAR(32) NOT NULL DEFAULT 'GENERICO' CHECK (is_typeof(tipo, 'public.veh_type')),
     proprietario VARCHAR(9) NOT NULL REFERENCES nominativi (codice),
     CONSTRAINT invalid_veicolo_barcode CHECK (left(codice, 1) = '4' AND length(codice) = 9 AND (codice ~ '^[0-9]+$'))
 );
@@ -168,12 +168,12 @@ CREATE TABLE IF NOT EXISTS archivio_provvisori(
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
     nome VARCHAR(32) NOT NULL CHECK (nome != ''),
     cognome VARCHAR(32) NOT NULL CHECK (cognome != ''),
-    assegnazione VARCHAR(32) NOT NULL DEFAULT 'OSPITE' CHECK (is_typeof(assegnazione, 'assign_type')),
+    assegnazione VARCHAR(32) NOT NULL DEFAULT 'OSPITE' CHECK (is_typeof(assegnazione, 'public.assign_type')),
     ditta VARCHAR(64) CHECK (ditta != ''),
     cod_fisc VARCHAR(16) CHECK (length(cod_fisc) = 16),
     telefono VARCHAR(32) CHECK (telefono != ''),
     ndoc VARCHAR(32) CHECK (ndoc != ''),
-    tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'doc_type')),
+    tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'public.doc_type')),
     CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in),
     UNIQUE (badge_cod, data_in)
 );
@@ -200,13 +200,13 @@ CREATE TABLE IF NOT EXISTS archivio_veicoli_prov(
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
     nome VARCHAR(32) NOT NULL CHECK (nome != ''),
     cognome VARCHAR(32) NOT NULL CHECK (cognome != ''),
-    assegnazione VARCHAR(32) NOT NULL DEFAULT 'OSPITE' CHECK (is_typeof(assegnazione, 'assign_type')),
+    assegnazione VARCHAR(32) NOT NULL DEFAULT 'OSPITE' CHECK (is_typeof(assegnazione, 'public.assign_type')),
     ditta VARCHAR(64) CHECK (ditta != ''),
     cod_fisc VARCHAR(16) CHECK (length(cod_fisc) = 16),
     telefono VARCHAR(32) CHECK (telefono != ''),
     ndoc VARCHAR(32) CHECK (ndoc != ''),
     tdoc VARCHAR(32) CHECK (tdoc = 'CARTA IDENTITA' OR tdoc = 'PATENTE' OR tdoc = 'TESSERA STUDENTE'),
-    tveicolo VARCHAR(32) NOT NULL DEFAULT 'GENERICO' CHECK (is_typeof(tveicolo, 'veh_type')),
+    tveicolo VARCHAR(32) NOT NULL DEFAULT 'GENERICO' CHECK (is_typeof(tveicolo, 'public.veh_type')),
     CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in),
     UNIQUE (targa, data_in)
 );
