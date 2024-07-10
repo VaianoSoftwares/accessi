@@ -9,7 +9,7 @@
                       "Content-Length: %d\r\n\r\n"                        \
                       "%s"
 
-#define LOGIN_BODY_FMT "{\"device\":\"%s\",\"password\":\"%s\"}"
+#define LOGIN_BODY_FMT "{\"name\":\"%s\",\"password\":\"%s\"}"
 
 #define TIMBRA_MSG_FMT "POST /api/v1/badges/archivio HTTP/1.1\r\n"         \
                        "Host: %s\r\n"                                      \

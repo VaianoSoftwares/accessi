@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Ok } from "../types/index.js";
 import { BaseError } from "../types/errors.js";
+import isLan from "../utils/isLan.js";
 
 const secondsInOneYear = 31536000;
 
@@ -55,7 +56,10 @@ export default class UsersController {
           console.log(name, "logged in.");
 
           res.cookie("token", token, {
-            secure: process.env.NODE_ENV != "development",
+            secure:
+              process.env.NODE_ENV != "development" &&
+              req.ip !== undefined &&
+              !isLan(req.ip),
             httpOnly: true,
             maxAge: expiresInSeconds * 1000,
           });
@@ -97,7 +101,10 @@ export default class UsersController {
       console.log(req.user, "logged out");
 
       res.cookie("token", null, {
-        secure: process.env.NODE_ENV != "development",
+        secure:
+          process.env.NODE_ENV != "development" &&
+          req.ip !== undefined &&
+          !isLan(req.ip),
         httpOnly: true,
         maxAge: -1,
       });
@@ -132,7 +139,10 @@ export default class UsersController {
           console.log(user.name, "logged in.");
 
           res.cookie("token", token, {
-            secure: process.env.NODE_ENV != "development",
+            secure:
+              process.env.NODE_ENV != "development" &&
+              req.ip !== undefined &&
+              !isLan(req.ip),
             httpOnly: true,
             maxAge: secondsInOneYear * 1000,
           });
