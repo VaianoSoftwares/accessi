@@ -690,7 +690,7 @@ export default function Anagrafico() {
                     privacy
                   </label>
                   <input
-                    accept="image/*"
+                    accept=".pdf"
                     type="file"
                     className="form-control form-control-sm"
                     id="privacy"
@@ -703,7 +703,7 @@ export default function Anagrafico() {
                     documento
                   </label>
                   <input
-                    accept="image/*"
+                    accept=".pdf"
                     type="file"
                     className="form-control form-control-sm"
                     id="documento"

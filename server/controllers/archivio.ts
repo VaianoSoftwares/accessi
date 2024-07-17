@@ -191,22 +191,18 @@ export default class ArchivioController {
 
       let badgeCode: string | null = null;
       let chiavi: string[] = [];
-      Array.from(new Set(parsed.data.barcodes))
-        .map((barcode) =>
-          barcode.length === 10 ? barcode.substring(1) : barcode
-        )
-        .forEach((barcode) => {
-          const prefix = barcode.substring(0, 1);
+      Array.from(new Set(parsed.data.barcodes)).forEach((barcode) => {
+        const prefix = barcode.substring(0, 1);
 
-          switch (prefix) {
-            case "1":
-              badgeCode = barcode;
-              break;
-            case "3":
-              chiavi.push(barcode);
-              break;
-          }
-        });
+        switch (prefix) {
+          case BarcodePrefix.nominativoGenerico:
+            badgeCode = barcode;
+            break;
+          case BarcodePrefix.chiaveGenerico:
+            chiavi.push(barcode);
+            break;
+        }
+      });
 
       if (!badgeCode) {
         throw new BaseError("Nessun badge selezionato", {
@@ -250,13 +246,7 @@ export default class ArchivioController {
         });
       }
 
-      const dbResult = await ArchivioDB.insertBadgeProvvisorio({
-        ...parsed.data,
-        badge_cod:
-          parsed.data.badge_cod.length === 10
-            ? parsed.data.badge_cod.substring(1)
-            : parsed.data.badge_cod,
-      });
+      const dbResult = await ArchivioDB.insertBadgeProvvisorio(parsed.data);
       if (!dbResult.rowCount) {
         throw new BaseError("Impossibile inserire provvisorio", {
           status: 400,

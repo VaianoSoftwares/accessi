@@ -146,7 +146,7 @@ export default function Badge({
 
       setDeletedRow(undefined);
       await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
-      clearCurrPostazione();
+      if (currentUser?.postazioni_ids.length !== 1) clearCurrPostazione();
 
       timeoutRunning.current = false;
     },
@@ -194,7 +194,7 @@ export default function Badge({
       }
 
       await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
-      clearCurrPostazione();
+      if (currentUser?.postazioni_ids.length !== 1) clearCurrPostazione();
 
       timeoutRunning.current = false;
     },

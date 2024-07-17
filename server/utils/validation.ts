@@ -645,6 +645,7 @@ export const TIMBRA_CHIAVI_SCHEMA = z.object({
       CODICE_CHIAVE_SCHEMA,
       CODICE_NOM_SCHEMA,
     ])
+    .transform((v) => (v.length === 10 ? v.substring(1) : v))
     .array()
     .nonempty(MISSING_ATTR_ERR_MSG("Barcodes")),
   ip: z.string().default("unknown"),
@@ -666,11 +667,13 @@ export const PAUSA_SCHEMA = z.object({
 });
 
 export const INSERT_ARCH_BADGE_SCHEMA = z.object({
-  badge_cod: z.union([
-    BARCODE_PROV_ENTRA_SCHEMA,
-    BARCODE_PROV_ESCE_SCHEMA,
-    CODICE_PROV_SCHEMA,
-  ]),
+  badge_cod: z
+    .union([
+      BARCODE_PROV_ENTRA_SCHEMA,
+      BARCODE_PROV_ESCE_SCHEMA,
+      CODICE_PROV_SCHEMA,
+    ])
+    .transform((v) => (v.length === 10 ? v.substring(1) : v)),
   post_id: ID_SCHEMA("Postazione ID"),
   ip: z.string().default("unknown"),
   username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
@@ -808,7 +811,13 @@ export const UPDATE_POSTAZIONE_SCHEMA = z.object({
 
 export const UPDATE_ARCHIVIO_SCHEMA = z.object({
   id: ID_SCHEMA("Archivio ID"),
-  data_in: z.coerce.date().optional(),
-  data_out: z.coerce.date().optional(),
+  data_in: z
+    .union([z.string(), z.date()])
+    .optional()
+    .transform((v) => (!v ? undefined : new Date(v))),
+  data_out: z
+    .union([z.string(), z.date()])
+    .optional()
+    .transform((v) => (!v ? undefined : new Date(v))),
 });
 export type UpdateArchivioData = z.infer<typeof UPDATE_ARCHIVIO_SCHEMA>;

@@ -135,6 +135,7 @@ export default function Archivio() {
         throw response.data.error;
       }
       await queryClient.invalidateQueries({ queryKey: ["archivio"] });
+      toast.success("Archivio aggiornato con successo");
     },
     onError: (e) => handleError(e, "updateArchivio"),
   });

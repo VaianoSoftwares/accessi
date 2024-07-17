@@ -36,8 +36,8 @@ export default class BadgesFileManager {
     return { fileName: newName, filePath };
   }
 
-  private static async deleteFile(prefix: string, key: TKey) {
-    const fileName = `${prefix}${key}.jpg`;
+  private static async deleteFile(prefix: string, key: TKey, ext: string) {
+    const fileName = `${prefix}${key}${ext}`;
     const filePath = path.resolve(UPLOADS_DIR, fileName);
 
     if (!existsSync(filePath)) return;
@@ -54,7 +54,7 @@ export default class BadgesFileManager {
     });
   }
   public static async deletePfp(key: TKey) {
-    return await BadgesFileManager.deleteFile("PFP_", key);
+    return await BadgesFileManager.deleteFile("PFP_", key, ".jpg");
   }
 
   public static async uploadPrivacy(key: TKey, privacy: UploadedFile) {
@@ -64,26 +64,26 @@ export default class BadgesFileManager {
     });
   }
   public static async deletePrivacy(key: TKey) {
-    return await BadgesFileManager.deleteFile("PRIVACY_", key);
+    return await BadgesFileManager.deleteFile("PRIVACY_", key, ".pdf");
   }
 
   public static async uploadDocumento(key: TKey, file: UploadedFile) {
     return await BadgesFileManager.uploadFile("DOC_", key, file, {
-      expectedExt: ".jpg",
+      expectedExt: ".pdf",
       maxSize: 50 * 1024 * 1024,
     });
   }
   public static async deleteDocumento(key: TKey) {
-    return await BadgesFileManager.deleteFile("DOC_", key);
+    return await BadgesFileManager.deleteFile("DOC_", key, ".pdf");
   }
 
   public static async uploadDocumentoProv(key: TKey, file: UploadedFile) {
     return await BadgesFileManager.uploadFile("DOCP_", key, file, {
-      expectedExt: ".jpg",
+      expectedExt: ".pdf",
       maxSize: 50 * 1024 * 1024,
     });
   }
   public static async deleteDocumentoProv(key: TKey) {
-    return await BadgesFileManager.deleteFile("DOCP_", key);
+    return await BadgesFileManager.deleteFile("DOCP_", key, ".pdf");
   }
 }
