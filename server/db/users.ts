@@ -56,7 +56,7 @@ export default class UsersDB {
         (value) => [userId, value]
       );
       const insertUserPostText =
-        "INSERT INTO postazioni_user (user_id, post_id) VALUES ".concat(
+        "INSERT INTO postazioni_user (usr_id, post_id) VALUES ".concat(
           insertUserPostValues
             .map((_, i) => (i & 1 ? `$${i + 1})` : `($${i + 1}`))
             .join(",")
