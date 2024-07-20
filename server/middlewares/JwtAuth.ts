@@ -95,4 +95,8 @@ export default class JwtAuth {
   ) {
     return JwtAuth.checkPermessi(req, res, next, TPermessi.updateArchivio);
   }
+
+  public static canEditBadges(req: Request, res: Response, next: NextFunction) {
+    return JwtAuth.checkPermessi(req, res, next, TPermessi.canEditBadges);
+  }
 }

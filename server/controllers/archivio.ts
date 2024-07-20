@@ -388,4 +388,16 @@ export default class ArchivioController {
       next(e);
     }
   }
+
+  public static async apiTimbraBadges(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      console.log(req.body);
+    } catch (e) {
+      next(e);
+    }
+  }
 }

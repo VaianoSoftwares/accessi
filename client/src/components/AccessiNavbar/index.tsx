@@ -4,7 +4,7 @@ import "./index.css";
 import UserDataService from "../../services/user";
 import PostazioniDataService from "../../services/postazioni";
 import ClientiDataService from "../../services/clienti";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { PAGES_INFO, ADMIN_PAGES_INFO, TPages } from "../../types/pages";
 import {
   TPermessi,
@@ -21,6 +21,8 @@ const green_check_path = "/green-checkmark-icon.svg";
 const red_x_path = "/red-x-icon.svg";
 
 export default function AccessiNavbar({
+  currCliente,
+  setCurrCliente,
   currPostazione,
   setCurrPostazione,
   badgeScannerConnected,
@@ -29,8 +31,12 @@ export default function AccessiNavbar({
   runChiaviScanner,
   ...props
 }: {
+  currCliente: string | undefined;
+  setCurrCliente: React.Dispatch<React.SetStateAction<string | undefined>>;
   currPostazione: Postazione | undefined;
-  setCurrPostazione: React.Dispatch<React.SetStateAction<Postazione | undefined>>;
+  setCurrPostazione: React.Dispatch<
+    React.SetStateAction<Postazione | undefined>
+  >;
   badgeScannerConnected: boolean;
   runBadgeScanner: () => Promise<void>;
   chiaviScannerConnected: boolean;
@@ -41,8 +47,6 @@ export default function AccessiNavbar({
   const { currentUser, removeCurrentUser } = useContext(CurrentUserContext)!;
 
   const { handleError } = useError();
-
-  const [currCliente, setCurrCliente] = useState<string>();
 
   const postazioni = useQuery({
     queryKey: ["postazioni" /*currentUser?.postazioni*/],

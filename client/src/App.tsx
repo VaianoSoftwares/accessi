@@ -30,6 +30,7 @@ const Clienti = lazy(() => import("./components/Clienti"));
 export default function App() {
   const { currentUser, setCurrentUser, removeCurrentUser } = useCurrentUser();
 
+  const [currCliente, setCurrCliente] = useState<string>();
   const [currPostazione, setCurrPostazione] = useState<Postazione>();
   function clearCurrPostazione() {
     setCurrPostazione(undefined);
@@ -71,6 +72,8 @@ export default function App() {
         <>
           {currentUser && (
             <AccessiNavbar
+              currCliente={currCliente}
+              setCurrCliente={setCurrCliente}
               currPostazione={currPostazione}
               setCurrPostazione={setCurrPostazione}
               badgeScannerConnected={isBadgeScannerConnected}
@@ -171,7 +174,7 @@ export default function App() {
               element={
                 canAccessPage(currentUser, TPages.anagrafico) ? (
                   <Suspense fallback={<Loader />}>
-                    <Anagrafico />
+                    <Anagrafico currCliente={currCliente} />
                   </Suspense>
                 ) : (
                   <PageNotFound />

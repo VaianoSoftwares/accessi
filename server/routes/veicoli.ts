@@ -11,19 +11,19 @@ router
   .post(
     "/",
     JwtAuth.verifyToken,
-    JwtAuth.isAdmin,
+    JwtAuth.canEditBadges,
     VeicoliController.apiInsertVeicolo
   )
   .put(
     "/:codice",
     JwtAuth.verifyToken,
-    JwtAuth.isAdmin,
+    JwtAuth.canEditBadges,
     VeicoliController.apiUpdateVeicolo
   )
   .delete(
     "/:codice",
     JwtAuth.verifyToken,
-    JwtAuth.isAdmin,
+    JwtAuth.canEditBadges,
     VeicoliController.apiDeleteVeicolo
   );
 

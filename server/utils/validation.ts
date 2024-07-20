@@ -223,7 +223,7 @@ export const INSERT_NOMINATIVO_SCHEMA = z.object({
     .transform((val) => val.toUpperCase())
     .nullish(),
   scadenza: z.coerce.date().nullish(),
-  zuc_cod: ZUC_COD_SCHEMA,
+  zuc_cod: ZUC_COD_SCHEMA.nullish(),
 });
 export type InsertNominativoData = z.infer<typeof INSERT_NOMINATIVO_SCHEMA>;
 

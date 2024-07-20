@@ -61,3 +61,9 @@ router.get(
 );
 
 router.post("/pausa", JwtAuth.verifyToken, ArchivioController.apiPausa);
+
+router.post(
+  "/timbra/badges",
+  // JwtAuth.verifyToken,
+  ArchivioController.apiTimbraBadges
+);

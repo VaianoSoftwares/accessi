@@ -11,18 +11,18 @@ router
   .post(
     "/",
     JwtAuth.verifyToken,
-    JwtAuth.isAdmin,
+    JwtAuth.canEditBadges,
     ProvvisoriController.apiInsertProvvisorio
   )
   .put(
     "/:codice",
     JwtAuth.verifyToken,
-    JwtAuth.isAdmin,
+    JwtAuth.canEditBadges,
     ProvvisoriController.apiUpdateProvvisorio
   )
   .delete(
     "/:codice",
     JwtAuth.verifyToken,
-    JwtAuth.isAdmin,
+    JwtAuth.canEditBadges,
     ProvvisoriController.apiDeleteProvvisorio
   );

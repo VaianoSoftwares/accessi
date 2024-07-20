@@ -10,19 +10,19 @@ router.get("/", JwtAuth.verifyToken, ChiaviController.apiGetChiavi);
 router.post(
   "/",
   JwtAuth.verifyToken,
-  JwtAuth.isAdmin,
+  JwtAuth.canEditBadges,
   ChiaviController.apiInsertChiave
 );
 router.put(
   "/:codice",
   JwtAuth.verifyToken,
-  JwtAuth.isAdmin,
+  JwtAuth.canEditBadges,
   ChiaviController.apiUpdateChiave
 );
 router.delete(
   "/:codice",
   JwtAuth.verifyToken,
-  JwtAuth.isAdmin,
+  JwtAuth.canEditBadges,
   ChiaviController.apiDeleteChiave
 );
 

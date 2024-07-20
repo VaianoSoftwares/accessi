@@ -26,7 +26,12 @@ const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 const UPLOADS_DIR = "/api/v1/public/uploads/";
 const TABLE_ID = "anagrafico-table";
 
-export default function Anagrafico() {
+export default function Anagrafico({
+  currCliente,
+  ...props
+}: {
+  currCliente: string | undefined;
+}) {
   const { currentUser } = useContext(CurrentUserContext)!;
   const { handleError } = useError();
 
@@ -132,7 +137,9 @@ export default function Anagrafico() {
     queryKey: ["nominativi"],
     queryFn: async () => {
       try {
-        const response = await NominativiDataService.getAll();
+        const response = await NominativiDataService.find(
+          currCliente ? { cliente: currCliente } : {}
+        );
         if (response.data.success === false) {
           throw response.data.error;
         }
@@ -476,7 +483,12 @@ export default function Anagrafico() {
             const { checked } = el as HTMLInputElement;
             checked && formData.append(key, el!.value);
           default:
-            formData.append(key, el!.value);
+            if (key === "cliente")
+              formData.append(
+                key,
+                currCliente === undefined ? el!.value : currCliente
+              );
+            else formData.append(key, el!.value);
         }
       });
     return formData;
@@ -490,7 +502,11 @@ export default function Anagrafico() {
           el?.value &&
           !["file", "checkbox"].includes(el?.getAttribute("type") || "")
       )
-      .forEach(([key, el]) => (obj[key] = el!.value));
+      .forEach(([key, el]) => {
+        if (key === "cliente")
+          obj[key] = currCliente === undefined ? el!.value : currCliente;
+        else obj[key] = el!.value;
+      });
     return obj as Record<string, string>;
   }
 

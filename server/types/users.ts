@@ -26,6 +26,7 @@ export enum TPermessi {
   excel = 4,
   provvisori = 8,
   updateArchivio = 16,
+  canEditBadges = 32,
 }
 export enum TPages {
   admin = MAX_UINT32,

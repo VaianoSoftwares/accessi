@@ -11,19 +11,19 @@ router
   .post(
     "/",
     JwtAuth.verifyToken,
-    JwtAuth.isAdmin,
+    JwtAuth.canEditBadges,
     NominativiController.apiInsertNominativo
   )
   .put(
     "/:codice",
     JwtAuth.verifyToken,
-    JwtAuth.isAdmin,
+    JwtAuth.canEditBadges,
     NominativiController.apiUpdateNominativo
   )
   .delete(
     "/:codice",
     JwtAuth.verifyToken,
-    JwtAuth.isAdmin,
+    JwtAuth.canEditBadges,
     NominativiController.apiDeleteNominativo
   );
 
