@@ -137,6 +137,10 @@ export default function Anagrafico({
     queryKey: ["nominativi"],
     queryFn: async () => {
       try {
+        const reqData = (currCliente ? { cliente: currCliente } : {}) as Record<
+          string,
+          string
+        >;
         const response = await NominativiDataService.find(
           currCliente ? { cliente: currCliente } : {}
         );
@@ -483,14 +487,15 @@ export default function Anagrafico({
             const { checked } = el as HTMLInputElement;
             checked && formData.append(key, el!.value);
           default:
-            if (key === "cliente")
-              formData.append(
-                key,
-                currCliente === undefined ? el!.value : currCliente
-              );
-            else formData.append(key, el!.value);
+            formData.append(key, el!.value);
         }
       });
+
+    if (currCliente) {
+      formData.delete("cliente");
+      formData.append("cliente", currCliente);
+    }
+
     return formData;
   }
 
@@ -502,11 +507,10 @@ export default function Anagrafico({
           el?.value &&
           !["file", "checkbox"].includes(el?.getAttribute("type") || "")
       )
-      .forEach(([key, el]) => {
-        if (key === "cliente")
-          obj[key] = currCliente === undefined ? el!.value : currCliente;
-        else obj[key] = el!.value;
-      });
+      .forEach(([key, el]) => (obj[key] = el!.value));
+
+    if (currCliente) obj["cliente"] = currCliente;
+
     return obj as Record<string, string>;
   }
 
