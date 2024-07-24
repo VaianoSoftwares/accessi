@@ -13,9 +13,9 @@ import {
   hasPerm,
   isAdmin,
 } from "../../types/users";
-import { Postazione } from "../../types/badges";
 import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
+import { Postazione } from "../../types/postazioni";
 
 const green_check_path = "/green-checkmark-icon.svg";
 const red_x_path = "/red-x-icon.svg";
@@ -194,9 +194,14 @@ export default function AccessiNavbar({
                     setCurrCliente(event.target.value || undefined);
                     // setCurrPostazione(undefined);
                   }}
+                  value={currCliente}
                 >
-                  {isAdmin(currentUser) && (
-                    <option label="Tutti i clienti" value={undefined} />
+                  {(currentUser?.clienti.length || 0) > 1 && (
+                    <option
+                      label="Tutti i clienti"
+                      value={undefined}
+                      key={-1}
+                    />
                   )}
                   {clienti.data
                     .filter((cliente) => currentUser?.clienti.includes(cliente))
@@ -230,7 +235,9 @@ export default function AccessiNavbar({
                   value={currPostazione?.id || 0}
                 >
                   {postazioni.data.length > 1 && (
-                    <option key={-1}>Tutte le postazioni</option>
+                    <option value={0} key={0}>
+                      Tutte le postazioni
+                    </option>
                   )}
                   {postazioni.data
                     .filter(

@@ -2,9 +2,10 @@ import { useRef } from "react";
 import Popup from "reactjs-popup";
 import "./index.css";
 import { FormRef, TEventInput } from "../../types";
-import { Postazione, TDOCS } from "../../types/badges";
+import { TDOCS } from "../../types/badges";
 import { InsertArchBadgeForm } from "../../types/forms";
 import toast from "react-hot-toast";
+import { Postazione } from "../../types/postazioni";
 
 function isCodiceFiscale(cf: string) {
   return (

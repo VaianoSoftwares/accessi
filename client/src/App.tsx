@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, SetStateAction, Suspense, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -11,9 +11,10 @@ import Loader from "./components/Loader";
 import RootProvider from "./components/RootProvider";
 import { canAccessPage, isAdmin } from "./types/users";
 import { TPages } from "./types/pages";
-import { BadgeType, Postazione } from "./types/badges";
+import { BadgeType } from "./types/badges";
 import useCurrentUser from "./hooks/useCurrentUser";
 import scannerHandler from "./utils/scannerHandler";
+import { Postazione } from "./types/postazioni";
 
 const Badge = lazy(() => import("./components/Badge"));
 const Chiavi = lazy(() => import("./components/Chiavi"));
@@ -258,7 +259,7 @@ export default function App() {
               path="login"
               element={
                 currentUser === null ? (
-                  <Login />
+                  <Login setCurrCliente={setCurrCliente} />
                 ) : (
                   <Navigate replace to="/home" />
                 )

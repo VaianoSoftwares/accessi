@@ -22,7 +22,7 @@ import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import { Link } from "react-router-dom";
 
-const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
+const PROXY = import.meta.env.DEV || "";
 const UPLOADS_DIR = "/api/v1/public/uploads/";
 const TABLE_ID = "anagrafico-table";
 
@@ -137,10 +137,6 @@ export default function Anagrafico({
     queryKey: ["nominativi"],
     queryFn: async () => {
       try {
-        const reqData = (currCliente ? { cliente: currCliente } : {}) as Record<
-          string,
-          string
-        >;
         const response = await NominativiDataService.find(
           currCliente ? { cliente: currCliente } : {}
         );
@@ -160,6 +156,8 @@ export default function Anagrafico({
     queryKey: ["nominativi"],
     queryFn: async () => {
       try {
+        console.log("currCliente", currCliente);
+        console.log("clienti[0]", currentUser?.clienti[0]);
         const response = await NominativiDataService.find(formToObj());
         console.log("findNominativi | response:", response);
         if (response.data.success === false) {

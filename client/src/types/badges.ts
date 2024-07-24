@@ -91,11 +91,3 @@ export type BadgeDeleteReq = Pick<BaseBadge, "codice">;
 export type InsertReqRetData<T> = { insertedRow: T };
 export type UpdateReqRetData<T> = { updatedRow: T };
 export type DeleteReqRetData<T> = { deletedRow: T };
-
-export type Postazione = WithId<{
-  cliente: string;
-  name: string;
-}>;
-
-export type GetPostazioniFilters = { ids?: number[] };
-export type InsertPostazioneData = Omit<Postazione, "id">;

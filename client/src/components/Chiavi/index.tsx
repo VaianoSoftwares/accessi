@@ -5,10 +5,10 @@ import BadgeTable from "../BadgeTable";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import Clock from "../Clock";
-import { Postazione } from "../../types/badges";
 import { FindInPrestitoData, PrestitoChiaviData } from "../../types/archivio";
 import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
+import { Postazione } from "../../types/postazioni";
 
 export default function Chiavi({
   currPostazione,

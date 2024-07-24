@@ -32,7 +32,13 @@ export default function RootProvider({
         {isMobile === false ? (
           children
         ) : (
-          <h2>Portale web non disponibile per dispositivi mobili</h2>
+          <div>
+            <h2>Portale web non disponibile per dispositivi mobili</h2>
+            <p>
+              Altrimenti si prega di mantenere la finestra del browser a schermo
+              intero
+            </p>
+          </div>
         )}
       </CurrentUserContext.Provider>
     </IsMobileContext.Provider>

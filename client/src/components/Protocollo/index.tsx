@@ -5,11 +5,11 @@ import PostazioniDataService from "../../services/postazioni";
 import ProtocolloDataService from "../../services/protocollo";
 import toast from "react-hot-toast";
 import "./index.css";
-import { Postazione } from "../../types/badges";
 import { isAdmin } from "../../types/users";
 import { ProtocolloForm } from "../../types/forms";
 import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
+import { Postazione } from "../../types/postazioni";
 
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 

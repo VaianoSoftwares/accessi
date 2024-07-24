@@ -5,10 +5,15 @@ import { useRef, useEffect, useContext } from "react";
 import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 
-export default function Login() {
+export default function Login({
+  setCurrCliente,
+  ...props
+}: {
+  setCurrCliente: React.Dispatch<React.SetStateAction<string | undefined>>;
+}) {
   const navigate = useNavigate();
 
-  const { setCurrentUser } = useContext(CurrentUserContext)!;
+  const { currentUser, setCurrentUser } = useContext(CurrentUserContext)!;
 
   const { handleError } = useError();
 
@@ -58,6 +63,7 @@ export default function Login() {
         console.log(dataResp.name, "logged In.");
 
         setCurrentUser(dataResp);
+        setCurrCliente(dataResp.clienti[0]);
 
         navigate("/home");
       })

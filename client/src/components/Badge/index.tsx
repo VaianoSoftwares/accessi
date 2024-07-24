@@ -12,7 +12,7 @@ import useImage from "../../hooks/useImage";
 import useReadonlyForm from "../../hooks/useReadonlyForm";
 import { toast } from "react-hot-toast";
 import { TPermessi, hasPerm, isAdmin } from "../../types/users";
-import { BadgeType, Postazione, TDOCS } from "../../types/badges";
+import { BadgeType, TDOCS } from "../../types/badges";
 import { FindBadgesInStruttForm } from "../../types/forms";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import BadgePopup from "../BadgePopup";
@@ -24,6 +24,7 @@ import {
 import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import { timeout } from "../../utils/timeout";
+import { Postazione } from "../../types/postazioni";
 
 const TABLE_NAME = "in_strutt_table";
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";

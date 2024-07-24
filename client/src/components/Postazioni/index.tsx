@@ -3,8 +3,8 @@ import "./index.css";
 import ClientiDataService from "../../services/clienti";
 import PostazioniDataService from "../../services/postazioni";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { InsertPostazioneData } from "../../types/badges";
 import useError from "../../hooks/useError";
+import { InsertPostazioneData } from "../../types/postazioni";
 
 export default function Postazioni() {
   const queryClient = useQueryClient();

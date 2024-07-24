@@ -1,10 +1,10 @@
 import { GenericAbortSignal } from "axios";
+import DataServices from "./DataServices";
 import {
   GetPostazioniFilters,
   InsertPostazioneData,
   Postazione,
-} from "../types/badges";
-import DataServices from "./DataServices";
+} from "../types/postazioni";
 
 class PostazioniDataService extends DataServices {
   getAll(signal?: GenericAbortSignal) {
