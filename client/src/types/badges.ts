@@ -25,6 +25,8 @@ export enum DocType {
   CARTA_IDENTITA = "CARTA IDENTITA",
   PATENTE = "PATENTE",
   TESSERA_STUDENTE = "TESSERA STUDENTE",
+  PASSAPORTO = "PASSAPORTO",
+  TESSERINO_PROFESSIONALE = "TESSERINO PROFESSIONALE",
 }
 
 export const TIPI_BADGE = [
@@ -43,6 +45,8 @@ export const TDOCS = [
   DocType.CARTA_IDENTITA,
   DocType.PATENTE,
   DocType.TESSERA_STUDENTE,
+  DocType.PASSAPORTO,
+  DocType.TESSERINO_PROFESSIONALE,
 ] as const;
 
 export interface BaseBadge {
