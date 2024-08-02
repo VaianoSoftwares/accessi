@@ -431,7 +431,13 @@ export default function Archivio() {
             timestampParams={["data_in", "data_out"]}
             linkParams={["documento"]}
             linkParser={(value: string) => (
-              <Link to={`${PROXY}${UPLOADS_DIR}${value}`}>{value}</Link>
+              <Link
+                to={`${PROXY}${UPLOADS_DIR}${value}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {value}
+              </Link>
             )}
           />
         )}

@@ -102,7 +102,7 @@ export default function AccessiNavbar({
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-      <div className="container-fluid">
+      <div className="container-fluid no-user-select">
         <Link to="#" className="navbar-brand">
           <img
             className="navbar-img-brand"

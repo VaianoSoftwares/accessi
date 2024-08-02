@@ -22,7 +22,7 @@ import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import { Link } from "react-router-dom";
 
-const PROXY = import.meta.env.DEV || "";
+const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 const UPLOADS_DIR = "/api/v1/public/uploads/";
 const TABLE_ID = "anagrafico-table";
 
@@ -893,7 +893,13 @@ export default function Anagrafico({
         dateParams={["scadenza"]}
         linkParams={["privacy", "documento"]}
         linkParser={(value: string) => (
-          <Link to={`${PROXY}${UPLOADS_DIR}${value}`}>{value}</Link>
+          <Link
+            to={`${PROXY}${UPLOADS_DIR}${value}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {value}
+          </Link>
         )}
         clickRowEvent={async (e) => {
           const codice = e.target.parentElement?.dataset["key"];

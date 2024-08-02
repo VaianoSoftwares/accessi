@@ -328,7 +328,7 @@ export default function Badge({
   }, [scannedValue]);
 
   return (
-    <div id="badge-wrapper">
+    <div id="badge-wrapper" className="no-user-select">
       <div className="container-fluid m-1 badge-container">
         <div className="row justify-content-start align-items-start submit-form">
           <div className="col-7 badge-form">
@@ -351,6 +351,14 @@ export default function Badge({
                       placeholder="codice"
                       autoComplete="off"
                       ref={(el) => (formRef.current.badge_cod = el)}
+                      onCopy={(e) => {
+                        e.preventDefault();
+                        return false;
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        return false;
+                      }}
                     />
                     <label htmlFor="barcode">barcode</label>
                   </div>
