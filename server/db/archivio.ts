@@ -425,12 +425,15 @@ export default class ArchivioDB {
         `SELECT * FROM ${ArchTableName.PROVVISORI} WHERE badge_cod = $1`,
         [badgeCode]
       );
-    if (numArchRows) {
+    const currDate = new Date();
+    const dateIn = new Date(archRows[0].data_in);
+    const dateOut = new Date(archRows[0].data_out);
+    if (!numArchRows || dateOut < currDate) {
       throw new BaseError("Inserire il badge provvisorio prima di timbrare", {
         status: 400,
         context: { badgeCode },
       });
-    } else if (new Date(archRows[0].data_in) < new Date()) {
+    } else if (dateIn < currDate && dateOut > currDate) {
       throw new BaseError("Badge già presente in struttura", {
         status: 400,
         context: { badgeCode, dateIn: archRows[0].data_in },
@@ -726,6 +729,18 @@ export default class ArchivioDB {
   }
 
   public static async insertBadgeProvvisorio(data: InsertArchBadgeData) {
+    const badgeCode = data.badge_cod;
+    const { rowCount: numFullInStruttRows } = await db.query<FullBadgeInStrutt>(
+      `SELECT * FROM ${ArchTableName.PROVVISORI} WHERE badge_cod = $1 AND data_in > CURRENT_TIMESTAMP(0)`,
+      [badgeCode]
+    );
+    if (numFullInStruttRows) {
+      throw new BaseError("Badge Provvisorio già inserito", {
+        status: 400,
+        context: { badgeCode },
+      });
+    }
+
     return await db.insertRow<ArchivioProvvisorio>(
       ArchTableName.PROVVISORI,
       data
@@ -733,6 +748,17 @@ export default class ArchivioDB {
   }
 
   public static async insertVeicoloProvvisorio(data: InsertArchVeicoloData) {
+    const { rowCount: numFullInStruttRows } = await db.query<FullBadgeInStrutt>(
+      `SELECT * FROM ${ArchTableName.VEICOLI_PROV} WHERE targa = $1 AND data_in > CURRENT_TIMESTAMP(0)`,
+      [data.targa]
+    );
+    if (numFullInStruttRows) {
+      throw new BaseError("Badge Provvisorio già inserito", {
+        status: 400,
+        context: { targa: data.targa },
+      });
+    }
+
     return await db.insertRow<ArchivioVeicoloProv>(
       ArchTableName.VEICOLI_PROV,
       data

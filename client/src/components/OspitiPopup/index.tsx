@@ -185,7 +185,7 @@ export default function OspitiPopup(props: {
                   documento
                 </label>
                 <input
-                  accept="image/*"
+                  accept=".pdf"
                   type="file"
                   className="form-control form-control-sm"
                   id="documento"

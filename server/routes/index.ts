@@ -16,7 +16,7 @@ export default function mountRoutes(app: Express) {
   app.use("/api/v1/protocolli", protocolli);
   app.use("/api/v1/clienti", clienti);
   app.use("/api/v1/postazioni", postazioni);
-  app.use("/api/v1/people", provvisori);
+  app.use("/api/v1/provvisori", provvisori);
   app.use("/api/v1/chiavi", chiavi);
   app.use("/api/v1/veicoli", veicoli);
 }
