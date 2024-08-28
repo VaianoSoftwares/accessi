@@ -260,7 +260,7 @@ export default class ArchivioController {
         ? req.files?.documento[0]
         : req.files?.documento;
       if (documento) {
-        uploadedFile = await BadgesFileManager.uploadDocumento(
+        uploadedFile = await BadgesFileManager.uploadDocumentoProv(
           archId,
           documento
         );

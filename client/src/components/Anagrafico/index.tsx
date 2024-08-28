@@ -1106,10 +1106,10 @@ export default function Anagrafico({
                     clearForm();
                     setNoImage();
 
+                    queryNominativi.remove();
                     await queryClient.invalidateQueries({
                       queryKey: ["nominativi"],
                     });
-                    queryNominativi.remove();
                   }}
                   className="btn btn-success anagrafico-form-btn"
                 >

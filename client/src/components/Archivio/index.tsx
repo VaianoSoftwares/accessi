@@ -415,7 +415,16 @@ export default function Archivio() {
               )}
               <div className="w-100 mb-1" />
               <div className="col">
-                <button className="btn btn-success" onClick={() => clearForm()}>
+                <button
+                  className="btn btn-success"
+                  onClick={async () => {
+                    clearForm();
+                    await queryClient.invalidateQueries({
+                      queryKey: ["archivio"],
+                    });
+                    queryArchivio.remove();
+                  }}
+                >
                   Refresh
                 </button>
               </div>

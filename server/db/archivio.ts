@@ -422,7 +422,7 @@ export default class ArchivioDB {
 
     const { rowCount: numArchRows, rows: archRows } =
       await db.query<ArchivioProvvisorio>(
-        `SELECT * FROM ${ArchTableName.PROVVISORI} WHERE badge_cod = $1`,
+        `SELECT * FROM ${ArchTableName.PROVVISORI} WHERE badge_cod = $1 ORDER BY data_in DESC, data_out DESC`,
         [badgeCode]
       );
     const currDate = new Date();
@@ -431,7 +431,7 @@ export default class ArchivioDB {
     if (!numArchRows || dateOut < currDate) {
       throw new BaseError("Inserire il badge provvisorio prima di timbrare", {
         status: 400,
-        context: { badgeCode },
+        context: { badgeCode, dateOut, currDate, pred: dateOut < currDate },
       });
     } else if (dateIn < currDate && dateOut > currDate) {
       throw new BaseError("Badge già presente in struttura", {

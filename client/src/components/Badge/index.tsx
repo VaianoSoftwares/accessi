@@ -352,10 +352,12 @@ export default function Badge({
                       autoComplete="off"
                       ref={(el) => (formRef.current.badge_cod = el)}
                       onCopy={(e) => {
+                        if (isAdmin(currentUser)) return;
                         e.preventDefault();
                         return false;
                       }}
                       onPaste={(e) => {
+                        if (isAdmin(currentUser)) return;
                         e.preventDefault();
                         return false;
                       }}
