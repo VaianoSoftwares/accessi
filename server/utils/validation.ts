@@ -821,3 +821,52 @@ export const UPDATE_ARCHIVIO_SCHEMA = z.object({
     .transform((v) => (!v ? undefined : new Date(v))),
 });
 export type UpdateArchivioData = z.infer<typeof UPDATE_ARCHIVIO_SCHEMA>;
+
+export const TIMBRA_NOM_UTILITY_SCHEMA = z.object({
+  badge_cod: z.union([BARCODE_NOM_ENTRA_SCHEMA, BARCODE_NOM_ESCE_SCHEMA]),
+  post_id: ID_SCHEMA("Postazione ID"),
+  created_at: z.coerce.date({ invalid_type_error: "Data non valida" }),
+});
+
+export const TIMBRA_NOM_UTILITY_SCHEMA_ARRAY = z
+  .object({
+    badge_cod: z.union([BARCODE_NOM_ENTRA_SCHEMA, BARCODE_NOM_ESCE_SCHEMA]),
+    post_id: ID_SCHEMA("Postazione ID"),
+    created_at: z.coerce.date({ invalid_type_error: "Data non valida" }),
+  })
+  .array()
+  .nonempty("Nessuna timbratura fornita");
+
+export const TIMBRA_NOM_IN_WITH_DATE_SCHEMA = TIMBRA_NOM_UTILITY_SCHEMA.extend({
+  ip: z.string().default("unknown"),
+  username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
+  badge_cod: BARCODE_NOM_ENTRA_SCHEMA,
+}).transform((o) => {
+  const parsed = {
+    ...o,
+    data_in: o.created_at,
+  };
+  const { ["created_at"]: omitted, ...result } = parsed;
+  return result;
+});
+export type TimbraNomInWithDateData = z.infer<
+  typeof TIMBRA_NOM_IN_WITH_DATE_SCHEMA
+>;
+
+export const TIMBRA_NOM_OUT_WITH_DATE_SCHEMA = TIMBRA_NOM_UTILITY_SCHEMA.extend(
+  {
+    ip: z.string().default("unknown"),
+    username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
+    badge_cod: BARCODE_NOM_ESCE_SCHEMA,
+  }
+).transform((o) => {
+  const parsed = {
+    ...o,
+    data_out: o.created_at,
+  };
+  const { ["created_at"]: omitted, ...result } = parsed;
+  return result;
+});
+export type TimbraNomOutWithDateData = z.infer<
+  typeof TIMBRA_NOM_OUT_WITH_DATE_SCHEMA
+>;

@@ -1,10 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import ArchivioDB from "../db/archivio.js";
-import { Ok } from "../types/index.js";
+import { Err, Ok } from "../types/index.js";
 import { BaseError } from "../types/errors.js";
 import * as Validator from "../utils/validation.js";
 import { BarcodePrefix } from "../types/archivio.js";
 import BadgesFileManager from "../files/badges.js";
+import enforceBaseErr from "../utils/enforceBaseErr.js";
 
 export default class ArchivioController {
   public static async apiGetArchivio(
@@ -389,13 +390,60 @@ export default class ArchivioController {
     }
   }
 
-  public static async apiTimbraBadges(
+  public static async apiTimbraBadgesFromUtility(
     req: Request,
     res: Response,
     next: NextFunction
   ) {
     try {
-      console.log(req.body);
+      const parsed = Validator.TIMBRA_NOM_UTILITY_SCHEMA_ARRAY.safeParse(
+        req.body
+      );
+      if (parsed.success === false) {
+        throw new BaseError(parsed.error.errors[0].message, {
+          status: 400,
+          cause: parsed.error,
+        });
+      }
+
+      const response = await Promise.all(
+        parsed.data.map(async (o) => {
+          try {
+            const timbraDataIn =
+              Validator.TIMBRA_NOM_IN_WITH_DATE_SCHEMA.safeParse(o);
+            if (timbraDataIn.success === true) {
+              const result = await ArchivioDB.timbraNominativoWithDateIn(
+                timbraDataIn.data
+              );
+              return Ok(result);
+            }
+
+            const timbraDataOut =
+              Validator.TIMBRA_NOM_OUT_WITH_DATE_SCHEMA.safeParse(o);
+            if (timbraDataOut.success === true) {
+              const result = await ArchivioDB.timbraNominativoWithDateOut(
+                timbraDataOut.data
+              );
+              return Ok(result);
+            }
+
+            return Err(
+              new BaseError("Invalid timbra data", {
+                status: 400,
+                context: parsed.data,
+                cause:
+                  o.badge_cod.charAt(0) === "0"
+                    ? timbraDataIn.error
+                    : timbraDataOut.error,
+              })
+            );
+          } catch (e) {
+            return Err(enforceBaseErr(e));
+          }
+        })
+      );
+
+      res.json(Ok(response));
     } catch (e) {
       next(e);
     }
