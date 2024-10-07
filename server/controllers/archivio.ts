@@ -407,40 +407,42 @@ export default class ArchivioController {
       }
 
       const response = await Promise.all(
-        parsed.data.map(async (o) => {
-          try {
-            const timbraDataIn =
-              Validator.TIMBRA_NOM_IN_WITH_DATE_SCHEMA.safeParse(o);
-            if (timbraDataIn.success === true) {
-              const result = await ArchivioDB.timbraNominativoWithDateIn(
-                timbraDataIn.data
-              );
-              return Ok(result);
-            }
+        parsed.data
+          .map((o) => ({ ...o, username: req.user?.name, ip: req.ip }))
+          .map(async (o) => {
+            try {
+              const timbraDataIn =
+                Validator.TIMBRA_NOM_IN_WITH_DATE_SCHEMA.safeParse(o);
+              if (timbraDataIn.success === true) {
+                const result = await ArchivioDB.timbraNominativoWithDateIn(
+                  timbraDataIn.data
+                );
+                return Ok(result);
+              }
 
-            const timbraDataOut =
-              Validator.TIMBRA_NOM_OUT_WITH_DATE_SCHEMA.safeParse(o);
-            if (timbraDataOut.success === true) {
-              const result = await ArchivioDB.timbraNominativoWithDateOut(
-                timbraDataOut.data
-              );
-              return Ok(result);
-            }
+              const timbraDataOut =
+                Validator.TIMBRA_NOM_OUT_WITH_DATE_SCHEMA.safeParse(o);
+              if (timbraDataOut.success === true) {
+                const result = await ArchivioDB.timbraNominativoWithDateOut(
+                  timbraDataOut.data
+                );
+                return Ok(result);
+              }
 
-            return Err(
-              new BaseError("Invalid timbra data", {
-                status: 400,
-                context: parsed.data,
-                cause:
-                  o.badge_cod.charAt(0) === "0"
-                    ? timbraDataIn.error
-                    : timbraDataOut.error,
-              })
-            );
-          } catch (e) {
-            return Err(enforceBaseErr(e));
-          }
-        })
+              return Err(
+                new BaseError("Invalid timbra data", {
+                  status: 400,
+                  context: parsed.data,
+                  cause:
+                    o.badge_cod.charAt(0) === "0"
+                      ? timbraDataIn.error
+                      : timbraDataOut.error,
+                })
+              );
+            } catch (e) {
+              return Err(enforceBaseErr(e));
+            }
+          })
       );
 
       res.json(Ok(response));

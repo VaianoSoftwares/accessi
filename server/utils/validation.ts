@@ -844,6 +844,7 @@ export const TIMBRA_NOM_IN_WITH_DATE_SCHEMA = TIMBRA_NOM_UTILITY_SCHEMA.extend({
 }).transform((o) => {
   const parsed = {
     ...o,
+    badge_cod: o.badge_cod.substring(1),
     data_in: o.created_at,
   };
   const { ["created_at"]: omitted, ...result } = parsed;
@@ -862,6 +863,7 @@ export const TIMBRA_NOM_OUT_WITH_DATE_SCHEMA = TIMBRA_NOM_UTILITY_SCHEMA.extend(
 ).transform((o) => {
   const parsed = {
     ...o,
+    badge_cod: o.badge_cod.substring(1),
     data_out: o.created_at,
   };
   const { ["created_at"]: omitted, ...result } = parsed;
