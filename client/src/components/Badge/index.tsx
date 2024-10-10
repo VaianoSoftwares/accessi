@@ -78,6 +78,8 @@ export default function Badge({
     },
   });
 
+  const [isPauseShown, setIsPauseShown] = useBool(true);
+
   const queryInStrutt = useQuery({
     queryKey: [
       "inStrutt",
@@ -85,7 +87,7 @@ export default function Badge({
         postazioniIds: currPostazione
           ? [currPostazione.id]
           : currentUser?.postazioni_ids,
-        pausa: true,
+        pausa: isPauseShown,
         cliente: currPostazione?.cliente,
       },
     ],
@@ -206,7 +208,7 @@ export default function Badge({
   });
 
   const [deletedRow, setDeletedRow] = useState<QueryBadgeInStrutt>();
-  const [isShown, setIsShown] = useBool(false);
+  const [isOspPopupShown, setIsOspPopupShown] = useBool(false);
   const [readonlyForm, setReadonlyForm] = useReadonlyForm((condition) => {
     refreshPage({
       image: condition,
@@ -470,14 +472,24 @@ export default function Badge({
                 {isAdmin(currentUser) === true && (
                   <>
                     <div className="col-auto">
-                      <button
-                        onClick={() => setReadonlyForm.setToggle()}
-                        className="btn btn-secondary badge-form-btn toggle-form-btn"
-                      >
-                        <p>Form</p>
-                        <img
-                          src={readonlyForm ? red_x_path : green_check_path}
-                        />
+                      <button className="btn btn-success badge-form-btn">
+                        <div className="col btn-checkbox-input">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="readonlyFormInput"
+                            checked={readonlyForm}
+                            onChange={(e) =>
+                              setReadonlyForm.setState(e.target.checked)
+                            }
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor="readonlyFormInput"
+                          >
+                            Form
+                          </label>
+                        </div>
                       </button>
                     </div>
                     <div className="w-100 mt-1" />
@@ -548,13 +560,35 @@ export default function Badge({
                 {hasPerm(currentUser, TPermessi.provvisori) && (
                   <div className="col">
                     <button
-                      onClick={() => setIsShown.setTrue()}
+                      onClick={() => setIsOspPopupShown.setTrue()}
                       className="btn btn-success badge-form-btn"
                     >
                       Provvisori
                     </button>
                   </div>
                 )}
+                <div className="w-100 mt-1" />
+                <div className="col">
+                  <button className="btn btn-success badge-form-btn">
+                    <div className="col btn-checkbox-input">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="isPauseShownInput"
+                        checked={isPauseShown}
+                        onChange={(e) =>
+                          setIsPauseShown.setState(e.target.checked)
+                        }
+                      />
+                      <label
+                        className="form-check-label"
+                        htmlFor="isPauseShownInput"
+                      >
+                        Pause
+                      </label>
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -564,8 +598,8 @@ export default function Badge({
         </div>
       </div>
       <OspitiPopup
-        isShown={isShown}
-        closePopup={setIsShown.setFalse}
+        isShown={isOspPopupShown}
+        closePopup={setIsOspPopupShown.setFalse}
         insertOsp={insertArchProv.mutate}
         currPostazione={currPostazione}
       />

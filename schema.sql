@@ -352,7 +352,8 @@ CREATE VIEW tracciati AS
     data_in, data_out
     FROM archivio_nominativi AS a
     JOIN nominativi AS n ON a.badge_cod = n.codice
-    WHERE zuc_cod IS NOT NULL AND data_out < CURRENT_TIMESTAMP;
+    JOIN postazioni AS p ON a.post_id = p.id
+    WHERE zuc_cod IS NOT NULL AND data_out < CURRENT_TIMESTAMP AND p.name != 'PAUSA';
 
 CREATE VIEW full_in_strutt_badges AS
     WITH full_archivio_nominativi AS (

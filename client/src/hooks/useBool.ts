@@ -15,5 +15,5 @@ export default function useBool(initialState = false) {
     setState((prev) => !prev);
   }
 
-  return [state, { setTrue, setFalse, setToggle }] as const;
+  return [state, { setTrue, setFalse, setToggle, setState }] as const;
 }

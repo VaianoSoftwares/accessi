@@ -92,3 +92,13 @@ table.removed-row tbody tr:first-child td {
 table.updated-row tbody tr:first-child td {
     background-color: gold;
 }
+
+.btn-checkbox-input input:hover {
+    cursor: pointer;
+}
+.btn-checkbox-input label:hover {
+    cursor: pointer;
+}
+.btn-checkbox-input label {
+    padding-left: 10%;
+}

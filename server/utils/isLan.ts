@@ -8,6 +8,7 @@ const LAN = [
 ];
 
 const OTHERS_LAN = ["localhost", "::1"];
+const IPV6_LAN_PREFIX = "::ffff:";
 
 function belongsToSubnet(host: string, list: number[][]) {
   const ipTokens = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
@@ -32,11 +33,13 @@ function belongsToSubnet(host: string, list: number[][]) {
 
   // Match
   const masked = ipNum & list[x][1];
-  console.log(ipNum, masked);
   return (masked ^ list[x][0]) == 0;
 }
 
 export default function isLan(host: string) {
   if (OTHERS_LAN.includes(host)) return true;
-  return belongsToSubnet(host, LAN);
+  const trimmedHost = host.startsWith(IPV6_LAN_PREFIX)
+    ? host.substring(IPV6_LAN_PREFIX.length)
+    : host;
+  return belongsToSubnet(trimmedHost, LAN);
 }

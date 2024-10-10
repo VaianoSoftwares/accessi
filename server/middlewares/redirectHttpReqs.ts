@@ -6,8 +6,7 @@ export default function redirectHttpReqs(
   res: Response,
   next: NextFunction
 ) {
-  const secure =
-    process.env.NODE_ENV != "development" && req.ip && !isLan(req.ip);
+  const secure = process.env.NODE_ENV != "development" && !isLan(req.ip || "");
   if (req.secure && !secure) {
     const urlTokens = req.headers.host?.split(":");
     if (urlTokens?.length === 2 && urlTokens[1] == process.env.HTTPS_PORT) {
