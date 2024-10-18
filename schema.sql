@@ -353,7 +353,7 @@ CREATE VIEW tracciati AS
     FROM archivio_nominativi AS a
     JOIN nominativi AS n ON a.badge_cod = n.codice
     JOIN postazioni AS p ON a.post_id = p.id
-    WHERE zuc_cod IS NOT NULL AND data_out < CURRENT_TIMESTAMP AND p.name != 'PAUSA';
+    WHERE zuc_cod IS NOT NULL AND data_out < CURRENT_TIMESTAMP;
 
 CREATE VIEW full_in_strutt_badges AS
     WITH full_archivio_nominativi AS (
@@ -411,7 +411,7 @@ CREATE VIEW in_strutt_veicoli AS
     SELECT id, targa, descrizione, tveicolo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM full_in_strutt_veicoli;
 
 CREATE VIEW in_prestito AS
-    SELECT t1.id, t1.codice AS badge, t2.codice AS chiave, t1.cliente, t1.postazione, t1.data_in, t1.nome, t1.cognome, t1.assegnazione,
+    SELECT DISTINCT t1.id, t1.codice AS badge, t2.codice AS chiave, t1.cliente, t1.postazione, t1.data_in, t1.nome, t1.cognome, t1.assegnazione,
     t1.ditta, t1.ndoc, t1.tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta, t2.edificio, t2.piano, t1.post_id
     FROM (
         SELECT a.id, n.codice, po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.data_out, a.chiave_cod,

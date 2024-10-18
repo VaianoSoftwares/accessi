@@ -47,6 +47,7 @@ enum ArchTableName {
   VEICOLI_IN_STRUTT = "in_strutt_veicoli",
   FULL_BADGES_IN_STRUTT = "full_in_strutt_badges",
   FULL_VEICOLI_IN_STRUTT = "full_in_strutt_veicoli",
+  FULL_ARCHIVIO = "full_archivio",
 }
 
 export default class ArchivioDB {
@@ -912,14 +913,14 @@ export default class ArchivioDB {
         id: number;
         chiave: string;
       }>(
-        `SELECT id, chiave FROM in_prestito WHERE data_out > CURRENT_TIMESTAMP(0) AND badge_cod = $1 AND cliente = $2`,
+        `SELECT DISTINCT id, chiave FROM in_prestito WHERE badge = $1 AND cliente = $2`,
         [badgeCode, actualCliente]
       );
 
       const chiaviIn: string[] = [];
       const chiaviOut: number[] = [];
       data.chiavi.forEach((chiave) => {
-        const id = chiaviInPrestito.find((row) => row.chiave === chiave)?.id;
+        const id = chiaviInPrestito.find((row) => row.chiave == chiave)?.id;
         if (id) chiaviOut.push(id);
         else chiaviIn.push(chiave);
       });
@@ -931,35 +932,41 @@ export default class ArchivioDB {
         data.ip,
         data.username,
       ]);
-      const chiaviInText = [
-        "INSERT INTO",
-        ArchTableName.CHIAVI,
-        "(badge_cod, chiave_cod, post_id, ip, username) VALUES",
-        chiaviInValues
-          .map((_, i) => {
-            const queryArgTxt = `$${i + 1}`;
-            const numRowValues = 5;
-            switch (i % numRowValues) {
-              case 0:
-                return "(".concat(queryArgTxt);
-              case numRowValues - 1:
-                return queryArgTxt.concat(")");
-              default:
-                return queryArgTxt;
-            }
-          })
-          .join(","),
-        "RETURNING *",
-      ].join(" ");
+      const chiaviInText =
+        chiaviIn.length > 0
+          ? [
+              "INSERT INTO",
+              ArchTableName.CHIAVI,
+              "(badge_cod, chiave_cod, post_id, ip, username) VALUES",
+              chiaviInValues
+                .map((_, i) => {
+                  const queryArgTxt = `$${i + 1}`;
+                  const numRowValues = 5;
+                  switch (i % numRowValues) {
+                    case 0:
+                      return "(".concat(queryArgTxt);
+                    case numRowValues - 1:
+                      return queryArgTxt.concat(")");
+                    default:
+                      return queryArgTxt;
+                  }
+                })
+                .join(","),
+              "RETURNING *",
+            ].join(" ")
+          : "";
       const chiaviInRes = await client.query(chiaviInText, chiaviInValues);
 
-      const chiaviOutText = [
-        "UPDATE",
-        ArchTableName.CHIAVI,
-        "SET data_out = CURRENT_TIMESTAMP(0) WHERE",
-        chiaviOut.map((_, i) => `id = $${i + 1}`).join(" OR "),
-        "RETURNING *",
-      ].join(" ");
+      const chiaviOutText =
+        chiaviOut.length > 0
+          ? [
+              "UPDATE",
+              ArchTableName.CHIAVI,
+              "SET data_out = CURRENT_TIMESTAMP(0) WHERE",
+              chiaviOut.map((_, i) => `id = $${i + 1}`).join(" OR "),
+              "RETURNING *",
+            ].join(" ")
+          : "";
       const chiaviOutRes = await client.query(chiaviOutText, chiaviOut);
 
       // await client.query(

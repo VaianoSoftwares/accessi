@@ -60,6 +60,7 @@ export default function Chiavi({
       console.log("prestaChiavi | response", response);
       await queryClient.invalidateQueries({ queryKey: ["inPrestito"] });
       props.clearScanValues();
+      toast.success("Chiave/i prestate/rese con successo");
     },
     onError: async (err) => handleError(err, "prestaChiavi"),
   });
