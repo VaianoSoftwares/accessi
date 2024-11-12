@@ -29,9 +29,6 @@ import { Postazione } from "../../types/postazioni";
 const TABLE_NAME = "in_strutt_table";
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 
-const green_check_path = "/green-checkmark-icon.svg";
-const red_x_path = "/red-x-icon.svg";
-
 export default function Badge({
   scannedValue,
   clearScannedValue,

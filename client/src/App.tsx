@@ -1,4 +1,4 @@
-import { lazy, SetStateAction, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -15,6 +15,7 @@ import { BadgeType } from "./types/badges";
 import useCurrentUser from "./hooks/useCurrentUser";
 import scannerHandler from "./utils/scannerHandler";
 import { Postazione } from "./types/postazioni";
+// import { WSSendMsg } from "./services/ws";
 
 const Badge = lazy(() => import("./components/Badge"));
 const Chiavi = lazy(() => import("./components/Chiavi"));
@@ -62,6 +63,10 @@ export default function App() {
   async function runChiaviScanner() {
     await scannerHandler(prestaArrAdd, setIsChiaviScannerConnected);
   }
+
+  // useEffect(() => {
+  //   WSSendMsg("patara");
+  // }, []);
 
   return (
     <div className="App">

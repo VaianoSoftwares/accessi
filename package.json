@@ -30,6 +30,7 @@
     "express-promise-router": "^4.1.1",
     "jsonwebtoken": "^9.0.0",
     "pg": "^8.11.3",
+    "ws": "^8.18.0",
     "zod": "^3.20.2"
   },
   "devDependencies": {
@@ -42,6 +43,7 @@
     "@types/jsonwebtoken": "^9.0.0",
     "@types/node": "^18.11.17",
     "@types/pg": "^8.10.9",
+    "@types/ws": "^8.5.13",
     "concurrently": "^7.6.0",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.4"

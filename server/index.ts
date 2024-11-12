@@ -3,6 +3,7 @@ import https from "https";
 import http from "http";
 import fs from "fs";
 import path from "path";
+import WebSocket, { WebSocketServer } from "ws";
 
 const httpPort = process.env.HTTP_PORT || 4316;
 const httpsPort = process.env.HTTPS_PORT || 4317;
@@ -24,6 +25,44 @@ const httpsOptions = {
 const httpServer = http.createServer(app);
 const httpsServer = https.createServer(httpsOptions, app);
 
+const wss = new WebSocketServer({ noServer: true });
+wss.on("connection", (ws) => {
+  ws.on("error", console.error);
+
+  ws.on("message", (msg) => {
+    const msgAsStr = msg.toString();
+    console.log("Received message from client", msgAsStr);
+    wss.clients.forEach((client) => {
+      if (client !== ws && client.readyState !== WebSocket.OPEN) {
+        ws.send(msgAsStr);
+      }
+    });
+  });
+
+  console.log("Connection to new client enstablished");
+});
+
+httpServer.on("upgrade", (req, sock, head) => {
+  const pathname = req.url || "";
+  if (pathname.startsWith("/ws/")) {
+    wss.handleUpgrade(req, sock, head, (ws) => {
+      wss.emit("connection", ws, req);
+    });
+  } else {
+    sock.destroy();
+  }
+});
+httpsServer.on("upgrade", (req, sock, head) => {
+  const pathname = req.url || "";
+  if (pathname.startsWith("/ws/")) {
+    wss.handleUpgrade(req, sock, head, (ws) => {
+      wss.emit("connection", ws, req);
+    });
+  } else {
+    sock.destroy();
+  }
+});
+
 httpServer.listen(httpPort, () =>
   console.log(`HTTP Server running on port ${httpPort}.`)
 );
@@ -31,5 +70,7 @@ httpsServer.listen(httpsPort, () =>
   console.log(`HTTPS Server running on port ${httpsPort}.`)
 );
 
+httpServer.keepAliveTimeout = 1000 * 60 * 60 * 24; // 1 day in MS
+httpServer.headersTimeout = httpsServer.keepAliveTimeout + 1000;
 httpsServer.keepAliveTimeout = 1000 * 60 * 60 * 24; // 1 day in MS
 httpsServer.headersTimeout = httpsServer.keepAliveTimeout + 1000;
