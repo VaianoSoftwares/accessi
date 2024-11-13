@@ -34,6 +34,7 @@ export default function Badge({
   clearScannedValue,
   currPostazione,
   clearCurrPostazione,
+  currCliente,
   ...props
 }: {
   scannedValue: string;
@@ -41,6 +42,7 @@ export default function Badge({
   tipoBadge: BadgeType;
   currPostazione: Postazione | undefined;
   clearCurrPostazione: () => void;
+  currCliente: string | undefined;
 }) {
   const formRef = useRef<FormRef<FindBadgesInStruttForm>>({
     badge_cod: null,
@@ -85,7 +87,7 @@ export default function Badge({
           ? [currPostazione.id]
           : currentUser?.postazioni_ids,
         pausa: isPauseShown,
-        cliente: currPostazione?.cliente,
+        cliente: currPostazione?.cliente || currCliente || "",
       },
     ],
     queryFn: async (context) => {
@@ -140,8 +142,7 @@ export default function Badge({
         badgeTable.classList.remove("added-row", "removed-row", "updated-row");
       }
       if (readonlyForm === true) {
-        clearForm();
-        setNoImage();
+        refreshPage({ form: true, image: true, refetch: false });
       }
 
       setDeletedRow(undefined);
@@ -189,8 +190,7 @@ export default function Badge({
         badgeTable.classList.remove("added-row", "removed-row", "updated-row");
       }
       if (readonlyForm === true) {
-        clearForm();
-        setNoImage();
+        refreshPage({ form: true, image: true, refetch: false });
       }
 
       await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
@@ -241,10 +241,6 @@ export default function Badge({
       });
   }
 
-  function clearForm() {
-    setForm();
-  }
-
   const findInStrutt = useQuery({
     queryKey: ["findInStrutt"],
     queryFn: async () => {
@@ -290,7 +286,7 @@ export default function Badge({
   });
 
   function refreshPage({ form = true, image = true, refetch = true }) {
-    form && clearForm();
+    form && setForm();
     image && setNoImage();
     refetch && queryInStrutt.refetch();
   }
@@ -325,6 +321,10 @@ export default function Badge({
     });
     clearScannedValue();
   }, [scannedValue]);
+
+  useEffect(() => {
+    refreshPage({ form: false, image: false, refetch: true });
+  }, [currCliente]);
 
   return (
     <div id="badge-wrapper" className="no-user-select">
@@ -541,7 +541,7 @@ export default function Badge({
                     <div className="w-100 mt-1" />
                   </>
                 )}
-                {hasPerm(currentUser, TPermessi.excel) && (
+                {hasPerm(currentUser, TPermessi.canAccessInStruttReport) && (
                   <div className="col">
                     <button
                       onClick={() =>
@@ -554,7 +554,7 @@ export default function Badge({
                   </div>
                 )}
                 <div className="w-100 mt-1" />
-                {hasPerm(currentUser, TPermessi.provvisori) && (
+                {hasPerm(currentUser, TPermessi.canMarkProvvisori) && (
                   <div className="col">
                     <button
                       onClick={() => setIsOspPopupShown.setTrue()}

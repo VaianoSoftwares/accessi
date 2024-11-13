@@ -8,6 +8,11 @@ export enum TPages {
   archivio = 8,
   protocollo = 16,
   anagrafico = 32,
+  postazioni = 64,
+  clienti = 128,
+  register = 256,
+  users = 512,
+  assegnazioni = 1024,
 }
 
 export enum TAdminPages {

@@ -58,8 +58,9 @@ export default function Home() {
         {Array.from(PAGES_INFO.entries())
           .filter(([page]) => canAccessPage(currentUser!, page))
           .map((page) => homeCard(page))}
-        {isAdmin(currentUser!) &&
-          Array.from(ADMIN_PAGES_INFO.entries()).map((page) => homeCard(page))}
+        {Array.from(ADMIN_PAGES_INFO.entries())
+          .filter(([page]) => canAccessPage(currentUser!, page))
+          .map((page) => homeCard(page))}
       </div>
     </div>
   );

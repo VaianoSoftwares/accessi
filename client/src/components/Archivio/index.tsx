@@ -323,7 +323,7 @@ export default function Archivio() {
                 </select>
                 <label htmlFor="tipo">tipo</label>
               </div>
-              {hasPerm(currentUser, TPermessi.updateArchivio) && (
+              {hasPerm(currentUser, TPermessi.canEditArchivio) && (
                 <>
                   <div className="w-100 mb-1" />
                   <hr></hr>
@@ -389,7 +389,7 @@ export default function Archivio() {
                   Excel
                 </button>
               </div>
-              {hasPerm(currentUser, TPermessi.updateArchivio) && (
+              {hasPerm(currentUser, TPermessi.canEditArchivio) && (
                 <>
                   <div className="w-100 mb-1" />
                   <div className="col">

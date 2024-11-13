@@ -9,31 +9,31 @@ export default router;
 router.get(
   "/",
   JwtAuth.verifyToken,
-  JwtAuth.isAdmin,
+  JwtAuth.canEditUsers,
   UsersController.apiGetAllUsers
 );
 router.get(
   "/:id",
   JwtAuth.verifyToken,
-  JwtAuth.isAdmin,
+  JwtAuth.canEditUsers,
   UsersController.apiGetUserById
 );
 router.put(
   "/:id",
   JwtAuth.verifyToken,
-  JwtAuth.isAdmin,
+  JwtAuth.canEditUsers,
   UsersController.apiUpdateUser
 );
 router.delete(
   "/:id",
   JwtAuth.verifyToken,
-  JwtAuth.isAdmin,
+  JwtAuth.canEditUsers,
   UsersController.apiDeleteUser
 );
 router.post(
   "/register",
   JwtAuth.verifyToken,
-  JwtAuth.isAdmin,
+  JwtAuth.canEditUsers,
   UsersController.apiRegister
 );
 router.post("/login", UsersController.apiLogin);
@@ -48,6 +48,6 @@ router.post("/logout", JwtAuth.verifyToken, UsersController.apiLogout);
 router.put(
   "/:id/postazioni",
   JwtAuth.verifyToken,
-  JwtAuth.isAdmin,
+  JwtAuth.canEditUsers,
   UsersController.apiUpdatePostazioniUser
 );

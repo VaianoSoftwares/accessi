@@ -93,21 +93,21 @@ export default class ArchivioDB {
     let filterText =
       filter &&
       Object.entries(filter)
-        .filter(([key, value]) => value && !["cliente", "pausa"].includes(key))
+        .filter(([key, value]) => value && !["pausa"].includes(key))
         .map(([key, value]) => {
           switch (key) {
             case "postazioniIds":
-              return Array.isArray(value)
-                ? [
-                    "(",
-                    value.map(() => `post_id=$${i++}`).join(" OR "),
-                    ")",
-                  ].join("")
-                : "";
+              if (!Array.isArray(value)) return "";
+              const postazioniFilters = value.map(() => `post_id=$${i++}`);
+              if (filter?.pausa === true)
+                postazioniFilters.push("postazione='PAUSA'");
+              return ["(", postazioniFilters.join(" OR "), ")"].join("");
             case "data_in_min":
               return `data_in>=$${i++}`;
             case "data_in_max":
               return `data_in<=$${i++}`;
+            case "cliente":
+              return `${key}=$${i++}`;
             default:
               return typeof value === "string"
                 ? `${key} LIKE $${i++}`
@@ -116,30 +116,22 @@ export default class ArchivioDB {
         })
         .join(" AND ");
 
-    if (filter?.pausa === true) {
-      const filterTokens = ["postazione = 'PAUSA'"];
-      if (filter.cliente)
-        filterTokens[0] = filterTokens[0].concat(` AND cliente = $${i}`);
-      if (filterText) filterTokens.unshift(filterText);
-      filterText = ["(", filterTokens.join(" OR "), ")"].join("");
-    }
-
     const queryText = filterText
       ? [prefixText, "WHERE", filterText].join(" ")
       : prefixText;
     const queryValues =
       filter &&
       Object.entries(filter)
-        .filter(([key, value]) => value && !["cliente", "pausa"].includes(key))
-        .map(([, value]) =>
-          Array.isArray(value) || typeof value !== "string"
+        .filter(([key, value]) => value && !["pausa"].includes(key))
+        .map(([key, value]) =>
+          Array.isArray(value) ||
+          typeof value !== "string" ||
+          ["cliente"].includes(key)
             ? value
             : `%${value}%`
         )
         .flat();
-    if (filter?.pausa === true && filter.cliente)
-      queryValues?.push(filter.cliente);
-
+    console.log(queryText);
     return await db.query<BadgeInStrutt>(queryText, queryValues);
   }
 

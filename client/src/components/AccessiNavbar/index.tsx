@@ -11,7 +11,6 @@ import {
   canAccessPage,
   getPagesNum,
   hasPerm,
-  isAdmin,
 } from "../../types/users";
 import { CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
@@ -100,6 +99,36 @@ export default function AccessiNavbar({
     }
   }
 
+  function adminPagesDropdownMenu() {
+    const pagesInfo = Array.from(ADMIN_PAGES_INFO.entries()).filter(([page]) =>
+      canAccessPage(currentUser, page)
+    );
+    return pagesInfo.length > 0 ? (
+      <li className="nav-item dropdown">
+        <Link
+          className="nav-link dropdown-toggle"
+          to="#"
+          role="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          Admin
+        </Link>
+        <ul className="dropdown-menu">
+          {Array.from(ADMIN_PAGES_INFO.entries()).map(([page, pageInfo]) => (
+            <li key={page}>
+              <Link to={pageInfo.pathname} className="dropdown-item">
+                {pageInfo.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </li>
+    ) : (
+      <></>
+    );
+  }
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container-fluid no-user-select">
@@ -147,30 +176,7 @@ export default function AccessiNavbar({
                   </Link>
                 </li>
               ))}
-            {isAdmin(currentUser) && (
-              <li className="nav-item dropdown">
-                <Link
-                  className="nav-link dropdown-toggle"
-                  to="#"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Admin
-                </Link>
-                <ul className="dropdown-menu">
-                  {Array.from(ADMIN_PAGES_INFO.entries()).map(
-                    ([page, pageInfo]) => (
-                      <li key={page}>
-                        <Link to={pageInfo.pathname} className="dropdown-item">
-                          {pageInfo.title}
-                        </Link>
-                      </li>
-                    )
-                  )}
-                </ul>
-              </li>
-            )}
+            {adminPagesDropdownMenu()}
             {hasPerm(currentUser, TPermessi.canLogout) && (
               <li className="nav-item">
                 <Link
@@ -196,13 +202,6 @@ export default function AccessiNavbar({
                   }}
                   value={currCliente}
                 >
-                  {(currentUser?.clienti.length || 0) > 1 && (
-                    <option
-                      label="Tutti i clienti"
-                      value={undefined}
-                      key={-1}
-                    />
-                  )}
                   {clienti.data
                     .filter((cliente) => currentUser?.clienti.includes(cliente))
                     .map((cliente) => (
@@ -240,9 +239,7 @@ export default function AccessiNavbar({
                     </option>
                   )}
                   {postazioni.data
-                    .filter(
-                      ({ cliente }) => !currCliente || cliente === currCliente
-                    )
+                    .filter(({ cliente }) => cliente === currCliente)
                     .map(({ id, cliente, name }) => (
                       <option
                         value={id}

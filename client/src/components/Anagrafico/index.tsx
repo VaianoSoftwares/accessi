@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useContext, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import NominativiDataService from "../../services/nominativo";
 import ClientiDataService from "../../services/clienti";
 import ProvvisoriDataService from "../../services/provvisorio";
@@ -137,9 +137,13 @@ export default function Anagrafico({
     queryKey: ["nominativi"],
     queryFn: async () => {
       try {
-        const response = await NominativiDataService.find(
-          currCliente ? { cliente: currCliente } : {}
-        );
+        if (!currCliente) {
+          throw new Error("Nessun cliente selezionato");
+        }
+
+        const response = await NominativiDataService.find({
+          cliente: currCliente,
+        });
         if (response.data.success === false) {
           throw response.data.error;
         }
@@ -152,12 +156,18 @@ export default function Anagrafico({
     },
   });
 
+  useEffect(() => {
+    refreshPage({ form: false, image: false, refetch: true });
+  }, [currCliente]);
+
   const findNominativi = useQuery({
     queryKey: ["nominativi"],
     queryFn: async () => {
       try {
-        console.log("currCliente", currCliente);
-        console.log("clienti[0]", currentUser?.clienti[0]);
+        if (!currCliente) {
+          throw new Error("Nessun cliente selezionato");
+        }
+
         const response = await NominativiDataService.find(formToObj());
         console.log("findNominativi | response:", response);
         if (response.data.success === false) {
@@ -228,8 +238,7 @@ export default function Anagrafico({
       await queryClient.invalidateQueries({ queryKey: ["nominativi"] });
       queryNominativi.remove();
 
-      setNoImage();
-      clearForm();
+      refreshPage({ form: true, image: true, refetch: false });
 
       toast.success("Badge rimosso con successo");
     },
@@ -307,7 +316,7 @@ export default function Anagrafico({
       await queryClient.invalidateQueries({ queryKey: ["provvisori"] });
       findProvvisori.remove();
 
-      clearForm();
+      refreshPage({ form: true, image: true, refetch: false });
 
       toast.success("Badge rimosso con successo");
     },
@@ -385,7 +394,7 @@ export default function Anagrafico({
       await queryClient.invalidateQueries({ queryKey: ["chiavi"] });
       findChiavi.remove();
 
-      clearForm();
+      refreshPage({ form: true, image: true, refetch: false });
 
       toast.success("Chiave rimossa con successo");
     },
@@ -463,7 +472,7 @@ export default function Anagrafico({
       await queryClient.invalidateQueries({ queryKey: ["veicoli"] });
       findVeicoli.remove();
 
-      clearForm();
+      refreshPage({ form: true, image: true, refetch: false });
 
       toast.success("Veicolo rimosso con successo");
     },
@@ -539,10 +548,6 @@ export default function Anagrafico({
       });
   }
 
-  function clearForm() {
-    setForm();
-  }
-
   const [currentFormType, setCurrentFormType] = useState<BadgeType>(
     BadgeType.NOMINATIVO
   );
@@ -550,6 +555,12 @@ export default function Anagrafico({
   const [pfpUrl, { updateImage, setNoImage }] = useImage((data) =>
     data ? `${PROXY}${UPLOADS_DIR}PFP_${data}.jpg` : ""
   );
+
+  function refreshPage({ form = true, image = true, refetch = true }) {
+    form && setForm();
+    image && setNoImage();
+    refetch && queryNominativi.refetch();
+  }
 
   function getCurrentForm(formType: BadgeType) {
     switch (formType) {
@@ -577,7 +588,8 @@ export default function Anagrafico({
                   onChange={(e) => {
                     const file = e.target.files?.item(0);
                     if (file) updateImage(file);
-                    else setNoImage();
+                    else
+                      refreshPage({ form: false, image: true, refetch: false });
                   }}
                 />
               </div>
@@ -1103,8 +1115,7 @@ export default function Anagrafico({
               <div className="col-sm-1">
                 <button
                   onClick={async () => {
-                    clearForm();
-                    setNoImage();
+                    refreshPage({ form: true, image: true, refetch: false });
 
                     queryNominativi.remove();
                     await queryClient.invalidateQueries({

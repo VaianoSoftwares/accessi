@@ -23,10 +23,14 @@ export enum TPermessi {
   admin = MAX_UINT32,
   device = 1,
   canLogout = 2,
-  excel = 4,
-  provvisori = 8,
-  updateArchivio = 16,
+  canAccessInStruttReport = 4,
+  canMarkProvvisori = 8,
+  canEditArchivio = 16,
   canEditBadges = 32,
+  canEditPostazioni = 64,
+  canEditUsers = 128,
+  canEditClienti = 256,
+  canEditAssegnazioni = 512,
 }
 export enum TPages {
   admin = MAX_UINT32,
@@ -36,6 +40,11 @@ export enum TPages {
   archivio = 8,
   protocollo = 16,
   anagrafico = 32,
+  postazioni = 64,
+  clienti = 128,
+  register = 256,
+  users = 512,
+  assegnazioni = 1024,
 }
 
 export type InsertUserData = BaseUser & { postazioni: Postazione[] };

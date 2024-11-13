@@ -93,10 +93,38 @@ export default class JwtAuth {
     res: Response,
     next: NextFunction
   ) {
-    return JwtAuth.checkPermessi(req, res, next, TPermessi.updateArchivio);
+    return JwtAuth.checkPermessi(req, res, next, TPermessi.canEditArchivio);
   }
 
   public static canEditBadges(req: Request, res: Response, next: NextFunction) {
     return JwtAuth.checkPermessi(req, res, next, TPermessi.canEditBadges);
+  }
+
+  public static canEditClienti(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    return JwtAuth.checkPermessi(req, res, next, TPermessi.canEditClienti);
+  }
+
+  public static canEditPostazioni(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    return JwtAuth.checkPermessi(req, res, next, TPermessi.canEditPostazioni);
+  }
+
+  public static canEditUsers(req: Request, res: Response, next: NextFunction) {
+    return JwtAuth.checkPermessi(req, res, next, TPermessi.canEditUsers);
+  }
+
+  public static canEditAssegnazioni(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    return JwtAuth.checkPermessi(req, res, next, TPermessi.canEditAssegnazioni);
   }
 }

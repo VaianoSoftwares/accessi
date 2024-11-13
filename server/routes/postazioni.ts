@@ -11,12 +11,12 @@ router
   .get(PostazioniController.apiGetPostazioni)
   .post(
     JwtAuth.verifyToken,
-    JwtAuth.isAdmin,
+    JwtAuth.canEditPostazioni,
     PostazioniController.apiInsertPostazione
   );
 router.delete(
   "/:id",
   JwtAuth.verifyToken,
-  JwtAuth.isAdmin,
+  JwtAuth.canEditPostazioni,
   PostazioniController.apiDeletePostazione
 );

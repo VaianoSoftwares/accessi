@@ -11,12 +11,12 @@ router
   .get(ClientiController.apiGetClienti)
   .post(
     JwtAuth.verifyToken,
-    JwtAuth.isAdmin,
+    JwtAuth.canEditClienti,
     ClientiController.apiInsertCliente
   );
 router.delete(
   "/:cliente",
   JwtAuth.verifyToken,
-  JwtAuth.isAdmin,
+  JwtAuth.canEditClienti,
   ClientiController.apiDeleteCliente
 );

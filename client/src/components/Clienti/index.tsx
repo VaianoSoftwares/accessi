@@ -25,7 +25,7 @@ export default function Clienti() {
   });
 
   const addCliente = useMutation({
-    mutationFn: (data: { cliente: string }) => ClientiDataService.insert(data),
+    mutationFn: (data: { name: string }) => ClientiDataService.insert(data),
     onSuccess: async (response) => {
       console.log("addCliente | response:", response);
       await queryClient.invalidateQueries({ queryKey: ["clienti"] });
@@ -67,7 +67,7 @@ export default function Clienti() {
           <button
             onClick={() =>
               addCliente.mutate({
-                cliente: clienteRef.current!.value,
+                name: clienteRef.current!.value,
               })
             }
             className="btn btn-success"

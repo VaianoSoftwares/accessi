@@ -1,24 +1,32 @@
 import { MAX_UINT32 } from ".";
 import { checkBits, bitCount, getFirst } from "../utils/bitwise";
-import { TPages } from "./pages";
+import { TAdminPages, TPages } from "./pages";
 
 export enum TPermessi {
   admin = MAX_UINT32,
   device = 1,
   canLogout = 2,
-  excel = 4,
-  provvisori = 8,
-  updateArchivio = 16,
+  canAccessInStruttReport = 4,
+  canMarkProvvisori = 8,
+  canEditArchivio = 16,
   canEditBadges = 32,
+  canEditPostazioni = 64,
+  canEditUsers = 128,
+  canEditClienti = 256,
+  canEditAssegnazioni = 512,
 }
 
 export const PERMESSI_INFO: ReadonlyMap<TPermessi, string> = new Map([
   [TPermessi.device, "device"],
   [TPermessi.canLogout, "canLogout"],
-  [TPermessi.excel, "excel"],
-  [TPermessi.provvisori, "provvisori"],
-  [TPermessi.updateArchivio, "updateArchivio"],
+  [TPermessi.canAccessInStruttReport, "inStruttExcelReport"],
+  [TPermessi.canMarkProvvisori, "timbraProvvisori"],
+  [TPermessi.canEditArchivio, "canEditArchivio"],
   [TPermessi.canEditBadges, "canEditBadges"],
+  [TPermessi.canEditPostazioni, "canEditPostazioni"],
+  [TPermessi.canEditUsers, "canEditUsers"],
+  [TPermessi.canEditClienti, "canEditClienti"],
+  [TPermessi.canEditAssegnazioni, "canEditAssegnazioni"],
 ]);
 
 export type TUser = {
@@ -51,7 +59,7 @@ export function isAdmin(user: MaybeTUser) {
   return isUser(user) && checkBits(user.permessi, TPermessi.admin);
 }
 
-export function canAccessPage(user: MaybeTUser, page: TPages) {
+export function canAccessPage(user: MaybeTUser, page: TPages | TAdminPages) {
   return isUser(user) && checkBits(user.pages, page);
 }
 
