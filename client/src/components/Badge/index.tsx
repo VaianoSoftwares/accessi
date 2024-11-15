@@ -550,16 +550,18 @@ export default function Badge({
                   </div>
                 )}
                 <div className="w-100 mt-1" />
-                {hasPerm(currentUser, TPermessi.canMarkProvvisori) && (
-                  <div className="col">
-                    <button
-                      onClick={() => setIsOspPopupShown.setTrue()}
-                      className="btn btn-success badge-form-btn"
-                    >
-                      Provvisori
-                    </button>
-                  </div>
-                )}
+                {currPostazione !== undefined &&
+                  currPostazione.name !== "PAUSA" &&
+                  hasPerm(currentUser, TPermessi.canMarkProvvisori) && (
+                    <div className="col">
+                      <button
+                        onClick={() => setIsOspPopupShown.setTrue()}
+                        className="btn btn-success badge-form-btn"
+                      >
+                        Provvisori
+                      </button>
+                    </div>
+                  )}
                 <div className="w-100 mt-1" />
                 <div className="col">
                   <button className="btn btn-success badge-form-btn">

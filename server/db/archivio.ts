@@ -90,7 +90,7 @@ export default class ArchivioDB {
   public static async getBadgesInStrutt(filter?: FindInStruttBadgesFilter) {
     let i = 1;
     const prefixText = `SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
-    const filterText = filter
+    let filterText = filter
       ? Object.entries(filter)
           .filter(([key, value]) => value && !["pausa"].includes(key))
           .map(([key, value]) => {
@@ -115,6 +115,13 @@ export default class ArchivioDB {
           })
           .join(" AND ")
       : "";
+
+    if (filter?.pausa === undefined || filter?.pausa === false) {
+      const pauseFilter = "postazione!='PAUSA'";
+      filterText = filterText
+        ? [filterText, pauseFilter].join(" AND ")
+        : pauseFilter;
+    }
 
     const queryText = filterText
       ? [prefixText, "WHERE", filterText].join(" ")
