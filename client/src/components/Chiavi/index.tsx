@@ -6,19 +6,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import Clock from "../Clock";
 import { FindInPrestitoData, PrestitoChiaviData } from "../../types/archivio";
-import { CurrentUserContext } from "../RootProvider";
+import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
-import { Postazione } from "../../types/postazioni";
 
-export default function Chiavi({
-  currPostazione,
-  ...props
-}: {
+export default function Chiavi(props: {
   scanValues: string[];
   addScanValue: (value: string) => void;
   removeScanValue: (value: string) => void;
   clearScanValues: () => void;
-  currPostazione: Postazione | undefined;
 }) {
   const barcodeTxtInput = useRef<HTMLInputElement>(null);
 
@@ -26,6 +21,7 @@ export default function Chiavi({
   const { handleError } = useError();
 
   const { currentUser } = useContext(CurrentUserContext)!;
+  const { currPostazione } = useContext(CurrPostazioneContext)!;
 
   const queryInPrestito = useQuery({
     queryKey: [

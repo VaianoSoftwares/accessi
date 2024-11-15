@@ -9,12 +9,14 @@ import AccessiNavbar from "./components/AccessiNavbar";
 import Home from "./components/Home";
 import Loader from "./components/Loader";
 import RootProvider from "./components/RootProvider";
-import { canAccessPage, isAdmin } from "./types/users";
-import { TPages } from "./types/pages";
+import { canAccessPage } from "./types/users";
+import { TAdminPages, TPages } from "./types/pages";
 import { BadgeType } from "./types/badges";
 import useCurrentUser from "./hooks/useCurrentUser";
 import scannerHandler from "./utils/scannerHandler";
-import { Postazione } from "./types/postazioni";
+import usePostazione from "./hooks/usePostazione";
+import useArray from "./hooks/useArray";
+import useBool from "./hooks/useBool";
 // import { WSSendMsg } from "./services/ws";
 
 const Badge = lazy(() => import("./components/Badge"));
@@ -32,36 +34,46 @@ const Clienti = lazy(() => import("./components/Clienti"));
 export default function App() {
   const { currentUser, setCurrentUser, removeCurrentUser } = useCurrentUser();
 
-  const [currCliente, setCurrCliente] = useState<string>();
-  const [currPostazione, setCurrPostazione] = useState<Postazione>();
-  function clearCurrPostazione() {
-    setCurrPostazione(undefined);
-  }
+  const {
+    currCliente,
+    setCurrCliente,
+    clearCurrCliente,
+    currPostazione,
+    setCurrPostazione,
+    clearCurrPostazione,
+  } = usePostazione();
 
-  const [isBadgeScannerConnected, setIsBadgeScannerConnected] = useState(false);
+  const [
+    isBadgeScannerConnected,
+    { setTrue: setBadgeScannerTrue, setFalse: setBadgeScannerFalse },
+  ] = useBool(false);
   const [timbraVal, setTimbraVal] = useState("");
 
-  const [isChiaviScannerConnected, setIsChiaviScannerConnected] =
-    useState(false);
-  const [prestaArr, setPrestaArr] = useState<string[]>([]);
-
-  function prestaArrAdd(value: string) {
-    setPrestaArr((prevState) => Array.from(new Set([value, ...prevState])));
-  }
-
-  function prestaArrRemove(value: string) {
-    setPrestaArr((prevState) => prevState.filter((elem) => elem !== value));
-  }
+  const [
+    isChiaviScannerConnected,
+    { setTrue: setChiaviScannerTrue, setFalse: setChiaviScannerFalse },
+  ] = useBool(false);
+  const {
+    array: prestaArr,
+    addElement: prestaArrAdd,
+    removeElement: prestaArrRemove,
+    clearArray: clearPrestaArr,
+  } = useArray<string>();
 
   async function runAccessiScanner() {
     await scannerHandler(
       (value: string) => setTimbraVal(value),
-      setIsBadgeScannerConnected
+      setBadgeScannerTrue,
+      setBadgeScannerFalse
     );
   }
 
   async function runChiaviScanner() {
-    await scannerHandler(prestaArrAdd, setIsChiaviScannerConnected);
+    await scannerHandler(
+      prestaArrAdd,
+      setChiaviScannerTrue,
+      setChiaviScannerFalse
+    );
   }
 
   // useEffect(() => {
@@ -74,14 +86,16 @@ export default function App() {
         currentUser={currentUser}
         setCurrentUser={setCurrentUser}
         removeCurrentUser={removeCurrentUser}
+        currCliente={currCliente}
+        setCurrCliente={setCurrCliente}
+        clearCurrCliente={clearCurrCliente}
+        currPostazione={currPostazione}
+        setCurrPostazione={setCurrPostazione}
+        clearCurrPostazione={clearCurrPostazione}
       >
         <>
           {currentUser && (
             <AccessiNavbar
-              currCliente={currCliente}
-              setCurrCliente={setCurrCliente}
-              currPostazione={currPostazione}
-              setCurrPostazione={setCurrPostazione}
               badgeScannerConnected={isBadgeScannerConnected}
               runBadgeScanner={runAccessiScanner}
               chiaviScannerConnected={isChiaviScannerConnected}
@@ -106,9 +120,6 @@ export default function App() {
                       scannedValue={timbraVal}
                       clearScannedValue={() => setTimbraVal("")}
                       tipoBadge={BadgeType.NOMINATIVO}
-                      currPostazione={currPostazione}
-                      clearCurrPostazione={clearCurrPostazione}
-                      currCliente={currCliente}
                     />
                   </Suspense>
                 ) : (
@@ -125,8 +136,7 @@ export default function App() {
                       scanValues={prestaArr}
                       addScanValue={prestaArrAdd}
                       removeScanValue={prestaArrRemove}
-                      clearScanValues={() => setPrestaArr([])}
-                      currPostazione={currPostazione}
+                      clearScanValues={clearPrestaArr}
                     />
                   </Suspense>
                 ) : (
@@ -143,9 +153,6 @@ export default function App() {
                       scannedValue={timbraVal}
                       clearScannedValue={() => setTimbraVal("")}
                       tipoBadge={BadgeType.VEICOLO}
-                      currPostazione={currPostazione}
-                      clearCurrPostazione={clearCurrPostazione}
-                      currCliente={currCliente}
                     />
                   </Suspense>
                 ) : (
@@ -170,7 +177,7 @@ export default function App() {
               element={
                 canAccessPage(currentUser, TPages.protocollo) ? (
                   <Suspense fallback={<Loader />}>
-                    <Protocollo currPostazione={currPostazione} />
+                    <Protocollo />
                   </Suspense>
                 ) : (
                   <PageNotFound />
@@ -182,7 +189,7 @@ export default function App() {
               element={
                 canAccessPage(currentUser, TPages.anagrafico) ? (
                   <Suspense fallback={<Loader />}>
-                    <Anagrafico currCliente={currCliente} />
+                    <Anagrafico />
                   </Suspense>
                 ) : (
                   <PageNotFound />
@@ -192,7 +199,7 @@ export default function App() {
             <Route
               path="admin/register"
               element={
-                isAdmin(currentUser) ? (
+                canAccessPage(currentUser, TAdminPages.register) ? (
                   <Suspense fallback={<Loader />}>
                     <Register />
                   </Suspense>
@@ -205,7 +212,7 @@ export default function App() {
             <Route
               path="admin/users"
               element={
-                isAdmin(currentUser) ? (
+                canAccessPage(currentUser, TAdminPages.users) ? (
                   <Suspense fallback={<Loader />}>
                     <UsersList />
                   </Suspense>
@@ -217,7 +224,7 @@ export default function App() {
             <Route
               path="admin/users/:userId"
               element={
-                isAdmin(currentUser) ? (
+                canAccessPage(currentUser, TAdminPages.users) ? (
                   <Suspense fallback={<Loader />}>
                     <UserEdit />
                   </Suspense>
@@ -229,7 +236,7 @@ export default function App() {
             <Route
               path="admin/assegnazioni"
               element={
-                isAdmin(currentUser) ? (
+                canAccessPage(currentUser, TAdminPages.assegnazioni) ? (
                   <Suspense fallback={<Loader />}>
                     <Assegnazioni />
                   </Suspense>
@@ -241,7 +248,7 @@ export default function App() {
             <Route
               path="admin/postazioni"
               element={
-                isAdmin(currentUser) ? (
+                canAccessPage(currentUser, TAdminPages.postazioni) ? (
                   <Suspense fallback={<Loader />}>
                     <Postazioni />
                   </Suspense>
@@ -253,7 +260,7 @@ export default function App() {
             <Route
               path="admin/clienti"
               element={
-                isAdmin(currentUser) ? (
+                canAccessPage(currentUser, TAdminPages.clienti) ? (
                   <Suspense fallback={<Loader />}>
                     <Clienti />
                   </Suspense>
@@ -266,7 +273,7 @@ export default function App() {
               path="login"
               element={
                 currentUser === null ? (
-                  <Login setCurrCliente={setCurrCliente} />
+                  <Login />
                 ) : (
                   <Navigate replace to="/home" />
                 )

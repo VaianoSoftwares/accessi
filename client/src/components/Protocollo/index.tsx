@@ -7,18 +7,15 @@ import toast from "react-hot-toast";
 import "./index.css";
 import { isAdmin } from "../../types/users";
 import { ProtocolloForm } from "../../types/forms";
-import { CurrentUserContext } from "../RootProvider";
+import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
-import { Postazione } from "../../types/postazioni";
 
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 
-export default function Protocollo({
-  currPostazione,
-}: {
-  currPostazione: Postazione | undefined;
-}) {
+export default function Protocollo() {
   const { currentUser } = useContext(CurrentUserContext)!;
+  const { currPostazione } = useContext(CurrPostazioneContext)!;
+
   const { handleError } = useError();
 
   const formRef = useRef<FormRef<ProtocolloForm>>({

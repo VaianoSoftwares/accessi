@@ -12,7 +12,7 @@ import {
   getPagesNum,
   hasPerm,
 } from "../../types/users";
-import { CurrentUserContext } from "../RootProvider";
+import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import { Postazione } from "../../types/postazioni";
 
@@ -20,22 +20,12 @@ const green_check_path = "/green-checkmark-icon.svg";
 const red_x_path = "/red-x-icon.svg";
 
 export default function AccessiNavbar({
-  currCliente,
-  setCurrCliente,
-  currPostazione,
-  setCurrPostazione,
   badgeScannerConnected,
   runBadgeScanner,
   chiaviScannerConnected,
   runChiaviScanner,
   ...props
 }: {
-  currCliente: string | undefined;
-  setCurrCliente: React.Dispatch<React.SetStateAction<string | undefined>>;
-  currPostazione: Postazione | undefined;
-  setCurrPostazione: React.Dispatch<
-    React.SetStateAction<Postazione | undefined>
-  >;
   badgeScannerConnected: boolean;
   runBadgeScanner: () => Promise<void>;
   chiaviScannerConnected: boolean;
@@ -44,6 +34,13 @@ export default function AccessiNavbar({
   let location = useLocation().pathname;
 
   const { currentUser, removeCurrentUser } = useContext(CurrentUserContext)!;
+  const {
+    currCliente,
+    setCurrCliente,
+    currPostazione,
+    setCurrPostazione,
+    clearCurrPostazione,
+  } = useContext(CurrPostazioneContext)!;
 
   const { handleError } = useError();
 
@@ -63,8 +60,10 @@ export default function AccessiNavbar({
         console.log("queryPostazioni | response:", response);
 
         const result = response.data.result;
-        !currPostazione &&
-          setCurrPostazione(result.length === 1 ? result[0] : undefined);
+
+        if (currPostazione === undefined && result.length === 1)
+          setCurrPostazione(result[0]);
+
         return result;
       } catch (e) {
         handleError(e);
@@ -196,10 +195,9 @@ export default function AccessiNavbar({
                   className="form-select me-2"
                   id="currCliente"
                   name="currCliente"
-                  onChange={(event) => {
-                    setCurrCliente(event.target.value || undefined);
-                    // setCurrPostazione(undefined);
-                  }}
+                  onChange={(event) =>
+                    setCurrCliente(event.target.value || undefined)
+                  }
                   value={currCliente}
                 >
                   {clienti.data
@@ -223,7 +221,7 @@ export default function AccessiNavbar({
                     const { id, cliente, name } =
                       event.target.options[selectedIndex].dataset;
 
-                    if (!id || !cliente || !name) setCurrPostazione(undefined);
+                    if (!id || !cliente || !name) clearCurrPostazione();
                     else
                       setCurrPostazione({
                         id: Number.parseInt(id),

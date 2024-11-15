@@ -21,10 +21,9 @@ import {
   TimbraBadgeDoc,
   QueryBadgeInStrutt,
 } from "../../types/archivio";
-import { CurrentUserContext } from "../RootProvider";
+import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import { timeout } from "../../utils/timeout";
-import { Postazione } from "../../types/postazioni";
 
 const TABLE_NAME = "in_strutt_table";
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
@@ -32,17 +31,11 @@ const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 export default function Badge({
   scannedValue,
   clearScannedValue,
-  currPostazione,
-  clearCurrPostazione,
-  currCliente,
   ...props
 }: {
   scannedValue: string;
   clearScannedValue: () => void;
   tipoBadge: BadgeType;
-  currPostazione: Postazione | undefined;
-  clearCurrPostazione: () => void;
-  currCliente: string | undefined;
 }) {
   const formRef = useRef<FormRef<FindBadgesInStruttForm>>({
     badge_cod: null,
@@ -57,6 +50,9 @@ export default function Badge({
   const queryClient = useQueryClient();
 
   const { currentUser } = useContext(CurrentUserContext)!;
+  const { currCliente, currPostazione, clearCurrPostazione } = useContext(
+    CurrPostazioneContext
+  )!;
 
   const { handleError } = useError();
 
@@ -322,9 +318,9 @@ export default function Badge({
     clearScannedValue();
   }, [scannedValue]);
 
-  useEffect(() => {
-    refreshPage({ form: false, image: false, refetch: true });
-  }, [currCliente]);
+  // useEffect(() => {
+  //   refreshPage({ form: false, image: false, refetch: true });
+  // }, [currCliente]);
 
   return (
     <div id="badge-wrapper" className="no-user-select">

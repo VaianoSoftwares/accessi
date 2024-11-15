@@ -1,10 +1,10 @@
-import React from "react";
 import { toast } from "react-hot-toast";
 import utf8ArrayToStr from "./utf8ArrayToStr";
 
 export default async function runScanner(
   setValue: (value: string) => void,
-  setIsScannerConnected: (value: React.SetStateAction<boolean>) => void
+  setIsScannerConnectedTrue: () => void,
+  setIsScannerConnectedFalse: () => void
 ) {
   let port: SerialPort;
   try {
@@ -22,7 +22,7 @@ export default async function runScanner(
     return;
   }
 
-  setIsScannerConnected(true);
+  setIsScannerConnectedTrue();
 
   console.log("Dispositivo seriale connesso", port.getInfo());
 
@@ -54,7 +54,7 @@ export default async function runScanner(
       reader.releaseLock();
       await port.close();
 
-      setIsScannerConnected(false);
+      setIsScannerConnectedFalse();
 
       console.log("readScanner | Chiusa porta seriale", port.getInfo());
     }

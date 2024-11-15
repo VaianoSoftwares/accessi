@@ -2,18 +2,14 @@ import UserDataService from "../../services/user";
 import "./index.css";
 import { useNavigate } from "react-router-dom";
 import { useRef, useEffect, useContext } from "react";
-import { CurrentUserContext } from "../RootProvider";
+import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 
-export default function Login({
-  setCurrCliente,
-  ...props
-}: {
-  setCurrCliente: React.Dispatch<React.SetStateAction<string | undefined>>;
-}) {
+export default function Login() {
   const navigate = useNavigate();
 
-  const { currentUser, setCurrentUser } = useContext(CurrentUserContext)!;
+  const { setCurrentUser } = useContext(CurrentUserContext)!;
+  const { setCurrCliente } = useContext(CurrPostazioneContext)!;
 
   const { handleError } = useError();
 

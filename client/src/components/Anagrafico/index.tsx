@@ -18,7 +18,7 @@ import {
 } from "../../types/badges";
 import { FormRef, GenericForm } from "../../types";
 import "./index.css";
-import { CurrentUserContext } from "../RootProvider";
+import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import { Link } from "react-router-dom";
 
@@ -26,13 +26,10 @@ const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 const UPLOADS_DIR = "/api/v1/public/uploads/";
 const TABLE_ID = "anagrafico-table";
 
-export default function Anagrafico({
-  currCliente,
-  ...props
-}: {
-  currCliente: string | undefined;
-}) {
+export default function Anagrafico() {
   const { currentUser } = useContext(CurrentUserContext)!;
+  const { currCliente } = useContext(CurrPostazioneContext)!;
+
   const { handleError } = useError();
 
   const formRef = useRef<FormRef<AnagraficoForm>>({
@@ -157,6 +154,7 @@ export default function Anagrafico({
   });
 
   useEffect(() => {
+    console.log("cliente", currCliente);
     refreshPage({ form: false, image: false, refetch: true });
   }, [currCliente]);
 
@@ -202,8 +200,9 @@ export default function Anagrafico({
       updateImage(insertedRow.codice);
       setForm(insertedRow);
 
-      await queryClient.invalidateQueries({ queryKey: ["nominativi"] });
-      queryNominativi.remove();
+      // await queryClient.invalidateQueries({ queryKey: ["nominativi"] });
+      // queryNominativi.remove();
+      await refreshPage({ form: false, image: false, refetch: true });
 
       toast.success("Badge inserito con successo");
     },
@@ -222,8 +221,9 @@ export default function Anagrafico({
       updateImage(updatedRow.codice);
       setForm(updatedRow);
 
-      await queryClient.invalidateQueries({ queryKey: ["nominativi"] });
-      queryNominativi.remove();
+      // await queryClient.invalidateQueries({ queryKey: ["nominativi"] });
+      // queryNominativi.remove();
+      await refreshPage({ form: false, image: false, refetch: true });
 
       toast.success("Badge modificato con successo");
     },
@@ -235,10 +235,10 @@ export default function Anagrafico({
     onSuccess: async (response) => {
       console.log("deleteNominativo | response:", response);
 
-      await queryClient.invalidateQueries({ queryKey: ["nominativi"] });
-      queryNominativi.remove();
+      // await queryClient.invalidateQueries({ queryKey: ["nominativi"] });
+      // queryNominativi.remove();
 
-      refreshPage({ form: true, image: true, refetch: false });
+      await refreshPage({ form: true, image: true, refetch: true });
 
       toast.success("Badge rimosso con successo");
     },
@@ -281,8 +281,10 @@ export default function Anagrafico({
       const { insertedRow } = response.data.result;
       setForm(insertedRow);
 
-      await queryClient.invalidateQueries({ queryKey: ["provvisori"] });
-      findProvvisori.remove();
+      // await queryClient.invalidateQueries({ queryKey: ["provvisori"] });
+      // findProvvisori.remove();
+
+      await refreshPage({ form: false, image: false, refetch: true });
 
       toast.success("Badge inserito con successo");
     },
@@ -300,8 +302,10 @@ export default function Anagrafico({
       const { updatedRow } = response.data.result;
       setForm(updatedRow);
 
-      await queryClient.invalidateQueries({ queryKey: ["provvisori"] });
-      findProvvisori.remove();
+      // await queryClient.invalidateQueries({ queryKey: ["provvisori"] });
+      // findProvvisori.remove();
+
+      await refreshPage({ form: false, image: false, refetch: true });
 
       toast.success("Badge modificato con successo");
     },
@@ -313,10 +317,10 @@ export default function Anagrafico({
     onSuccess: async (response) => {
       console.log("deleteProvvisorio | response:", response);
 
-      await queryClient.invalidateQueries({ queryKey: ["provvisori"] });
-      findProvvisori.remove();
+      // await queryClient.invalidateQueries({ queryKey: ["provvisori"] });
+      // findProvvisori.remove();
 
-      refreshPage({ form: true, image: true, refetch: false });
+      await refreshPage({ form: true, image: true, refetch: true });
 
       toast.success("Badge rimosso con successo");
     },
@@ -359,8 +363,10 @@ export default function Anagrafico({
       const { insertedRow } = response.data.result;
       setForm(insertedRow);
 
-      await queryClient.invalidateQueries({ queryKey: ["chiavi"] });
-      findChiavi.remove();
+      // await queryClient.invalidateQueries({ queryKey: ["chiavi"] });
+      // findChiavi.remove();
+
+      await refreshPage({ form: false, image: false, refetch: true });
 
       toast.success("Chiave inserita con successo");
     },
@@ -378,8 +384,10 @@ export default function Anagrafico({
       const { updatedRow } = response.data.result;
       setForm(updatedRow);
 
-      await queryClient.invalidateQueries({ queryKey: ["chiavi"] });
-      findChiavi.remove();
+      // await queryClient.invalidateQueries({ queryKey: ["chiavi"] });
+      // findChiavi.remove();
+
+      await refreshPage({ form: false, image: false, refetch: true });
 
       toast.success("Chiave modificata con successo");
     },
@@ -391,10 +399,10 @@ export default function Anagrafico({
     onSuccess: async (response) => {
       console.log("deleteChiave | response:", response);
 
-      await queryClient.invalidateQueries({ queryKey: ["chiavi"] });
-      findChiavi.remove();
+      // await queryClient.invalidateQueries({ queryKey: ["chiavi"] });
+      // findChiavi.remove();
 
-      refreshPage({ form: true, image: true, refetch: false });
+      await refreshPage({ form: true, image: true, refetch: true });
 
       toast.success("Chiave rimossa con successo");
     },
@@ -437,8 +445,10 @@ export default function Anagrafico({
       const { insertedRow } = response.data.result;
       setForm(insertedRow);
 
-      await queryClient.invalidateQueries({ queryKey: ["veicoli"] });
-      findVeicoli.remove();
+      // await queryClient.invalidateQueries({ queryKey: ["veicoli"] });
+      // findVeicoli.remove();
+
+      await refreshPage({ form: false, image: false, refetch: true });
 
       toast.success("Veicolo inserito con successo");
     },
@@ -456,8 +466,10 @@ export default function Anagrafico({
       const { updatedRow } = response.data.result;
       setForm(updatedRow);
 
-      await queryClient.invalidateQueries({ queryKey: ["veicoli"] });
-      findVeicoli.remove();
+      // await queryClient.invalidateQueries({ queryKey: ["veicoli"] });
+      // findVeicoli.remove();
+
+      await refreshPage({ form: false, image: false, refetch: true });
 
       toast.success("Veicolo modificato con successo");
     },
@@ -469,10 +481,10 @@ export default function Anagrafico({
     onSuccess: async (response) => {
       console.log("deleteVeicolo | response:", response);
 
-      await queryClient.invalidateQueries({ queryKey: ["veicoli"] });
-      findVeicoli.remove();
+      // await queryClient.invalidateQueries({ queryKey: ["veicoli"] });
+      // findVeicoli.remove();
 
-      refreshPage({ form: true, image: true, refetch: false });
+      await refreshPage({ form: true, image: true, refetch: true });
 
       toast.success("Veicolo rimosso con successo");
     },
@@ -556,10 +568,27 @@ export default function Anagrafico({
     data ? `${PROXY}${UPLOADS_DIR}PFP_${data}.jpg` : ""
   );
 
-  function refreshPage({ form = true, image = true, refetch = true }) {
+  async function refreshPage({ form = true, image = true, refetch = true }) {
     form && setForm();
     image && setNoImage();
-    refetch && queryNominativi.refetch();
+    if (refetch) {
+      await queryNominativi.refetch();
+
+      switch (currentFormType) {
+        case BadgeType.NOMINATIVO:
+          await findNominativi.refetch();
+          break;
+        case BadgeType.CHIAVE:
+          await findChiavi.refetch();
+          break;
+        case BadgeType.PROVVISORIO:
+          await findProvvisori.refetch();
+          break;
+        case BadgeType.VEICOLO:
+          await findVeicoli.refetch();
+          break;
+      }
+    }
   }
 
   function getCurrentForm(formType: BadgeType) {
@@ -1114,14 +1143,9 @@ export default function Anagrafico({
               </div>
               <div className="col-sm-1">
                 <button
-                  onClick={async () => {
-                    refreshPage({ form: true, image: true, refetch: false });
-
-                    queryNominativi.remove();
-                    await queryClient.invalidateQueries({
-                      queryKey: ["nominativi"],
-                    });
-                  }}
+                  onClick={async () =>
+                    refreshPage({ form: true, image: true, refetch: false })
+                  }
                   className="btn btn-success anagrafico-form-btn"
                 >
                   Refresh

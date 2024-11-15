@@ -90,31 +90,31 @@ export default class ArchivioDB {
   public static async getBadgesInStrutt(filter?: FindInStruttBadgesFilter) {
     let i = 1;
     const prefixText = `SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
-    let filterText =
-      filter &&
-      Object.entries(filter)
-        .filter(([key, value]) => value && !["pausa"].includes(key))
-        .map(([key, value]) => {
-          switch (key) {
-            case "postazioniIds":
-              if (!Array.isArray(value)) return "";
-              const postazioniFilters = value.map(() => `post_id=$${i++}`);
-              if (filter?.pausa === true)
-                postazioniFilters.push("postazione='PAUSA'");
-              return ["(", postazioniFilters.join(" OR "), ")"].join("");
-            case "data_in_min":
-              return `data_in>=$${i++}`;
-            case "data_in_max":
-              return `data_in<=$${i++}`;
-            case "cliente":
-              return `${key}=$${i++}`;
-            default:
-              return typeof value === "string"
-                ? `${key} LIKE $${i++}`
-                : `${key}=$${i++}`;
-          }
-        })
-        .join(" AND ");
+    const filterText = filter
+      ? Object.entries(filter)
+          .filter(([key, value]) => value && !["pausa"].includes(key))
+          .map(([key, value]) => {
+            switch (key) {
+              case "postazioniIds":
+                if (!Array.isArray(value)) return "";
+                const postazioniFilters = value.map(() => `post_id=$${i++}`);
+                if (filter?.pausa === true)
+                  postazioniFilters.push("postazione='PAUSA'");
+                return ["(", postazioniFilters.join(" OR "), ")"].join("");
+              case "data_in_min":
+                return `data_in>=$${i++}`;
+              case "data_in_max":
+                return `data_in<=$${i++}`;
+              case "cliente":
+                return `${key}=$${i++}`;
+              default:
+                return typeof value === "string"
+                  ? `${key} LIKE $${i++}`
+                  : `${key}=$${i++}`;
+            }
+          })
+          .join(" AND ")
+      : "";
 
     const queryText = filterText
       ? [prefixText, "WHERE", filterText].join(" ")
