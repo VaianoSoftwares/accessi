@@ -1,14 +1,16 @@
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import "./index.css";
 import ClientiDataService from "../../services/clienti";
 import PostazioniDataService from "../../services/postazioni";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useError from "../../hooks/useError";
 import { InsertPostazioneData } from "../../types/postazioni";
+import { CurrentUserContext } from "../RootProvider";
 
 export default function Postazioni() {
   const queryClient = useQueryClient();
   const { handleError } = useError();
+  const { currentUser } = useContext(CurrentUserContext)!;
 
   const clienti = useQuery({
     queryKey: ["clienti"],
@@ -81,11 +83,13 @@ export default function Postazioni() {
             <option value="" key="-1">
               Seleziona un cliente
             </option>
-            {clienti.data?.map((cliente, index) => (
-              <option value={cliente} key={index}>
-                {cliente}
-              </option>
-            ))}
+            {clienti.data
+              ?.filter((cliente) => currentUser?.clienti.includes(cliente))
+              .map((cliente, index) => (
+                <option value={cliente} key={index}>
+                  {cliente}
+                </option>
+              ))}
           </select>
           <label htmlFor="cliente">cliente</label>
         </div>

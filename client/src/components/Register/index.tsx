@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useRef } from "react";
+import { useContext, useRef } from "react";
 import UserDataService from "../../services/user";
 import PostazioniDataService from "../../services/postazioni";
 import { toast } from "react-hot-toast";
@@ -8,6 +8,7 @@ import { PAGES_INFO } from "../../types/pages";
 import { RegisterForm } from "../../types/forms";
 import { InsertUserData, PERMESSI_INFO } from "../../types/users";
 import useError from "../../hooks/useError";
+import { CurrentUserContext } from "../RootProvider";
 
 function selectPermessiOptions() {
   const options = [];
@@ -35,6 +36,7 @@ function selectPagesOptions() {
 
 export default function Register() {
   const { handleError } = useError();
+  const { currentUser } = useContext(CurrentUserContext)!;
 
   const formRef = useRef<FormRef<RegisterForm>>({
     name: null,
@@ -171,7 +173,10 @@ export default function Register() {
           >
             {postazioni.isSuccess &&
               postazioni.data
-                .filter(({ cliente, name }) => cliente && name)
+                .filter(
+                  ({ cliente, name }) =>
+                    cliente && name && currentUser?.clienti.includes(cliente)
+                )
                 .map(({ id, cliente, name }) => (
                   <option key={id} value={id}>
                     {cliente}-{name}

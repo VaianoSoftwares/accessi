@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import UserDataService from "../../services/user";
 import PostazioniDataService from "../../services/postazioni";
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router";
@@ -12,6 +12,7 @@ import { UpdateUserForm } from "../../types/forms";
 import { FormRef } from "../../types";
 import { checkBits } from "../../utils/bitwise";
 import useError from "../../hooks/useError";
+import { CurrentUserContext } from "../RootProvider";
 
 function selectPermessiOptions(disabled = false) {
   const options = [];
@@ -53,6 +54,7 @@ function flagsToFlagArray(
 export default function UserEdit() {
   const { userId } = useParams();
   const { handleError } = useError();
+  const { currentUser } = useContext(CurrentUserContext)!;
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -139,9 +141,12 @@ export default function UserEdit() {
         switch (key) {
           case "postazioni_ids":
             if (!(el instanceof HTMLSelectElement)) return;
-            obj[key] = Array.from(el.options, (option) =>
-              {return {post_id: Number.parseInt(option.value), checked: option.selected}}
-            ).filter(({post_id}) => !Number.isNaN(post_id));
+            obj[key] = Array.from(el.options, (option) => {
+              return {
+                post_id: Number.parseInt(option.value),
+                checked: option.selected,
+              };
+            }).filter(({ post_id }) => !Number.isNaN(post_id));
             break;
           case "permessi":
           case "pages":
@@ -162,7 +167,12 @@ export default function UserEdit() {
   function selectPostazioniOptions(disabled = false) {
     return postazioni.isSuccess
       ? postazioni.data
-          .filter(({ cliente, name }) => cliente && name)
+          .filter(
+            ({ cliente, name }) =>
+              cliente &&
+              name &&
+              (disabled || currentUser?.clienti.includes(cliente))
+          )
           .map(({ id, cliente, name }) => (
             <option key={id} value={id} disabled={disabled}>
               {cliente}-{name}
