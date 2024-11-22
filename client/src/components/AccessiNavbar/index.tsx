@@ -5,7 +5,7 @@ import UserDataService from "../../services/user";
 import PostazioniDataService from "../../services/postazioni";
 import ClientiDataService from "../../services/clienti";
 import { useContext } from "react";
-import { PAGES_INFO, ADMIN_PAGES_INFO, TPages } from "../../types/pages";
+import { PAGES_INFO, TPages } from "../../types/pages";
 import {
   TPermessi,
   canAccessPage,
@@ -99,9 +99,10 @@ export default function AccessiNavbar({
   }
 
   function adminPagesDropdownMenu() {
-    const pagesInfo = Array.from(ADMIN_PAGES_INFO.entries()).filter(([page]) =>
-      canAccessPage(currentUser, page)
+    const pagesInfo = Array.from(PAGES_INFO.entries()).filter(
+      ([page, { admin }]) => admin === true && canAccessPage(currentUser, page)
     );
+
     return pagesInfo.length > 0 ? (
       <li className="nav-item dropdown">
         <Link
@@ -114,10 +115,10 @@ export default function AccessiNavbar({
           Admin
         </Link>
         <ul className="dropdown-menu">
-          {Array.from(ADMIN_PAGES_INFO.entries()).map(([page, pageInfo]) => (
+          {pagesInfo.map(([page, { pathname, title }]) => (
             <li key={page}>
-              <Link to={pageInfo.pathname} className="dropdown-item">
-                {pageInfo.title}
+              <Link to={pathname} className="dropdown-item">
+                {title}
               </Link>
             </li>
           ))}
@@ -162,7 +163,10 @@ export default function AccessiNavbar({
               </li>
             )}
             {Array.from(PAGES_INFO.entries())
-              .filter(([page]) => canAccessPage(currentUser, page))
+              .filter(
+                ([page, { admin }]) =>
+                  admin === false && canAccessPage(currentUser, page)
+              )
               .map(([page, pageInfo]) => (
                 <li className="nav-item" key={page}>
                   <Link

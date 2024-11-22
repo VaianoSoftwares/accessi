@@ -10,7 +10,7 @@ import Home from "./components/Home";
 import Loader from "./components/Loader";
 import RootProvider from "./components/RootProvider";
 import { canAccessPage } from "./types/users";
-import { TAdminPages, TPages } from "./types/pages";
+import { TPages } from "./types/pages";
 import { BadgeType } from "./types/badges";
 import useCurrentUser from "./hooks/useCurrentUser";
 import scannerHandler from "./utils/scannerHandler";
@@ -199,7 +199,7 @@ export default function App() {
             <Route
               path="admin/register"
               element={
-                canAccessPage(currentUser, TAdminPages.register) ? (
+                canAccessPage(currentUser, TPages.register) ? (
                   <Suspense fallback={<Loader />}>
                     <Register />
                   </Suspense>
@@ -212,7 +212,7 @@ export default function App() {
             <Route
               path="admin/users"
               element={
-                canAccessPage(currentUser, TAdminPages.users) ? (
+                canAccessPage(currentUser, TPages.users) ? (
                   <Suspense fallback={<Loader />}>
                     <UsersList />
                   </Suspense>
@@ -224,7 +224,7 @@ export default function App() {
             <Route
               path="admin/users/:userId"
               element={
-                canAccessPage(currentUser, TAdminPages.users) ? (
+                canAccessPage(currentUser, TPages.users) ? (
                   <Suspense fallback={<Loader />}>
                     <UserEdit />
                   </Suspense>
@@ -236,7 +236,7 @@ export default function App() {
             <Route
               path="admin/assegnazioni"
               element={
-                canAccessPage(currentUser, TAdminPages.assegnazioni) ? (
+                canAccessPage(currentUser, TPages.assegnazioni) ? (
                   <Suspense fallback={<Loader />}>
                     <Assegnazioni />
                   </Suspense>
@@ -248,7 +248,7 @@ export default function App() {
             <Route
               path="admin/postazioni"
               element={
-                canAccessPage(currentUser, TAdminPages.postazioni) ? (
+                canAccessPage(currentUser, TPages.postazioni) ? (
                   <Suspense fallback={<Loader />}>
                     <Postazioni />
                   </Suspense>
@@ -260,7 +260,7 @@ export default function App() {
             <Route
               path="admin/clienti"
               element={
-                canAccessPage(currentUser, TAdminPages.clienti) ? (
+                canAccessPage(currentUser, TPages.clienti) ? (
                   <Suspense fallback={<Loader />}>
                     <Clienti />
                   </Suspense>

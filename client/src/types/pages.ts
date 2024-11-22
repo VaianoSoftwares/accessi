@@ -15,19 +15,12 @@ export enum TPages {
   assegnazioni = 1024,
 }
 
-export enum TAdminPages {
-  register = 1_000_000,
-  users,
-  assegnazioni,
-  postazioni,
-  clienti,
-}
-
 export interface IPageInfo {
   readonly pathname: string;
   readonly name: string;
   readonly title: string;
   readonly description: string;
+  readonly admin: boolean;
   readonly imagePath?: string;
 }
 
@@ -39,6 +32,7 @@ export const PAGES_INFO: ReadonlyMap<TPages, IPageInfo> = new Map([
       name: "Badge",
       title: "Gestione Badge",
       description: "Pagina di gestione badge",
+      admin: false,
       imagePath: "/badge_icon_128.png",
     },
   ],
@@ -49,6 +43,7 @@ export const PAGES_INFO: ReadonlyMap<TPages, IPageInfo> = new Map([
       name: "Chiavi",
       title: "Gestione Chiavi",
       description: "Pagina di gestione chiavi",
+      admin: false,
       imagePath: "/key_icon_128.png",
     },
   ],
@@ -59,6 +54,7 @@ export const PAGES_INFO: ReadonlyMap<TPages, IPageInfo> = new Map([
       name: "Veicoli",
       title: "Gestione Veicoli",
       description: "Pagina di gestione veicoli",
+      admin: false,
       imagePath: "/car_icon_128.png",
     },
   ],
@@ -69,6 +65,7 @@ export const PAGES_INFO: ReadonlyMap<TPages, IPageInfo> = new Map([
       name: "Archivio",
       title: "Archivio",
       description: "Monitoraggio archivio resoconti",
+      admin: false,
       imagePath: "/archive_icon_128.png",
     },
   ],
@@ -79,6 +76,7 @@ export const PAGES_INFO: ReadonlyMap<TPages, IPageInfo> = new Map([
       name: "Protocollo",
       title: "Protocollo Elettronico",
       description: "Pagina per condivisione documenti",
+      admin: false,
       imagePath: "/document_icon_128.png",
     },
   ],
@@ -89,62 +87,63 @@ export const PAGES_INFO: ReadonlyMap<TPages, IPageInfo> = new Map([
       name: "Anagrafico",
       title: "Anagrafico",
       description: "Gestione personale e badge",
+      admin: false,
       imagePath: "/id_icon_128.png",
     },
   ],
-]);
-
-export const ADMIN_PAGES_INFO: ReadonlyMap<TAdminPages, IPageInfo> = new Map([
   [
-    TAdminPages.register,
+    TPages.register,
     {
       pathname: "/admin/register",
       name: "Registra",
       title: "Registra Account",
       description: "Registrazione nuovo account",
+      admin: true,
       imagePath: "/user_icon_128.png",
     },
   ],
   [
-    TAdminPages.users,
+    TPages.users,
     {
       pathname: "/admin/users",
       name: "Modifica Utenti",
       title: "Modifica Utenti",
       description: "Modifica account utenti",
+      admin: true,
       imagePath: "/user_icon_128.png",
     },
   ],
   [
-    TAdminPages.assegnazioni,
+    TPages.assegnazioni,
     {
       pathname: "/admin/assegnazioni",
       name: "Assegnazioni",
       title: "Modifica Assegnazioni",
       description: "Gestione delle assegnazioni",
+      admin: true,
       imagePath: "/user_icon_128.png",
     },
   ],
   [
-    TAdminPages.postazioni,
+    TPages.postazioni,
     {
       pathname: "/admin/postazioni",
       name: "Postazioni",
       title: "Modifica Postazioni",
       description: "Gestione delle postazioni",
+      admin: true,
       imagePath: "/user_icon_128.png",
     },
   ],
   [
-    TAdminPages.clienti,
+    TPages.clienti,
     {
       pathname: "/admin/clienti",
       name: "Clienti",
       title: "Modifica Clienti",
       description: "Gestione dei clienti",
+      admin: true,
       imagePath: "/user_icon_128.png",
     },
   ],
 ]);
-
-export type TGenericPage = TPages | TAdminPages;

@@ -1,18 +1,8 @@
 import { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./index.css";
-import {
-  TGenericPage,
-  IPageInfo,
-  PAGES_INFO,
-  ADMIN_PAGES_INFO,
-} from "../../types/pages";
-import {
-  canAccessPage,
-  getFirstPage,
-  getPagesNum,
-  isAdmin,
-} from "../../types/users";
+import { IPageInfo, PAGES_INFO, TPages } from "../../types/pages";
+import { canAccessPage, getFirstPage, getPagesNum } from "../../types/users";
 import { CurrentUserContext } from "../RootProvider";
 
 export default function Home() {
@@ -20,7 +10,7 @@ export default function Home() {
 
   const { currentUser } = useContext(CurrentUserContext)!;
 
-  function homeCard([page, pageInfo]: [TGenericPage, IPageInfo]) {
+  function homeCard([page, pageInfo]: [TPages, IPageInfo]) {
     return (
       <div className="col-sm-3 mt-1" key={page}>
         <div
@@ -56,9 +46,6 @@ export default function Home() {
     <div className="home-wrapper">
       <div className="row mx-1">
         {Array.from(PAGES_INFO.entries())
-          .filter(([page]) => canAccessPage(currentUser!, page))
-          .map((page) => homeCard(page))}
-        {Array.from(ADMIN_PAGES_INFO.entries())
           .filter(([page]) => canAccessPage(currentUser!, page))
           .map((page) => homeCard(page))}
       </div>

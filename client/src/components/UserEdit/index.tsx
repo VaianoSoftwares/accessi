@@ -14,14 +14,18 @@ import { checkBits } from "../../utils/bitwise";
 import useError from "../../hooks/useError";
 import { CurrentUserContext } from "../RootProvider";
 
+function optionComp(key: React.Key, innerText: string, disabled: boolean) {
+  return (
+    <option key={key} value={key} disabled={disabled}>
+      {innerText}
+    </option>
+  );
+}
+
 function selectPermessiOptions(disabled = false) {
   const options = [];
   for (const [key, value] of PERMESSI_INFO.entries()) {
-    options.push(
-      <option key={key} value={key} disabled={disabled}>
-        {value}
-      </option>
-    );
+    options.push(optionComp(key, value, disabled));
   }
   return options;
 }
@@ -29,11 +33,7 @@ function selectPermessiOptions(disabled = false) {
 function selectPagesOptions(disabled = false) {
   const options = [];
   for (const [key, { name }] of PAGES_INFO.entries()) {
-    options.push(
-      <option key={key} value={key} disabled={disabled}>
-        {name}
-      </option>
-    );
+    options.push(optionComp(key, name, disabled));
   }
   return options;
 }
