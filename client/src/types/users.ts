@@ -1,6 +1,6 @@
 import { MAX_UINT32 } from ".";
 import { checkBits, bitCount, getFirst } from "../utils/bitwise";
-import { TAdminPages, TPages } from "./pages";
+import { TPages } from "./pages";
 
 export enum TPermessi {
   admin = MAX_UINT32,
@@ -59,7 +59,7 @@ export function isAdmin(user: MaybeTUser) {
   return isUser(user) && checkBits(user.permessi, TPermessi.admin);
 }
 
-export function canAccessPage(user: MaybeTUser, page: TPages | TAdminPages) {
+export function canAccessPage(user: MaybeTUser, page: TPages) {
   return isUser(user) && checkBits(user.pages, page);
 }
 

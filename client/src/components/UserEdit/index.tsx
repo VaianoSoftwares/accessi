@@ -14,7 +14,11 @@ import { checkBits } from "../../utils/bitwise";
 import useError from "../../hooks/useError";
 import { CurrentUserContext } from "../RootProvider";
 
-function optionComp(key: React.Key, innerText: string, disabled: boolean) {
+function optionComp(
+  key: string | number,
+  innerText: string,
+  disabled: boolean
+) {
   return (
     <option key={key} value={key} disabled={disabled}>
       {innerText}
