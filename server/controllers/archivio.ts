@@ -6,6 +6,7 @@ import * as Validator from "../utils/validation.js";
 import { BarcodePrefix } from "../types/archivio.js";
 import BadgesFileManager from "../files/badges.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
+import { sendToAllClients } from "./sse.js";
 
 export default class ArchivioController {
   public static async apiGetArchivio(
@@ -142,6 +143,7 @@ export default class ArchivioController {
       }
 
       res.json(Ok(dbRes));
+      return sendToAllClients(dbRes);
     } catch (e) {
       next(e);
     }

@@ -23,7 +23,8 @@ import {
 } from "../../types/archivio";
 import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
-import { timeout } from "../../utils/timeout";
+import { sleep } from "../../utils/timer";
+// import useSSE from "../../hooks/useSSE";
 
 const TABLE_NAME = "in_strutt_table";
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
@@ -132,7 +133,7 @@ export default function Badge({
         );
       }
 
-      await timeout(1000);
+      await sleep(1000);
 
       if (badgeTable) {
         badgeTable.classList.remove("added-row", "removed-row", "updated-row");
@@ -180,7 +181,7 @@ export default function Badge({
         badgeTable.classList.add("updated-row");
       }
 
-      await timeout(1000);
+      await sleep(1000);
 
       if (badgeTable) {
         badgeTable.classList.remove("added-row", "removed-row", "updated-row");
@@ -201,6 +202,9 @@ export default function Badge({
   });
 
   const [deletedRow, setDeletedRow] = useState<QueryBadgeInStrutt>();
+  // const { data: deletedRow, setData: setDeletedRow } = useSSE<
+  //   QueryBadgeInStrutt | undefined
+  // >(`${PROXY}/api/v1/sse`, undefined);
   const [isOspPopupShown, setIsOspPopupShown] = useBool(false);
   const [readonlyForm, setReadonlyForm] = useReadonlyForm((condition) => {
     refreshPage({
@@ -603,7 +607,12 @@ export default function Badge({
           <BadgeTable
             content={
               deletedRow
-                ? [deletedRow, ...queryInStrutt.data]
+                ? [
+                    deletedRow,
+                    ...queryInStrutt.data.filter(
+                      (row) => row.id !== deletedRow.id
+                    ),
+                  ]
                 : queryInStrutt.data
             }
             tableId={TABLE_NAME}
