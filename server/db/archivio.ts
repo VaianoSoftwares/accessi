@@ -288,6 +288,7 @@ export default class ArchivioDB {
 
     const { rowCount: numRowsInStrutt } = await ArchivioDB.getBadgesInStrutt({
       codice: badgeCode,
+      pausa: true,
     });
     if (numRowsInStrutt)
       throw new BaseError("Badge già presente in struttura", {
@@ -1187,6 +1188,7 @@ export default class ArchivioDB {
 
     const { rowCount: numRowsInStrutt } = await ArchivioDB.getBadgesInStrutt({
       codice: badgeCode,
+      pausa: true,
     });
     if (numRowsInStrutt)
       throw new BaseError("Badge già presente in struttura", {
