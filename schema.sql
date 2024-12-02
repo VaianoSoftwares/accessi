@@ -68,7 +68,7 @@ CREATE OR REPLACE FUNCTION now_or_24h_later(TIMESTAMP = CURRENT_TIMESTAMP) RETUR
 $$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION get_tracciato_date(TIMESTAMP) RETURNS TEXT AS $$
-    SELECT lpad(extract(day from $1)::text,2,'0')||'/'||lpad(extract(month from $1)::text,2,'0')||'/'||extract(year from $1)::text||' '||$1::time::text;
+    SELECT lpad(extract(day from $1)::text,2,'0')||'/'||lpad(extract(month from $1)::text,2,'0')||'/'||substring(extract(year from $1)::text, 3, 2)||' '||extract(hours from $1)::text||':'||extract(minutes from $1)::text;
 $$ LANGUAGE SQL;
 
 CREATE TABLE IF NOT EXISTS clienti(

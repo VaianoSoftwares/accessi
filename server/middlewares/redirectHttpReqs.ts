@@ -6,6 +6,10 @@ export default function redirectHttpReqs(
   res: Response,
   next: NextFunction
 ) {
+  if (req.secure && req.headers["user-agent"]?.includes("vo-scanner")) {
+    return next();
+  }
+
   const secure = process.env.NODE_ENV != "development" && !isLan(req.ip || "");
   if (req.secure && !secure) {
     const urlTokens = req.headers.host?.split(":");
