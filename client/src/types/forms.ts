@@ -165,4 +165,6 @@ export type UpdateUserForm = RegisterForm;
 export type GetTracciatoForm = {
   minDate?: string | undefined;
   maxDate?: string | undefined;
+  nome?: string | undefined;
+  cognome?: string | undefined;
 };

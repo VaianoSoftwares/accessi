@@ -145,6 +145,8 @@ export default function Archivio() {
       const reqData = {
         minDate: formRef.current.data_in_min?.value,
         maxDate: formRef.current.data_in_max?.value,
+        nome: formRef.current.nome?.value,
+        cognome: formRef.current.cognome?.value,
       };
 
       const response = await ArchivioDataService.getTracciato(reqData);

@@ -998,6 +998,8 @@ export default class ArchivioDB {
               return `data_in >= $${i + 1}`;
             case "maxDate":
               return `data_in <= $${i + 1}`;
+            default:
+              return `${key} LIKE $${i + 1}`;
           }
         })
         .join(" AND ");

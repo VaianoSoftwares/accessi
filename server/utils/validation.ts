@@ -755,6 +755,8 @@ export type InsertArchVeicoloData = z.infer<typeof INSERT_ARCH_VEICOLO_SCHEMA>;
 export const GET_RESOCONTO_SCHEMA = z.object({
   minDate: z.coerce.date().optional(),
   maxDate: z.coerce.date().optional(),
+  nome: z.coerce.string().optional(),
+  cognome: z.coerce.string().optional(),
 });
 export type GetResocontoFilter = z.infer<typeof GET_RESOCONTO_SCHEMA>;
 

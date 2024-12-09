@@ -5,7 +5,7 @@ export default function createResocontoFile(content: string) {
   const linkElement = document.createElement("a");
   linkElement.setAttribute("style", "display: none");
   linkElement.setAttribute("href", fileUrl);
-  linkElement.setAttribute("download", "tmp");
+  linkElement.setAttribute("download", "tmb");
 
   linkElement.click();
 
