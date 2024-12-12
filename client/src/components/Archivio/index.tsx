@@ -44,6 +44,7 @@ export default function Archivio() {
     data_in: null,
     data_out: null,
     id: null,
+    zuc_cod: null,
   });
 
   function formToObj(): FindArchivioForm {
@@ -145,8 +146,7 @@ export default function Archivio() {
       const reqData = {
         minDate: formRef.current.data_in_min?.value,
         maxDate: formRef.current.data_in_max?.value,
-        nome: formRef.current.nome?.value,
-        cognome: formRef.current.cognome?.value,
+        zuc_cod: formRef.current.zuc_cod?.value,
       };
 
       const response = await ArchivioDataService.getTracciato(reqData);
@@ -324,6 +324,16 @@ export default function Archivio() {
                   ))}
                 </select>
                 <label htmlFor="tipo">tipo</label>
+              </div>
+              <div className="form-floating col-sm-3">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  id="zuc_cod"
+                  autoComplete="off"
+                  ref={(el) => (formRef.current.zuc_cod = el)}
+                />
+                <label htmlFor="zuc_cod">cod zucchetti</label>
               </div>
               {hasPerm(currentUser, TPermessi.canEditArchivio) && (
                 <>

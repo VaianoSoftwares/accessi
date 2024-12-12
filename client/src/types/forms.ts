@@ -141,6 +141,7 @@ export type FindArchivioForm = {
   data_in?: string | undefined;
   data_out?: string | undefined;
   id?: string | undefined;
+  zuc_cod?: string | undefined;
 };
 
 export type ProtocolloForm = {
@@ -165,6 +166,5 @@ export type UpdateUserForm = RegisterForm;
 export type GetTracciatoForm = {
   minDate?: string | undefined;
   maxDate?: string | undefined;
-  nome?: string | undefined;
-  cognome?: string | undefined;
+  zuc_cod?: string | undefined;
 };

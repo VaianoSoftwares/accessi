@@ -246,7 +246,9 @@ export default class ArchivioDB {
     );
   }
 
-  public static async timbraNominativoIn(data: TimbraBadgeData) {
+  public static async timbraNominativoIn(
+    data: TimbraBadgeData | TimbraNomInWithDateData
+  ) {
     const badgeCode = data.badge_cod;
     const existsBadge = await NominativiDB.getNominativoByCodice(badgeCode);
     if (!existsBadge.rowCount) {
@@ -317,7 +319,9 @@ export default class ArchivioDB {
     return { row: inStruttRows[0], isEntering: true };
   }
 
-  public static async timbraNominativoOut(data: TimbraBadgeData) {
+  public static async timbraNominativoOut(
+    data: TimbraBadgeData | TimbraNomOutWithDateData
+  ) {
     const badgeCode = data.badge_cod;
     const existsBadge = await NominativiDB.getNominativoByCodice(badgeCode);
     if (!existsBadge.rowCount) {
@@ -999,7 +1003,7 @@ export default class ArchivioDB {
             case "maxDate":
               return `data_in <= $${i + 1}`;
             default:
-              return `${key} LIKE $${i + 1}`;
+              return `${key}=$${i + 1}`;
           }
         })
         .join(" AND ");
@@ -1144,150 +1148,5 @@ export default class ArchivioDB {
       { data_in, data_out },
       { id }
     );
-  }
-
-  public static async timbraNominativoWithDateIn(
-    data: TimbraNomInWithDateData
-  ) {
-    const badgeCode = data.badge_cod;
-    const existsBadge = await NominativiDB.getNominativoByCodice(badgeCode);
-    if (!existsBadge.rowCount) {
-      throw new BaseError("Badge non esistente", {
-        status: 400,
-        context: { badgeCode },
-      });
-    }
-
-    const { cliente: expectedCliente, stato, scadenza } = existsBadge.rows[0];
-
-    const postazioneMark = await PostazioniDB.getPostazioneById(data.post_id);
-    if (postazioneMark.cliente !== expectedCliente) {
-      throw new BaseError("Impossibile timbrare badge di un altro cliente", {
-        status: 400,
-        context: {
-          badgeCode,
-          expectedCliente,
-          actualCliente: postazioneMark.cliente,
-        },
-      });
-    } else if (stato !== BadgeState.VALIDO) {
-      throw new BaseError("Badge non valido", {
-        status: 400,
-        context: {
-          badgeCode,
-          stato,
-        },
-      });
-    } else if (scadenza && new Date(scadenza) < new Date()) {
-      throw new BaseError("Privacy scaduta", {
-        status: 400,
-        context: {
-          badgeCode,
-          scadenza,
-        },
-      });
-    }
-
-    const { rowCount: numRowsInStrutt } = await ArchivioDB.getBadgesInStrutt({
-      codice: badgeCode,
-      pausa: true,
-    });
-    if (numRowsInStrutt)
-      throw new BaseError("Badge già presente in struttura", {
-        status: 400,
-        context: { badgeCode },
-      });
-
-    const { rows: insertedRows, rowCount: numRowsInserted } =
-      await db.insertRow<ArchivioNominativo>(ArchTableName.NOMINATIVI, data);
-    if (!numRowsInserted) {
-      throw new BaseError("Impossibile timbrare badge", {
-        status: 500,
-        context: { badgeCode },
-      });
-    }
-
-    const archId = insertedRows[0].id;
-    const { rowCount: numInStruttRows, rows: inStruttRows } =
-      await ArchivioDB.getBadgesInStrutt({ id: archId });
-    if (!numInStruttRows) {
-      throw new BaseError("Impossibile reperire badge in struttura", {
-        status: 500,
-        context: { archId, badgeCode },
-      });
-    }
-    return { row: inStruttRows[0], isEntering: true };
-  }
-
-  public static async timbraNominativoWithDateOut(
-    data: TimbraNomOutWithDateData
-  ) {
-    const badgeCode = data.badge_cod;
-    const existsBadge = await NominativiDB.getNominativoByCodice(badgeCode);
-    if (!existsBadge.rowCount) {
-      throw new BaseError("Badge non esistente", {
-        status: 400,
-        context: { badgeCode },
-      });
-    }
-
-    const { cliente: expectedCliente } = existsBadge.rows[0];
-    const postazioneMark = await PostazioniDB.getPostazioneById(data.post_id);
-    if (postazioneMark.cliente !== expectedCliente) {
-      throw new BaseError("Impossibile timbrare badge di un altro cliente", {
-        status: 400,
-        context: {
-          badgeCode,
-          expectedCliente,
-          actualCliente: postazioneMark.cliente,
-        },
-      });
-    }
-
-    const { rows: fullInStruttRows, rowCount: numFullInStruttRows } =
-      await db.query<FullBadgeInStrutt>(
-        `SELECT * FROM ${ArchTableName.FULL_BADGES_IN_STRUTT} WHERE codice = $1`,
-        [badgeCode]
-      );
-    if (!numFullInStruttRows) {
-      throw new BaseError("Badge non presente in struttura", {
-        status: 400,
-        context: { badgeCode },
-      });
-    } else if (data.post_id != fullInStruttRows[0].post_id) {
-      throw new BaseError("Impossibile timbrare badge da questa postazione", {
-        status: 400,
-        context: {
-          badgeCode,
-          expectedPostazione: fullInStruttRows[0].post_id,
-          actualPostazione: data.post_id,
-        },
-      });
-    }
-
-    const archId = fullInStruttRows[0].id;
-
-    const { rowCount: numInStruttRows, rows: inStruttRows } =
-      await ArchivioDB.getBadgesInStrutt({ id: archId });
-    if (!numInStruttRows) {
-      throw new BaseError("Impossibile reperire badge in struttura", {
-        status: 500,
-        context: { archId, badgeCode },
-      });
-    }
-
-    const { rowCount: updatedRowsNum } = await db.query<WithId<BaseArchivio>>(
-      `UPDATE ${ArchTableName.NOMINATIVI} SET data_out = $1 WHERE id = $2 RETURNING id`,
-      [data.data_out, archId]
-    );
-
-    if (!updatedRowsNum) {
-      throw new BaseError("Impossibile timbrare badge", {
-        status: 400,
-        context: { archId, badgeCode },
-      });
-    }
-
-    return { row: inStruttRows[0], isEntering: false };
   }
 }

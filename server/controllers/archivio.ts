@@ -416,7 +416,7 @@ export default class ArchivioController {
               const timbraDataIn =
                 Validator.TIMBRA_NOM_IN_WITH_DATE_SCHEMA.safeParse(o);
               if (timbraDataIn.success === true) {
-                const result = await ArchivioDB.timbraNominativoWithDateIn(
+                const result = await ArchivioDB.timbraNominativoIn(
                   timbraDataIn.data
                 );
                 return Ok(result);
@@ -425,7 +425,7 @@ export default class ArchivioController {
               const timbraDataOut =
                 Validator.TIMBRA_NOM_OUT_WITH_DATE_SCHEMA.safeParse(o);
               if (timbraDataOut.success === true) {
-                const result = await ArchivioDB.timbraNominativoWithDateOut(
+                const result = await ArchivioDB.timbraNominativoOut(
                   timbraDataOut.data
                 );
                 return Ok(result);

@@ -11,6 +11,9 @@ function ATTR_TOO_SHORT_ERR_MSG(attribute: string, length: number) {
 function ATTR_TOO_LONG_ERR_MSG(attribute: string, length: number) {
   return `Campo ${attribute} deve contenere al massimo ${length} caratteri`;
 }
+function ATTR_WRONG_LEN_ERR_MSG(attribute: string, length: number) {
+  return `Campo ${attribute} deve contenere esattamente ${length} caratteri`;
+}
 function ATTR_NUM_NEGATIVE(attribute: string) {
   return `Campo ${attribute} deve essere un numero positivo`;
 }
@@ -28,13 +31,16 @@ const PSW_MAX_LEN = 256;
 const PSW_TOO_LONG_ERR_MSG = ATTR_TOO_LONG_ERR_MSG("Password", PSW_MAX_LEN);
 
 const CODICE_LEN = 9;
-const CODICE_LEN_ERR_MSG = `Barcode deve contenere esattamente ${CODICE_LEN} cifre`;
+const CODICE_LEN_ERR_MSG = ATTR_WRONG_LEN_ERR_MSG("Barcode", CODICE_LEN);
 
 const BARCODE_LEN = 10;
-const BARCODE_LEN_ERR_MSG = `Barcode deve contenere esattamente ${BARCODE_LEN} cifre`;
+const BARCODE_LEN_ERR_MSG = ATTR_WRONG_LEN_ERR_MSG("Barcode", BARCODE_LEN);
 
 const ID_STUD_LEN = 7;
-const ID_STUD_LEN_ERR_MSG = `Codice studente deve contenere esattamente ${ID_STUD_LEN} cifre`;
+const ID_STUD_LEN_ERR_MSG = ATTR_WRONG_LEN_ERR_MSG(
+  "Codice Studente",
+  ID_STUD_LEN
+);
 
 export function ID_SCHEMA(attrName = "ID") {
   return z.coerce
@@ -53,7 +59,7 @@ const PASSWORD_SCHEMA = z
 
 const COD_FISC_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Codice fiscale") })
-  .length(16, "Codice fiscale deve essere lungo 16 caratteri")
+  .length(16, ATTR_WRONG_LEN_ERR_MSG("Codice Fiscale", 16))
   .transform((val) => val.toUpperCase());
 
 export const LOGIN_SCHEMA = z.object({
@@ -141,7 +147,7 @@ export const CODICE_SCHEMA = z.union([
 export const ZUC_COD_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Codice Zucchetti") })
   .regex(/^\d+$/, "Codice Zucchetti deve contenere solo cifre numeriche")
-  .length(6, "Codice Zucchetti deve avere lunghezza 6");
+  .length(6, ATTR_WRONG_LEN_ERR_MSG("Codice Zucchetti", 6));
 
 export const GET_NOMINATIVI_SCHEMA = z.object({
   codice: CODICE_NOM_SCHEMA.nullish(),
@@ -755,8 +761,7 @@ export type InsertArchVeicoloData = z.infer<typeof INSERT_ARCH_VEICOLO_SCHEMA>;
 export const GET_RESOCONTO_SCHEMA = z.object({
   minDate: z.coerce.date().optional(),
   maxDate: z.coerce.date().optional(),
-  nome: z.coerce.string().optional(),
-  cognome: z.coerce.string().optional(),
+  zuc_cod: ZUC_COD_SCHEMA.optional(),
 });
 export type GetResocontoFilter = z.infer<typeof GET_RESOCONTO_SCHEMA>;
 

@@ -68,9 +68,11 @@ export function getInsertRowQuery(
   tableName: string,
   insertData: Record<PropertyKey, any>
 ) {
-  const rowFields = Object.keys(insertData);
-  const rowFieldsText = rowFields.join(",");
-  const rowValuesText = rowFields.map((_, i) => `$${i + 1}`).join(",");
+  const rowEntries = Object.entries(insertData).filter(
+    ([, value]) => value !== undefined && value !== ""
+  );
+  const rowFieldsText = rowEntries.map(([key]) => key).join(",");
+  const rowValuesText = rowEntries.map((_, i) => `$${i + 1}`).join(",");
 
   const queryText = [
     "INSERT INTO",
@@ -81,7 +83,7 @@ export function getInsertRowQuery(
     rowValuesText,
     ") RETURNING *",
   ].join(" ");
-  const queryValues = Object.values(insertData);
+  const queryValues = rowEntries.map(([, value]) => value);
 
   return { queryText, queryValues };
 }
