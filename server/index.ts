@@ -9,12 +9,15 @@ import path from "path";
 const httpPort = process.env.HTTP_PORT || 4316;
 const httpsPort = process.env.HTTPS_PORT || 4317;
 
-const privateKey = fs.readFileSync(path.join("server", "certs", "privkey.pem"));
-const certificate = fs.readFileSync(path.join("server", "certs", "cert.pem"));
+const certsPath = process.env.CERT_PATH
+  ? path.resolve(process.env.CERT_PATH)
+  : path.join("server", "certs");
+
+const privateKey = fs.readFileSync(path.join(certsPath, "privkey.pem"));
+const certificate = fs.readFileSync(path.join(certsPath, "cert.pem"));
 const chain =
   process.env.NODE_ENV != "development"
-    ? fs.readFileSync(path.join("server", "certs", "fullchain.pem")) ||
-      undefined
+    ? fs.readFileSync(path.join(certsPath, "fullchain.pem")) || undefined
     : undefined;
 
 const httpsOptions = {

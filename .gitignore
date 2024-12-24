@@ -37,3 +37,5 @@ server/certs/*
 
 # docker dir
 /code
+
+nohup*
