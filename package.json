@@ -10,6 +10,7 @@
     "build": "tsc",
     "client:dev": "cd client && npm run dev",
     "client:build": "cd client && npm run build",
+    "docker": "docker-compose --env-file .env.docker up --build",
     "enable-https": "sudo setcap 'cap_net_bind_service=+ep' /usr/bin/node",
     "enable-scanner": "sudo chmod 777 /dev/ttyACM0",
     "scan:make": "cd c-scanner && make clean; make",

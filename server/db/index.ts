@@ -5,7 +5,13 @@ pg.types.setTypeParser(20, (v) => {
   return Number.isSafeInteger(vAsInt) ? vAsInt : null;
 });
 
-const pool = new Pool();
+const pool = new Pool({
+  host: process.env.PGHOST || "localhost",
+  port: Number(process.env.PGPORT) || 5432,
+  user: process.env.PGUSER || "postgres",
+  database: process.env.PGDATABASE,
+  password: process.env.PGPASSWORD,
+});
 
 export async function query<T extends QueryResultRow = any>(
   text: string,

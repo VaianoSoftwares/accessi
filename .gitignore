@@ -37,5 +37,9 @@ server/certs/*
 
 # docker dir
 /code
+/veropen
 
+# nohup files
+*.log
+*.pid
 nohup*

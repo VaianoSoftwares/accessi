@@ -23,12 +23,25 @@ accessi*.sql
 data*.sql
 
 # ssl certificates
-server/certs/*
+# server/certs/*
 
 # docker files
 Dockerfile
 docker-compose.yml
 .dockerignore
 
+# dotenv for host
+.env
+
+# git files
+*.git
+*.gitkeep
+*.gitignore
+*.gitattributes
+
 # c-scanner utility
 /c-scanner
+
+# docker context dir
+/veropen
+/app
