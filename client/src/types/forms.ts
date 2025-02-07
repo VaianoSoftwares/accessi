@@ -110,7 +110,8 @@ export type InsertArchBadgeForm = {
   telefono?: string | undefined;
   ndoc?: string | undefined;
   tdoc?: string | undefined;
-  documento?: string | undefined;
+  targa?: string | undefined;
+  docs?: string | undefined;
 };
 
 export type InsertArchVeicoloForm = {

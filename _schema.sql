@@ -12,8 +12,8 @@ CREATE TYPE assign_type as ENUM ('OSPITE', 'UTENTE', 'GIORNALISTA', 'MANUTENZION
                                 'PARENTE DEGENTE');
 CREATE TYPE building_type as ENUM ('APPARTAMENTO', 'VILLETTA', 'CAPANNONE', 'FONDO', 'CLINICA', 'UFFICIO', 'GENERICO');
 CREATE TYPE veh_type as ENUM ('AUTO', 'MOTO', 'BICICLETTA', 'GENERICO');
--- CREATE TYPE badge_type as ENUM ('NOMINATIVO', 'PROVVISORIO', 'CHIAVE');
--- CREATE TYPE mark_type AS ENUM ('I', 'U');
+CREATE TYPE badge_type as ENUM ('NOMINATIVO', 'PROVVISORIO', 'CHIAVE');
+CREATE TYPE mark_type AS ENUM ('I', 'U');
 
 CREATE SEQUENCE arch_ids;
 CREATE SEQUENCE barcode_ids;
@@ -38,6 +38,45 @@ CREATE OR REPLACE FUNCTION admin_flags() RETURNS INT
     IMMUTABLE
     PARALLEL SAFE
     RETURN -1;
+
+CREATE OR REPLACE FUNCTION get_row_out(table_name TEXT, row_in_id INT) RETURNS RECORD AS $$
+DECLARE
+    row_in RECORD;
+    row_out RECORD;
+BEGIN
+    EXECUTE format(
+        'SELECT * FROM %I WHERE id = $1 AND mark_type = $2 LIMIT 1', 
+        table_name
+    ) INTO row_in USING row_in_id, 'I'::mark_type; 
+    IF row_in IS NULL THEN
+        RETURN NULL;
+    END IF;
+
+    EXECUTE format(
+        'SELECT * FROM %I '
+        'WHERE codice = $1 AND mark_type = $2 AND created_at > $3 '
+        'ORDER BY created_at '
+        'LIMIT 1', 
+        table_name
+    ) INTO row_out USING row_in.codice, 'U'::mark_type, row_in.created_at;
+    RETURN row_out;
+END; $$ LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE FUNCTION get_id_out(table_name TEXT, row_in_id INT) RETURNS INT AS $$
+DECLARE
+    row_out RECORD;
+BEGIN
+    row_out := get_row_out(table_name, row_in_id);
+    RETURN row_out.id;
+END; $$ LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE FUNCTION get_date_out(table_name TEXT, row_in_id INT) RETURNS TIMESTAMP AS $$
+DECLARE
+    row_out RECORD;
+BEGIN
+    row_out := get_row_out(table_name, row_in_id);
+    RETURN row_out.created_at;
+END; $$ LANGUAGE PLPGSQL;
 
 CREATE OR REPLACE FUNCTION is_in_strutt(date_in TIMESTAMP, date_out TIMESTAMP) RETURNS BOOLEAN
     LANGUAGE SQL
@@ -96,10 +135,8 @@ CREATE TABLE IF NOT EXISTS postazioni_user(
     PRIMARY KEY (usr_id, post_id)
 );
 
-CREATE TABLE IF NOT EXISTS nominativi(
-    codice VARCHAR(9) PRIMARY KEY DEFAULT next_barcode('1'),
-    descrizione TEXT CHECK (descrizione != ''),
-    stato VARCHAR(32) NOT NULL DEFAULT 'VALIDO' CHECK (is_typeof(stato, 'public.badge_state')),
+CREATE TABLE IF NOT EXISTS people(
+    id SERIAL PRIMARY KEY,
     nome VARCHAR(32) NOT NULL CHECK (nome != ''),
     cognome VARCHAR(32) NOT NULL CHECK (cognome != ''),
     assegnazione VARCHAR(32) NOT NULL DEFAULT 'UTENTE' CHECK (is_typeof(assegnazione, 'public.assign_type')),
@@ -109,8 +146,16 @@ CREATE TABLE IF NOT EXISTS nominativi(
     ndoc VARCHAR(32) CHECK (ndoc != ''),
     tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'public.doc_type')),
     scadenza DATE,
+    UNIQUE(ndoc, tdoc)
+);
+
+CREATE TABLE IF NOT EXISTS nominativi(
+    codice VARCHAR(9) PRIMARY KEY DEFAULT next_barcode('1'),
+    descrizione TEXT CHECK (descrizione != ''),
+    stato VARCHAR(32) NOT NULL DEFAULT 'VALIDO' CHECK (is_typeof(stato, 'public.badge_state')),
     cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
     zuc_cod VARCHAR(6) UNIQUE CHECK (length(zuc_cod) = 6 AND (zuc_cod ~ '^[0-9]+$')),
+    proprietario INT NOT NULL REFERENCES people (id),
     CONSTRAINT invalid_nom_barcode CHECK (left(codice, 1) = '1' AND length(codice) = 9 AND (codice ~ '^[0-9]+$'))
 );
 
@@ -133,7 +178,7 @@ CREATE TABLE IF NOT EXISTS chiavi(
     citta VARCHAR(64) CHECK (citta != ''),
     edificio VARCHAR(32) NOT NULL DEFAULT 'GENERICO' CHECK (is_typeof(edificio, 'public.building_type')),
     piano TEXT CHECK (piano != ''),
-    proprietario VARCHAR(9) REFERENCES nominativi (codice),
+    proprietario INT REFERENCES people (id),
     CONSTRAINT invalid_chiave_barcode CHECK (left(codice, 1) = '3' AND length(codice) = 9 AND (codice ~ '^[0-9]+$'))
 );
 
@@ -144,7 +189,7 @@ CREATE TABLE IF NOT EXISTS veicoli(
     stato VARCHAR(32) NOT NULL DEFAULT 'VALIDO' CHECK (is_typeof(stato, 'public.badge_state')),
     cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
     tipo VARCHAR(32) NOT NULL DEFAULT 'GENERICO' CHECK (is_typeof(tipo, 'public.veh_type')),
-    proprietario VARCHAR(9) NOT NULL REFERENCES nominativi (codice),
+    proprietario INT NOT NULL REFERENCES people (id),
     CONSTRAINT invalid_veicolo_barcode CHECK (left(codice, 1) = '4' AND length(codice) = 9 AND (codice ~ '^[0-9]+$'))
 );
 
@@ -152,44 +197,30 @@ CREATE TABLE IF NOT EXISTS archivio_nominativi(
     id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
     badge_cod VARCHAR(9) NOT NULL REFERENCES nominativi (codice),
     post_id INT NOT NULL REFERENCES postazioni (id),
-    data_in TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
-    data_out TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '24 hours'),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
     username VARCHAR(64) NOT NULL REFERENCES users (name),
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
-    CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in),
-    UNIQUE (badge_cod, data_in)
+    UNIQUE (badge_cod, created_at)
 );
 
 CREATE TABLE IF NOT EXISTS archivio_provvisori(
     id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
     badge_cod VARCHAR(9) NOT NULL REFERENCES provvisori (codice),
     post_id INT NOT NULL REFERENCES postazioni (id),
-    data_in TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '23 hours 59 minutes'),
-    data_out TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '24 hours'),
+    created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0)),
     username VARCHAR(64) NOT NULL REFERENCES users (name),
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
-    nome VARCHAR(32) NOT NULL CHECK (nome != ''),
-    cognome VARCHAR(32) NOT NULL CHECK (cognome != ''),
-    assegnazione VARCHAR(32) NOT NULL DEFAULT 'OSPITE' CHECK (is_typeof(assegnazione, 'public.assign_type')),
-    ditta VARCHAR(64) CHECK (ditta != ''),
-    cod_fisc VARCHAR(16) CHECK (length(cod_fisc) = 16),
-    telefono VARCHAR(32) CHECK (telefono != ''),
-    ndoc VARCHAR(32) CHECK (ndoc != ''),
-    tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'public.doc_type')),
-    targa VARCHAR(32) CHECK (targa != ''),
-    CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in),
-    UNIQUE (badge_cod, data_in)
+    person_id INT NOT NULL REFERENCES people (id),
+    UNIQUE (badge_cod, created_at)
 );
 
 CREATE TABLE IF NOT EXISTS archivio_veicoli(
     id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
     targa VARCHAR(32) NOT NULL REFERENCES veicoli (targa),
     post_id INT NOT NULL REFERENCES postazioni (id),
-    data_in TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
-    data_out TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '24 hours'),
+    created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0)),
     username VARCHAR(64) NOT NULL REFERENCES users (name),
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
-    CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in),
     UNIQUE (targa, data_in)
 );
 
@@ -197,21 +228,12 @@ CREATE TABLE IF NOT EXISTS archivio_veicoli_prov(
     id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
     targa VARCHAR(32) NOT NULL,
     post_id INT NOT NULL REFERENCES postazioni (id),
-    data_in TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '23 hours 59 minutes'),
-    data_out TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '24 hours'),
+    created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0)),
     username VARCHAR(64) NOT NULL REFERENCES users (name),
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
-    nome VARCHAR(32) NOT NULL CHECK (nome != ''),
-    cognome VARCHAR(32) NOT NULL CHECK (cognome != ''),
-    assegnazione VARCHAR(32) NOT NULL DEFAULT 'OSPITE' CHECK (is_typeof(assegnazione, 'public.assign_type')),
-    ditta VARCHAR(64) CHECK (ditta != ''),
-    cod_fisc VARCHAR(16) CHECK (length(cod_fisc) = 16),
-    telefono VARCHAR(32) CHECK (telefono != ''),
-    ndoc VARCHAR(32) CHECK (ndoc != ''),
-    tdoc VARCHAR(32) CHECK (tdoc = 'CARTA IDENTITA' OR tdoc = 'PATENTE' OR tdoc = 'TESSERA STUDENTE'),
+    person_id INT NOT NULL REFERENCES people (id),
     tveicolo VARCHAR(32) NOT NULL DEFAULT 'GENERICO' CHECK (is_typeof(tveicolo, 'public.veh_type')),
-    CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in),
-    UNIQUE (targa, data_in)
+    UNIQUE (targa, created_at)
 );
 
 CREATE TABLE IF NOT EXISTS archivio_chiavi(
@@ -219,8 +241,7 @@ CREATE TABLE IF NOT EXISTS archivio_chiavi(
     badge_cod VARCHAR(9) REFERENCES nominativi (codice),
     chiave_cod VARCHAR(9) REFERENCES chiavi (codice),
     post_id INT REFERENCES postazioni (id),
-    data_in TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
-    data_out TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '24 hours'),
+    created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0)),
     username VARCHAR(64) NOT NULL REFERENCES users (name),
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
     CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in),
@@ -229,7 +250,7 @@ CREATE TABLE IF NOT EXISTS archivio_chiavi(
 
 CREATE TABLE IF NOT EXISTS protocolli(
     id SERIAL PRIMARY KEY,
-    date TIMESTAMP NOT NULL DEFAULT date_trunc('second', CURRENT_TIMESTAMP),
+    created_at TIMESTAMP NOT NULL DEFAULT date_trunc('second', CURRENT_TIMESTAMP),
     descrizione TEXT CHECK (descrizione != '')
 );
 
@@ -246,30 +267,6 @@ CREATE TABLE IF NOT EXISTS prot_visibile_da(
     PRIMARY KEY (prot_id, post_id)
 );
 
--- CREATE TABLE IF NOT EXISTS archivio_dump(
---     id BIGINT,
---     badge TEXT,
---     targa TEXT,
---     chiave TEXT,
---     tipo TEXT,
---     provvisorio TEXT,
---     notte TEXT,
---     tempo_in_strutt TEXT,
---     cliente TEXT,
---     postazione TEXT,
---     data_in TIMESTAMP,
---     data_out TIMESTAMP,
---     username TEXT,
---     ip TEXT,
---     nome TEXT,
---     cognome TEXT,
---     assegnazione TEXT,
---     tveicolo TEXT,
---     ditta TEXT,
---     ndoc TEXT,ctualCliente
---     piano TEXT
--- );
-
 CREATE VIEW full_archivio AS
     WITH full_archivio_nominativi AS (
         SELECT a.id, n.codice AS badge, n.nome, n.cognome, n.assegnazione, NULL AS targa, NULL AS chiave, 'BADGE' AS tipo, 'NO' AS provvisorio,
@@ -283,7 +280,7 @@ CREATE VIEW full_archivio AS
         JOIN postazioni AS po ON a.post_id = po.id 
     ),
     full_archivio_provvisori AS (
-        SELECT a.id, a.badge_cod AS badge, a.nome, a.cognome, a.assegnazione, a.targa, NULL AS chiave, 'BADGE' AS tipo, 
+        SELECT a.id, a.badge_cod AS badge, a.nome, a.cognome, a.assegnazione, NULL AS targa, NULL AS chiave, 'BADGE' AS tipo, 
         'SI' AS provvisorio, po.cliente, po.name AS postazione, a.data_in, a.data_out,
         date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
         dates_are_not_equal(a.data_in, a.data_out) AS notte,
@@ -458,39 +455,12 @@ CREATE VIEW assegnazioni AS SELECT unnest(enum_range(NULL::assign_type)) AS valu
 CREATE VIEW edifici AS SELECT unnest(enum_range(NULL::building_type)) AS value;
 CREATE VIEW tveicoli AS SELECT unnest(enum_range(NULL::veh_type)) AS value;
 
-CREATE VIEW nominativi_w_docs AS
+CREATE VIEW nominativi_w_docs AS 
     SELECT *, 'PRIVACY_'||codice||'.pdf' AS privacy, 'DOC_'||codice||'.pdf' AS documento FROM nominativi;
 
--- CREATE OR REPLACE PROCEDURE mark_out(arch_id BIGINT, arch_tname regclass) AS $$
--- DECLARE
---     tmp_id BIGINT;
--- BEGIN
---     INSERT INTO archivio_dump (SELECT * FROM alt_archivio WHERE id = arch_id) RETURNING id INTO tmp_id;
---     IF tmp_id IS NULL THEN
---         RAISE EXCEPTION 'Impossibile inserire badge 
---         RAISE EXCEPTION 'Impossibile rimuovere badge in struttura';
---     END IF;
--- END; $$ LANGUAGE plpgsql;
-
--- CREATE OR REPLACE PROCEDURE mark_out_many(arch_ids BIGINT[], arch_tname regclass) AS $$
--- DECLARE
---     tmp_ids BIGINT[];
---     n_ids INT = cardinality(arch_ids);
--- BEGIN
---     INSERT INTO archivio_dump (SELECT * FROM alt_archivio WHERE id = ANY(arch_ids)) RETURNING id INTO tmp_ids;
---     IF tmp_ids IS NULL OR cardinality(tmp_ids) != n_ids THEN
---         RAISE EXCEPTION 'Impossibile inserire uno o più badge in archivio';
---     END IF;
---     EXECUTE format('DELETE FROM %I WHERE id = ANY(%L) RETURNING id', arch_tname, arch_ids) INTO tmp_ids;
---     IF tmp_ids IS NULL OR cardinality(tmp_ids) != n_ids THEN
---         RAISE EXCEPTION 'Impossibile rimuovere uno o più badge in struttura';
---     END IF;
--- END; $$ LANGUAGE plpgsql;
-
-/*######################################################################################################################################################*/
-
-/*######################################################################################################################################################*/
-
-/*######################################################################################################################################################*/
+-- SELECT t1.id AS id_in, t1.id_out, t1.created_at AS date_in, t2.created_at AS date_out, t1.ip AS ip_in, t2.ip AS ip_out
+-- FROM (SELECT *, get_id_out('timbrature', id) AS id_out FROM timbrature WHERE mark_type = 'I') AS t1
+-- LEFT JOIN timbrature AS t2 ON id_out = t2.id
+-- ORDER BY date_in, date_out;
 
 \c postgres;

@@ -712,6 +712,10 @@ export const INSERT_ARCH_BADGE_SCHEMA = z.object({
     .string()
     .transform((val) => val.toUpperCase())
     .optional(),
+  targa: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
 });
 export type InsertArchBadgeData = z.infer<typeof INSERT_ARCH_BADGE_SCHEMA>;
 

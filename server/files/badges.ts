@@ -6,24 +6,28 @@ import { BaseError } from "../types/errors.js";
 import { UPLOADS_DIR } from "./index.js";
 
 type TKey = string | number;
+type FileOptions = {
+  expectedExt?: string;
+  maxSize?: number;
+};
 
 export default class BadgesFileManager {
   private static async uploadFile(
     prefix: string,
     key: TKey,
     file: UploadedFile,
-    options?: { expectedExt?: string; maxSize?: number }
+    options?: FileOptions
   ) {
     const fileExt = path.extname(file.name);
     if (options?.expectedExt && fileExt !== options.expectedExt) {
-      throw new BaseError("Estensione file non valida", {
+      return new BaseError("Estensione file non valida", {
         context: { fileExt, expectedFileExt: options.expectedExt },
       });
     }
 
     const fileSize = file.data.length;
     if (options?.maxSize && fileSize > options.maxSize) {
-      throw new BaseError("File troppo grande", {
+      return new BaseError("File troppo grande", {
         context: { fileSize, maxFileSize: options.maxSize },
       });
     }

@@ -6,6 +6,7 @@ import { TDOCS } from "../../types/badges";
 import { InsertArchBadgeForm } from "../../types/forms";
 import toast from "react-hot-toast";
 import { Postazione } from "../../types/postazioni";
+import { PDFDocument } from "pdf-lib";
 
 function isCodiceFiscale(cf: string) {
   return (
@@ -14,6 +15,44 @@ function isCodiceFiscale(cf: string) {
       cf.toUpperCase()
     )
   );
+}
+
+async function mergeDocs(files: FileList) {
+  if (files.length < 1) {
+    return null;
+  } else if (files.length === 1) {
+    const file = files.item(0);
+    if (!file) {
+      return null;
+    }
+    const arrayBuffer = await file.arrayBuffer();
+    const fileRawData = new Uint8Array(arrayBuffer);
+    const fileBlob = new Blob([fileRawData], { type: "application/pdf" });
+    return fileBlob;
+  }
+
+  const MAX_FILES = 10;
+  const numFiles = files.length < MAX_FILES ? files.length : MAX_FILES;
+
+  const mergedPdf = await PDFDocument.create();
+
+  let i = 0;
+  for (; i < numFiles; ++i) {
+    const currentFile = files.item(i);
+    if (!currentFile) continue;
+    const arrayBuffer = await currentFile.arrayBuffer();
+    const pdf = await PDFDocument.load(arrayBuffer);
+    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+    copiedPages.forEach((page) => mergedPdf.addPage(page));
+  }
+  if (i < 1) {
+    return null;
+  }
+
+  const mergedPdfBytes = await mergedPdf.save();
+  const mergedBlob = new Blob([mergedPdfBytes], { type: "application/pdf" });
+
+  return mergedBlob;
 }
 
 export default function OspitiPopup(props: {
@@ -31,30 +70,37 @@ export default function OspitiPopup(props: {
     telefono: null,
     ndoc: null,
     tdoc: null,
-    documento: null,
+    targa: null,
+    docs: null,
   });
 
-  function createFormData() {
+  async function createFormData() {
     const formData = new FormData();
     formData.append("post_id", String(props.currPostazione!.id));
-    Object.entries(formRef.current)
-      .filter(([_, el]) => el !== null && el.value)
-      .forEach(([key, el]) => {
-        switch (key) {
-          case "documento":
-            const fileToUpl = (el as HTMLInputElement).files?.item(0);
-            fileToUpl && formData.append(key, fileToUpl);
-            break;
-          default:
-            formData.append(key, el!.value);
-        }
-      });
+    await Promise.all(
+      Object.entries(formRef.current)
+        .filter(([_, el]) => el !== null && el.value)
+        .map(async ([key, el]) => {
+          switch (key) {
+            case "docs":
+              const filesToMerge = (el as HTMLInputElement).files;
+              if (!filesToMerge) return;
+              const blobToUpload = await mergeDocs(filesToMerge);
+              if (!blobToUpload) return;
+              formData.append(key, blobToUpload, "docs.pdf");
+              break;
+            default:
+              formData.append(key, el!.value);
+          }
+        })
+    );
     return formData;
   }
 
-  function insertOspBtnEvent() {
+  async function insertOspBtnEvent() {
     if (props.currPostazione) {
-      props.insertOsp(createFormData());
+      const formData = await createFormData();
+      props.insertOsp(formData);
       props.closePopup();
     } else {
       toast.error("Nessuna postazione selezionata");
@@ -180,17 +226,30 @@ export default function OspitiPopup(props: {
                 />
                 <label htmlFor="cod_fisc">codice fiscale</label>
               </div>
+              <div className="form-floating col-sm-4">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  id="osp-targa"
+                  autoComplete="off"
+                  ref={(el) => (formRef.current.targa = el)}
+                />
+                <label htmlFor="osp-targa">targa</label>
+              </div>
+            </div>
+            <div className="row">
               <div className="col-sm-4 input-group custom-input-file one-third-col">
-                <label htmlFor="documento" className="input-group-text">
-                  documento
+                <label htmlFor="docs" className="input-group-text">
+                  documenti
                 </label>
                 <input
                   accept=".pdf"
                   type="file"
+                  multiple
                   className="form-control form-control-sm"
-                  id="documento"
+                  id="docs"
                   autoComplete="off"
-                  ref={(el) => (formRef.current.documento = el)}
+                  ref={(el) => (formRef.current.docs = el)}
                 />
               </div>
             </div>

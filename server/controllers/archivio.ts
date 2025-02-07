@@ -259,13 +259,13 @@ export default class ArchivioController {
       const archId = dbResult.rows[0].id;
 
       let uploadedFile;
-      const documento = Array.isArray(req.files?.documento)
-        ? req.files?.documento[0]
-        : req.files?.documento;
-      if (documento) {
+      const docs = Array.isArray(req.files?.docs)
+        ? req.files?.docs[0]
+        : req.files?.docs;
+      if (docs) {
         uploadedFile = await BadgesFileManager.uploadDocumentoProv(
           archId,
-          documento
+          docs
         );
       }
 
