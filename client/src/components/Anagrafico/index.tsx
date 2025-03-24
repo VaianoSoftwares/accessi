@@ -21,6 +21,7 @@ import "./index.css";
 import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import { Link } from "react-router-dom";
+import { TPermessi, hasPerm } from "../../types/users";
 
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 const UPLOADS_DIR = "/api/v1/public/uploads/";
@@ -560,8 +561,19 @@ export default function Anagrafico() {
       });
   }
 
-  const [currentFormType, setCurrentFormType] = useState<BadgeType>(
-    BadgeType.NOMINATIVO
+  const [currentFormType, setCurrentFormType] = useState<BadgeType | null>(
+    () => {
+      if (hasPerm(currentUser, TPermessi.showNominativiInAnagrafico)) {
+        return BadgeType.NOMINATIVO;
+      } else if (hasPerm(currentUser, TPermessi.showChiaviInAnagrafico)) {
+        return BadgeType.CHIAVE;
+      } else if (hasPerm(currentUser, TPermessi.showProvvisoriInAnagrafico)) {
+        return BadgeType.PROVVISORIO;
+      } else if (hasPerm(currentUser, TPermessi.showVeicoliInAnagrafico)) {
+        return BadgeType.VEICOLO;
+      }
+      return null;
+    }
   );
 
   const [pfpUrl, { updateImage, setNoImage }] = useImage((data) =>
@@ -984,214 +996,244 @@ export default function Anagrafico() {
 
   return (
     <div>
-      <div className="container-fluid m-1 anagrafico-container">
-        <div className="row justify-content-start align-items-start submit-form">
-          <div className="col anagrafico-form">
-            <div className="row my-1">
-              <div className="form-floating col-sm-3">
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
-                  id="codice"
-                  placeholder="codice"
-                  autoComplete="off"
-                  ref={(el) => (formRef.current.codice = el)}
-                />
-                <label htmlFor="codice">codice</label>
-              </div>
-              <div className="form-floating col-sm-3">
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
-                  id="descrizione"
-                  placeholder="descrizione"
-                  autoComplete="off"
-                  ref={(el) => (formRef.current.descrizione = el)}
-                />
-                <label htmlFor="descrizione">descrizione</label>
-              </div>
-              <div className="form-floating col-sm-3">
-                <select
-                  className="form-select form-select-sm"
-                  id="stato"
-                  ref={(el) => (formRef.current.stato = el)}
-                >
-                  <option key="-1" />
-                  {STATI_BADGE.map((stato) => (
-                    <option value={stato} key={stato}>
-                      {stato}
-                    </option>
-                  ))}
-                </select>
-                <label htmlFor="stato">stato</label>
-              </div>
-              <div className="form-floating col-sm-3">
-                <select
-                  className="form-select form-select-sm"
-                  id="cliente"
-                  ref={(el) => (formRef.current.cliente = el)}
-                >
-                  <option key="-1" />
-                  {clienti.isSuccess &&
-                    clienti.data
-                      .filter((cliente) =>
-                        currentUser?.clienti.includes(cliente)
-                      )
-                      .map((cliente) => (
-                        <option value={cliente} key={cliente}>
-                          {cliente}
+      {currentFormType ? (
+        <>
+          <div className="container-fluid m-1 anagrafico-container">
+            <div className="row justify-content-start align-items-start submit-form">
+              <div className="col anagrafico-form">
+                <div className="row my-1">
+                  <div className="form-floating col-sm-3">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="codice"
+                      placeholder="codice"
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.codice = el)}
+                    />
+                    <label htmlFor="codice">codice</label>
+                  </div>
+                  <div className="form-floating col-sm-3">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="descrizione"
+                      placeholder="descrizione"
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.descrizione = el)}
+                    />
+                    <label htmlFor="descrizione">descrizione</label>
+                  </div>
+                  <div className="form-floating col-sm-3">
+                    <select
+                      className="form-select form-select-sm"
+                      id="stato"
+                      ref={(el) => (formRef.current.stato = el)}
+                    >
+                      <option key="-1" />
+                      {STATI_BADGE.map((stato) => (
+                        <option value={stato} key={stato}>
+                          {stato}
                         </option>
                       ))}
-                </select>
-                <label htmlFor="cliente">cliente</label>
-              </div>
-              <div className="w-100" />
-              {getCurrentForm(currentFormType)}
-            </div>
-            <div className="row justify-content-start gx-0">
-              <div className="col-sm-1">
-                <button
-                  onClick={() => {
-                    switch (currentFormType) {
-                      case BadgeType.NOMINATIVO:
-                        return findNominativi.refetch();
-                      case BadgeType.PROVVISORIO:
-                        return findProvvisori.refetch();
-                      case BadgeType.CHIAVE:
-                        return findChiavi.refetch();
-                      case BadgeType.VEICOLO:
-                        return findVeicoli.refetch();
-                    }
-                  }}
-                  className="btn btn-success anagrafico-form-btn"
-                >
-                  Cerca
-                </button>
-              </div>
-              <div className="col-sm-1">
-                <button
-                  onClick={() => {
-                    switch (currentFormType) {
-                      case BadgeType.NOMINATIVO:
-                        return insertNominativo.mutate(createFormData());
-                      case BadgeType.PROVVISORIO:
-                        return insertProvvisorio.mutate(createFormData());
-                      case BadgeType.CHIAVE:
-                        return insertChiave.mutate(createFormData());
-                      case BadgeType.VEICOLO:
-                        return insertVeicolo.mutate(createFormData());
-                    }
-                  }}
-                  className="btn btn-success anagrafico-form-btn"
-                >
-                  Aggiungi
-                </button>
-              </div>
-              <div className="col-sm-1">
-                <button
-                  onClick={() => {
-                    const confirmed = window.confirm(
-                      "Procedere alla modifica del badge?"
-                    );
-                    if (!confirmed) return;
+                    </select>
+                    <label htmlFor="stato">stato</label>
+                  </div>
+                  <div className="form-floating col-sm-3">
+                    <select
+                      className="form-select form-select-sm"
+                      id="cliente"
+                      ref={(el) => (formRef.current.cliente = el)}
+                    >
+                      <option key="-1" />
+                      {clienti.isSuccess &&
+                        clienti.data
+                          .filter((cliente) =>
+                            currentUser?.clienti.includes(cliente)
+                          )
+                          .map((cliente) => (
+                            <option value={cliente} key={cliente}>
+                              {cliente}
+                            </option>
+                          ))}
+                    </select>
+                    <label htmlFor="cliente">cliente</label>
+                  </div>
+                  <div className="w-100" />
+                  {currentFormType ? getCurrentForm(currentFormType) : <></>}
+                </div>
+                <div className="row justify-content-start gx-0">
+                  <div className="col-sm-1">
+                    <button
+                      onClick={() => {
+                        switch (currentFormType) {
+                          case BadgeType.NOMINATIVO:
+                            return findNominativi.refetch();
+                          case BadgeType.PROVVISORIO:
+                            return findProvvisori.refetch();
+                          case BadgeType.CHIAVE:
+                            return findChiavi.refetch();
+                          case BadgeType.VEICOLO:
+                            return findVeicoli.refetch();
+                        }
+                      }}
+                      className="btn btn-success anagrafico-form-btn"
+                    >
+                      Cerca
+                    </button>
+                  </div>
+                  <div className="col-sm-1">
+                    <button
+                      onClick={() => {
+                        switch (currentFormType) {
+                          case BadgeType.NOMINATIVO:
+                            return insertNominativo.mutate(createFormData());
+                          case BadgeType.PROVVISORIO:
+                            return insertProvvisorio.mutate(createFormData());
+                          case BadgeType.CHIAVE:
+                            return insertChiave.mutate(createFormData());
+                          case BadgeType.VEICOLO:
+                            return insertVeicolo.mutate(createFormData());
+                        }
+                      }}
+                      className="btn btn-success anagrafico-form-btn"
+                    >
+                      Aggiungi
+                    </button>
+                  </div>
+                  <div className="col-sm-1">
+                    <button
+                      onClick={() => {
+                        const confirmed = window.confirm(
+                          "Procedere alla modifica del badge?"
+                        );
+                        if (!confirmed) return;
 
-                    switch (currentFormType) {
-                      case BadgeType.NOMINATIVO:
-                        return updateNominativo.mutate(createFormData());
-                      case BadgeType.PROVVISORIO:
-                        return updateProvvisorio.mutate(createFormData());
-                      case BadgeType.CHIAVE:
-                        return updateChiave.mutate(createFormData());
-                      case BadgeType.VEICOLO:
-                        return updateVeicolo.mutate(createFormData());
-                    }
-                  }}
-                  className="btn btn-success anagrafico-form-btn"
-                >
-                  Aggiorna
-                </button>
-              </div>
-              <div className="col-sm-1">
-                <button
-                  onClick={() => {
-                    const confirmed = window.confirm(
-                      "Procedere alla rimozione del badge?"
-                    );
-                    if (!confirmed) return;
+                        switch (currentFormType) {
+                          case BadgeType.NOMINATIVO:
+                            return updateNominativo.mutate(createFormData());
+                          case BadgeType.PROVVISORIO:
+                            return updateProvvisorio.mutate(createFormData());
+                          case BadgeType.CHIAVE:
+                            return updateChiave.mutate(createFormData());
+                          case BadgeType.VEICOLO:
+                            return updateVeicolo.mutate(createFormData());
+                        }
+                      }}
+                      className="btn btn-success anagrafico-form-btn"
+                    >
+                      Aggiorna
+                    </button>
+                  </div>
+                  <div className="col-sm-1">
+                    <button
+                      onClick={() => {
+                        const confirmed = window.confirm(
+                          "Procedere alla rimozione del badge?"
+                        );
+                        if (!confirmed) return;
 
-                    const codice = formRef.current.codice?.value;
-                    if (!codice) {
-                      toast.error("Campo Codice risulta mancante");
-                      return;
-                    }
+                        const codice = formRef.current.codice?.value;
+                        if (!codice) {
+                          toast.error("Campo Codice risulta mancante");
+                          return;
+                        }
 
-                    switch (currentFormType) {
-                      case BadgeType.NOMINATIVO:
-                        return deleteNominativo.mutate({ codice });
-                      case BadgeType.PROVVISORIO:
-                        return deleteProvvisorio.mutate({ codice });
-                      case BadgeType.CHIAVE:
-                        return deleteChiave.mutate({ codice });
-                      case BadgeType.VEICOLO:
-                        return deleteVeicolo.mutate({ codice });
-                    }
-                  }}
-                  className="btn btn-success anagrafico-form-btn"
-                >
-                  Elimina
-                </button>
+                        switch (currentFormType) {
+                          case BadgeType.NOMINATIVO:
+                            return deleteNominativo.mutate({ codice });
+                          case BadgeType.PROVVISORIO:
+                            return deleteProvvisorio.mutate({ codice });
+                          case BadgeType.CHIAVE:
+                            return deleteChiave.mutate({ codice });
+                          case BadgeType.VEICOLO:
+                            return deleteVeicolo.mutate({ codice });
+                        }
+                      }}
+                      className="btn btn-success anagrafico-form-btn"
+                    >
+                      Elimina
+                    </button>
+                  </div>
+                  <div className="col-sm-1">
+                    <button
+                      onClick={async () =>
+                        refreshPage({ form: true, image: true, refetch: false })
+                      }
+                      className="btn btn-success anagrafico-form-btn"
+                    >
+                      Refresh
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="col-sm-1">
-                <button
-                  onClick={async () =>
-                    refreshPage({ form: true, image: true, refetch: false })
-                  }
-                  className="btn btn-success anagrafico-form-btn"
-                >
-                  Refresh
-                </button>
+              <div className="col-sm-1 form-buttons">
+                <div className="row align-items-center justify-content-start g-0">
+                  {hasPerm(
+                    currentUser,
+                    TPermessi.showNominativiInAnagrafico
+                  ) ? (
+                    <div className="col">
+                      <button
+                        onClick={() => setCurrentFormType(BadgeType.NOMINATIVO)}
+                        className="btn btn-success anagrafico-form-btn"
+                      >
+                        Nominativi
+                      </button>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                  {hasPerm(
+                    currentUser,
+                    TPermessi.showProvvisoriInAnagrafico
+                  ) ? (
+                    <div className="col mt-1">
+                      <button
+                        onClick={() =>
+                          setCurrentFormType(BadgeType.PROVVISORIO)
+                        }
+                        className="btn btn-success anagrafico-form-btn"
+                      >
+                        Provvisori
+                      </button>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                  {hasPerm(currentUser, TPermessi.showChiaviInAnagrafico) ? (
+                    <div className="col mt-1">
+                      <button
+                        onClick={() => setCurrentFormType(BadgeType.CHIAVE)}
+                        className="btn btn-success anagrafico-form-btn"
+                      >
+                        Chiavi
+                      </button>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                  {hasPerm(currentUser, TPermessi.showVeicoliInAnagrafico) ? (
+                    <div className="col mt-1">
+                      <button
+                        onClick={() => setCurrentFormType(BadgeType.VEICOLO)}
+                        className="btn btn-success anagrafico-form-btn"
+                      >
+                        Veicoli
+                      </button>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-          <div className="col-sm-1 form-buttons">
-            <div className="row align-items-center justify-content-start g-0">
-              <div className="col">
-                <button
-                  onClick={() => setCurrentFormType(BadgeType.NOMINATIVO)}
-                  className="btn btn-success anagrafico-form-btn"
-                >
-                  Nominativi
-                </button>
-              </div>
-              <div className="col mt-1">
-                <button
-                  onClick={() => setCurrentFormType(BadgeType.PROVVISORIO)}
-                  className="btn btn-success anagrafico-form-btn"
-                >
-                  Provvisori
-                </button>
-              </div>
-              <div className="col mt-1">
-                <button
-                  onClick={() => setCurrentFormType(BadgeType.CHIAVE)}
-                  className="btn btn-success anagrafico-form-btn"
-                >
-                  Chiavi
-                </button>
-              </div>
-              <div className="col mt-1">
-                <button
-                  onClick={() => setCurrentFormType(BadgeType.VEICOLO)}
-                  className="btn btn-success anagrafico-form-btn"
-                >
-                  Veicoli
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="anagrafico-table-wrapper">{getContentTable()}</div>
+          <div className="anagrafico-table-wrapper">{getContentTable()}</div>
+        </>
+      ) : (
+        <h1>Permessi Insufficienti</h1>
+      )}
     </div>
   );
 }

@@ -4,16 +4,20 @@ import { TPages } from "./pages";
 
 export enum TPermessi {
   admin = MAX_UINT32,
-  device = 1,
-  canLogout = 2,
-  canAccessInStruttReport = 4,
-  canMarkProvvisori = 8,
-  canEditArchivio = 16,
-  canEditBadges = 32,
-  canEditPostazioni = 64,
-  canEditUsers = 128,
-  canEditClienti = 256,
-  canEditAssegnazioni = 512,
+  device = 1 << 0,
+  canLogout = 1 << 1,
+  canAccessInStruttReport = 1 << 2,
+  canMarkProvvisori = 1 << 3,
+  canEditArchivio = 1 << 4,
+  canEditBadges = 1 << 5,
+  canEditPostazioni = 1 << 6,
+  canEditUsers = 1 << 7,
+  canEditClienti = 1 << 8,
+  canEditAssegnazioni = 1 << 9,
+  showNominativiInAnagrafico = 1 << 10,
+  showProvvisoriInAnagrafico = 1 << 11,
+  showChiaviInAnagrafico = 1 << 12,
+  showVeicoliInAnagrafico = 1 << 13,
 }
 
 export const PERMESSI_INFO: ReadonlyMap<TPermessi, string> = new Map([
@@ -27,6 +31,10 @@ export const PERMESSI_INFO: ReadonlyMap<TPermessi, string> = new Map([
   [TPermessi.canEditUsers, "canEditUsers"],
   [TPermessi.canEditClienti, "canEditClienti"],
   [TPermessi.canEditAssegnazioni, "canEditAssegnazioni"],
+  [TPermessi.showNominativiInAnagrafico, "showNominativiInAnagrafico"],
+  [TPermessi.showProvvisoriInAnagrafico, "showProvvisoriInAnagrafico"],
+  [TPermessi.showChiaviInAnagrafico, "showChiaviInAnagrafico"],
+  [TPermessi.showVeicoliInAnagrafico, "showVeicoliInAnagrafico"],
 ]);
 
 export type TUser = {
