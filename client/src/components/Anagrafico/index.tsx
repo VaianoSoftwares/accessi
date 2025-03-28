@@ -396,7 +396,7 @@ export default function Anagrafico() {
   });
 
   const deleteChiave = useMutation({
-    mutationFn: (data: BadgeDeleteReq) => ProvvisoriDataService.delete(data),
+    mutationFn: (data: BadgeDeleteReq) => ChiaviDataService.delete(data),
     onSuccess: async (response) => {
       console.log("deleteChiave | response:", response);
 
