@@ -28,6 +28,7 @@ export type AnagraficoForm = {
   targa?: string | undefined;
   tipo?: string | undefined;
   zuc_cod?: string | undefined;
+  mazzo?: string | undefined;
 };
 
 export type NominativiForm = {

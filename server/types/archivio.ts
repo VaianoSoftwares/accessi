@@ -14,6 +14,7 @@ export enum BarcodePrefix {
   provvisorioGenerico = "2",
   chiaveGenerico = "3",
   veicoloGenerico = "4",
+  mazzoChiavi = "5",
 }
 
 export interface BaseArchivio {

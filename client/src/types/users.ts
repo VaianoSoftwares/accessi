@@ -18,6 +18,7 @@ export enum TPermessi {
   showProvvisoriInAnagrafico = 1 << 11,
   showChiaviInAnagrafico = 1 << 12,
   showVeicoliInAnagrafico = 1 << 13,
+  showMazziInAnagrafico = 1 << 14,
 }
 
 export const PERMESSI_INFO: ReadonlyMap<TPermessi, string> = new Map([
@@ -35,6 +36,7 @@ export const PERMESSI_INFO: ReadonlyMap<TPermessi, string> = new Map([
   [TPermessi.showProvvisoriInAnagrafico, "showProvvisoriInAnagrafico"],
   [TPermessi.showChiaviInAnagrafico, "showChiaviInAnagrafico"],
   [TPermessi.showVeicoliInAnagrafico, "showVeicoliInAnagrafico"],
+  [TPermessi.showMazziInAnagrafico, "showMazziInAnagrafico"],
 ]);
 
 export type TUser = {

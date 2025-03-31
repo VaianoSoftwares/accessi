@@ -8,6 +8,7 @@ import clienti from "./clienti.js";
 import postazioni from "./postazioni.js";
 import chiavi from "./chiavi.js";
 import veicoli from "./veicoli.js";
+import mazzi from "./mazzi.js";
 import sse from "./sse.js";
 
 export default function mountRoutes(app: Express) {
@@ -20,5 +21,6 @@ export default function mountRoutes(app: Express) {
   app.use("/api/v1/provvisori", provvisori);
   app.use("/api/v1/chiavi", chiavi);
   app.use("/api/v1/veicoli", veicoli);
+  app.use("/api/v1/mazzi", mazzi);
   app.use("/api/v1/sse", sse);
 }

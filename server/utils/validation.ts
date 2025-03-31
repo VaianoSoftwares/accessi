@@ -128,6 +128,10 @@ export const CODICE_VEICOLO_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Codice") })
   .startsWith(BarcodePrefix.veicoloGenerico, "Codice non valido")
   .length(CODICE_LEN, CODICE_LEN_ERR_MSG);
+export const CODICE_MAZZO_SCHEMA = z
+  .string({ required_error: MISSING_ATTR_ERR_MSG("Codice") })
+  .startsWith(BarcodePrefix.mazzoChiavi, "Codice non valido")
+  .length(CODICE_LEN, CODICE_LEN_ERR_MSG);
 export const CODICE_STUDENTE_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Codice") })
   .regex(/^\d+$/, "Codice studente deve contenere solo cifre numeriche")
@@ -356,6 +360,7 @@ export const GET_CHIAVI_SCHEMA = z.object({
     .string()
     .transform((val) => val.toUpperCase())
     .nullish(),
+  mazzo: CODICE_MAZZO_SCHEMA.nullish(),
 });
 export type FindChiaviFilter = z.infer<typeof GET_CHIAVI_SCHEMA>;
 
@@ -387,6 +392,7 @@ export const INSERT_CHIAVE_SCHEMA = z.object({
     .string()
     .transform((val) => val.toUpperCase())
     .nullish(),
+  mazzo: CODICE_MAZZO_SCHEMA.nullish(),
 });
 export type InsertChiaveData = z.infer<typeof INSERT_CHIAVE_SCHEMA>;
 
@@ -395,6 +401,36 @@ export const UPDATE_CHIAVE_SCHEMA = z.object({
   updateData: GET_CHIAVI_SCHEMA.omit({ codice: true }),
 });
 export type UpdateChiaveData = z.infer<typeof UPDATE_CHIAVE_SCHEMA>;
+
+export const GET_MAZZI_SCHEMA = z.object({
+  codice: CODICE_MAZZO_SCHEMA.nullish(),
+  descrizione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  stato: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  cliente: z.string().nullish(),
+});
+export type FindMazziFilter = z.infer<typeof GET_MAZZI_SCHEMA>;
+
+export const INSERT_MAZZO_SCHEMA = z.object({
+  descrizione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  stato: z.enum(STATI_BADGE).default(BadgeState.VALIDO),
+  cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
+});
+export type InsertMazzoData = z.infer<typeof INSERT_MAZZO_SCHEMA>;
+
+export const UPDATE_MAZZO_SCHEMA = z.object({
+  codice: CODICE_MAZZO_SCHEMA,
+  updateData: GET_MAZZI_SCHEMA.omit({ codice: true }),
+});
+export type UpdateMazzoData = z.infer<typeof UPDATE_MAZZO_SCHEMA>;
 
 export const GET_ARCHIVIO_SCHEMA = z.object({
   badge: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
@@ -650,6 +686,7 @@ export const TIMBRA_CHIAVI_SCHEMA = z.object({
       BARCODE_NOM_ESCE_SCHEMA,
       CODICE_CHIAVE_SCHEMA,
       CODICE_NOM_SCHEMA,
+      CODICE_MAZZO_SCHEMA,
     ])
     .transform((v) => (v.length === 10 ? v.substring(1) : v))
     .array()
@@ -883,3 +920,9 @@ export const TIMBRA_NOM_OUT_WITH_DATE_SCHEMA = TIMBRA_NOM_UTILITY_SCHEMA.extend(
 export type TimbraNomOutWithDateData = z.infer<
   typeof TIMBRA_NOM_OUT_WITH_DATE_SCHEMA
 >;
+
+export const GET_FREE_KEYS_SCHEMA = z
+  .object({
+    cliente: z.string().optional(),
+  })
+  .nullish();

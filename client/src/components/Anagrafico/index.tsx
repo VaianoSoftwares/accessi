@@ -1,10 +1,11 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useContext, useEffect, useRef, useState } from "react";
 import NominativiDataService from "../../services/nominativo";
 import ClientiDataService from "../../services/clienti";
 import ProvvisoriDataService from "../../services/provvisorio";
 import VeicoliDataService from "../../services/veicoli";
 import ChiaviDataService from "../../services/chiavi";
+import MazziDataService from "../../services/mazzi";
 import toast from "react-hot-toast";
 import useImage from "../../hooks/useImage";
 import { BaseForm, AnagraficoForm } from "../../types/forms";
@@ -59,9 +60,10 @@ export default function Anagrafico() {
     targa: null,
     tipo: null,
     zuc_cod: null,
+    mazzo: null,
   });
 
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
   const clienti = useQuery({
     queryKey: ["clienti"],
@@ -154,10 +156,28 @@ export default function Anagrafico() {
     },
   });
 
-  useEffect(() => {
-    console.log("cliente", currCliente);
-    refreshPage({ form: false, image: false, refetch: true });
-  }, [currCliente]);
+  const queryMazzi = useQuery({
+    queryKey: ["freeKeys"],
+    queryFn: async () => {
+      try {
+        if (!currCliente) {
+          throw new Error("Nessun cliente selezionato");
+        }
+
+        const response = await MazziDataService.find({
+          cliente: currCliente,
+        });
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        console.log("queryMazzi | response:", response);
+        return response.data.result;
+      } catch (e) {
+        handleError(e);
+        return [];
+      }
+    },
+  });
 
   const findNominativi = useQuery({
     queryKey: ["nominativi"],
@@ -396,7 +416,7 @@ export default function Anagrafico() {
   });
 
   const deleteChiave = useMutation({
-    mutationFn: (data: BadgeDeleteReq) => ProvvisoriDataService.delete(data),
+    mutationFn: (data: BadgeDeleteReq) => ChiaviDataService.delete(data),
     onSuccess: async (response) => {
       console.log("deleteChiave | response:", response);
 
@@ -492,6 +512,117 @@ export default function Anagrafico() {
     onError: async (err) => handleError(err, "deleteVeicolo"),
   });
 
+  const findMazzi = useQuery({
+    queryKey: ["mazzi"],
+    queryFn: async () => {
+      try {
+        const response = await MazziDataService.find(formToObj());
+        console.log("findMazzi | response:", response);
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+
+        const { result } = response.data;
+        if (result.length === 1) {
+          setForm(result[0]);
+        }
+
+        return result;
+      } catch (e) {
+        handleError(e);
+        return [];
+      }
+    },
+    enabled: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const insertMazzo = useMutation({
+    mutationFn: (data: FormData) => MazziDataService.insert(data),
+    onSuccess: async (response) => {
+      console.log("insertMazzo | response:", response);
+      if (response.data.success === false) {
+        throw response.data.error;
+      }
+
+      const { insertedRow } = response.data.result;
+      setForm(insertedRow);
+
+      // await queryClient.invalidateQueries({ queryKey: ["mazzi"] });
+      // findMazzi.remove();
+
+      await refreshPage({ form: false, image: false, refetch: true });
+
+      toast.success("Mazzo inserito con successo");
+    },
+    onError: async (err) => handleError(err, "insertMazzo"),
+  });
+
+  const updateMazzo = useMutation({
+    mutationFn: (data: FormData) => MazziDataService.update(data),
+    onSuccess: async (response) => {
+      console.log("updateMazzo | response:", response);
+      if (response.data.success === false) {
+        throw response.data.error;
+      }
+
+      const { updatedRow } = response.data.result;
+      setForm(updatedRow);
+
+      // await queryClient.invalidateQueries({ queryKey: ["mazzi"] });
+      // findMazzi.remove();
+
+      await refreshPage({ form: false, image: false, refetch: true });
+
+      toast.success("Mazzo modificato con successo");
+    },
+    onError: async (err) => handleError(err, "updateMazzo"),
+  });
+
+  const deleteMazzo = useMutation({
+    mutationFn: (data: BadgeDeleteReq) => MazziDataService.delete(data),
+    onSuccess: async (response) => {
+      console.log("deleteMazzo | response:", response);
+
+      // await queryClient.invalidateQueries({ queryKey: ["mazzi"] });
+      // findMazzi.remove();
+
+      await refreshPage({ form: true, image: true, refetch: true });
+
+      toast.success("Mazzo rimosso con successo");
+    },
+    onError: async (err) => handleError(err, "deleteMazzo"),
+  });
+
+  const [currentFormType, setCurrentFormType] = useState<BadgeType | null>(
+    () => {
+      if (hasPerm(currentUser, TPermessi.showNominativiInAnagrafico)) {
+        return BadgeType.NOMINATIVO;
+      } else if (hasPerm(currentUser, TPermessi.showChiaviInAnagrafico)) {
+        return BadgeType.CHIAVE;
+      } else if (hasPerm(currentUser, TPermessi.showProvvisoriInAnagrafico)) {
+        return BadgeType.PROVVISORIO;
+      } else if (hasPerm(currentUser, TPermessi.showVeicoliInAnagrafico)) {
+        return BadgeType.VEICOLO;
+      } else if (hasPerm(currentUser, TPermessi.showMazziInAnagrafico)) {
+        return BadgeType.MAZZO;
+      }
+      return null;
+    }
+  );
+
+  const [pfpUrl, { updateImage, setNoImage }] = useImage((data) =>
+    data ? `${PROXY}${UPLOADS_DIR}PFP_${data}.jpg` : ""
+  );
+
+  useEffect(() => {
+    refreshPage({ form: false, image: false, refetch: true });
+  }, [currCliente]);
+
+  useEffect(() => {
+    refreshPage({ form: true, image: false, refetch: false });
+  }, [currentFormType]);
+
   function createFormData() {
     const formData = new FormData();
     Object.entries(formRef.current)
@@ -561,30 +692,12 @@ export default function Anagrafico() {
       });
   }
 
-  const [currentFormType, setCurrentFormType] = useState<BadgeType | null>(
-    () => {
-      if (hasPerm(currentUser, TPermessi.showNominativiInAnagrafico)) {
-        return BadgeType.NOMINATIVO;
-      } else if (hasPerm(currentUser, TPermessi.showChiaviInAnagrafico)) {
-        return BadgeType.CHIAVE;
-      } else if (hasPerm(currentUser, TPermessi.showProvvisoriInAnagrafico)) {
-        return BadgeType.PROVVISORIO;
-      } else if (hasPerm(currentUser, TPermessi.showVeicoliInAnagrafico)) {
-        return BadgeType.VEICOLO;
-      }
-      return null;
-    }
-  );
-
-  const [pfpUrl, { updateImage, setNoImage }] = useImage((data) =>
-    data ? `${PROXY}${UPLOADS_DIR}PFP_${data}.jpg` : ""
-  );
-
   async function refreshPage({ form = true, image = true, refetch = true }) {
     form && setForm();
     image && setNoImage();
     if (refetch) {
       await queryNominativi.refetch();
+      await queryMazzi.refetch();
 
       switch (currentFormType) {
         case BadgeType.NOMINATIVO:
@@ -598,6 +711,9 @@ export default function Anagrafico() {
           break;
         case BadgeType.VEICOLO:
           await findVeicoli.refetch();
+          break;
+        case BadgeType.MAZZO:
+          await findMazzi.refetch();
           break;
       }
     }
@@ -882,6 +998,22 @@ export default function Anagrafico() {
               </select>
               <label htmlFor="proprietario">proprietario</label>
             </div>
+            <div className="form-floating col-sm-3">
+              <select
+                className="form-select form-select-sm"
+                id="mazzo"
+                ref={(el) => (formRef.current.mazzo = el)}
+              >
+                <option key="-1" />
+                {queryMazzi.isSuccess &&
+                  queryMazzi.data.map(({ codice }) => (
+                    <option value={codice} key={codice}>
+                      {codice}
+                    </option>
+                  ))}
+              </select>
+              <label htmlFor="mazzo">mazzo</label>
+            </div>
           </>
         );
       case BadgeType.VEICOLO:
@@ -967,6 +1099,8 @@ export default function Anagrafico() {
               return await findChiavi.refetch();
             case BadgeType.VEICOLO:
               return await findVeicoli.refetch();
+            case BadgeType.MAZZO:
+              return await findMazzi.refetch();
           }
         }}
       />
@@ -989,6 +1123,8 @@ export default function Anagrafico() {
         return findChiavi.isSuccess ? contentTable(findChiavi.data) : <></>;
       case BadgeType.VEICOLO:
         return findVeicoli.isSuccess ? contentTable(findVeicoli.data) : <></>;
+      case BadgeType.MAZZO:
+        return findMazzi.isSuccess ? contentTable(findMazzi.data) : <></>;
       default:
         return <></>;
     }
@@ -1075,6 +1211,8 @@ export default function Anagrafico() {
                             return findChiavi.refetch();
                           case BadgeType.VEICOLO:
                             return findVeicoli.refetch();
+                          case BadgeType.MAZZO:
+                            return findMazzi.refetch();
                         }
                       }}
                       className="btn btn-success anagrafico-form-btn"
@@ -1094,6 +1232,8 @@ export default function Anagrafico() {
                             return insertChiave.mutate(createFormData());
                           case BadgeType.VEICOLO:
                             return insertVeicolo.mutate(createFormData());
+                          case BadgeType.MAZZO:
+                            return insertMazzo.mutate(createFormData());
                         }
                       }}
                       className="btn btn-success anagrafico-form-btn"
@@ -1118,6 +1258,8 @@ export default function Anagrafico() {
                             return updateChiave.mutate(createFormData());
                           case BadgeType.VEICOLO:
                             return updateVeicolo.mutate(createFormData());
+                          case BadgeType.MAZZO:
+                            return updateMazzo.mutate(createFormData());
                         }
                       }}
                       className="btn btn-success anagrafico-form-btn"
@@ -1148,6 +1290,8 @@ export default function Anagrafico() {
                             return deleteChiave.mutate({ codice });
                           case BadgeType.VEICOLO:
                             return deleteVeicolo.mutate({ codice });
+                          case BadgeType.MAZZO:
+                            return deleteMazzo.mutate({ codice });
                         }
                       }}
                       className="btn btn-success anagrafico-form-btn"
@@ -1220,6 +1364,18 @@ export default function Anagrafico() {
                         className="btn btn-success anagrafico-form-btn"
                       >
                         Veicoli
+                      </button>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                  {hasPerm(currentUser, TPermessi.showMazziInAnagrafico) ? (
+                    <div className="col mt-1">
+                      <button
+                        onClick={() => setCurrentFormType(BadgeType.MAZZO)}
+                        className="btn btn-success anagrafico-form-btn"
+                      >
+                        Mazzi
                       </button>
                     </div>
                   ) : (

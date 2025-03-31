@@ -1,6 +1,6 @@
 import {
   BadgeDeleteReq,
-  Chiave,
+  MazzoChiavi,
   DeleteReqRetData,
   InsertReqRetData,
   UpdateReqRetData,
@@ -8,17 +8,17 @@ import {
 import DataServices from "./DataServices";
 import { GenericAbortSignal } from "axios";
 
-class ChiaviDataService extends DataServices {
+class MazziChiaviDataService extends DataServices {
   getAll(signal?: GenericAbortSignal) {
-    return super.request<Chiave[]>({ signal });
+    return super.request<MazzoChiavi[]>({ signal });
   }
 
   find(query: Record<string, string>, signal?: GenericAbortSignal) {
-    return super.request<Chiave[]>({ data: query, signal });
+    return super.request<MazzoChiavi[]>({ data: query, signal });
   }
 
   insert(data: FormData, signal?: GenericAbortSignal) {
-    return super.request<InsertReqRetData<Chiave>>({
+    return super.request<InsertReqRetData<MazzoChiavi>>({
       method: "POST",
       data,
       signal,
@@ -26,7 +26,7 @@ class ChiaviDataService extends DataServices {
   }
 
   update(data: FormData, signal?: GenericAbortSignal) {
-    return super.request<UpdateReqRetData<Chiave>>({
+    return super.request<UpdateReqRetData<MazzoChiavi>>({
       url: `/${data.get("codice")}`,
       method: "PUT",
       data,
@@ -35,16 +35,20 @@ class ChiaviDataService extends DataServices {
   }
 
   delete(data: BadgeDeleteReq, signal?: GenericAbortSignal) {
-    return super.request<DeleteReqRetData<Chiave>>({
+    return super.request<DeleteReqRetData<MazzoChiavi>>({
       url: `/${data.codice}`,
       method: "DELETE",
       signal,
     });
   }
 
-  getEdifici(signal?: GenericAbortSignal) {
-    return super.request<string[]>({ url: "/edifici", signal });
+  getFreeKeys(data: { cliente: string }, signal?: GenericAbortSignal) {
+    return super.request<string[]>({
+      url: "/free-keys",
+      data,
+      signal,
+    });
   }
 }
 
-export default new ChiaviDataService("/api/v1/chiavi");
+export default new MazziChiaviDataService("/api/v1/mazzi");

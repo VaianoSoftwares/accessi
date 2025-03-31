@@ -5,6 +5,7 @@ export enum BadgeType {
   PROVVISORIO = "PROVVISORIO",
   CHIAVE = "CHIAVE",
   VEICOLO = "VEICOLO",
+  MAZZO = "MAZZO",
 }
 
 export enum BadgePrefix {
@@ -12,6 +13,7 @@ export enum BadgePrefix {
   PROVVISORIO,
   CHIAVE,
   VEICOLO,
+  MAZZO,
 }
 
 export enum BadgeState {
@@ -34,6 +36,7 @@ export const TIPI_BADGE = [
   BadgeType.PROVVISORIO,
   BadgeType.CHIAVE,
   BadgeType.VEICOLO,
+  BadgeType.MAZZO,
 ] as const;
 export const STATI_BADGE = [
   BadgeState.VALIDO,
@@ -89,6 +92,8 @@ export interface BaseVeicolo {
 }
 
 export interface Veicolo extends BaseVeicolo, BaseBadge {}
+
+export type MazzoChiavi = BaseBadge;
 
 export type BadgeDeleteReq = Pick<BaseBadge, "codice">;
 

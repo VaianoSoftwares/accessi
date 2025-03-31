@@ -4,7 +4,7 @@ DROP DATABASE IF EXISTS accessi1;
 CREATE DATABASE accessi1;
 \c accessi1;
 
-CREATE TYPE barcode_prefix AS ENUM ('1', '2', '3', '4');
+CREATE TYPE barcode_prefix AS ENUM ('1', '2', '3', '4', '5');
 CREATE TYPE doc_type AS ENUM ('CARTA IDENTITA', 'PATENTE', 'TESSERA STUDENTE', 'PASSAPORTO', 'TESSERINO PROFESSIONALE');
 CREATE TYPE badge_state AS ENUM ('VALIDO', 'SCADUTO', 'REVOCATO', 'RICONSEGNATO');
 CREATE TYPE assign_type as ENUM ('OSPITE', 'UTENTE', 'GIORNALISTA', 'MANUTENZIONE', 'ASSOCIAZIONE', 'COOPERATIVA', 'COLLABORATORE',
@@ -96,6 +96,14 @@ CREATE TABLE IF NOT EXISTS postazioni_user(
     PRIMARY KEY (usr_id, post_id)
 );
 
+CREATE TABLE IF NOT EXISTS mazzi_chiavi(
+    codice VARCHAR(9) PRIMARY KEY DEFAULT next_barcode('5'),
+    descrizione TEXT CHECK (descrizione != ''),
+    stato VARCHAR(32) NOT NULL DEFAULT 'VALIDO' CHECK (is_typeof(stato, 'public.badge_state')),
+    cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
+    CONSTRAINT invalid_mazzo_barcode CHECK (left(codice, 1) = '5' AND length(codice) = 9 AND (codice ~ '^[0-9]+$'))
+);
+
 CREATE TABLE IF NOT EXISTS nominativi(
     codice VARCHAR(9) PRIMARY KEY DEFAULT next_barcode('1'),
     descrizione TEXT CHECK (descrizione != ''),
@@ -134,6 +142,7 @@ CREATE TABLE IF NOT EXISTS chiavi(
     edificio VARCHAR(32) NOT NULL DEFAULT 'GENERICO' CHECK (is_typeof(edificio, 'public.building_type')),
     piano TEXT CHECK (piano != ''),
     proprietario VARCHAR(9) REFERENCES nominativi (codice),
+    mazzo VARCHAR(9) REFERENCES mazzi_chiavi (codice),
     CONSTRAINT invalid_chiave_barcode CHECK (left(codice, 1) = '3' AND length(codice) = 9 AND (codice ~ '^[0-9]+$'))
 );
 

@@ -138,7 +138,7 @@ export default class ArchivioDB {
             : `%${value}%`
         )
         .flat();
-    console.log(queryText);
+
     return await db.query<BadgeInStrutt>(queryText, queryValues);
   }
 

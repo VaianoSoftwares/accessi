@@ -7,6 +7,7 @@ import { BarcodePrefix } from "../types/archivio.js";
 import BadgesFileManager from "../files/badges.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
 import { sendToAllClients } from "./sse.js";
+import MazziChiaviDB from "../db/mazzi.js";
 
 export default class ArchivioController {
   public static async apiGetArchivio(
@@ -194,6 +195,7 @@ export default class ArchivioController {
 
       let badgeCode: string | null = null;
       let chiavi: string[] = [];
+      let mazzi: string[] = [];
       Array.from(new Set(parsed.data.barcodes)).forEach((barcode) => {
         const prefix = barcode.substring(0, 1);
 
@@ -204,6 +206,9 @@ export default class ArchivioController {
           case BarcodePrefix.chiaveGenerico:
             chiavi.push(barcode);
             break;
+          case BarcodePrefix.mazzoChiavi:
+            mazzi.push(barcode);
+            break;
         }
       });
 
@@ -212,7 +217,16 @@ export default class ArchivioController {
           status: 400,
           context: { barcodes: parsed.data.barcodes },
         });
-      } else if (chiavi.length === 0) {
+      }
+
+      if (mazzi.length > 0) {
+        const chiaviInMazzi = await MazziChiaviDB.getChiaviFromMazziCodes(
+          mazzi
+        );
+        chiavi.push(...chiaviInMazzi);
+      }
+
+      if (chiavi.length <= 0) {
         throw new BaseError("Nessuna chiave selezionata", {
           status: 400,
           context: { barcodes: parsed.data.barcodes },
