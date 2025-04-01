@@ -157,7 +157,7 @@ export default function Anagrafico() {
   });
 
   const queryMazzi = useQuery({
-    queryKey: ["freeKeys"],
+    queryKey: ["mazzi"],
     queryFn: async () => {
       try {
         if (!currCliente) {
@@ -1006,9 +1006,9 @@ export default function Anagrafico() {
               >
                 <option key="-1" />
                 {queryMazzi.isSuccess &&
-                  queryMazzi.data.map(({ codice }) => (
+                  queryMazzi.data.map(({ codice, descrizione }) => (
                     <option value={codice} key={codice}>
-                      {codice}
+                      {`${codice} - ${descrizione}`}
                     </option>
                   ))}
               </select>
