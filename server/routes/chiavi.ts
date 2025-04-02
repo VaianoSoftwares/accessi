@@ -27,3 +27,9 @@ router.delete(
 );
 
 router.get("/edifici", ChiaviController.apiGetEdifici);
+
+router.get(
+  "/w_mazzo_descr",
+  JwtAuth.verifyToken,
+  ChiaviController.apiGetChiaviWMazzoDescr
+);

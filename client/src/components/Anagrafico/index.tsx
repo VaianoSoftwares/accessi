@@ -352,7 +352,7 @@ export default function Anagrafico() {
     queryKey: ["chiavi"],
     queryFn: async () => {
       try {
-        const response = await ChiaviDataService.find(formToObj());
+        const response = await ChiaviDataService.findWMazzoDescr(formToObj());
         console.log("findChiavi | response:", response);
         if (response.data.success === false) {
           throw response.data.error;
@@ -981,22 +981,6 @@ export default function Anagrafico() {
                 ref={(el) => (formRef.current.ubicazione = el)}
               />
               <label htmlFor="ubicazione">ubicazione</label>
-            </div>
-            <div className="form-floating col-sm-3">
-              <select
-                className="form-select form-select-sm"
-                id="proprietario"
-                ref={(el) => (formRef.current.proprietario = el)}
-              >
-                <option key="-1" />
-                {queryNominativi.isSuccess &&
-                  queryNominativi.data.map(({ codice, nome, cognome }) => (
-                    <option value={codice} key={codice}>
-                      {`${codice} - ${nome} ${cognome}`}
-                    </option>
-                  ))}
-              </select>
-              <label htmlFor="proprietario">proprietario</label>
             </div>
             <div className="form-floating col-sm-3">
               <select

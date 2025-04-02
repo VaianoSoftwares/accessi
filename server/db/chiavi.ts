@@ -9,11 +9,18 @@ import { Chiave, ChiaveNominativo } from "../types/badges.js";
 const tableName = "chiavi";
 
 export default class ChiaviDB {
-  public static async getChiavi(filter?: FindChiaviFilter) {
+  private static async getChiaviGeneric(
+    tableName: string,
+    filter?: FindChiaviFilter
+  ) {
     const { queryText, queryValues } = db.getSelectRowQuery(tableName, {
       selections: filter,
     });
     return await db.query(queryText, queryValues);
+  }
+
+  public static async getChiavi(filter?: FindChiaviFilter) {
+    return await ChiaviDB.getChiaviGeneric(tableName, filter);
   }
 
   public static async insertChiave(data: InsertChiaveData) {
@@ -45,5 +52,9 @@ export default class ChiaviDB {
       "SELECT * FROM chiavi JOIN people ON proprietario = id WHERE codice = $1",
       [codice]
     );
+  }
+
+  public static async getChiaviWMazzoDescr(filter?: FindChiaviFilter) {
+    return await ChiaviDB.getChiaviGeneric("chiavi_w_mazzo_descr", filter);
   }
 }

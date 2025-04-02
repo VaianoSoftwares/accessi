@@ -10,8 +10,8 @@ CREATE TYPE badge_state AS ENUM ('VALIDO', 'SCADUTO', 'REVOCATO', 'RICONSEGNATO'
 CREATE TYPE assign_type as ENUM ('OSPITE', 'UTENTE', 'GIORNALISTA', 'MANUTENZIONE', 'ASSOCIAZIONE', 'COOPERATIVA', 'COLLABORATORE',
                                 'PULIZIE', 'PORTINERIA', 'FACCHINAGGIO', 'CORRIERE', 'UNIVERSITARIO', 'AMMINISTRAZIONE', 
                                 'PARENTE DEGENTE');
-CREATE TYPE building_type as ENUM ('APPARTAMENTO', 'VILLETTA', 'CAPANNONE', 'FONDO', 'CLINICA', 'UFFICIO', 'ARCHIVI',
-                                'LOCALI TECNICI', 'CAVEDI', 'SCALE', 'REI', 'BIBLIOTECA', 'AUDITORIUM', 'FORESTERIA', 'GENERICO');
+CREATE TYPE building_type as ENUM ('APPARTAMENTO', 'VILLETTA', 'CAPANNONE', 'FONDO', 'CLINICA', 'UFFICIO', 'ARCHIVIO', 'LOCALE TECNICO',
+                                    'CAVEDIO', 'SCALE', 'REI', 'BIBLIOTECA', 'AUDITORIUM', 'FORESTERIA', 'COLLEGAMENTO', 'GENERICO');
 CREATE TYPE veh_type as ENUM ('AUTO', 'MOTO', 'BICICLETTA', 'GENERICO');
 -- CREATE TYPE badge_type as ENUM ('NOMINATIVO', 'PROVVISORIO', 'CHIAVE');
 -- CREATE TYPE mark_type AS ENUM ('I', 'U');
@@ -142,7 +142,6 @@ CREATE TABLE IF NOT EXISTS chiavi(
     citta VARCHAR(64) CHECK (citta != ''),
     edificio VARCHAR(32) NOT NULL DEFAULT 'GENERICO' CHECK (is_typeof(edificio, 'public.building_type')),
     piano TEXT CHECK (piano != ''),
-    proprietario VARCHAR(9) REFERENCES nominativi (codice),
     mazzo VARCHAR(9) REFERENCES mazzi_chiavi (codice),
     CONSTRAINT invalid_chiave_barcode CHECK (left(codice, 1) = '3' AND length(codice) = 9 AND (codice ~ '^[0-9]+$'))
 );
@@ -464,12 +463,15 @@ CREATE VIEW full_protocolli AS
     FROM protocolli AS pr
     JOIN documenti AS d ON pr.id = d.prot_id;
 
-CREATE VIEW assegnazioni AS SELECT unnest(enum_range(NULL::assign_type)) AS value;
-CREATE VIEW edifici AS SELECT unnest(enum_range(NULL::building_type)) AS value;
-CREATE VIEW tveicoli AS SELECT unnest(enum_range(NULL::veh_type)) AS value;
+CREATE VIEW assegnazioni AS SELECT unnest(enum_range(NULL::assign_type))::TEXT AS value ORDER BY value;
+CREATE VIEW edifici AS SELECT unnest(enum_range(NULL::building_type))::TEXT AS value ORDER BY value;
+CREATE VIEW tveicoli AS SELECT unnest(enum_range(NULL::veh_type))::TEXT AS value ORDER BY value;
 
 CREATE VIEW nominativi_w_docs AS
     SELECT *, 'PRIVACY_'||codice||'.pdf' AS privacy, 'DOC_'||codice||'.pdf' AS documento FROM nominativi;
+
+CREATE VIEW chiavi_w_mazzo_descr AS
+    SELECT c.*, m.descrizione AS descr_mazzo FROM chiavi c LEFT JOIN mazzi_chiavi m ON c.mazzo = m.codice;
 
 -- CREATE OR REPLACE PROCEDURE mark_out(arch_id BIGINT, arch_tname regclass) AS $$
 -- DECLARE

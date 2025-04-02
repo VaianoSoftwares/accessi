@@ -1,6 +1,7 @@
 import {
   BadgeDeleteReq,
   Chiave,
+  ChiaveWMazzoDescr,
   DeleteReqRetData,
   InsertReqRetData,
   UpdateReqRetData,
@@ -44,6 +45,14 @@ class ChiaviDataService extends DataServices {
 
   getEdifici(signal?: GenericAbortSignal) {
     return super.request<string[]>({ url: "/edifici", signal });
+  }
+
+  findWMazzoDescr(query: Record<string, string>, signal?: GenericAbortSignal) {
+    return super.request<ChiaveWMazzoDescr[]>({
+      url: "/w_mazzo_descr",
+      data: query,
+      signal,
+    });
   }
 }
 

@@ -1,5 +1,3 @@
-import { WithId } from ".";
-
 export enum BadgeType {
   NOMINATIVO = "NOMINATIVO",
   PROVVISORIO = "PROVVISORIO",
@@ -100,3 +98,5 @@ export type BadgeDeleteReq = Pick<BaseBadge, "codice">;
 export type InsertReqRetData<T> = { insertedRow: T };
 export type UpdateReqRetData<T> = { updatedRow: T };
 export type DeleteReqRetData<T> = { deletedRow: T };
+
+export type ChiaveWMazzoDescr = Chiave & { descr_mazzo: string | null };

@@ -132,4 +132,24 @@ export default class ChiaviController {
       next(e);
     }
   }
+
+  public static async apiGetChiaviWMazzoDescr(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const parsed = Validator.GET_CHIAVI_SCHEMA.safeParse(req.query);
+      if (parsed.success === false) {
+        throw new BaseError(parsed.error.errors[0].message, {
+          status: 400,
+          cause: parsed.error,
+        });
+      }
+      const dbRes = await ChiaviDB.getChiaviWMazzoDescr(parsed.data);
+      res.json(Ok(dbRes.rows));
+    } catch (e) {
+      next(e);
+    }
+  }
 }
