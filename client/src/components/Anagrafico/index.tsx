@@ -620,7 +620,7 @@ export default function Anagrafico() {
   }, [currCliente]);
 
   useEffect(() => {
-    refreshPage({ form: true, image: false, refetch: false });
+    refreshPage({ form: true, image: false, refetch: true });
   }, [currentFormType]);
 
   function createFormData() {
@@ -982,7 +982,7 @@ export default function Anagrafico() {
               />
               <label htmlFor="ubicazione">ubicazione</label>
             </div>
-            <div className="form-floating col-sm-3">
+            <div className="form-floating col-sm-9">
               <select
                 className="form-select form-select-sm"
                 id="mazzo"
@@ -1286,7 +1286,7 @@ export default function Anagrafico() {
                   <div className="col-sm-1">
                     <button
                       onClick={async () =>
-                        refreshPage({ form: true, image: true, refetch: false })
+                        refreshPage({ form: true, image: true, refetch: true })
                       }
                       className="btn btn-success anagrafico-form-btn"
                     >
