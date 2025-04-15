@@ -23,6 +23,7 @@ import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import { Link } from "react-router-dom";
 import { TPermessi, hasPerm } from "../../types/users";
+import htmlTableToExcel from "../../utils/htmlTableToExcel";
 
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 const UPLOADS_DIR = "/api/v1/public/uploads/";
@@ -516,7 +517,7 @@ export default function Anagrafico() {
     queryKey: ["mazzi"],
     queryFn: async () => {
       try {
-        const response = await MazziDataService.find(formToObj());
+        const response = await MazziDataService.getWithCounter(formToObj());
         console.log("findMazzi | response:", response);
         if (response.data.success === false) {
           throw response.data.error;
@@ -1281,6 +1282,14 @@ export default function Anagrafico() {
                       className="btn btn-success anagrafico-form-btn"
                     >
                       Elimina
+                    </button>
+                  </div>
+                  <div className="col-sm-1">
+                    <button
+                      onClick={() => htmlTableToExcel(TABLE_ID, "anagrafico")}
+                      className="btn btn-success anagrafico-form-btn"
+                    >
+                      Esporta
                     </button>
                   </div>
                   <div className="col-sm-1">

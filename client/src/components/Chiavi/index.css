@@ -15,8 +15,8 @@
 
 .barcode-list {
     overflow: auto;
-    height: 150px;
-    max-height: 150px;
+    height: 9.375rem;
+    max-height: 9.375rem;
 }
 
 .btn-del-barcode {
@@ -26,7 +26,7 @@
 }
 
 #chiavi-wrapper .form-select {
-    height: 38px;
+    height: 2.375rem;
     padding: 0 0 1px 4px;
 }
 
@@ -36,17 +36,17 @@
 }
 
 .custom-add-barcode-input input {
-    height: 35px;
+    height: 2.1875rem;
 }
 .custom-add-barcode-input .input-group-text {
-    height: 35px;
+    height: 2.1875rem;
     background-color: #198754;
 }
 .custom-add-barcode-input .input-group-text:hover {
     background-color: #157347;
 }
 .custom-add-barcode-input button {
-    height: 35px;
+    height: 2.1875rem;
     color: white;
     background-color: transparent;
     background-repeat: no-repeat;
@@ -54,4 +54,9 @@
     cursor: pointer;
     overflow: hidden;
     outline: none;
+}
+
+.chiavi-form-btn {
+    width: 6.25rem;
+    height: 2.1875rem;
 }

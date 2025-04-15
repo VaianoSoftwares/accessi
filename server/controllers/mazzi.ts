@@ -118,6 +118,26 @@ export default class MazziChiaviController {
     }
   }
 
+  public static async apiGetMazziWithKeyCounter(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const parsed = Validator.GET_MAZZI_SCHEMA.safeParse(req.query);
+      if (parsed.success === false) {
+        throw new BaseError(parsed.error.errors[0].message, {
+          status: 400,
+          cause: parsed.error,
+        });
+      }
+      const dbRes = await MazziChiaviDB.getMazziWithKeyCounter(parsed.data);
+      res.json(Ok(dbRes.rows));
+    } catch (e) {
+      next(e);
+    }
+  }
+
   public static async apiGetChiaviNotInMazzo(
     req: Request,
     res: Response,

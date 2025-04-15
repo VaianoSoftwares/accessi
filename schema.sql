@@ -474,6 +474,11 @@ CREATE VIEW nominativi_w_docs AS
 CREATE VIEW chiavi_w_mazzo_descr AS
     SELECT c.*, m.descrizione AS descr_mazzo FROM chiavi c LEFT JOIN mazzi_chiavi m ON c.mazzo = m.codice;
 
+CREATE VIEW mazzi_w_key_count AS
+    SELECT m.*, (
+        SELECT COUNT(c.codice) FROM chiavi c WHERE c.mazzo = m.codice
+    ) AS n_chiavi FROM mazzi_chiavi m;
+
 -- CREATE OR REPLACE PROCEDURE mark_out(arch_id BIGINT, arch_tname regclass) AS $$
 -- DECLARE
 --     tmp_id BIGINT;

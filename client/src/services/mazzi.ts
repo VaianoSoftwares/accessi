@@ -42,6 +42,14 @@ class MazziChiaviDataService extends DataServices {
     });
   }
 
+  getWithCounter(query: Record<string, string>, signal?: GenericAbortSignal) {
+    return super.request<MazzoChiavi[]>({
+      data: query,
+      url: "/with-counter",
+      signal,
+    });
+  }
+
   getFreeKeys(data: { cliente: string }, signal?: GenericAbortSignal) {
     return super.request<string[]>({
       url: "/free-keys",

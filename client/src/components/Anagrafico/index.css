@@ -6,7 +6,7 @@
 .anagrafico-table-wrapper {
     overflow: auto;
     height: 60%;
-    max-height: 400px;
+    max-height: 28rem;
     background-color: white;
 }
 
@@ -49,8 +49,8 @@
 }
 
 .anagrafico-form-btn {
-    width: 105px;
-    height: 35px;
+    width: 6.5625rem;
+    height: 2.1875rem;
 }
 
 .anagrafico-form-b {
@@ -63,5 +63,5 @@
 } */
 
 .pfp-col {
-    max-width: 200px;
+    max-width: 12.5rem;
 }

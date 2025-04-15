@@ -8,6 +8,10 @@ import Clock from "../Clock";
 import { FindInPrestitoData, PrestitoChiaviData } from "../../types/archivio";
 import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
+import { TPermessi, hasPerm } from "../../types/users";
+import htmlTableToExcel from "../../utils/htmlTableToExcel";
+
+const TABLE_NAME = "in_prestito_table";
 
 export default function Chiavi(props: {
   scanValues: string[];
@@ -107,23 +111,42 @@ export default function Chiavi(props: {
               </div>
             </div>
           </div>
-          <div className="col-1">
-            <button
-              className="btn btn-success"
-              onClick={() => {
-                if (!currPostazione) {
-                  toast.error("Campo Postazione mancante");
-                  return;
-                }
+          <div className="col-sm-1">
+            <div className="form-buttons">
+              <div className="row align-items-center justify-content-start g-0">
+                <div className="col">
+                  <button
+                    className="btn btn-success chiavi-form-btn"
+                    onClick={() => {
+                      if (!currPostazione) {
+                        toast.error("Campo Postazione mancante");
+                        return;
+                      }
 
-                mutateInPrestito.mutate({
-                  barcodes: props.scanValues,
-                  post_id: currPostazione.id,
-                });
-              }}
-            >
-              Invio
-            </button>
+                      mutateInPrestito.mutate({
+                        barcodes: props.scanValues,
+                        post_id: currPostazione.id,
+                      });
+                    }}
+                  >
+                    Invio
+                  </button>
+                </div>
+                <div className="w-100 mt-1" />
+                {hasPerm(currentUser, TPermessi.canAccessInStruttReport) && (
+                  <div className="col">
+                    <button
+                      onClick={() =>
+                        htmlTableToExcel(TABLE_NAME, "chiavi-in-prestito")
+                      }
+                      className="btn btn-success chiavi-form-btn"
+                    >
+                      Esporta
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           <div className="col-3"></div>
           <div className="col-4">
@@ -136,6 +159,7 @@ export default function Chiavi(props: {
           <BadgeTable
             content={queryInPrestito.data}
             timestampParams={["data_in", "data_out"]}
+            tableId={TABLE_NAME}
           />
         )}
       </div>

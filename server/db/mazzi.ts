@@ -30,6 +30,16 @@ export default class MazziChiaviDB {
     return await db.deleteRows(tableName, { codice });
   }
 
+  public static async getMazziWithKeyCounter(filter?: FindMazziFilter) {
+    const { queryText, queryValues } = db.getSelectRowQuery(
+      "mazzi_w_key_count",
+      {
+        selections: filter,
+      }
+    );
+    return await db.query(queryText, queryValues);
+  }
+
   public static async getChiaviFromMazziCodes(codes: string[]) {
     if (codes.length <= 0) {
       throw new BaseError("No mazzi codes provided", { status: 400 });

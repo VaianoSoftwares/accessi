@@ -31,3 +31,9 @@ router.get(
   JwtAuth.verifyToken,
   MazziChiaviController.apiGetChiaviNotInMazzo
 );
+
+router.get(
+  "/with-counter",
+  JwtAuth.verifyToken,
+  MazziChiaviController.apiGetMazziWithKeyCounter
+);
