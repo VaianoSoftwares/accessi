@@ -12,7 +12,7 @@ CREATE TYPE assign_type as ENUM ('OSPITE', 'UTENTE', 'GIORNALISTA', 'MANUTENZION
                                 'PARENTE DEGENTE');
 CREATE TYPE building_type as ENUM ('APPARTAMENTO', 'VILLETTA', 'CAPANNONE', 'FONDO', 'CLINICA', 'UFFICIO', 'ARCHIVIO', 'LOCALE TECNICO',
                                     'CAVEDIO', 'SCALE', 'REI', 'BIBLIOTECA', 'AUDITORIUM', 'FORESTERIA', 'COLLEGAMENTO', 'INFERMERIA',
-                                    'WC', 'AULA', 'CORRIDOIO', 'GENERICO');
+                                    'WC', 'AULA', 'CORRIDOIO', 'BAR', 'GENERICO');
 CREATE TYPE veh_type as ENUM ('AUTO', 'MOTO', 'BICICLETTA', 'GENERICO');
 -- CREATE TYPE badge_type as ENUM ('NOMINATIVO', 'PROVVISORIO', 'CHIAVE');
 -- CREATE TYPE mark_type AS ENUM ('I', 'U');
