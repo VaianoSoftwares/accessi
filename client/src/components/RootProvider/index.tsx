@@ -20,8 +20,9 @@ type UseCurrPostazioneReturn = {
 };
 type Props = {
   children: JSX.Element;
-} & UseCurrentUserReturn &
-  UseCurrPostazioneReturn;
+  loggedUser: UseCurrentUserReturn;
+  selectedPostazione: UseCurrPostazioneReturn;
+};
 
 export const IsMobileContext = createContext(false);
 export const CurrentUserContext = createContext<UseCurrentUserReturn | null>(
@@ -32,33 +33,15 @@ export const CurrPostazioneContext =
 
 export default function RootProvider({
   children,
-  currentUser,
-  setCurrentUser,
-  removeCurrentUser,
-  currCliente,
-  setCurrCliente,
-  clearCurrCliente,
-  currPostazione,
-  setCurrPostazione,
-  clearCurrPostazione,
+  loggedUser,
+  selectedPostazione,
 }: Props) {
   const { isMobile } = useIsMobile();
 
   return (
     <IsMobileContext.Provider value={isMobile}>
-      <CurrentUserContext.Provider
-        value={{ currentUser, setCurrentUser, removeCurrentUser }}
-      >
-        <CurrPostazioneContext.Provider
-          value={{
-            currCliente,
-            setCurrCliente,
-            clearCurrCliente,
-            currPostazione,
-            setCurrPostazione,
-            clearCurrPostazione,
-          }}
-        >
+      <CurrentUserContext.Provider value={loggedUser}>
+        <CurrPostazioneContext.Provider value={selectedPostazione}>
           {isMobile === false ? (
             children
           ) : (

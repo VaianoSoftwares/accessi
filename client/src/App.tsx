@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -13,10 +13,8 @@ import { canAccessPage } from "./types/users";
 import { TPages } from "./types/pages";
 import { BadgeType } from "./types/badges";
 import useCurrentUser from "./hooks/useCurrentUser";
-import scannerHandler from "./utils/scannerHandler";
 import usePostazione from "./hooks/usePostazione";
-import useArray from "./hooks/useArray";
-import useBool from "./hooks/useBool";
+import useSerialScanner from "./hooks/useSerialScanner";
 // import { WSSendMsg } from "./services/ws";
 
 const Badge = lazy(() => import("./components/Badge"));
@@ -32,74 +30,26 @@ const Postazioni = lazy(() => import("./components/Postazioni"));
 const Clienti = lazy(() => import("./components/Clienti"));
 
 export default function App() {
-  const { currentUser, setCurrentUser, removeCurrentUser } = useCurrentUser();
+  const loggedUser = useCurrentUser();
 
-  const {
-    currCliente,
-    setCurrCliente,
-    clearCurrCliente,
-    currPostazione,
-    setCurrPostazione,
-    clearCurrPostazione,
-  } = usePostazione();
+  const selectedPostazione = usePostazione();
 
-  const [
-    isBadgeScannerConnected,
-    { setTrue: setBadgeScannerTrue, setFalse: setBadgeScannerFalse },
-  ] = useBool(false);
-  const [timbraVal, setTimbraVal] = useState("");
-
-  const [
-    isChiaviScannerConnected,
-    { setTrue: setChiaviScannerTrue, setFalse: setChiaviScannerFalse },
-  ] = useBool(false);
-  const {
-    array: prestaArr,
-    addElement: prestaArrAdd,
-    removeElement: prestaArrRemove,
-    clearArray: clearPrestaArr,
-  } = useArray<string>();
-
-  async function runAccessiScanner() {
-    await scannerHandler(
-      (value: string) => setTimbraVal(value),
-      setBadgeScannerTrue,
-      setBadgeScannerFalse
-    );
-  }
-
-  async function runChiaviScanner() {
-    await scannerHandler(
-      prestaArrAdd,
-      setChiaviScannerTrue,
-      setChiaviScannerFalse
-    );
-  }
-
-  // useEffect(() => {
-  //   WSSendMsg("patara");
-  // }, []);
+  const badgeScanner = useSerialScanner();
+  const chiaviScanner = useSerialScanner();
 
   return (
     <div className="App">
       <RootProvider
-        currentUser={currentUser}
-        setCurrentUser={setCurrentUser}
-        removeCurrentUser={removeCurrentUser}
-        currCliente={currCliente}
-        setCurrCliente={setCurrCliente}
-        clearCurrCliente={clearCurrCliente}
-        currPostazione={currPostazione}
-        setCurrPostazione={setCurrPostazione}
-        clearCurrPostazione={clearCurrPostazione}
+        loggedUser={loggedUser}
+        selectedPostazione={selectedPostazione}
       >
         <>
-          {currentUser && (
+          {loggedUser.currentUser && (
             <AccessiNavbar
-              badgeScannerConnected={isBadgeScannerConnected}
-              runBadgeScanner={runAccessiScanner}
-              chiaviScannerConnected={isChiaviScannerConnected}
-              runChiaviScanner={runChiaviScanner}
+              badgeScannerConnected={badgeScanner.isConnected}
+              runBadgeScanner={badgeScanner.connect}
+              chiaviScannerConnected={chiaviScanner.isConnected}
+              runChiaviScanner={chiaviScanner.connect}
             />
           )}
           <Routes>
@@ -107,18 +57,22 @@ export default function App() {
             <Route
               path="home"
               element={
-                currentUser ? <Home /> : <Navigate replace to="/login" />
+                loggedUser.currentUser ? (
+                  <Home />
+                ) : (
+                  <Navigate replace to="/login" />
+                )
               }
             />
             <Route index element={<Navigate replace to="/home" />} />
             <Route
               path="badge"
               element={
-                canAccessPage(currentUser, TPages.badge) ? (
+                canAccessPage(loggedUser.currentUser, TPages.badge) ? (
                   <Suspense fallback={<Loader />}>
                     <Badge
-                      scannedValue={timbraVal}
-                      clearScannedValue={() => setTimbraVal("")}
+                      scannedValue={badgeScanner.scanValues.at(-1) ?? ""}
+                      clearScannedValue={badgeScanner.clearScanValues}
                       tipoBadge={BadgeType.NOMINATIVO}
                     />
                   </Suspense>
@@ -130,13 +84,13 @@ export default function App() {
             <Route
               path="chiavi"
               element={
-                canAccessPage(currentUser, TPages.chiavi) ? (
+                canAccessPage(loggedUser.currentUser, TPages.chiavi) ? (
                   <Suspense fallback={<Loader />}>
                     <Chiavi
-                      scanValues={prestaArr}
-                      addScanValue={prestaArrAdd}
-                      removeScanValue={prestaArrRemove}
-                      clearScanValues={clearPrestaArr}
+                      scanValues={chiaviScanner.scanValues}
+                      addScanValue={chiaviScanner.addScanValue}
+                      removeScanValue={chiaviScanner.removeScanValue}
+                      clearScanValues={chiaviScanner.clearScanValues}
                     />
                   </Suspense>
                 ) : (
@@ -147,11 +101,11 @@ export default function App() {
             <Route
               path="veicoli"
               element={
-                canAccessPage(currentUser, TPages.veicoli) ? (
+                canAccessPage(loggedUser.currentUser, TPages.veicoli) ? (
                   <Suspense fallback={<Loader />}>
                     <Badge
-                      scannedValue={timbraVal}
-                      clearScannedValue={() => setTimbraVal("")}
+                      scannedValue={badgeScanner.scanValues.at(-1) ?? ""}
+                      clearScannedValue={badgeScanner.clearScanValues}
                       tipoBadge={BadgeType.VEICOLO}
                     />
                   </Suspense>
@@ -163,7 +117,7 @@ export default function App() {
             <Route
               path="archivio"
               element={
-                canAccessPage(currentUser, TPages.archivio) ? (
+                canAccessPage(loggedUser.currentUser, TPages.archivio) ? (
                   <Suspense fallback={<Loader />}>
                     <Archivio />
                   </Suspense>
@@ -175,7 +129,7 @@ export default function App() {
             <Route
               path="protocollo"
               element={
-                canAccessPage(currentUser, TPages.protocollo) ? (
+                canAccessPage(loggedUser.currentUser, TPages.protocollo) ? (
                   <Suspense fallback={<Loader />}>
                     <Protocollo />
                   </Suspense>
@@ -187,7 +141,7 @@ export default function App() {
             <Route
               path="anagrafico"
               element={
-                canAccessPage(currentUser, TPages.anagrafico) ? (
+                canAccessPage(loggedUser.currentUser, TPages.anagrafico) ? (
                   <Suspense fallback={<Loader />}>
                     <Anagrafico />
                   </Suspense>
@@ -199,7 +153,7 @@ export default function App() {
             <Route
               path="admin/register"
               element={
-                canAccessPage(currentUser, TPages.register) ? (
+                canAccessPage(loggedUser.currentUser, TPages.register) ? (
                   <Suspense fallback={<Loader />}>
                     <Register />
                   </Suspense>
@@ -212,7 +166,7 @@ export default function App() {
             <Route
               path="admin/users"
               element={
-                canAccessPage(currentUser, TPages.users) ? (
+                canAccessPage(loggedUser.currentUser, TPages.users) ? (
                   <Suspense fallback={<Loader />}>
                     <UsersList />
                   </Suspense>
@@ -224,7 +178,7 @@ export default function App() {
             <Route
               path="admin/users/:userId"
               element={
-                canAccessPage(currentUser, TPages.users) ? (
+                canAccessPage(loggedUser.currentUser, TPages.users) ? (
                   <Suspense fallback={<Loader />}>
                     <UserEdit />
                   </Suspense>
@@ -236,7 +190,7 @@ export default function App() {
             <Route
               path="admin/assegnazioni"
               element={
-                canAccessPage(currentUser, TPages.assegnazioni) ? (
+                canAccessPage(loggedUser.currentUser, TPages.assegnazioni) ? (
                   <Suspense fallback={<Loader />}>
                     <Assegnazioni />
                   </Suspense>
@@ -248,7 +202,7 @@ export default function App() {
             <Route
               path="admin/postazioni"
               element={
-                canAccessPage(currentUser, TPages.postazioni) ? (
+                canAccessPage(loggedUser.currentUser, TPages.postazioni) ? (
                   <Suspense fallback={<Loader />}>
                     <Postazioni />
                   </Suspense>
@@ -260,7 +214,7 @@ export default function App() {
             <Route
               path="admin/clienti"
               element={
-                canAccessPage(currentUser, TPages.clienti) ? (
+                canAccessPage(loggedUser.currentUser, TPages.clienti) ? (
                   <Suspense fallback={<Loader />}>
                     <Clienti />
                   </Suspense>
@@ -272,7 +226,7 @@ export default function App() {
             <Route
               path="login"
               element={
-                currentUser === null ? (
+                loggedUser.currentUser === null ? (
                   <Login />
                 ) : (
                   <Navigate replace to="/home" />

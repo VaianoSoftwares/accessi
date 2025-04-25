@@ -312,11 +312,16 @@ export default function Badge({
   }
 
   useEffect(() => {
-    if (!scannedValue || !currPostazione) return;
+    if (!scannedValue) {
+      return;
+    } else if (!currPostazione) {
+      toast.error("Postazione non selezionata");
+      return;
+    }
 
     console.log("Scanner accessi | scannedValue:", scannedValue);
     mutateInStrutt.mutate({
-      badge_cod: scannedValue,
+      badge_cod: scannedValue[0],
       post_id: currPostazione.id,
     });
     clearScannedValue();
