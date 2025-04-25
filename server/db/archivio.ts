@@ -900,6 +900,7 @@ export default class ArchivioDB {
         [actualCliente, ...data.chiavi]
       );
       if (existingChiavi.rowCount !== data.chiavi.length) {
+        console.log(existingChiavi.rows, data.chiavi);
         throw new BaseError(
           "Una o più chiavi non fanno parte del cliente attuale",
           {

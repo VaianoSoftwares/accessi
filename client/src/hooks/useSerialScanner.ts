@@ -11,7 +11,7 @@ export default function useSerialScanner() {
   );
 
   const addScanValue = useCallback((value: string) => {
-    setScanValues((prev) => [...prev, value]);
+    setScanValues((prev) => [...(new Set([...prev, value]))]);
   }, []);
 
   const removeScanValue = useCallback((value: string) => {
@@ -20,6 +20,34 @@ export default function useSerialScanner() {
 
   const clearScanValues = useCallback(() => {
     setScanValues([]);
+  }, []);
+
+  const disconnect = useCallback(async () => {
+    try {
+      if (readerRef.current) {
+        await readerRef.current.cancel();
+        readerRef.current.releaseLock();
+        readerRef.current = null;
+      }
+
+      if (portRef.current) {
+        await portRef.current.close();
+        portRef.current = null;
+      }
+
+      setIsConnected(false);
+      console.log("Disconnesso dispositivo seriale");
+    } catch (e) {
+      console.error(e);
+      if (e instanceof Error && e.name === "NetworkError") {
+        readerRef.current = null;
+        portRef.current = null;
+        setIsConnected(false);
+        console.log("Disconnesso dispositivo seriale");
+      } else {
+        toast.error("Errore durante la chiusura della porta seriale");
+      }
+    }
   }, []);
 
   const connect = useCallback(async () => {
@@ -59,35 +87,14 @@ export default function useSerialScanner() {
       readLoop().catch((e) => {
         console.error(e);
         toast.error("Errore durante la lettura della porta seriale");
-      });
+      }).finally(() => disconnect());
     } catch (e) {
       console.error(e);
       if (!(e instanceof Error) || e.name !== "NotFoundError") {
         toast.error("Errore durante l'apertura della porta seriale");
       }
     }
-  }, [addScanValue]);
-
-  const disconnect = useCallback(async () => {
-    try {
-      if (readerRef.current) {
-        await readerRef.current.cancel();
-        readerRef.current.releaseLock();
-        readerRef.current = null;
-      }
-
-      if (portRef.current) {
-        await portRef.current.close();
-        portRef.current = null;
-      }
-
-      setIsConnected(false);
-      console.log("Disconnesso dispositivo seriale");
-    } catch (e) {
-      console.error(e);
-      toast.error("Errore durante la chiusura della porta seriale");
-    }
-  }, []);
+  }, [addScanValue, disconnect]);
 
   useEffect(() => {
     return () => {
