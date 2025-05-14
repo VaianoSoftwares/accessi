@@ -41,12 +41,15 @@ enum ArchTableName {
   NOMINATIVI = "archivio_nominativi",
   PROVVISORI = "archivio_provvisori",
   CHIAVI = "archivio_chiavi",
+  CHIAVI_PROV = "archivio_chiavi_prov",
   VEICOLI = "archivio_veicoli",
   VEICOLI_PROV = "archivio_veicoli_prov",
   BADGES_IN_STRUTT = "in_strutt_badges",
   VEICOLI_IN_STRUTT = "in_strutt_veicoli",
+  IN_PRESTITO = "in_prestito",
   FULL_BADGES_IN_STRUTT = "full_in_strutt_badges",
   FULL_VEICOLI_IN_STRUTT = "full_in_strutt_veicoli",
+  FULL_IN_PRESTITO = "full_in_prestito",
   FULL_ARCHIVIO = "full_archivio",
 }
 
@@ -190,8 +193,7 @@ export default class ArchivioDB {
 
   public static async getInPrestito(filter?: FindInPrestitoFilter) {
     let i = 1;
-    const prefixText =
-      "SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, indirizzo, citta, edificio, piano, data_in FROM in_prestito";
+    const prefixText = `SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, indirizzo, citta, edificio, piano, data_in FROM ${ArchTableName.FULL_IN_PRESTITO}`;
     const filterText =
       filter &&
       Object.entries(filter)
@@ -917,7 +919,7 @@ export default class ArchivioDB {
         id: number;
         chiave: string;
       }>(
-        `SELECT DISTINCT id, chiave FROM in_prestito WHERE badge = $1 AND cliente = $2`,
+        `SELECT DISTINCT id, chiave FROM ${ArchTableName.IN_PRESTITO} WHERE badge = $1 AND cliente = $2`,
         [badgeCode, actualCliente]
       );
 

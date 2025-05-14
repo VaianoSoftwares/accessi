@@ -194,6 +194,7 @@ export default class ArchivioController {
       }
 
       let badgeCode: string | null = null;
+      let provvisorio = false;
       let chiavi: string[] = [];
       let mazzi: string[] = [];
       Array.from(new Set(parsed.data.barcodes)).forEach((barcode) => {
@@ -201,7 +202,9 @@ export default class ArchivioController {
 
         switch (prefix) {
           case BarcodePrefix.nominativoGenerico:
+          case BarcodePrefix.provvisorioGenerico:
             badgeCode = barcode;
+            provvisorio = prefix === BarcodePrefix.provvisorioGenerico;
             break;
           case BarcodePrefix.chiaveGenerico:
             chiavi.push(barcode);

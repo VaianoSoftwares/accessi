@@ -12,7 +12,7 @@ CREATE TYPE assign_type as ENUM ('OSPITE', 'UTENTE', 'GIORNALISTA', 'MANUTENZION
                                 'PARENTE DEGENTE');
 CREATE TYPE building_type as ENUM ('APPARTAMENTO', 'VILLETTA', 'CAPANNONE', 'FONDO', 'CLINICA', 'UFFICIO', 'ARCHIVIO', 'LOCALE TECNICO',
                                     'CAVEDIO', 'SCALE', 'REI', 'BIBLIOTECA', 'AUDITORIUM', 'FORESTERIA', 'COLLEGAMENTO', 'INFERMERIA',
-                                    'WC', 'AULA', 'CORRIDOIO', 'BAR', 'GENERICO');
+                                    'WC', 'AULA', 'CORRIDOIO', 'BAR', 'ASILO', 'GENERICO');
 CREATE TYPE veh_type as ENUM ('AUTO', 'MOTO', 'BICICLETTA', 'GENERICO');
 -- CREATE TYPE badge_type as ENUM ('NOMINATIVO', 'PROVVISORIO', 'CHIAVE');
 -- CREATE TYPE mark_type AS ENUM ('I', 'U');
@@ -218,7 +218,7 @@ CREATE TABLE IF NOT EXISTS archivio_veicoli_prov(
     cod_fisc VARCHAR(16) CHECK (length(cod_fisc) = 16),
     telefono VARCHAR(32) CHECK (telefono != ''),
     ndoc VARCHAR(32) CHECK (ndoc != ''),
-    tdoc VARCHAR(32) CHECK (tdoc = 'CARTA IDENTITA' OR tdoc = 'PATENTE' OR tdoc = 'TESSERA STUDENTE'),
+    tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'public.doc_type')),
     tveicolo VARCHAR(32) NOT NULL DEFAULT 'GENERICO' CHECK (is_typeof(tveicolo, 'public.veh_type')),
     CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in),
     UNIQUE (targa, data_in)
@@ -226,13 +226,34 @@ CREATE TABLE IF NOT EXISTS archivio_veicoli_prov(
 
 CREATE TABLE IF NOT EXISTS archivio_chiavi(
     id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
-    badge_cod VARCHAR(9) REFERENCES nominativi (codice),
-    chiave_cod VARCHAR(9) REFERENCES chiavi (codice),
+    badge_cod VARCHAR(9) NOT NULL REFERENCES nominativi (codice),
+    chiave_cod VARCHAR(9) NOT NULL REFERENCES chiavi (codice),
     post_id INT REFERENCES postazioni (id),
     data_in TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
     data_out TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '24 hours'),
     username VARCHAR(64) NOT NULL REFERENCES users (name),
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
+    CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in),
+    UNIQUE (badge_cod, chiave_cod, data_in)
+);
+
+CREATE TABLE IF NOT EXISTS archivio_chiavi_prov(
+    id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
+    badge_cod VARCHAR(9) NOT NULL REFERENCES provvisori (codice),
+    chiave_cod VARCHAR(9) NOT NULL REFERENCES chiavi (codice),
+    post_id INT REFERENCES postazioni (id),
+    data_in TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+    data_out TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '24 hours'),
+    username VARCHAR(64) NOT NULL REFERENCES users (name),
+    ip VARCHAR(32) NOT NULL CHECK (ip != ''),
+    nome VARCHAR(32) NOT NULL CHECK (nome != ''),
+    cognome VARCHAR(32) NOT NULL CHECK (cognome != ''),
+    assegnazione VARCHAR(32) NOT NULL DEFAULT 'OSPITE' CHECK (is_typeof(assegnazione, 'public.assign_type')),
+    ditta VARCHAR(64) CHECK (ditta != ''),
+    cod_fisc VARCHAR(16) CHECK (length(cod_fisc) = 16),
+    telefono VARCHAR(32) CHECK (telefono != ''),
+    ndoc VARCHAR(32) CHECK (ndoc != ''),
+    tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'public.doc_type')),
     CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in),
     UNIQUE (badge_cod, chiave_cod, data_in)
 );
@@ -342,6 +363,17 @@ CREATE VIEW full_archivio AS
             FROM chiavi AS ch
             JOIN archivio_chiavi AS a ON ch.codice = a.chiave_cod
         ) AS t2 ON t1.chiave_cod = t2.codice
+    ),
+    full_archivio_chiavi_prov AS (
+        SELECT a.id, a.badge_cod AS badge, a.nome, a.cognome, a.assegnazione, NULL AS targa, ch.codice AS chiave, 'CHIAVE' AS tipo,
+        'SI' AS provvisorio, po.cliente, po.name AS postazione, a.data_in, a.data_out,
+        date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
+        dates_are_not_equal(a.data_in, a.data_out) AS notte,
+        NULL AS tveicolo, a.ditta, a.cod_fisc, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, ch.indirizzo, ch.citta,
+        CAST(ch.edificio AS TEXT) AS edificio, ch.piano, a.username, a.ip, NULL AS documento
+        FROM chiavi AS ch
+        JOIN archivio_chiavi_prov AS a ON ch.codice = a.chiave_cod
+        JOIN postazioni AS po ON a.post_id = po.id
     )
     SELECT t.*
     FROM (
@@ -354,6 +386,8 @@ CREATE VIEW full_archivio AS
         (SELECT * FROM full_archivio_veicoli_prov)
         UNION
         (SELECT * FROM full_archivio_chiavi)
+        UNION
+        (SELECT * FROM full_archivio_chiavi_prov)
     ) AS t
     WHERE data_out < CURRENT_TIMESTAMP
     ORDER BY data_in, data_out;
@@ -415,6 +449,41 @@ CREATE VIEW full_in_strutt_veicoli AS
     ) AS t
     ORDER BY data_in DESC;
 
+CREATE VIEW full_in_prestito AS
+    WITH full_archivio_chiavi AS (
+        SELECT DISTINCT t1.id, t1.codice AS badge, t2.codice AS chiave, t1.cliente, t1.postazione, t1.data_in, t1.nome, t1.cognome,
+        t1.assegnazione, t1.ditta, t1.cod_fisc, t1.ndoc, t1.tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta, t2.edificio, t2.piano,
+        t1.post_id
+        FROM (
+            SELECT a.id, n.codice, po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.data_out, a.chiave_cod,
+            n.nome, n.cognome, n.ditta, n.assegnazione, n.ndoc, n.tdoc, n.cod_fisc, n.telefono, n.scadenza
+            FROM nominativi AS n
+            JOIN archivio_chiavi AS a ON n.codice = a.badge_cod
+            JOIN postazioni AS po ON a.post_id = po.id
+        ) AS t1
+        JOIN (
+            SELECT ch.*
+            FROM chiavi AS ch
+            JOIN archivio_chiavi AS a ON ch.codice = a.chiave_cod
+        ) AS t2 ON t1.chiave_cod = t2.codice
+        WHERE data_out > CURRENT_TIMESTAMP
+    ),
+    full_archivio_chiavi_prov AS (
+        SELECT DISTINCT a.id, a.badge_cod AS badge, ch.codice AS chiave, po.cliente, po.name AS postazione, a.data_in, 
+        a.nome, a.cognome, a.assegnazione, a.ditta, a.cod_fisc, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, 
+        ch.indirizzo, ch.citta, ch.edificio, ch.piano, po.id AS post_id
+        FROM chiavi AS ch
+        JOIN archivio_chiavi_prov AS a ON ch.codice = a.chiave_cod
+        JOIN postazioni AS po ON a.post_id = po.id
+    )
+    SELECT t.*
+    FROM (
+        (SELECT * FROM full_archivio_chiavi)
+        UNION
+        (SELECT * FROM full_archivio_chiavi_prov)
+    ) AS t
+    ORDER BY data_in DESC;
+
 CREATE VIEW in_strutt_badges AS
     SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM full_in_strutt_badges;
 
@@ -422,22 +491,7 @@ CREATE VIEW in_strutt_veicoli AS
     SELECT id, targa, descrizione, tveicolo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM full_in_strutt_veicoli;
 
 CREATE VIEW in_prestito AS
-    SELECT DISTINCT t1.id, t1.codice AS badge, t2.codice AS chiave, t1.cliente, t1.postazione, t1.data_in, t1.nome, t1.cognome, t1.assegnazione,
-    t1.ditta, t1.ndoc, t1.tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta, t2.edificio, t2.piano, t1.post_id
-    FROM (
-        SELECT a.id, n.codice, po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.data_out, a.chiave_cod,
-        n.nome, n.cognome, n.ditta, n.assegnazione, n.ndoc, n.tdoc, n.telefono, n.scadenza
-        FROM nominativi AS n
-        JOIN archivio_chiavi AS a ON n.codice = a.badge_cod
-        JOIN postazioni AS po ON a.post_id = po.id
-    ) AS t1
-    JOIN (
-        SELECT ch.*
-        FROM chiavi AS ch
-        JOIN archivio_chiavi AS a ON ch.codice = a.chiave_cod
-    ) AS t2 ON t1.chiave_cod = t2.codice
-    WHERE data_out > CURRENT_TIMESTAMP
-    ORDER BY data_in DESC;
+    SELECT id, badge, nome, cognome, ditta, cliente, postazione, chiave, data_in FROM full_in_prestito;
 
 CREATE VIEW full_users AS 
     SELECT u.*,

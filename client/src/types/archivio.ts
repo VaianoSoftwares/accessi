@@ -65,10 +65,6 @@ export type QueryInPrestito = {
   nome: string;
   cognome: string;
   ditta: string;
-  indirizzo: string;
-  citta: string;
-  edificio: string;
-  piano: string;
   data_in: Date | string;
 };
 
