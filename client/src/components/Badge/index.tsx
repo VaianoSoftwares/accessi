@@ -321,7 +321,7 @@ export default function Badge({
 
     console.log("Scanner accessi | scannedValue:", scannedValue);
     mutateInStrutt.mutate({
-      badge_cod: scannedValue[0],
+      badge_cod: scannedValue,
       post_id: currPostazione.id,
     });
     clearScannedValue();
