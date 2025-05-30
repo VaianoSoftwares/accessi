@@ -432,6 +432,79 @@ export const UPDATE_MAZZO_SCHEMA = z.object({
 });
 export type UpdateMazzoData = z.infer<typeof UPDATE_MAZZO_SCHEMA>;
 
+export const GET_PEOPLE_SCHEMA = z.object({
+  id: ID_SCHEMA("Persona ID").nullish(),
+  cliente: z.string().nullish(),
+  nome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  cognome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  assegnazione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  ditta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  cod_fisc: COD_FISC_SCHEMA.nullish(),
+  ndoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  tdoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  telefono: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+});
+export type FindPeopleFilter = z.infer<typeof GET_NOMINATIVI_SCHEMA>;
+
+export const INSERT_PERSON_SCHEMA = z.object({
+  cliente: z.string({ required_error: MISSING_ATTR_ERR_MSG("Cliente") }),
+  nome: z
+    .string({ required_error: MISSING_ATTR_ERR_MSG("Nome") })
+    .transform((val) => val.toUpperCase()),
+  cognome: z
+    .string({ required_error: MISSING_ATTR_ERR_MSG("Cognome") })
+    .transform((val) => val.toUpperCase()),
+  assegnazione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  ditta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  cod_fisc: COD_FISC_SCHEMA.nullish(),
+  ndoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  tdoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+  telefono: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .nullish(),
+});
+export type InsertPersonData = z.infer<typeof INSERT_PERSON_SCHEMA>;
+
+export const UPDATE_PERSON_SCHEMA = z.object({
+  id: ID_SCHEMA(),
+  updateData: GET_PEOPLE_SCHEMA.omit({ id: true }),
+});
+export type UpdatePersonData = z.infer<typeof UPDATE_PERSON_SCHEMA>;
+
 export const GET_ARCHIVIO_SCHEMA = z.object({
   badge: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
   targa: z.string().optional(),
@@ -693,8 +766,37 @@ export const TIMBRA_CHIAVI_SCHEMA = z.object({
     .nonempty(MISSING_ATTR_ERR_MSG("Barcodes")),
   ip: z.string().default("unknown"),
   username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
+  nome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  cognome: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  assegnazione: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  ditta: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  cod_fisc: COD_FISC_SCHEMA.optional(),
+  telefono: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  ndoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  tdoc: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .optional(),
 });
-// export type TimbraChiaviData = z.infer<typeof TIMBRA_CHIAVI_SCHEMA>;
+export type TimbraChiaviData = z.infer<typeof TIMBRA_CHIAVI_SCHEMA>;
 
 export const PAUSA_SCHEMA = z.object({
   badge_cod: z

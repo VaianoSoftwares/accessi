@@ -6,7 +6,6 @@ import * as Validator from "../utils/validation.js";
 import { BarcodePrefix } from "../types/archivio.js";
 import BadgesFileManager from "../files/badges.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
-import { sendToAllClients } from "./sse.js";
 import MazziChiaviDB from "../db/mazzi.js";
 
 export default class ArchivioController {
@@ -144,7 +143,6 @@ export default class ArchivioController {
       }
 
       res.json(Ok(dbRes));
-      return sendToAllClients(dbRes);
     } catch (e) {
       next(e);
     }
@@ -202,9 +200,12 @@ export default class ArchivioController {
 
         switch (prefix) {
           case BarcodePrefix.nominativoGenerico:
+            badgeCode = barcode;
+            provvisorio = false;
+            break;
           case BarcodePrefix.provvisorioGenerico:
             badgeCode = barcode;
-            provvisorio = prefix === BarcodePrefix.provvisorioGenerico;
+            provvisorio = true;
             break;
           case BarcodePrefix.chiaveGenerico:
             chiavi.push(barcode);
@@ -236,11 +237,17 @@ export default class ArchivioController {
         });
       }
 
-      const dbRes = await ArchivioDB.timbraChiavi({
+      const dbData = {
         ...parsed.data,
         badge_cod: badgeCode,
         chiavi,
-      });
+      };
+      let dbRes;
+      if (provvisorio) {
+        dbRes = await ArchivioDB.timbraChiaviProv(dbData);
+      } else {
+        dbRes = await ArchivioDB.timbraChiavi(dbData);
+      }
 
       res.json(Ok(dbRes));
     } catch (e) {

@@ -106,6 +106,20 @@ CREATE TABLE IF NOT EXISTS mazzi_chiavi(
     CONSTRAINT invalid_mazzo_barcode CHECK (left(codice, 1) = '5' AND length(codice) = 9 AND (codice ~ '^[0-9]+$'))
 );
 
+CREATE TABLE IF NOT EXISTS people(
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(32) NOT NULL CHECK (nome != ''),
+    cognome VARCHAR(32) NOT NULL CHECK (cognome != ''),
+    assegnazione VARCHAR(32) NOT NULL DEFAULT 'OSPITE' CHECK (is_typeof(assegnazione, 'public.assign_type')),
+    ditta VARCHAR(64) CHECK (ditta != ''),
+    cod_fisc VARCHAR(16) UNIQUE CHECK (length(cod_fisc) = 16),
+    telefono VARCHAR(32) CHECK (telefono != ''),
+    ndoc VARCHAR(32) CHECK (ndoc != ''),
+    tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'public.doc_type')),
+    cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
+    UNIQUE(ndoc, tdoc)
+);
+
 CREATE TABLE IF NOT EXISTS nominativi(
     codice VARCHAR(9) PRIMARY KEY DEFAULT next_barcode('1'),
     descrizione TEXT CHECK (descrizione != ''),
@@ -228,7 +242,7 @@ CREATE TABLE IF NOT EXISTS archivio_chiavi(
     id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
     badge_cod VARCHAR(9) NOT NULL REFERENCES nominativi (codice),
     chiave_cod VARCHAR(9) NOT NULL REFERENCES chiavi (codice),
-    post_id INT REFERENCES postazioni (id),
+    post_id INT NOT NULL REFERENCES postazioni (id),
     data_in TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
     data_out TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '24 hours'),
     username VARCHAR(64) NOT NULL REFERENCES users (name),
@@ -241,19 +255,12 @@ CREATE TABLE IF NOT EXISTS archivio_chiavi_prov(
     id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
     badge_cod VARCHAR(9) NOT NULL REFERENCES provvisori (codice),
     chiave_cod VARCHAR(9) NOT NULL REFERENCES chiavi (codice),
-    post_id INT REFERENCES postazioni (id),
-    data_in TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+    person_id INT NOT NULL REFERENCES people (id),
+    post_id INT NOT NULL REFERENCES postazioni (id),
+    data_in TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '23 hours 59 minutes'),
     data_out TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '24 hours'),
     username VARCHAR(64) NOT NULL REFERENCES users (name),
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
-    nome VARCHAR(32) NOT NULL CHECK (nome != ''),
-    cognome VARCHAR(32) NOT NULL CHECK (cognome != ''),
-    assegnazione VARCHAR(32) NOT NULL DEFAULT 'OSPITE' CHECK (is_typeof(assegnazione, 'public.assign_type')),
-    ditta VARCHAR(64) CHECK (ditta != ''),
-    cod_fisc VARCHAR(16) CHECK (length(cod_fisc) = 16),
-    telefono VARCHAR(32) CHECK (telefono != ''),
-    ndoc VARCHAR(32) CHECK (ndoc != ''),
-    tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'public.doc_type')),
     CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in),
     UNIQUE (badge_cod, chiave_cod, data_in)
 );
@@ -365,15 +372,24 @@ CREATE VIEW full_archivio AS
         ) AS t2 ON t1.chiave_cod = t2.codice
     ),
     full_archivio_chiavi_prov AS (
-        SELECT a.id, a.badge_cod AS badge, a.nome, a.cognome, a.assegnazione, NULL AS targa, ch.codice AS chiave, 'CHIAVE' AS tipo,
-        'SI' AS provvisorio, po.cliente, po.name AS postazione, a.data_in, a.data_out,
-        date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
-        dates_are_not_equal(a.data_in, a.data_out) AS notte,
-        NULL AS tveicolo, a.ditta, a.cod_fisc, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, ch.indirizzo, ch.citta,
-        CAST(ch.edificio AS TEXT) AS edificio, ch.piano, a.username, a.ip, NULL AS documento
-        FROM chiavi AS ch
-        JOIN archivio_chiavi_prov AS a ON ch.codice = a.chiave_cod
-        JOIN postazioni AS po ON a.post_id = po.id
+        SELECT t1.id, t1.badge_cod, t1.nome, t1.cognome, t1.assegnazione, NULL AS targa, t2.codice AS chiave, 'CHIAVE' AS tipo,
+        'SI' AS provvisorio, t1.cliente, t1.postazione, t1.data_in, t1.data_out,
+        date_in_out_diff(t1.data_in, t1.data_out) AS tempo_in_strutt,
+        dates_are_not_equal(t1.data_in, t1.data_out) AS notte,
+        NULL AS tveicolo, t1.ditta, t1.cod_fisc, t1.ndoc, t1.tdoc, t1.telefono, NULL::DATE AS scadenza, t2.indirizzo, t2.citta,
+        CAST(t2.edificio AS TEXT) AS edificio, t2.piano, t1.username, t1.ip, NULL AS documento
+        FROM (
+            SELECT a.id, a.badge_cod, po.cliente, po.name AS postazione, a.data_in, a.data_out, a.username, a.ip, a.chiave_cod, 
+            pe.nome, pe.cognome, pe.ditta, pe.cod_fisc, pe.assegnazione, pe.ndoc, pe.tdoc, pe.telefono
+            FROM people AS pe
+            JOIN archivio_chiavi_prov AS a ON pe.id = a.person_id
+            JOIN postazioni AS po ON a.post_id = po.id
+        ) AS t1
+        JOIN (
+            SELECT ch.*
+            FROM chiavi AS ch
+            JOIN archivio_chiavi_prov AS a ON ch.codice = a.chiave_cod
+        ) AS t2 ON t1.chiave_cod = t2.codice
     )
     SELECT t.*
     FROM (
@@ -469,12 +485,22 @@ CREATE VIEW full_in_prestito AS
         WHERE data_out > CURRENT_TIMESTAMP
     ),
     full_archivio_chiavi_prov AS (
-        SELECT DISTINCT a.id, a.badge_cod AS badge, ch.codice AS chiave, po.cliente, po.name AS postazione, a.data_in, 
-        a.nome, a.cognome, a.assegnazione, a.ditta, a.cod_fisc, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, 
-        ch.indirizzo, ch.citta, ch.edificio, ch.piano, po.id AS post_id
-        FROM chiavi AS ch
-        JOIN archivio_chiavi_prov AS a ON ch.codice = a.chiave_cod
-        JOIN postazioni AS po ON a.post_id = po.id
+        SELECT DISTINCT t1.id, t1.badge_cod AS badge, t2.codice AS chiave, t1.cliente, t1.postazione, t1.data_in, t1.nome, t1.cognome,
+        t1.assegnazione, t1.ditta, t1.cod_fisc, t1.ndoc, t1.tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta, t2.edificio, t2.piano,
+        t1.post_id
+        FROM (
+            SELECT a.id, a.badge_cod, po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.data_out, a.chiave_cod,
+            pe.nome, pe.cognome, pe.ditta, pe.assegnazione, pe.ndoc, pe.tdoc, pe.cod_fisc, pe.telefono, NULL::DATE AS scadenza
+            FROM people AS pe
+            JOIN archivio_chiavi_prov AS a ON pe.id = a.person_id
+            JOIN postazioni AS po ON a.post_id = po.id
+        ) AS t1
+        JOIN (
+            SELECT ch.*
+            FROM chiavi AS ch
+            JOIN archivio_chiavi_prov AS a ON ch.codice = a.chiave_cod
+        ) AS t2 ON t1.chiave_cod = t2.codice
+        WHERE is_in_strutt(data_in, data_out)
     )
     SELECT t.*
     FROM (

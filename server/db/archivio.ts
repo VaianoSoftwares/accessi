@@ -13,6 +13,7 @@ import {
   ArchivioNominativo,
   ArchivioProvvisorio,
   Tracciato,
+  TimbraChiaviProvData,
 } from "../types/archivio.js";
 import { BaseError } from "../types/errors.js";
 import {
@@ -35,7 +36,13 @@ import VeicoliDB from "./veicoli.js";
 import { WithId } from "../types/index.js";
 import NominativiDB from "./nominativi.js";
 import ProvvisoriDB from "./provvisori.js";
-import { BadgeState, Nominativo } from "../types/badges.js";
+import {
+  BadgeState,
+  Nominativo,
+  Person,
+  Provvisorio,
+} from "../types/badges.js";
+import PeopleDB from "./people.js";
 
 enum ArchTableName {
   NOMINATIVI = "archivio_nominativi",
@@ -980,6 +987,186 @@ export default class ArchivioDB {
       //     ArchTableName.CHIAVI
       //   }\"\')`
       // );
+
+      await client.query("COMMIT");
+
+      return { in: chiaviInRes, out: chiaviOutRes };
+    } catch (e) {
+      await client.query("ROLLBACK");
+      throw e;
+    } finally {
+      client.release();
+    }
+  }
+
+  public static async timbraChiaviProv(data: TimbraChiaviProvData) {
+    const client = await db.getClient();
+
+    try {
+      await client.query("BEGIN");
+
+      const badgeCode = data.badge_cod;
+
+      const { rows: postazioniRows, rowCount: numPostazioniRows } =
+        await client.query<Postazione>(
+          PostazioniDB.getPostazioneByIdQueryText,
+          [data.post_id]
+        );
+      if (!numPostazioniRows) {
+        throw new BaseError("Postazione non valida", {
+          status: 400,
+          context: { badgeCode, postazioneId: data.post_id },
+        });
+      }
+
+      const existsBadge = await client.query<Provvisorio>(
+        NominativiDB.getNominativoByCodiceQueryText,
+        [badgeCode]
+      );
+      if (!existsBadge.rowCount) {
+        throw new BaseError("Badge non valido", {
+          status: 400,
+          context: { badgeCode },
+        });
+      }
+
+      const { cliente: actualCliente, stato } = existsBadge.rows[0];
+      const { cliente: expectedCliente } = postazioniRows[0];
+
+      if (actualCliente !== expectedCliente) {
+        throw new BaseError("Impossibile timbrare badge di un altro cliente", {
+          status: 400,
+          context: { badgeCode, actualCliente, expectedCliente },
+        });
+      } else if (stato !== BadgeState.VALIDO) {
+        throw new BaseError("Badge non valido", {
+          status: 400,
+          context: { badgeCode, stato },
+        });
+      }
+
+      const findChiaviQueryText = [
+        "SELECT * FROM chiavi WHERE cliente = $1",
+        data.chiavi.map((_, i) => `codice=$${i + 2}`).join(" OR "),
+      ].join(" AND ");
+      const existingChiavi = await client.query<ArchivioChiave>(
+        findChiaviQueryText,
+        [actualCliente, ...data.chiavi]
+      );
+      if (existingChiavi.rowCount !== data.chiavi.length) {
+        throw new BaseError(
+          "Una o più chiavi non fanno parte del cliente attuale",
+          {
+            status: 400,
+            context: {
+              chiavi: data.chiavi,
+              expectedLength: data.chiavi.length,
+              actualLength: existingChiavi.rowCount,
+            },
+          }
+        );
+      }
+
+      const { rows: chiaviInPrestito } = await client.query<{
+        id: number;
+        chiave: string;
+      }>(
+        `SELECT DISTINCT id, chiave FROM ${ArchTableName.IN_PRESTITO} WHERE substr(badge,1,2) = '2' AND badge = $1 AND cliente = $2`,
+        [badgeCode, actualCliente]
+      );
+
+      const chiaviIn: string[] = [];
+      const chiaviOut: number[] = [];
+      data.chiavi.forEach((chiave) => {
+        const id = chiaviInPrestito.find((row) => row.chiave == chiave)?.id;
+        if (id) chiaviOut.push(id);
+        else chiaviIn.push(chiave);
+      });
+
+      let personId: number;
+      if (chiaviIn.length > 0) {
+        const existsPerson = await client.query<Person>(
+          "SELECT * FROM people WHERE cliente = $1 AND (cod_fisc = $2 OR (tdoc = $3 AND ndoc = $4) OR (nome = $5 AND cognome = $6)) LIMIT 1",
+          [
+            actualCliente,
+            data.cod_fisc,
+            data.tdoc,
+            data.ndoc,
+            data.nome,
+            data.cognome,
+          ]
+        );
+        if (!existsPerson.rowCount) {
+          const { queryText, queryValues } = db.getInsertRowQuery("people", [
+            data.cod_fisc,
+            data.tdoc,
+            data.ndoc,
+            data.nome,
+            data.cognome,
+            data.assegnazione,
+            data.ditta,
+            data.telefono,
+          ]);
+          const insertPerson = await client.query<Person>(
+            queryText,
+            queryValues
+          );
+          if (!insertPerson.rowCount) {
+            throw new BaseError("Impossibile inserire persona", {
+              status: 400,
+              context: queryValues,
+            });
+          }
+          personId = insertPerson.rows[0].id;
+        } else {
+          personId = existsPerson.rows[0].id;
+        }
+      }
+
+      const chiaviInValues = chiaviIn.flatMap((chiaveCode) => [
+        badgeCode,
+        chiaveCode,
+        data.post_id,
+        data.ip,
+        data.username,
+        personId,
+      ]);
+      const chiaviInText =
+        chiaviIn.length > 0
+          ? [
+              "INSERT INTO",
+              ArchTableName.CHIAVI_PROV,
+              "(badge_cod, chiave_cod, post_id, ip, username, person_id) VALUES",
+              chiaviInValues
+                .map((_, i) => {
+                  const queryArgTxt = `$${i + 1}`;
+                  const numRowValues = 6;
+                  switch (i % numRowValues) {
+                    case 0:
+                      return "(".concat(queryArgTxt);
+                    case numRowValues - 1:
+                      return queryArgTxt.concat(")");
+                    default:
+                      return queryArgTxt;
+                  }
+                })
+                .join(","),
+              "RETURNING *",
+            ].join(" ")
+          : "";
+      const chiaviInRes = await client.query(chiaviInText, chiaviInValues);
+
+      const chiaviOutText =
+        chiaviOut.length > 0
+          ? [
+              "UPDATE",
+              ArchTableName.CHIAVI_PROV,
+              "SET data_out = CURRENT_TIMESTAMP(0) WHERE",
+              chiaviOut.map((_, i) => `id = $${i + 1}`).join(" OR "),
+              "RETURNING *",
+            ].join(" ")
+          : "";
+      const chiaviOutRes = await client.query(chiaviOutText, chiaviOut);
 
       await client.query("COMMIT");
 

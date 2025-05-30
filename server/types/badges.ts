@@ -97,6 +97,11 @@ export interface BaseVeicolo {
 
 export interface Veicolo extends BaseVeicolo, BaseBadge {}
 
+export type Person = Omit<BaseNominativo, "scadenza"> & {
+  id: number;
+  cliente: string;
+};
+
 export type ChiaveNominativo = Chiave &
   BaseNominativo & { chiave_cod: string; badge_cod: string };
 export type VeicoloNominativo = Veicolo &

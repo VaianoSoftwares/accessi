@@ -30,9 +30,12 @@ export default class ProvvisoriDB {
     return await db.deleteRows(tableName, { codice });
   }
 
+  public static readonly getProvvisorioByCodiceQueryText =
+    "SELECT * FROM provvisori WHERE codice = $1";
+
   public static async getProvvisorioByCodice(codice: string) {
     return await db.query<Provvisorio>(
-      "SELECT * FROM provvisori WHERE codice = $1",
+      ProvvisoriDB.getProvvisorioByCodiceQueryText,
       [codice]
     );
   }
