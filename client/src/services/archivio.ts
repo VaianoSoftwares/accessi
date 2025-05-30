@@ -94,7 +94,7 @@ class ArchivioDataService extends DataServices {
     });
   }
 
-  prestaChiavi(data: PrestitoChiaviData, signal?: GenericAbortSignal) {
+  prestaChiavi(data: FormData, signal?: GenericAbortSignal) {
     return super.request<PrestitoChiaviRes>({
       method: "POST",
       url: "/timbra/chiavi",

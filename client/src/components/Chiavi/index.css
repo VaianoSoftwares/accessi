@@ -4,8 +4,10 @@
 }
 
 .chiavi-table-wrapper {
+    overflow: auto;
     height: 60%;
-    max-height: 60%;
+    max-height: 500px;
+    background-color: white;
 }
 
 .chiavi-form {

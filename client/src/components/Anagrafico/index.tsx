@@ -1295,7 +1295,7 @@ export default function Anagrafico() {
                   <div className="col-sm-1">
                     <button
                       onClick={async () =>
-                        refreshPage({ form: true, image: true, refetch: true })
+                        refreshPage({ form: true, image: true, refetch: false })
                       }
                       className="btn btn-success anagrafico-form-btn"
                     >

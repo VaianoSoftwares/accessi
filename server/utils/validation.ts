@@ -757,9 +757,12 @@ export const TIMBRA_CHIAVI_SCHEMA = z.object({
       BARCODE_CHIAVE_ESCE_SCHEMA,
       BARCODE_NOM_ENTRA_SCHEMA,
       BARCODE_NOM_ESCE_SCHEMA,
+      BARCODE_PROV_ENTRA_SCHEMA,
+      BARCODE_PROV_ESCE_SCHEMA,
       CODICE_CHIAVE_SCHEMA,
       CODICE_NOM_SCHEMA,
       CODICE_MAZZO_SCHEMA,
+      CODICE_PROV_SCHEMA,
     ])
     .transform((v) => (v.length === 10 ? v.substring(1) : v))
     .array()

@@ -7,6 +7,7 @@ import { BarcodePrefix } from "../types/archivio.js";
 import BadgesFileManager from "../files/badges.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
 import MazziChiaviDB from "../db/mazzi.js";
+import { equal } from "assert";
 
 export default class ArchivioController {
   public static async apiGetArchivio(
@@ -242,14 +243,28 @@ export default class ArchivioController {
         badge_cod: badgeCode,
         chiavi,
       };
-      let dbRes;
+      let dbResult;
+      let uploadedFile;
       if (provvisorio) {
-        dbRes = await ArchivioDB.timbraChiaviProv(dbData);
+        dbResult = await ArchivioDB.timbraChiaviProv(dbData);
+
+        const archId = dbResult.in.rows[0].id;
+        const personId = dbResult.in.rows[0].person_id;
+
+        const docs = Array.isArray(req.files?.docs)
+          ? req.files?.docs[0]
+          : req.files?.docs;
+        if (docs) {
+          uploadedFile = await BadgesFileManager.uploadDocArchChiavi(
+            [archId, personId],
+            docs
+          );
+        }
       } else {
-        dbRes = await ArchivioDB.timbraChiavi(dbData);
+        dbResult = await ArchivioDB.timbraChiavi(dbData);
       }
 
-      res.json(Ok(dbRes));
+      res.json(Ok({ ...dbResult, uploadedFile }));
     } catch (e) {
       next(e);
     }

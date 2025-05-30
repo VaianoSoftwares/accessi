@@ -948,7 +948,7 @@ export default class ArchivioDB {
       const chiaviInText =
         chiaviIn.length > 0
           ? [
-              "INSERT INTO",
+              "WITH inserted AS (INSERT INTO",
               ArchTableName.CHIAVI,
               "(badge_cod, chiave_cod, post_id, ip, username) VALUES",
               chiaviInValues
@@ -965,10 +965,10 @@ export default class ArchivioDB {
                   }
                 })
                 .join(","),
-              "RETURNING *",
+              `RETURNING *) SELECT * FROM ${ArchTableName.FULL_IN_PRESTITO} WHERE id IN (SELECT id FROM inserted)`,
             ].join(" ")
           : "";
-      const chiaviInRes = await client.query(chiaviInText, chiaviInValues);
+      const chiaviInRes = await client.query<ArchivioChiave>(chiaviInText, chiaviInValues);
 
       const chiaviOutText =
         chiaviOut.length > 0
@@ -980,7 +980,7 @@ export default class ArchivioDB {
               "RETURNING *",
             ].join(" ")
           : "";
-      const chiaviOutRes = await client.query(chiaviOutText, chiaviOut);
+      const chiaviOutRes = await client.query<ArchivioChiave>(chiaviOutText, chiaviOut);
 
       // await client.query(
       //   `CALL mark_out_many({${chiaviOut.join(",")}}, \'\"${
@@ -1020,7 +1020,7 @@ export default class ArchivioDB {
       }
 
       const existsBadge = await client.query<Provvisorio>(
-        NominativiDB.getNominativoByCodiceQueryText,
+        ProvvisoriDB.getProvvisorioByCodiceQueryText,
         [badgeCode]
       );
       if (!existsBadge.rowCount) {
@@ -1071,7 +1071,7 @@ export default class ArchivioDB {
         id: number;
         chiave: string;
       }>(
-        `SELECT DISTINCT id, chiave FROM ${ArchTableName.IN_PRESTITO} WHERE substr(badge,1,2) = '2' AND badge = $1 AND cliente = $2`,
+        `SELECT DISTINCT id, chiave FROM ${ArchTableName.IN_PRESTITO} WHERE substr(badge,1,1) = '2' AND badge = $1 AND cliente = $2`,
         [badgeCode, actualCliente]
       );
 
@@ -1082,7 +1082,7 @@ export default class ArchivioDB {
         if (id) chiaviOut.push(id);
         else chiaviIn.push(chiave);
       });
-
+      
       let personId: number;
       if (chiaviIn.length > 0) {
         const existsPerson = await client.query<Person>(
@@ -1096,6 +1096,7 @@ export default class ArchivioDB {
             data.cognome,
           ]
         );
+        
         if (!existsPerson.rowCount) {
           const { queryText, queryValues } = db.getInsertRowQuery("people", [
             data.cod_fisc,
@@ -1122,7 +1123,7 @@ export default class ArchivioDB {
           personId = existsPerson.rows[0].id;
         }
       }
-
+      console.log("patara2");
       const chiaviInValues = chiaviIn.flatMap((chiaveCode) => [
         badgeCode,
         chiaveCode,
@@ -1134,7 +1135,7 @@ export default class ArchivioDB {
       const chiaviInText =
         chiaviIn.length > 0
           ? [
-              "INSERT INTO",
+              "WITH inserted AS (INSERT INTO",
               ArchTableName.CHIAVI_PROV,
               "(badge_cod, chiave_cod, post_id, ip, username, person_id) VALUES",
               chiaviInValues
@@ -1151,10 +1152,10 @@ export default class ArchivioDB {
                   }
                 })
                 .join(","),
-              "RETURNING *",
+              `RETURNING *) SELECT * FROM ${ArchTableName.FULL_IN_PRESTITO} WHERE id IN (SELECT id FROM inserted)`,
             ].join(" ")
           : "";
-      const chiaviInRes = await client.query(chiaviInText, chiaviInValues);
+      const chiaviInRes = await client.query<ArchivioChiave>(chiaviInText, chiaviInValues);
 
       const chiaviOutText =
         chiaviOut.length > 0
@@ -1166,8 +1167,8 @@ export default class ArchivioDB {
               "RETURNING *",
             ].join(" ")
           : "";
-      const chiaviOutRes = await client.query(chiaviOutText, chiaviOut);
-
+      const chiaviOutRes = await client.query<ArchivioChiave>(chiaviOutText, chiaviOut);
+    
       await client.query("COMMIT");
 
       return { in: chiaviInRes, out: chiaviOutRes };

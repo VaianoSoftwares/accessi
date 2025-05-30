@@ -10,6 +10,11 @@ import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import { TPermessi, hasPerm } from "../../types/users";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
+import { FormRef } from "../../types";
+import { InsertArchChiaveForm } from "../../types/forms";
+import { TDOCS } from "../../types/badges";
+import mergeDocs from "../../utils/mergePdfFiles";
+import printPrestitoReport from "../../utils/printPrestitoReport";
 
 const TABLE_NAME = "in_prestito_table";
 
@@ -20,6 +25,16 @@ export default function Chiavi(props: {
   clearScanValues: () => void;
 }) {
   const barcodeTxtInput = useRef<HTMLInputElement>(null);
+  const formRef = useRef<FormRef<InsertArchChiaveForm>>({
+    nome: null,
+    cognome: null,
+    ditta: null,
+    cod_fisc: null,
+    telefono: null,
+    ndoc: null,
+    tdoc: null,
+    docs: null,
+  });
 
   const queryClient = useQueryClient();
   const { handleError } = useError();
@@ -54,10 +69,17 @@ export default function Chiavi(props: {
   });
 
   const mutateInPrestito = useMutation({
-    mutationFn: (data: PrestitoChiaviData) =>
+    mutationFn: (data: FormData) =>
       ArchivioDataService.prestaChiavi(data),
     onSuccess: async (response) => {
       console.log("prestaChiavi | response", response);
+      if(response.data.success === false) {
+        throw response.data.error;
+      }
+
+      const chiaviIn = response.data.result.in.map(row => row.rows);
+      printPrestitoReport(chiaviIn);
+
       await queryClient.invalidateQueries({ queryKey: ["inPrestito"] });
       props.clearScanValues();
       toast.success("Chiave/i prestate/rese con successo");
@@ -65,49 +87,169 @@ export default function Chiavi(props: {
     onError: async (err) => handleError(err, "prestaChiavi"),
   });
 
+  async function createFormData() {
+    const formData = new FormData();
+    props.scanValues.forEach(value => formData.append("barcodes", value));
+    formData.append("post_id", String(currPostazione?.id));
+    await Promise.all(
+      Object.entries(formRef.current)
+        .filter(([_, el]) => el !== null && el.value)
+        .map(async ([key, el]) => {
+          switch (key) {
+            case "docs":
+              const filesToMerge = (el as HTMLInputElement).files;
+              if (!filesToMerge) return;
+              const blobToUpload = await mergeDocs(filesToMerge);
+              if (!blobToUpload) return;
+              formData.append(key, blobToUpload, "docs.pdf");
+              break;
+            default:
+              formData.append(key, el!.value);
+          }
+        })
+    );
+    return formData;
+  }
+
   return (
     <div id="chiavi-wrapper">
       <div className="container-fluid m-1 chiavi-container">
-        <div className="row mt-2">
-          <div className="col-4 chiavi-form">
+        <div className="row mt-2 justify-content-start align-items-start submit-form">
+          <div className="col-7 chiavi-form">
             <div className="row my-1">
-              <div className="input-group custom-add-barcode-input">
-                <div className="input-group-text">
-                  <button
-                    onClick={() => {
-                      const barcode = barcodeTxtInput?.current?.value;
-                      barcode && props.addScanValue(barcode);
-                      barcodeTxtInput.current &&
-                        (barcodeTxtInput.current.value =
-                          barcodeTxtInput.current.defaultValue);
-                    }}
-                  >
-                    Aggiungi
-                  </button>
+              <div className="col-4">
+                <div className="input-group custom-add-barcode-input">
+                  <div className="input-group-text">
+                    <button
+                      onClick={() => {
+                        const barcode = barcodeTxtInput?.current?.value;
+                        barcode && props.addScanValue(barcode);
+                        barcodeTxtInput.current &&
+                          (barcodeTxtInput.current.value =
+                            barcodeTxtInput.current.defaultValue);
+                      }}
+                    >
+                      Aggiungi
+                    </button>
+                  </div>
+                  <input
+                    className="form-control form-control-sm"
+                    ref={barcodeTxtInput}
+                    type="text"
+                    placeholder="Inserire qui barcode"
+                  />
                 </div>
-                <input
-                  className="form-control form-control-sm"
-                  ref={barcodeTxtInput}
-                  type="text"
-                  placeholder="Inserire qui barcode"
-                />
+                <div className="barcode-list col-sm my-1">
+                  <ul className="list-group list-group-flush">
+                    {props.scanValues.map((barcode, i) => (
+                      <li className="list-group-item" key={i}>
+                        <button
+                          type="button"
+                          className="close btn-del-barcode"
+                          aria-label="Close"
+                          onClick={() => props.removeScanValue(barcode)}
+                        >
+                          <span aria-hidden="true">&times;</span>
+                        </button>{" "}
+                        {barcode}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-              <div className="barcode-list col-sm my-1">
-                <ul className="list-group list-group-flush">
-                  {props.scanValues.map((barcode, i) => (
-                    <li className="list-group-item" key={i}>
-                      <button
-                        type="button"
-                        className="close btn-del-barcode"
-                        aria-label="Close"
-                        onClick={() => props.removeScanValue(barcode)}
-                      >
-                        <span aria-hidden="true">&times;</span>
-                      </button>{" "}
-                      {barcode}
-                    </li>
-                  ))}
-                </ul>
+              <div className="col">
+                <div className="row">
+                  <div className="form-floating col-sm-6">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="nome"
+                      placeholder="nome"
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.nome = el)}
+                    />
+                    <label htmlFor="cognome">nome</label>
+                  </div>
+                  <div className="form-floating col-sm-6">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="cognome"
+                      placeholder="cognome"
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.cognome = el)}
+                    />
+                    <label htmlFor="cognome">cognome</label>
+                  </div>
+                  <div className="w-100"></div>
+                  <div className="form-floating col-sm-6">
+                    <select
+                      className="form-select form-select-sm"
+                      id="tdoc"
+                      ref={(el) => (formRef.current.tdoc = el)}
+                    >
+                      <option key="-1" />
+                      {TDOCS.filter((tipoDoc) => tipoDoc).map((tipoDoc) => (
+                        <option
+                          value={tipoDoc}
+                          key={tipoDoc}
+                        >
+                          {tipoDoc}
+                        </option>
+                      ))}
+                    </select>
+                    <label htmlFor="tdoc">tipo documento</label>
+                  </div>
+                  <div className="form-floating col-sm-6">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="ndoc"
+                      placeholder="num documento"
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.ndoc = el)}
+                    />
+                    <label htmlFor="ndoc">num documento</label>
+                  </div>
+                  <div className="w-100" ></div>
+                  <div className="form-floating col-sm-6">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="cod_fisc"
+                      placeholder="cod_fisc"
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.cod_fisc = el)}
+                    />
+                    <label htmlFor="telefono">codice fiscale</label>
+                  </div>
+                  <div className="form-floating col-sm-6">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="telefono"
+                      placeholder="telefono"
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.telefono = el)}
+                    />
+                    <label htmlFor="telefono">telefono</label>
+                  </div>
+                  <div className="w-100" ></div>
+                  <div className="col-sm-6 input-group custom-input-file">
+                    <label htmlFor="docs" className="input-group-text">
+                      documenti
+                    </label>
+                    <input
+                      accept=".pdf"
+                      type="file"
+                      multiple
+                      className="form-control form-control-sm"
+                      id="docs"
+                      autoComplete="off"
+                      ref={(el) => (formRef.current.docs = el)}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -117,16 +259,14 @@ export default function Chiavi(props: {
                 <div className="col">
                   <button
                     className="btn btn-success chiavi-form-btn"
-                    onClick={() => {
+                    onClick={async () => {
                       if (!currPostazione) {
                         toast.error("Campo Postazione mancante");
                         return;
                       }
 
-                      mutateInPrestito.mutate({
-                        barcodes: props.scanValues,
-                        post_id: currPostazione.id,
-                      });
+                      const formData = await createFormData();
+                      mutateInPrestito.mutate(formData);
                     }}
                   >
                     Invio
@@ -148,7 +288,6 @@ export default function Chiavi(props: {
               </div>
             </div>
           </div>
-          <div className="col-3"></div>
           <div className="col-4">
             <Clock></Clock>
           </div>

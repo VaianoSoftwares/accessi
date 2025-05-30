@@ -90,4 +90,12 @@ export default class BadgesFileManager {
   public static async deleteDocumentoProv(key: TKey) {
     return await BadgesFileManager.deleteFile("DOCP_", key, ".pdf");
   }
+
+  public static async uploadDocArchChiavi(keyTokens: TKey[], file: UploadedFile) {
+    const key = keyTokens.join("_");
+    return await BadgesFileManager.uploadFile("DOCP_", key, file, {
+      expectedExt: ".pdf",
+      maxSize: 20 * 1024 * 1024,
+    });
+  }
 }

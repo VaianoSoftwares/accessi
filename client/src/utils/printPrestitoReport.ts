@@ -27,12 +27,14 @@ export default function printPrestitoReport<T extends Record<string, any>>(
   const dateIn = extractDate(fullDateIn);
   const timeIn = extractTime(fullDateIn);
 
+  const name = array[0]["nome"] || "";
+  const surname = array[0]["cognome"] || "";
+  const ragSoc = array[0]["ditta"] || "";
+
   const rows = array
     .map(
       (obj) => `<tr>
-        <td>${obj["nome"] || ""}</td><td>${obj["cognome"] || ""}</td><td>${
-        obj["ditta"] || ""
-      }</td><td>${dateIn}</td><td>${timeIn}</td>
+        <td>${name}</td><td>${surname}</td><td>${ragSoc}</td><td>${dateIn}</td><td>${timeIn}</td>
         <td>${obj["chiave"] || ""}</td><td></td><td></td><td></td><td></td>
     </tr>`
     )

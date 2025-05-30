@@ -33,6 +33,7 @@ export interface BaseArchivioVeicolo extends BaseArchivio {
 }
 export interface BaseArchivioChiave extends BaseArchivioBadge {
   chiave_cod: string;
+  person_id: number;
 }
 
 export type BaseArchivioBadgeProv = BaseArchivioBadge & BaseNominativo;

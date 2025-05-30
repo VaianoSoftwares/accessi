@@ -115,6 +115,17 @@ export type InsertArchBadgeForm = {
   docs?: string | undefined;
 };
 
+export type InsertArchChiaveForm = {
+  nome?: string | undefined;
+  cognome?: string | undefined;
+  ditta?: string | undefined;
+  cod_fisc?: string | undefined;
+  telefono?: string | undefined;
+  ndoc?: string | undefined;
+  tdoc?: string | undefined;
+  docs?: string | undefined;
+};
+
 export type InsertArchVeicoloForm = {
   targa?: string | undefined;
   nome?: string | undefined;
