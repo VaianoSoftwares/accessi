@@ -247,7 +247,7 @@ export default class ArchivioController {
       let uploadedFile;
       if (provvisorio) {
         dbResult = await ArchivioDB.timbraChiaviProv(dbData);
-
+        console.log("patara", dbResult);
         const archId = dbResult.in.rows[0].id;
         const personId = dbResult.in.rows[0].person_id;
 
