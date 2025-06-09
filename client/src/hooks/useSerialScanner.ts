@@ -56,9 +56,10 @@ export default function useSerialScanner() {
         }
       };
 
-      readLoop().catch((e) => {
+      readLoop().catch(async (e) => {
         console.error(e);
         toast.error("Errore durante la lettura della porta seriale");
+        await disconnect();
       });
     } catch (e) {
       console.error(e);
@@ -85,7 +86,16 @@ export default function useSerialScanner() {
       console.log("Disconnesso dispositivo seriale");
     } catch (e) {
       console.error(e);
-      toast.error("Errore durante la chiusura della porta seriale");
+      if (
+        e instanceof Error &&
+        e.name === "NetworkError" &&
+        e.message === "The device has been lost."
+      ) {
+        setIsConnected(false);
+        console.log("Disconnesso dispositivo seriale");
+      } else {
+        toast.error("Errore durante la chiusura della porta seriale");
+      }
     }
   }, []);
 
