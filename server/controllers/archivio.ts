@@ -247,18 +247,19 @@ export default class ArchivioController {
       let uploadedFile;
       if (provvisorio) {
         dbResult = await ArchivioDB.timbraChiaviProv(dbData);
-        console.log("patara", dbResult);
-        const archId = dbResult.in.rows[0].id;
-        const personId = dbResult.in.rows[0].person_id;
+        if (dbResult.in.rowCount) {
+          const archId = dbResult.in.rows[0].id;
+          const personId = dbResult.in.rows[0].person_id;
 
-        const docs = Array.isArray(req.files?.docs)
-          ? req.files?.docs[0]
-          : req.files?.docs;
-        if (docs) {
-          uploadedFile = await BadgesFileManager.uploadDocArchChiavi(
-            [archId, personId],
-            docs
-          );
+          const docs = Array.isArray(req.files?.docs)
+            ? req.files?.docs[0]
+            : req.files?.docs;
+          if (docs) {
+            uploadedFile = await BadgesFileManager.uploadDocArchChiavi(
+              [archId, personId],
+              docs
+            );
+          }
         }
       } else {
         dbResult = await ArchivioDB.timbraChiavi(dbData);

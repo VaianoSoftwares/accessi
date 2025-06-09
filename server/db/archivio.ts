@@ -1078,8 +1078,8 @@ export default class ArchivioDB {
         chiave: string;
       }>(
         `SELECT DISTINCT id, chiave_cod AS chiave FROM ${ArchTableName.CHIAVI_PROV} 
-        WHERE substr(badge,1,1) = '2' AND badge_cod = $1 AND cliente = $2 AND data_out > CURRENT_TIMESTAMP(0)`,
-        [badgeCode, actualCliente]
+        WHERE substr(badge_cod,1,1) = '2' AND badge_cod = $1 AND data_out > CURRENT_TIMESTAMP(0)`,
+        [badgeCode]
       );
 
       const chiaviIn: string[] = [];

@@ -257,7 +257,7 @@ CREATE TABLE IF NOT EXISTS archivio_chiavi_prov(
     chiave_cod VARCHAR(9) NOT NULL REFERENCES chiavi (codice),
     person_id INT NOT NULL REFERENCES people (id),
     post_id INT NOT NULL REFERENCES postazioni (id),
-    data_in TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '23 hours 59 minutes'),
+    data_in TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0)),
     data_out TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '24 hours'),
     username VARCHAR(64) NOT NULL REFERENCES users (name),
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),

@@ -164,8 +164,8 @@ export type TimbraVeicoloRes = {
 };
 
 export type PrestitoChiaviRes = {
-  in: { rows: QueryInPrestito }[];
-  out: { rows: QueryInPrestito }[];
+  in: { rows: QueryInPrestito[]; rowCount: number | null };
+  out: { rows: QueryInPrestito[]; rowCount: number | null };
 };
 
 export type UpdateArchivioData = {

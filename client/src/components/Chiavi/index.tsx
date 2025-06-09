@@ -69,16 +69,14 @@ export default function Chiavi(props: {
   });
 
   const mutateInPrestito = useMutation({
-    mutationFn: (data: FormData) =>
-      ArchivioDataService.prestaChiavi(data),
+    mutationFn: (data: FormData) => ArchivioDataService.prestaChiavi(data),
     onSuccess: async (response) => {
       console.log("prestaChiavi | response", response);
-      if(response.data.success === false) {
+      if (response.data.success === false) {
         throw response.data.error;
       }
 
-      const chiaviIn = response.data.result.in.map(row => row.rows);
-      printPrestitoReport(chiaviIn);
+      printPrestitoReport(response.data.result.in.rows);
 
       await queryClient.invalidateQueries({ queryKey: ["inPrestito"] });
       props.clearScanValues();
@@ -89,7 +87,7 @@ export default function Chiavi(props: {
 
   async function createFormData() {
     const formData = new FormData();
-    props.scanValues.forEach(value => formData.append("barcodes", value));
+    props.scanValues.forEach((value) => formData.append("barcodes", value));
     formData.append("post_id", String(currPostazione?.id));
     await Promise.all(
       Object.entries(formRef.current)
@@ -190,10 +188,7 @@ export default function Chiavi(props: {
                     >
                       <option key="-1" />
                       {TDOCS.filter((tipoDoc) => tipoDoc).map((tipoDoc) => (
-                        <option
-                          value={tipoDoc}
-                          key={tipoDoc}
-                        >
+                        <option value={tipoDoc} key={tipoDoc}>
                           {tipoDoc}
                         </option>
                       ))}
@@ -211,7 +206,7 @@ export default function Chiavi(props: {
                     />
                     <label htmlFor="ndoc">num documento</label>
                   </div>
-                  <div className="w-100" ></div>
+                  <div className="w-100"></div>
                   <div className="form-floating col-sm-6">
                     <input
                       type="text"
@@ -234,7 +229,7 @@ export default function Chiavi(props: {
                     />
                     <label htmlFor="telefono">telefono</label>
                   </div>
-                  <div className="w-100" ></div>
+                  <div className="w-100"></div>
                   <div className="col-sm-6 input-group custom-input-file">
                     <label htmlFor="docs" className="input-group-text">
                       documenti
