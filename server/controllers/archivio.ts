@@ -193,7 +193,7 @@ export default class ArchivioController {
       }
 
       let badgeCode: string | null = null;
-      let provvisorio = false;
+      let provvisorio = true;
       let chiavi: string[] = [];
       let mazzi: string[] = [];
       Array.from(new Set(parsed.data.barcodes)).forEach((barcode) => {
@@ -217,13 +217,6 @@ export default class ArchivioController {
         }
       });
 
-      if (!badgeCode) {
-        throw new BaseError("Nessun badge selezionato", {
-          status: 400,
-          context: { barcodes: parsed.data.barcodes },
-        });
-      }
-
       if (mazzi.length > 0) {
         const chiaviInMazzi = await MazziChiaviDB.getChiaviFromMazziCodes(
           mazzi
@@ -238,15 +231,20 @@ export default class ArchivioController {
         });
       }
 
-      const dbData = {
-        ...parsed.data,
-        badge_cod: badgeCode,
-        chiavi,
-      };
       let dbResult;
       let uploadedFile;
       if (provvisorio) {
-        dbResult = await ArchivioDB.timbraChiaviProv(dbData);
+        if (badgeCode) {
+          const dbData = {
+            ...parsed.data,
+            chiavi,
+            badge_cod: badgeCode as string,
+          };
+          dbResult = await ArchivioDB.timbraChiaviProv(dbData);
+        } else {
+          const dbData = { ...parsed.data, chiavi, badge_cod: null };
+          dbResult = await ArchivioDB.timbraChiaviNoBadge(dbData);
+        }
         if (dbResult.in.rowCount) {
           const archId = dbResult.in.rows[0].id;
           const personId = dbResult.in.rows[0].person_id;
@@ -262,6 +260,11 @@ export default class ArchivioController {
           }
         }
       } else {
+        const dbData = {
+          ...parsed.data,
+          badge_cod: badgeCode!,
+          chiavi,
+        };
         dbResult = await ArchivioDB.timbraChiavi(dbData);
       }
 
@@ -290,13 +293,13 @@ export default class ArchivioController {
       }
 
       const dbResult = await ArchivioDB.insertBadgeProvvisorio(parsed.data);
-      if (!dbResult.rowCount) {
+      if (!dbResult.insertArchRow.rowCount) {
         throw new BaseError("Impossibile inserire provvisorio", {
           status: 400,
         });
       }
 
-      const archId = dbResult.rows[0].id;
+      const { personId } = dbResult;
 
       let uploadedFile;
       const docs = Array.isArray(req.files?.docs)
@@ -304,7 +307,7 @@ export default class ArchivioController {
         : req.files?.docs;
       if (docs) {
         uploadedFile = await BadgesFileManager.uploadDocumentoProv(
-          archId,
+          personId,
           docs
         );
       }

@@ -1,4 +1,4 @@
-import { BaseBadge, BaseChiave, BaseNominativo, DocType } from "./badges.js";
+import { BaseBadge, BaseChiave, BaseNominativo } from "./badges.js";
 import { WithId } from "./index.js";
 
 export enum BarcodePrefix {
@@ -89,7 +89,7 @@ export type TimbraChiaviData = Pick<
   badge_cod: string;
   chiavi: string[];
 };
-export type TimbraChiaviProvData = TimbraChiaviData & {
+export type TimbraChiaviNoBadgeData = Omit<TimbraChiaviData, "badge_cod"> & {
   nome?: string;
   cognome?: string;
   assegnazione?: string;
@@ -99,6 +99,8 @@ export type TimbraChiaviProvData = TimbraChiaviData & {
   tdoc?: string;
   telefono?: string;
 };
+export type TimbraChiaviProvData = TimbraChiaviNoBadgeData &
+  Pick<TimbraChiaviData, "badge_cod">;
 
 export type Tracciato = {
   zuc_cod: string;

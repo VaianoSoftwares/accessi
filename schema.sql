@@ -112,10 +112,11 @@ CREATE TABLE IF NOT EXISTS people(
     cognome VARCHAR(32) NOT NULL CHECK (cognome != ''),
     assegnazione VARCHAR(32) NOT NULL DEFAULT 'OSPITE' CHECK (is_typeof(assegnazione, 'public.assign_type')),
     ditta VARCHAR(64) CHECK (ditta != ''),
-    cod_fisc VARCHAR(16) UNIQUE CHECK (length(cod_fisc) = 16),
+    cod_fisc VARCHAR(16) CHECK (length(cod_fisc) = 16),
     telefono VARCHAR(32) CHECK (telefono != ''),
     ndoc VARCHAR(32) CHECK (ndoc != ''),
     tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'public.doc_type')),
+    targa VARCHAR(32) CHECK (targa != ''),
     cliente VARCHAR(64) NOT NULL REFERENCES clienti (name),
     UNIQUE(ndoc, tdoc)
 );
@@ -187,20 +188,12 @@ CREATE TABLE IF NOT EXISTS archivio_nominativi(
 CREATE TABLE IF NOT EXISTS archivio_provvisori(
     id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
     badge_cod VARCHAR(9) NOT NULL REFERENCES provvisori (codice),
+    person_id INT NOT NULL REFERENCES people (id),
     post_id INT NOT NULL REFERENCES postazioni (id),
     data_in TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '23 hours 59 minutes'),
     data_out TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '24 hours'),
     username VARCHAR(64) NOT NULL REFERENCES users (name),
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
-    nome VARCHAR(32) NOT NULL CHECK (nome != ''),
-    cognome VARCHAR(32) NOT NULL CHECK (cognome != ''),
-    assegnazione VARCHAR(32) NOT NULL DEFAULT 'OSPITE' CHECK (is_typeof(assegnazione, 'public.assign_type')),
-    ditta VARCHAR(64) CHECK (ditta != ''),
-    cod_fisc VARCHAR(16) CHECK (length(cod_fisc) = 16),
-    telefono VARCHAR(32) CHECK (telefono != ''),
-    ndoc VARCHAR(32) CHECK (ndoc != ''),
-    tdoc VARCHAR(32) CHECK (is_typeof(tdoc, 'public.doc_type')),
-    targa VARCHAR(32) CHECK (targa != ''),
     CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in),
     UNIQUE (badge_cod, data_in)
 );
@@ -253,11 +246,11 @@ CREATE TABLE IF NOT EXISTS archivio_chiavi(
 
 CREATE TABLE IF NOT EXISTS archivio_chiavi_prov(
     id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
-    badge_cod VARCHAR(9) NOT NULL REFERENCES provvisori (codice),
+    badge_cod VARCHAR(9) REFERENCES provvisori (codice),
     chiave_cod VARCHAR(9) NOT NULL REFERENCES chiavi (codice),
     person_id INT NOT NULL REFERENCES people (id),
     post_id INT NOT NULL REFERENCES postazioni (id),
-    data_in TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0)),
+    data_in TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
     data_out TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP(0) + INTERVAL '24 hours'),
     username VARCHAR(64) NOT NULL REFERENCES users (name),
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
@@ -321,13 +314,14 @@ CREATE VIEW full_archivio AS
         JOIN postazioni AS po ON a.post_id = po.id 
     ),
     full_archivio_provvisori AS (
-        SELECT a.id, a.badge_cod AS badge, a.nome, a.cognome, a.assegnazione, a.targa, NULL AS chiave, 'BADGE' AS tipo, 
+        SELECT a.id, a.badge_cod AS badge, pe.nome, pe.cognome, pe.assegnazione, pe.targa, NULL AS chiave, 'BADGE' AS tipo, 
         'SI' AS provvisorio, po.cliente, po.name AS postazione, a.data_in, a.data_out,
         date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
         dates_are_not_equal(a.data_in, a.data_out) AS notte,
-        NULL AS tveicolo, a.ditta, a.cod_fisc, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, NULL AS indirizzo, NULL AS citta,
+        NULL AS tveicolo, pe.ditta, pe.cod_fisc, pe.ndoc, pe.tdoc, pe.telefono, NULL::DATE AS scadenza, NULL AS indirizzo, NULL AS citta,
         NULL AS edificio, NULL AS piano, a.username, a.ip, 'DOCP_'||a.id||'.pdf' AS documento
-        FROM archivio_provvisori AS a
+        FROM people AS pe
+        JOIN archivio_provvisori AS a ON pe.id = a.person_id 
         JOIN postazioni AS po ON a.post_id = po.id
     ),
     full_archivio_veicoli AS (
@@ -427,8 +421,10 @@ CREATE VIEW full_in_strutt_badges AS
     ),
     full_archivio_provvisori AS (
         SELECT a.id, a.badge_cod AS codice, NULL AS descrizione, po.cliente, po.name AS postazione, 
-        a.data_in, a.nome, a.cognome, a.assegnazione, a.ditta, a.cod_fisc, a.ndoc, a.tdoc, a.telefono, NULL::DATE AS scadenza, po.id AS post_id
-        FROM archivio_provvisori AS a
+        a.data_in, pe.nome, pe.cognome, pe.assegnazione, pe.ditta, pe.cod_fisc, pe.ndoc, pe.tdoc, pe.telefono, 
+        NULL::DATE AS scadenza, po.id AS post_id
+        FROM people AS pe
+        JOIN archivio_provvisori AS a ON pe.id = a.person_id
         JOIN postazioni AS po ON a.post_id = po.id
         WHERE is_in_strutt(data_in, data_out)
     )
