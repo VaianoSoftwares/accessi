@@ -24,7 +24,6 @@ import {
 import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import { sleep } from "../../utils/timer";
-// import useSSE from "../../hooks/useSSE";
 
 const TABLE_NAME = "in_strutt_table";
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";

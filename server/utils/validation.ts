@@ -749,24 +749,26 @@ export const TIMBRA_VEICOLO_SCHEMA = z.object({
 });
 export type TimbraVeicoloData = z.infer<typeof TIMBRA_VEICOLO_SCHEMA>;
 
+const validPrestaChiaviBadgeSchema = z.union([
+  BARCODE_CHIAVE_ENTRA_SCHEMA,
+  BARCODE_CHIAVE_ESCE_SCHEMA,
+  BARCODE_NOM_ENTRA_SCHEMA,
+  BARCODE_NOM_ESCE_SCHEMA,
+  BARCODE_PROV_ENTRA_SCHEMA,
+  BARCODE_PROV_ESCE_SCHEMA,
+  CODICE_CHIAVE_SCHEMA,
+  CODICE_NOM_SCHEMA,
+  CODICE_MAZZO_SCHEMA,
+  CODICE_PROV_SCHEMA,
+])
+  .transform((v) => (v.length === 10 ? v.substring(1) : v));
+
 export const TIMBRA_CHIAVI_SCHEMA = z.object({
   post_id: ID_SCHEMA("Postazione ID"),
-  barcodes: z
-    .union([
-      BARCODE_CHIAVE_ENTRA_SCHEMA,
-      BARCODE_CHIAVE_ESCE_SCHEMA,
-      BARCODE_NOM_ENTRA_SCHEMA,
-      BARCODE_NOM_ESCE_SCHEMA,
-      BARCODE_PROV_ENTRA_SCHEMA,
-      BARCODE_PROV_ESCE_SCHEMA,
-      CODICE_CHIAVE_SCHEMA,
-      CODICE_NOM_SCHEMA,
-      CODICE_MAZZO_SCHEMA,
-      CODICE_PROV_SCHEMA,
-    ])
-    .transform((v) => (v.length === 10 ? v.substring(1) : v))
-    .array()
-    .nonempty(MISSING_ATTR_ERR_MSG("Barcodes")),
+  barcodes: z.union([
+    validPrestaChiaviBadgeSchema.transform((v) => [v]), 
+    validPrestaChiaviBadgeSchema.array().nonempty(MISSING_ATTR_ERR_MSG("Barcodes")),
+  ]),
   ip: z.string().default("unknown"),
   username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
   nome: z

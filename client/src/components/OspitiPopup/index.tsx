@@ -7,6 +7,9 @@ import { InsertArchBadgeForm } from "../../types/forms";
 import toast from "react-hot-toast";
 import { Postazione } from "../../types/postazioni";
 import mergeDocs from "../../utils/mergePdfFiles";
+import { useQuery } from "@tanstack/react-query";
+import NominativiDataService from "../../services/nominativo";
+import useError from "../../hooks/useError";
 
 function isCodiceFiscale(cf: string) {
   return (
@@ -32,8 +35,28 @@ export default function OspitiPopup(props: {
     telefono: null,
     ndoc: null,
     tdoc: null,
+    assegnazione: null,
     targa: null,
     docs: null,
+  });
+
+  const { handleError } = useError();
+
+  const assegnazioni = useQuery({
+    queryKey: ["assegnazioni"],
+    queryFn: async () => {
+      try {
+        const response = await NominativiDataService.getAssegnazioni();
+        console.log("queryAssegnazioni | response:", response);
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        return response.data.result;
+      } catch (e) {
+        handleError(e);
+        return [];
+      }
+    },
   });
 
   async function createFormData() {
@@ -188,6 +211,27 @@ export default function OspitiPopup(props: {
                 />
                 <label htmlFor="cod_fisc">codice fiscale</label>
               </div>
+              <div className="form-floating col-sm-4">
+                <select
+                  className="form-select form-select-sm"
+                  id="osp-assegnazione"
+                  ref={(el) => (formRef.current.assegnazione = el)}
+                >
+                  <option key="-1" />
+                  {assegnazioni.isSuccess &&
+                    assegnazioni.data.map((assegnazione) => (
+                      <option
+                        value={assegnazione}
+                        key={assegnazione}
+                      >
+                        {assegnazione}
+                      </option>
+                    ))}
+                </select>
+                <label htmlFor="osp-assegnazione">assegnazione</label>
+              </div>
+            </div>
+            <div className="row">
               <div className="form-floating col-sm-4">
                 <input
                   type="text"

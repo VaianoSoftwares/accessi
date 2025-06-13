@@ -241,7 +241,7 @@ CREATE TABLE IF NOT EXISTS archivio_chiavi(
     username VARCHAR(64) NOT NULL REFERENCES users (name),
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
     CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in),
-    UNIQUE (badge_cod, chiave_cod, data_in)
+    UNIQUE (chiave_cod, data_in)
 );
 
 CREATE TABLE IF NOT EXISTS archivio_chiavi_prov(
@@ -255,7 +255,7 @@ CREATE TABLE IF NOT EXISTS archivio_chiavi_prov(
     username VARCHAR(64) NOT NULL REFERENCES users (name),
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
     CONSTRAINT data_in_ge_data_out CHECK (data_out > data_in),
-    UNIQUE (badge_cod, chiave_cod, data_in)
+    UNIQUE (chiave_cod, data_in)
 );
 
 CREATE TABLE IF NOT EXISTS protocolli(
@@ -465,7 +465,7 @@ CREATE VIEW full_in_prestito AS
     WITH full_archivio_chiavi AS (
         SELECT DISTINCT t1.id, t1.codice AS badge, t2.codice AS chiave, t1.cliente, t1.postazione, t1.data_in, t1.nome, t1.cognome,
         t1.assegnazione, t1.ditta, t1.cod_fisc, t1.ndoc, t1.tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta, t2.edificio, t2.piano,
-        t1.post_id
+        t1.post_id, NULL::INT AS person_id
         FROM (
             SELECT a.id, n.codice, po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.data_out, a.chiave_cod,
             n.nome, n.cognome, n.ditta, n.assegnazione, n.ndoc, n.tdoc, n.cod_fisc, n.telefono, n.scadenza
@@ -483,10 +483,10 @@ CREATE VIEW full_in_prestito AS
     full_archivio_chiavi_prov AS (
         SELECT DISTINCT t1.id, t1.badge_cod AS badge, t2.codice AS chiave, t1.cliente, t1.postazione, t1.data_in, t1.nome, t1.cognome,
         t1.assegnazione, t1.ditta, t1.cod_fisc, t1.ndoc, t1.tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta, t2.edificio, t2.piano,
-        t1.post_id
+        t1.post_id, t1.person_id
         FROM (
             SELECT a.id, a.badge_cod, po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.data_out, a.chiave_cod,
-            pe.nome, pe.cognome, pe.ditta, pe.assegnazione, pe.ndoc, pe.tdoc, pe.cod_fisc, pe.telefono, NULL::DATE AS scadenza
+            pe.nome, pe.cognome, pe.ditta, pe.assegnazione, pe.ndoc, pe.tdoc, pe.cod_fisc, pe.telefono, NULL::DATE AS scadenza, a.person_id
             FROM people AS pe
             JOIN archivio_chiavi_prov AS a ON pe.id = a.person_id
             JOIN postazioni AS po ON a.post_id = po.id

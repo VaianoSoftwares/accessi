@@ -111,6 +111,7 @@ export type InsertArchBadgeForm = {
   telefono?: string | undefined;
   ndoc?: string | undefined;
   tdoc?: string | undefined;
+  assegnazione?: string | undefined;
   targa?: string | undefined;
   docs?: string | undefined;
 };

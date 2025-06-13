@@ -5,7 +5,7 @@ import BadgeTable from "../BadgeTable";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import Clock from "../Clock";
-import { FindInPrestitoData, PrestitoChiaviData } from "../../types/archivio";
+import { FindInPrestitoData } from "../../types/archivio";
 import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import { TPermessi, hasPerm } from "../../types/users";
@@ -218,6 +218,17 @@ export default function Chiavi(props: {
                     />
                     <label htmlFor="telefono">codice fiscale</label>
                   </div>
+                  <div className="form-floating col-sm-6">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      id="osp-ditta"
+                      placeholder="ditta"
+                      ref={(el) => (formRef.current.ditta = el)}
+                    />
+                    <label htmlFor="osp-ditta">ditta</label>
+                  </div>
+                  <div className="w-100"></div>
                   <div className="form-floating col-sm-6">
                     <input
                       type="text"

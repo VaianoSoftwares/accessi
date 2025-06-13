@@ -42,10 +42,10 @@ export default function printPrestitoReport<T extends Record<string, any>>(
 
   const htmlTable = `
     <table border="1" style="border-collapse: collapse; width: 100%;">
-        <thead><tr><th>CONSEGNA CHIAVI N.P.G-FI</th></tr></thead>
+        <thead><tr><th colspan="10">CONSEGNA CHIAVI N.P.G-FI</th></tr></thead>
         <tbody>
             <tr>
-                <th>NOME</th><th>COGNOME</th><th>COGNOME</th>DITTA/DIPENDENTE</th><th>DATA CONSEGNA</th><th>ORA CONSEGNA</th>
+                <th>NOME</th><th>COGNOME</th><th>DITTA</th><th>DATA CONSEGNA</th><th>ORA CONSEGNA</th>
                 <th>CHIAVE N°</th><th>FIRMA CONSEGNA</th><th>FIRMA RESTITUZIONE</th><th>DATA RESTITUZIONE</th><th>ORA RESTITUZIONE</th>
             </tr>
             ${rows}

@@ -103,28 +103,28 @@ export default class ArchivioDB {
     const prefixText = `SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
     let filterText = filter
       ? Object.entries(filter)
-          .filter(([key, value]) => value && !["pausa"].includes(key))
-          .map(([key, value]) => {
-            switch (key) {
-              case "postazioniIds":
-                if (!Array.isArray(value)) return "";
-                const postazioniFilters = value.map(() => `post_id=$${i++}`);
-                if (filter?.pausa === true)
-                  postazioniFilters.push("postazione='PAUSA'");
-                return ["(", postazioniFilters.join(" OR "), ")"].join("");
-              case "data_in_min":
-                return `data_in>=$${i++}`;
-              case "data_in_max":
-                return `data_in<=$${i++}`;
-              case "cliente":
-                return `${key}=$${i++}`;
-              default:
-                return typeof value === "string"
-                  ? `${key} LIKE $${i++}`
-                  : `${key}=$${i++}`;
-            }
-          })
-          .join(" AND ")
+        .filter(([key, value]) => value && !["pausa"].includes(key))
+        .map(([key, value]) => {
+          switch (key) {
+            case "postazioniIds":
+              if (!Array.isArray(value)) return "";
+              const postazioniFilters = value.map(() => `post_id=$${i++}`);
+              if (filter?.pausa === true)
+                postazioniFilters.push("postazione='PAUSA'");
+              return ["(", postazioniFilters.join(" OR "), ")"].join("");
+            case "data_in_min":
+              return `data_in>=$${i++}`;
+            case "data_in_max":
+              return `data_in<=$${i++}`;
+            case "cliente":
+              return `${key}=$${i++}`;
+            default:
+              return typeof value === "string"
+                ? `${key} LIKE $${i++}`
+                : `${key}=$${i++}`;
+          }
+        })
+        .join(" AND ")
       : "";
 
     if (filter?.pausa === undefined || filter?.pausa === false) {
@@ -143,8 +143,8 @@ export default class ArchivioDB {
         .filter(([key, value]) => value && !["pausa"].includes(key))
         .map(([key, value]) =>
           Array.isArray(value) ||
-          typeof value !== "string" ||
-          ["cliente"].includes(key)
+            typeof value !== "string" ||
+            ["cliente"].includes(key)
             ? value
             : `%${value}%`
         )
@@ -165,10 +165,10 @@ export default class ArchivioDB {
             case "postazioniIds":
               return Array.isArray(value)
                 ? [
-                    "(",
-                    value.map(() => `post_id=$${i++}`).join(" OR "),
-                    ")",
-                  ].join("")
+                  "(",
+                  value.map(() => `post_id=$${i++}`).join(" OR "),
+                  ")",
+                ].join("")
                 : "";
             case "data_in_min":
               return `data_in>=$${i++}`;
@@ -211,10 +211,10 @@ export default class ArchivioDB {
             case "postazioniIds":
               return Array.isArray(value)
                 ? [
-                    "(",
-                    value.map(() => `post_id=$${i++}`).join(" OR "),
-                    ")",
-                  ].join("")
+                  "(",
+                  value.map(() => `post_id=$${i++}`).join(" OR "),
+                  ")",
+                ].join("")
                 : "";
             case "data_in_min":
               return `data_in>=$${i++}`;
@@ -1052,25 +1052,25 @@ export default class ArchivioDB {
       const chiaviInText =
         chiaviIn.length > 0
           ? [
-              "WITH inserted AS (INSERT INTO",
-              ArchTableName.CHIAVI,
-              "(badge_cod, chiave_cod, post_id, ip, username) VALUES",
-              chiaviInValues
-                .map((_, i) => {
-                  const queryArgTxt = `$${i + 1}`;
-                  const numRowValues = 5;
-                  switch (i % numRowValues) {
-                    case 0:
-                      return "(".concat(queryArgTxt);
-                    case numRowValues - 1:
-                      return queryArgTxt.concat(")");
-                    default:
-                      return queryArgTxt;
-                  }
-                })
-                .join(","),
-              `RETURNING *) SELECT * FROM ${ArchTableName.FULL_IN_PRESTITO} WHERE id IN (SELECT id FROM inserted)`,
-            ].join(" ")
+            "WITH inserted AS (INSERT INTO",
+            ArchTableName.CHIAVI,
+            "(badge_cod, chiave_cod, post_id, ip, username) VALUES",
+            chiaviInValues
+              .map((_, i) => {
+                const queryArgTxt = `$${i + 1}`;
+                const numRowValues = 5;
+                switch (i % numRowValues) {
+                  case 0:
+                    return "(".concat(queryArgTxt);
+                  case numRowValues - 1:
+                    return queryArgTxt.concat(")");
+                  default:
+                    return queryArgTxt;
+                }
+              })
+              .join(","),
+            `RETURNING *) SELECT * FROM ${ArchTableName.FULL_IN_PRESTITO} WHERE id IN (SELECT id FROM inserted)`,
+          ].join(" ")
           : "";
       const chiaviInRes = await client.query<ArchivioChiave>(
         chiaviInText,
@@ -1080,12 +1080,12 @@ export default class ArchivioDB {
       const chiaviOutText =
         chiaviOut.length > 0
           ? [
-              "UPDATE",
-              ArchTableName.CHIAVI,
-              "SET data_out = CURRENT_TIMESTAMP(0) WHERE",
-              chiaviOut.map((_, i) => `id = $${i + 1}`).join(" OR "),
-              "RETURNING *",
-            ].join(" ")
+            "UPDATE",
+            ArchTableName.CHIAVI,
+            "SET data_out = CURRENT_TIMESTAMP(0) WHERE",
+            chiaviOut.map((_, i) => `id = $${i + 1}`).join(" OR "),
+            "RETURNING *",
+          ].join(" ")
           : "";
       const chiaviOutRes = await client.query<ArchivioChiave>(
         chiaviOutText,
@@ -1237,7 +1237,7 @@ export default class ArchivioDB {
         }
       }
 
-      const chiaviInValues = chiaviIn.flatMap((chiaveCode) => [
+      const chiaviInsertValues = chiaviIn.flatMap((chiaveCode) => [
         badgeCode,
         chiaveCode,
         data.post_id,
@@ -1245,43 +1245,48 @@ export default class ArchivioDB {
         data.username,
         personId,
       ]);
-      const chiaviInText =
+      const chiaviInsertText =
         chiaviIn.length > 0
           ? [
-              "WITH inserted AS (INSERT INTO",
-              ArchTableName.CHIAVI_PROV,
-              "(badge_cod, chiave_cod, post_id, ip, username, person_id) VALUES",
-              chiaviInValues
-                .map((_, i) => {
-                  const queryArgTxt = `$${i + 1}`;
-                  const numRowValues = 6;
-                  switch (i % numRowValues) {
-                    case 0:
-                      return "(".concat(queryArgTxt);
-                    case numRowValues - 1:
-                      return queryArgTxt.concat(")");
-                    default:
-                      return queryArgTxt;
-                  }
-                })
-                .join(","),
-              `RETURNING *) SELECT * FROM ${ArchTableName.FULL_IN_PRESTITO} WHERE id IN (SELECT id FROM inserted)`,
-            ].join(" ")
+            "INSERT INTO",
+            ArchTableName.CHIAVI_PROV,
+            "(badge_cod, chiave_cod, post_id, ip, username, person_id) VALUES",
+            chiaviInsertValues
+              .map((_, i) => {
+                const queryArgTxt = `$${i + 1}`;
+                const numRowValues = 6;
+                switch (i % numRowValues) {
+                  case 0:
+                    return "(".concat(queryArgTxt);
+                  case numRowValues - 1:
+                    return queryArgTxt.concat(")");
+                  default:
+                    return queryArgTxt;
+                }
+              })
+              .join(","),
+              "RETURNING *"
+          ].join(" ")
           : "";
-      const chiaviInRes = await client.query<ArchivioChiave>(
-        chiaviInText,
-        chiaviInValues
+      const chiaviInsertRes = await client.query<ArchivioChiave>(
+        chiaviInsertText,
+        chiaviInsertValues
       );
+
+      const chiaviInValues = chiaviInsertRes.rows.map((row) => row.id);
+      const chiaviInText = `SELECT * FROM ${ArchTableName.FULL_IN_PRESTITO} 
+        WHERE id IN (${chiaviInValues.map((_, i) => `$${i + 1}`).join(",")})`;
+      const chiaviInRes = await client.query<ArchivioChiave>(chiaviInText, chiaviInValues);
 
       const chiaviOutText =
         chiaviOut.length > 0
           ? [
-              "UPDATE",
-              ArchTableName.CHIAVI_PROV,
-              "SET data_out = CURRENT_TIMESTAMP(0) WHERE",
-              chiaviOut.map((_, i) => `id = $${i + 1}`).join(" OR "),
-              "RETURNING *",
-            ].join(" ")
+            "UPDATE",
+            ArchTableName.CHIAVI_PROV,
+            "SET data_out = CURRENT_TIMESTAMP(0) WHERE",
+            chiaviOut.map((_, i) => `id = $${i + 1}`).join(" OR "),
+            "RETURNING *",
+          ].join(" ")
           : "";
       const chiaviOutRes = await client.query<ArchivioChiave>(
         chiaviOutText,
@@ -1396,50 +1401,55 @@ export default class ArchivioDB {
         else chiaviIn.push(chiave);
       });
 
-      const chiaviInValues = chiaviIn.flatMap((chiaveCode) => [
+      const chiaviInsertValues = chiaviIn.flatMap((chiaveCode) => [
         chiaveCode,
         data.post_id,
         data.ip,
         data.username,
         personId,
       ]);
-      const chiaviInText =
+      const chiaviInsertText =
         chiaviIn.length > 0
           ? [
-              "WITH inserted AS (INSERT INTO",
-              ArchTableName.CHIAVI_PROV,
-              "(chiave_cod, post_id, ip, username, person_id) VALUES",
-              chiaviInValues
-                .map((_, i) => {
-                  const queryArgTxt = `$${i + 1}`;
-                  const numRowValues = 5;
-                  switch (i % numRowValues) {
-                    case 0:
-                      return "(".concat(queryArgTxt);
-                    case numRowValues - 1:
-                      return queryArgTxt.concat(")");
-                    default:
-                      return queryArgTxt;
-                  }
-                })
-                .join(","),
-              `RETURNING *) SELECT * FROM ${ArchTableName.FULL_IN_PRESTITO} WHERE id IN (SELECT id FROM inserted)`,
-            ].join(" ")
+            "INSERT INTO",
+            ArchTableName.CHIAVI_PROV,
+            "(chiave_cod, post_id, ip, username, person_id) VALUES",
+            chiaviInsertValues
+              .map((_, i) => {
+                const queryArgTxt = `$${i + 1}`;
+                const numRowValues = 5;
+                switch (i % numRowValues) {
+                  case 0:
+                    return "(".concat(queryArgTxt);
+                  case numRowValues - 1:
+                    return queryArgTxt.concat(")");
+                  default:
+                    return queryArgTxt;
+                }
+              })
+              .join(","),
+              "RETURNING *"
+          ].join(" ")
           : "";
-      const chiaviInRes = await client.query<ArchivioChiave>(
-        chiaviInText,
-        chiaviInValues
+      const chiaviInsertRes = await client.query<ArchivioChiave>(
+        chiaviInsertText,
+        chiaviInsertValues
       );
+
+      const chiaviInValues = chiaviInsertRes.rows.map((row) => row.id);
+      const chiaviInText = `SELECT * FROM ${ArchTableName.FULL_IN_PRESTITO} 
+        WHERE id IN (${chiaviInValues.map((_, i) => `$${i + 1}`).join(",")})`;
+      const chiaviInRes = await client.query<ArchivioChiave>(chiaviInText, chiaviInValues);
 
       const chiaviOutText =
         chiaviOut.length > 0
           ? [
-              "UPDATE",
-              ArchTableName.CHIAVI_PROV,
-              "SET data_out = CURRENT_TIMESTAMP(0) WHERE",
-              chiaviOut.map((_, i) => `id = $${i + 1}`).join(" OR "),
-              "RETURNING *",
-            ].join(" ")
+            "UPDATE",
+            ArchTableName.CHIAVI_PROV,
+            "SET data_out = CURRENT_TIMESTAMP(0) WHERE",
+            chiaviOut.map((_, i) => `id = $${i + 1}`).join(" OR "),
+            "RETURNING *",
+          ].join(" ")
           : "";
       const chiaviOutRes = await client.query<ArchivioChiave>(
         chiaviOutText,

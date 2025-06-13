@@ -1350,18 +1350,6 @@ export default function Anagrafico() {
                   ) : (
                     <></>
                   )}
-                  {hasPerm(currentUser, TPermessi.showVeicoliInAnagrafico) ? (
-                    <div className="col mt-1">
-                      <button
-                        onClick={() => setCurrentFormType(BadgeType.VEICOLO)}
-                        className="btn btn-success anagrafico-form-btn"
-                      >
-                        Veicoli
-                      </button>
-                    </div>
-                  ) : (
-                    <></>
-                  )}
                   {hasPerm(currentUser, TPermessi.showMazziInAnagrafico) ? (
                     <div className="col mt-1">
                       <button
@@ -1369,6 +1357,18 @@ export default function Anagrafico() {
                         className="btn btn-success anagrafico-form-btn"
                       >
                         Mazzi
+                      </button>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                  {hasPerm(currentUser, TPermessi.showVeicoliInAnagrafico) ? (
+                    <div className="col mt-1">
+                      <button
+                        onClick={() => setCurrentFormType(BadgeType.VEICOLO)}
+                        className="btn btn-success anagrafico-form-btn"
+                      >
+                        Veicoli
                       </button>
                     </div>
                   ) : (
