@@ -10,7 +10,7 @@ import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import { TPermessi, hasPerm } from "../../types/users";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
-import { FormRef } from "../../types";
+import { FormRef, GenericForm } from "../../types";
 import { InsertArchChiaveForm } from "../../types/forms";
 import { TDOCS } from "../../types/badges";
 import mergeDocs from "../../utils/mergePdfFiles";
@@ -80,6 +80,7 @@ export default function Chiavi(props: {
 
       await queryClient.invalidateQueries({ queryKey: ["inPrestito"] });
       props.clearScanValues();
+      setForm();
       toast.success("Chiave/i prestate/rese con successo");
     },
     onError: async (err) => handleError(err, "prestaChiavi"),
@@ -107,6 +108,18 @@ export default function Chiavi(props: {
         })
     );
     return formData;
+  }
+
+  function setForm(obj: GenericForm = {}) {
+    Object.entries(formRef.current)
+      .filter(([key, el]) => el !== null && key in formRef.current)
+      .forEach(([key, el]) => {
+        const mappedKey = key as keyof InsertArchChiaveForm;
+        if (el instanceof HTMLInputElement)
+          el.value = obj[mappedKey] || el.defaultValue;
+        else if (el instanceof HTMLSelectElement && el.options.length > 0)
+          el.value = obj[mappedKey] || el.options.item(0)!.value;
+      });
   }
 
   return (

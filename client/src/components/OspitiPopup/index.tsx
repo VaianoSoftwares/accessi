@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import Popup from "reactjs-popup";
 import "./index.css";
 import { FormRef, TEventInput } from "../../types";
@@ -25,6 +25,8 @@ export default function OspitiPopup(props: {
   closePopup: () => void;
   insertOsp: (data: FormData) => void;
   currPostazione: Postazione | undefined;
+  scannedValue: string;
+  clearScannedValue: () => void;
 }) {
   const formRef = useRef<FormRef<InsertArchBadgeForm>>({
     badge_cod: null,
@@ -86,6 +88,7 @@ export default function OspitiPopup(props: {
     if (props.currPostazione) {
       const formData = await createFormData();
       props.insertOsp(formData);
+      props.clearScannedValue();
       props.closePopup();
     } else {
       toast.error("Nessuna postazione selezionata");
@@ -102,6 +105,11 @@ export default function OspitiPopup(props: {
       (formRef.current.cognome.value = value.substring(0, 3).toUpperCase());
     formRef.current.tdoc && (formRef.current.tdoc.value = "CARTA IDENTITA");
   }
+
+  useEffect(() => {
+    if (props.scannedValue && formRef.current.badge_cod)
+      formRef.current.badge_cod.value = props.scannedValue;
+  }, [props.scannedValue]);
 
   return (
     <Popup

@@ -1437,8 +1437,8 @@ export default class ArchivioDB {
       );
 
       const chiaviInValues = chiaviInsertRes.rows.map((row) => row.id);
-      const chiaviInText = `SELECT * FROM ${ArchTableName.FULL_IN_PRESTITO} 
-        WHERE id IN (${chiaviInValues.map((_, i) => `$${i + 1}`).join(",")})`;
+      const chiaviInText = chiaviInValues.length > 0 ? `SELECT * FROM ${ArchTableName.FULL_IN_PRESTITO} 
+        WHERE id IN (${chiaviInValues.map((_, i) => `$${i + 1}`).join(",")})` : "";
       const chiaviInRes = await client.query<ArchivioChiave>(chiaviInText, chiaviInValues);
 
       const chiaviOutText =

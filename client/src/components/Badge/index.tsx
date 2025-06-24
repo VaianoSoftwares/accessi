@@ -311,7 +311,7 @@ export default function Badge({
   }
 
   useEffect(() => {
-    if (!scannedValue) {
+    if (!scannedValue || isOspPopupShown) {
       return;
     } else if (!currPostazione) {
       toast.error("Postazione non selezionata");
@@ -324,7 +324,7 @@ export default function Badge({
       post_id: currPostazione.id,
     });
     clearScannedValue();
-  }, [scannedValue]);
+  }, [scannedValue, isOspPopupShown]);
 
   // useEffect(() => {
   //   refreshPage({ form: false, image: false, refetch: true });
@@ -605,6 +605,8 @@ export default function Badge({
         closePopup={setIsOspPopupShown.setFalse}
         insertOsp={insertArchProv.mutate}
         currPostazione={currPostazione}
+        scannedValue={scannedValue}
+        clearScannedValue={clearScannedValue}
       />
       <div className="badge-table-wrapper">
         {queryInStrutt.isSuccess && (
@@ -612,11 +614,11 @@ export default function Badge({
             content={
               deletedRow
                 ? [
-                    deletedRow,
-                    ...queryInStrutt.data.filter(
-                      (row) => row.id !== deletedRow.id
-                    ),
-                  ]
+                  deletedRow,
+                  ...queryInStrutt.data.filter(
+                    (row) => row.id !== deletedRow.id
+                  ),
+                ]
                 : queryInStrutt.data
             }
             tableId={TABLE_NAME}
