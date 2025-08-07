@@ -20,7 +20,7 @@ import {
 import { GetTracciatoForm } from "../types/forms";
 
 class ArchivioDataService extends DataServices {
-  getArchivio(query: Record<string, string>, signal?: GenericAbortSignal) {
+  getArchivio(query: Record<string, unknown>, signal?: GenericAbortSignal) {
     return super.request<object[]>({
       data: query,
       signal,

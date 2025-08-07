@@ -78,6 +78,8 @@ export default class ArchivioDB {
               return `data_out>=$${i + 1}`;
             case "data_out_max":
               return `data_out<=$${i + 1}`;
+            case "post_ids":
+              return `(${(value as any[]).map(_ => `post_id=$${i + 1}`).join(" OR ")})`;
             default:
               return typeof value === "string"
                 ? `${key} LIKE $${i + 1}`
@@ -93,7 +95,9 @@ export default class ArchivioDB {
       filter &&
       Object.values(filter)
         .filter((value) => value)
-        .map((value) => (typeof value !== "string" ? value : `%${value}%`));
+        .flatMap((value) => (typeof value !== "string" ? value : `%${value}%`));
+
+    console.log("patara", queryText, queryValues);
 
     return await db.query<Archivio>(queryText, queryValues);
   }
@@ -1265,7 +1269,7 @@ export default class ArchivioDB {
                 }
               })
               .join(","),
-              "RETURNING *"
+            "RETURNING *"
           ].join(" ")
           : "";
       const chiaviInsertRes = await client.query<ArchivioChiave>(
@@ -1428,7 +1432,7 @@ export default class ArchivioDB {
                 }
               })
               .join(","),
-              "RETURNING *"
+            "RETURNING *"
           ].join(" ")
           : "";
       const chiaviInsertRes = await client.query<ArchivioChiave>(

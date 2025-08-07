@@ -515,6 +515,7 @@ export const GET_ARCHIVIO_SCHEMA = z.object({
   data_out_min: z.coerce.date().optional(),
   data_out_max: z.coerce.date().optional(),
   postazione: z.string().optional(),
+  post_ids: z.array(z.coerce.number()).nonempty().optional(),
   post_id: ID_SCHEMA("ID Postazione").optional(),
   ip: z.string().optional(),
   username: z.string().optional(),

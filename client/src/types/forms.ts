@@ -158,6 +158,10 @@ export type FindArchivioForm = {
   zuc_cod?: string | undefined;
 };
 
+export type FindArchivioFullForm = FindArchivioForm & {
+  post_ids?: number[] | undefined; 
+};
+
 export type ProtocolloForm = {
   filename?: string | undefined;
   prot_descrizione?: string | undefined;

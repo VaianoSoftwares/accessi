@@ -304,7 +304,7 @@ CREATE TABLE IF NOT EXISTS prot_visibile_da(
 CREATE VIEW full_archivio AS
     WITH full_archivio_nominativi AS (
         SELECT a.id, n.codice AS badge, n.nome, n.cognome, n.assegnazione, NULL AS targa, NULL AS chiave, 'BADGE' AS tipo, 'NO' AS provvisorio,
-        po.cliente, po.name AS postazione, a.data_in, a.data_out,
+        po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.data_out,
         date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
         dates_are_not_equal(a.data_in, a.data_out) AS notte,
         NULL AS tveicolo, n.ditta, n.cod_fisc, n.ndoc, n.tdoc, n.telefono, n.scadenza, NULL AS indirizzo, NULL AS citta, NULL AS edificio,
@@ -315,7 +315,7 @@ CREATE VIEW full_archivio AS
     ),
     full_archivio_provvisori AS (
         SELECT a.id, a.badge_cod AS badge, pe.nome, pe.cognome, pe.assegnazione, pe.targa, NULL AS chiave, 'BADGE' AS tipo, 
-        'SI' AS provvisorio, po.cliente, po.name AS postazione, a.data_in, a.data_out,
+        'SI' AS provvisorio, po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.data_out,
         date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
         dates_are_not_equal(a.data_in, a.data_out) AS notte,
         NULL AS tveicolo, pe.ditta, pe.cod_fisc, pe.ndoc, pe.tdoc, pe.telefono, NULL::DATE AS scadenza, NULL AS indirizzo, NULL AS citta,
@@ -326,7 +326,7 @@ CREATE VIEW full_archivio AS
     ),
     full_archivio_veicoli AS (
         SELECT a.id, NULL AS badge, n.nome, n.cognome, n.assegnazione, ve.targa, NULL AS chiave, 'VEICOLO' AS tipo, 'NO' AS provvisorio,
-        po.cliente, po.name AS postazione, a.data_in, a.data_out,
+        po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.data_out,
         date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
         dates_are_not_equal(a.data_in, a.data_out) AS notte,
         ve.tipo AS tveicolo, n.ditta, n.cod_fisc, n.ndoc, n.tdoc, n.telefono, n.scadenza, NULL AS indirizzo, NULL AS citta,
@@ -338,7 +338,7 @@ CREATE VIEW full_archivio AS
     ),
     full_archivio_veicoli_prov AS (
         SELECT a.id, NULL AS badge, a.nome, a.cognome, a.assegnazione, a.targa, NULL AS chiave, 'VEICOLO' AS tipo,
-        'SI' AS provvisorio, po.cliente, po.name AS postazione, a.data_in, a.data_out,
+        'SI' AS provvisorio, po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.data_out,
         date_in_out_diff(a.data_in, a.data_out) AS tempo_in_strutt,
         dates_are_not_equal(a.data_in, a.data_out) AS notte,
         a.tveicolo, a.ditta, a.cod_fisc, a.ndoc, a.tdoc, a.telefono,
@@ -348,13 +348,14 @@ CREATE VIEW full_archivio AS
     ),
     full_archivio_chiavi AS (
         SELECT t1.id, t1.codice AS badge, t1.nome, t1.cognome, t1.assegnazione, NULL AS targa, t2.codice AS chiave, 'CHIAVE' AS tipo,
-        'NO' AS provvisorio, t1.cliente, t1.postazione, t1.data_in, t1.data_out,
+        'NO' AS provvisorio, t1.cliente, t1.postazione, t1.post_id, t1.data_in, t1.data_out,
         date_in_out_diff(t1.data_in, t1.data_out) AS tempo_in_strutt,
         dates_are_not_equal(t1.data_in, t1.data_out) AS notte,
         NULL AS tveicolo, t1.ditta, t1.cod_fisc, t1.ndoc, t1.tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta,
         CAST(t2.edificio AS TEXT) AS edificio, t2.piano, t1.username, t1.ip, NULL AS documento
         FROM (
-            SELECT a.id, n.codice, po.cliente, po.name AS postazione, a.data_in, a.data_out, a.username, a.ip, a.chiave_cod, n.nome, n.cognome, n.ditta, n.cod_fisc, n.assegnazione, n.ndoc, n.tdoc, n.telefono, n.scadenza
+            SELECT a.id, n.codice, po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.data_out, a.username, a.ip, a.chiave_cod,
+            n.nome, n.cognome, n.ditta, n.cod_fisc, n.assegnazione, n.ndoc, n.tdoc, n.telefono, n.scadenza
             FROM nominativi AS n
             JOIN archivio_chiavi AS a ON n.codice = a.badge_cod
             JOIN postazioni AS po ON a.post_id = po.id
@@ -367,13 +368,13 @@ CREATE VIEW full_archivio AS
     ),
     full_archivio_chiavi_prov AS (
         SELECT t1.id, t1.badge_cod, t1.nome, t1.cognome, t1.assegnazione, NULL AS targa, t2.codice AS chiave, 'CHIAVE' AS tipo,
-        'SI' AS provvisorio, t1.cliente, t1.postazione, t1.data_in, t1.data_out,
+        'SI' AS provvisorio, t1.cliente, t1.postazione, t1.post_id, t1.data_in, t1.data_out,
         date_in_out_diff(t1.data_in, t1.data_out) AS tempo_in_strutt,
         dates_are_not_equal(t1.data_in, t1.data_out) AS notte,
         NULL AS tveicolo, t1.ditta, t1.cod_fisc, t1.ndoc, t1.tdoc, t1.telefono, NULL::DATE AS scadenza, t2.indirizzo, t2.citta,
         CAST(t2.edificio AS TEXT) AS edificio, t2.piano, t1.username, t1.ip, NULL AS documento
         FROM (
-            SELECT a.id, a.badge_cod, po.cliente, po.name AS postazione, a.data_in, a.data_out, a.username, a.ip, a.chiave_cod, 
+            SELECT a.id, a.badge_cod, po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.data_out, a.username, a.ip, a.chiave_cod, 
             pe.nome, pe.cognome, pe.ditta, pe.cod_fisc, pe.assegnazione, pe.ndoc, pe.tdoc, pe.telefono
             FROM people AS pe
             JOIN archivio_chiavi_prov AS a ON pe.id = a.person_id

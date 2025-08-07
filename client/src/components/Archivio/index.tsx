@@ -10,8 +10,8 @@ import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormRef } from "../../types";
 import { TIPI_BADGE } from "../../types/badges";
-import { FindArchivioForm } from "../../types/forms";
-import { CurrentUserContext } from "../RootProvider";
+import { FindArchivioForm, FindArchivioFullForm } from "../../types/forms";
+import { CurrentUserContext, CurrPostazioneContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import createTracciatoFile from "../../utils/createTimbratureFile";
 import { Link } from "react-router-dom";
@@ -25,6 +25,8 @@ const UPLOADS_DIR = "/api/v1/public/uploads/";
 
 export default function Archivio() {
   const { currentUser } = useContext(CurrentUserContext)!;
+  const { currCliente, currPostazione } = useContext(CurrPostazioneContext)!;
+
   const { handleError } = useError();
 
   const queryClient = useQueryClient();
@@ -47,11 +49,25 @@ export default function Archivio() {
     zuc_cod: null,
   });
 
-  function formToObj(): FindArchivioForm {
-    const obj: FindArchivioForm = {};
+  function formToObj(): FindArchivioFullForm {
+    const obj: FindArchivioFullForm = {};
     Object.entries(formRef.current)
       .filter(([, el]) => el !== null)
-      .forEach(([key, el]) => (obj[key as keyof FindArchivioForm] = el!.value));
+      .forEach(([key, el]) => {
+        switch(key) {
+          case "cliente":
+            obj[key] = el?.value || currCliente;
+            break;
+          case "postazione":
+            obj[key] = el?.value || currPostazione?.name;
+            break;
+          case "post_ids":
+            obj[key] = currentUser?.postazioni_ids;
+            break;
+          default:
+            obj[key as keyof Omit<FindArchivioFullForm, "post_ids">] = el?.value;
+        }
+      });
     return obj;
   }
 
@@ -460,6 +476,7 @@ export default function Archivio() {
                 {value}
               </Link>
             )}
+            omitedParams={["post_id"]}
           />
         )}
       </div>
