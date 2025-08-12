@@ -27,14 +27,20 @@
     border: 1px solid;
 }
 
-#chiavi-wrapper .form-select {
+.chiavi-form .form-floating input {
     height: 2.375rem;
-    padding: 0 0 1px 4px;
+    min-height: 2.375rem;
+  }
+  
+.chiavi-form .form-select {
+    height: 2.375rem;
+    min-height: 2.375rem;
+    padding: 6px 0 0 6px;
 }
-
-#chiavi-wrapper .form-floating label {
+  
+.chiavi-form .form-floating label {
     font-size: 13px;
-    top: -20%;
+    top: -25%;
 }
 
 .custom-add-barcode-input input {

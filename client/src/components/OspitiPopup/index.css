@@ -32,13 +32,15 @@
   border: 1px solid #cfcece;
 }
 
-.osp-form .form-control {
-  height: 35px;
+.osp-form .form-floating input {
+  height: 2.375rem;
+  min-height: 2.375rem;
 }
 
 .osp-form .form-select {
-  height: 35px;
-  padding: 0 0 1px 4px;
+  height: 2.375rem;
+  min-height: 2.375rem;
+  padding: 6px 0 0 6px;
 }
 
 .osp-form .form-floating label {

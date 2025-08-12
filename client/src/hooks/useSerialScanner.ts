@@ -47,11 +47,10 @@ export default function useSerialScanner() {
             .split("-")[0];
 
           if (
-            (trimmedValue.length === 10 ||
-            trimmedValue.length === 7) &&
+            (trimmedValue.length === 10 || trimmedValue.length === 7) &&
             /^\d+$/.test(trimmedValue)
           ) {
-            console.log("readScanner | valid code read:", trimmedValue)
+            console.log("readScanner | valid code read:", trimmedValue);
             addScanValue(trimmedValue);
           } else {
             console.error("readScanner | invalid code:", trimmedValue);

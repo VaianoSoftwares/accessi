@@ -792,7 +792,7 @@ export default function Anagrafico() {
                   </select>
                   <label htmlFor="assegnazione">assegnazione</label>
                 </div>
-                <div className="w-100" />
+                <div className="w-100 mt-1" />
                 <div className="form-floating col-sm-4">
                   <input
                     type="text"
@@ -830,7 +830,7 @@ export default function Anagrafico() {
                   />
                   <label htmlFor="ndoc">num documento</label>
                 </div>
-                <div className="w-100" />
+                <div className="w-100 mt-1" />
                 <div className="form-floating col-sm-4">
                   <input
                     type="text"
@@ -862,7 +862,7 @@ export default function Anagrafico() {
                   />
                   <label htmlFor="zuc_doc">cod zucchetti</label>
                 </div>
-                <div className="w-100" />
+                <div className="w-100 mt-1" />
                 <div className="form-floating col-sm-4">
                   <input
                     type="text"

@@ -1,21 +1,16 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import "./index.css";
 import ArchivioDataService from "../../services/archivio";
-import NominativiDataService from "../../services/nominativo";
 import BadgeTable from "../BadgeTable";
 import Clock from "../Clock";
 import OspitiPopup from "../OspitiPopup";
-import { FormRef, GenericForm } from "../../types";
 import useBool from "../../hooks/useBool";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useImage from "../../hooks/useImage";
-import useReadonlyForm from "../../hooks/useReadonlyForm";
 import { toast } from "react-hot-toast";
 import { TPermessi, hasPerm, isAdmin } from "../../types/users";
-import { BadgeType, TDOCS } from "../../types/badges";
-import { FindBadgesInStruttForm } from "../../types/forms";
+import { BadgeType } from "../../types/badges";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
-import BadgePopup from "../BadgePopup";
 import {
   FindBadgeInStruttData,
   TimbraBadgeDoc,
@@ -24,6 +19,7 @@ import {
 import { CurrPostazioneContext, CurrentUserContext } from "../RootProvider";
 import useError from "../../hooks/useError";
 import { sleep } from "../../utils/timer";
+import PopupWithImg from "../PopupWithImg";
 
 const TABLE_NAME = "in_strutt_table";
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
@@ -37,15 +33,7 @@ export default function Badge({
   clearScannedValue: () => void;
   tipoBadge: BadgeType;
 }) {
-  const formRef = useRef<FormRef<FindBadgesInStruttForm>>({
-    badge_cod: null,
-    assegnazione: null,
-    nome: null,
-    cognome: null,
-    ditta: null,
-    ndoc: null,
-    tdoc: null,
-  });
+  const badgeCodRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
 
@@ -56,24 +44,21 @@ export default function Badge({
 
   const { handleError } = useError();
 
-  const assegnazioni = useQuery({
-    queryKey: ["assegnazioni"],
-    queryFn: async () => {
-      try {
-        const response = await NominativiDataService.getAssegnazioni();
-        console.log("queryAssegnazioni | response:", response);
-        if (response.data.success === false) {
-          throw response.data.error;
-        }
-        return response.data.result;
-      } catch (e) {
-        handleError(e);
-        return [];
-      }
-    },
-  });
+  const timeoutRunning = useRef(false);
+  const [deletedRow, setDeletedRow] = useState<QueryBadgeInStrutt>();
 
+  const [isOspPopupShown, setIsOspPopupShown] = useBool(false);
   const [isPauseShown, setIsPauseShown] = useBool(true);
+
+  const [pfpUrl, { updateImage }] = useImage((data) =>
+    data ? `${PROXY}/api/v1/public/uploads/PFP_${data}.jpg` : ""
+  );
+  const [isPopupShown, setIsPopupShown] = useBool(false);
+  const [popupBgColor, setPopupBgColor] = useState("green");
+  const [popupTxtColor, setPopupTxtColor] = useState(
+    "rgba(220, 220, 220, 255)"
+  );
+  const [popupMsg, setPopupMsg] = useState("");
 
   const queryInStrutt = useQuery({
     queryKey: [
@@ -120,10 +105,15 @@ export default function Badge({
 
       setDeletedRow(isEntering === false ? timbraRow : undefined);
 
-      if (readonlyForm === true) {
-        setForm(timbraRow);
-        updateImage(timbraRow.codice);
-      }
+      updateImage(timbraRow.codice);
+      setPopupMsg(
+        `${timbraRow.nome || ""} ${timbraRow.cognome || ""} ${
+          isEntering ? "ENTRATA" : "USCITA"
+        }`
+      );
+      setPopupBgColor(isEntering ? "green" : "red");
+      setPopupTxtColor("rgba(220, 220, 220, 255)");
+      setIsPopupShown.setTrue();
 
       const badgeTable = document.getElementById(TABLE_NAME);
       if (badgeTable) {
@@ -137,9 +127,7 @@ export default function Badge({
       if (badgeTable) {
         badgeTable.classList.remove("added-row", "removed-row", "updated-row");
       }
-      if (readonlyForm === true) {
-        refreshPage({ form: true, image: true, refetch: false });
-      }
+      refreshPage(false);
 
       setDeletedRow(undefined);
       await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
@@ -168,12 +156,13 @@ export default function Badge({
 
       setDeletedRow(undefined);
 
-      const { in: timbraRow } = response.data.result;
+      const { row: timbraRow } = response.data.result;
 
-      if (readonlyForm === true) {
-        setForm(timbraRow);
-        updateImage(timbraRow.codice);
-      }
+      updateImage(timbraRow.codice);
+      setPopupMsg(`${timbraRow.nome || ""} ${timbraRow.cognome || ""} PAUSA`);
+      setPopupBgColor("gold");
+      setPopupTxtColor("rgba(40, 40, 40, 255)");
+      setIsPopupShown.setTrue();
 
       const badgeTable = document.getElementById(TABLE_NAME);
       if (badgeTable) {
@@ -185,9 +174,7 @@ export default function Badge({
       if (badgeTable) {
         badgeTable.classList.remove("added-row", "removed-row", "updated-row");
       }
-      if (readonlyForm === true) {
-        refreshPage({ form: true, image: true, refetch: false });
-      }
+      refreshPage(false);
 
       await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
       if (currentUser?.postazioni_ids.length !== 1) clearCurrPostazione();
@@ -198,79 +185,6 @@ export default function Badge({
       setDeletedRow(undefined);
       handleError(err, "timbra");
     },
-  });
-
-  const [deletedRow, setDeletedRow] = useState<QueryBadgeInStrutt>();
-  // const { data: deletedRow, setData: setDeletedRow } = useSSE<
-  //   QueryBadgeInStrutt | undefined
-  // >(`${PROXY}/api/v1/sse`, undefined);
-  const [isOspPopupShown, setIsOspPopupShown] = useBool(false);
-  const [readonlyForm, setReadonlyForm] = useReadonlyForm((condition) => {
-    refreshPage({
-      image: condition,
-      form: condition,
-      refetch: false,
-    });
-  });
-  const timeoutRunning = useRef(false);
-
-  const [pfpUrl, { updateImage, setNoImage }] = useImage((data) =>
-    data ? `${PROXY}/api/v1/public/uploads/PFP_${data}.jpg` : ""
-  );
-
-  function formToObj() {
-    const obj: FindBadgesInStruttForm = {};
-    Object.entries(formRef.current)
-      .filter(([, el]) => el !== null)
-      .forEach(
-        ([key, el]) => (obj[key as keyof FindBadgesInStruttForm] = el!.value)
-      );
-    return obj;
-  }
-
-  function setForm(obj: GenericForm = {}) {
-    Object.entries(formRef.current)
-      .filter(([key, el]) => el !== null && key in formRef.current)
-      .forEach(([key, el]) => {
-        const mappedKey = key as keyof FindBadgesInStruttForm;
-        if (el instanceof HTMLInputElement)
-          el.value = obj[mappedKey] || el.defaultValue;
-        else if (el instanceof HTMLSelectElement && el.options.length > 0)
-          el.value = obj[mappedKey] || el.options.item(0)!.value;
-      });
-  }
-
-  const findInStrutt = useQuery({
-    queryKey: ["findInStrutt"],
-    queryFn: async () => {
-      try {
-        const response = await ArchivioDataService.findBadgesInStrutt({
-          ...formToObj(),
-          postazioniIds: currPostazione
-            ? [currPostazione.id]
-            : currentUser?.postazioni_ids,
-        });
-        console.log("findBadges | response:", response);
-
-        if (response.data.success === false) {
-          throw response.data.error;
-        }
-
-        const { result } = response.data;
-
-        if (result.length === 1) {
-          setForm(result[0]);
-          updateImage(result[0].codice);
-        }
-
-        return result;
-      } catch (e) {
-        handleError(e);
-        return [];
-      }
-    },
-    enabled: false,
-    refetchOnWindowFocus: false,
   });
 
   const insertArchProv = useMutation({
@@ -284,9 +198,8 @@ export default function Badge({
     onError: (err) => handleError(err, "timbra"),
   });
 
-  function refreshPage({ form = true, image = true, refetch = true }) {
-    form && setForm();
-    image && setNoImage();
+  function refreshPage(refetch = true) {
+    badgeCodRef.current?.value && (badgeCodRef.current.value = "");
     refetch && queryInStrutt.refetch();
   }
 
@@ -294,15 +207,15 @@ export default function Badge({
     if (!currPostazione && currentUser?.postazioni_ids.length !== 1) {
       toast.error("Selezionare la postazione");
       return;
-    } else if (!formRef.current.badge_cod?.value) {
+    } else if (!badgeCodRef.current?.value) {
       toast.error("Campo Barcode mancante");
       return;
     }
 
     const timbraData = {
       badge_cod: pausa
-        ? formRef.current.badge_cod.value
-        : barcodePrefix.concat(formRef.current.badge_cod.value),
+        ? badgeCodRef.current!.value
+        : barcodePrefix.concat(badgeCodRef.current!.value),
       post_id: currPostazione?.id || currentUser!.postazioni_ids[0],
     };
 
@@ -312,9 +225,11 @@ export default function Badge({
 
   useEffect(() => {
     if (!scannedValue || isOspPopupShown) {
+      clearScannedValue();
       return;
     } else if (!currPostazione) {
       toast.error("Postazione non selezionata");
+      clearScannedValue();
       return;
     }
 
@@ -327,237 +242,75 @@ export default function Badge({
   }, [scannedValue, isOspPopupShown]);
 
   // useEffect(() => {
-  //   refreshPage({ form: false, image: false, refetch: true });
+  //   refreshPage(true);
   // }, [currCliente]);
 
   return (
     <div id="badge-wrapper" className="no-user-select">
       <div className="container-fluid m-1 badge-container">
         <div className="row justify-content-start align-items-start submit-form">
-          <div className="col-7 badge-form">
-            <div className="row my-1">
-              <div className="col-3">
-                <div
-                  className="pfp-container"
-                  style={{
-                    backgroundImage: `url(${pfpUrl})`,
+          <div className="col-7 badge-form p-1">
+            <div className="row align-items-center">
+              <div className="form-floating col-sm-5">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  id="codice"
+                  placeholder="codice"
+                  autoComplete="off"
+                  ref={badgeCodRef}
+                  onCopy={(e) => {
+                    if (isAdmin(currentUser)) return;
+                    e.preventDefault();
+                    return false;
+                  }}
+                  onPaste={(e) => {
+                    if (isAdmin(currentUser)) return;
+                    e.preventDefault();
+                    return false;
                   }}
                 />
+                <label htmlFor="codice">barcode</label>
               </div>
-              <div className="col-9">
-                <div className="row">
-                  <div className="form-floating col-sm-6">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      id="codice"
-                      placeholder="codice"
-                      autoComplete="off"
-                      ref={(el) => (formRef.current.badge_cod = el)}
-                      onCopy={(e) => {
-                        if (isAdmin(currentUser)) return;
-                        e.preventDefault();
-                        return false;
-                      }}
-                      onPaste={(e) => {
-                        if (isAdmin(currentUser)) return;
-                        e.preventDefault();
-                        return false;
-                      }}
-                    />
-                    <label htmlFor="barcode">barcode</label>
-                  </div>
-                  <div className="form-floating col-sm-6">
-                    <select
-                      className="form-select form-select-sm"
-                      id="assegnazione"
-                      ref={(el) => (formRef.current.assegnazione = el)}
-                    >
-                      <option key="-1" disabled={readonlyForm === true} />
-                      {assegnazioni.isSuccess &&
-                        assegnazioni.data.map((assegnazione) => (
-                          <option
-                            value={assegnazione}
-                            key={assegnazione}
-                            disabled={readonlyForm === true}
-                          >
-                            {assegnazione}
-                          </option>
-                        ))}
-                    </select>
-                    <label htmlFor="assegnazione">assegnazione</label>
-                  </div>
-                  <div className="w-100" />
-                  <div className="form-floating col-sm">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      id="nome"
-                      placeholder="nome"
-                      readOnly={readonlyForm === true}
-                      autoComplete="off"
-                      ref={(el) => (formRef.current.nome = el)}
-                    />
-                    <label htmlFor="nome">nome</label>
-                  </div>
-                  <div className="form-floating col-sm-6">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      id="cognome"
-                      placeholder="cognome"
-                      readOnly={readonlyForm === true}
-                      autoComplete="off"
-                      ref={(el) => (formRef.current.cognome = el)}
-                    />
-                    <label htmlFor="cognome">cognome</label>
-                  </div>
-                  <div className="w-100" />
-                  <div className="form-floating col-sm-6">
-                    <select
-                      className="form-select form-select-sm"
-                      id="tdoc"
-                      ref={(el) => (formRef.current.tdoc = el)}
-                    >
-                      <option key="-1" disabled={readonlyForm === true} />
-                      {TDOCS.filter((tipoDoc) => tipoDoc).map((tipoDoc) => (
-                        <option
-                          value={tipoDoc}
-                          key={tipoDoc}
-                          disabled={readonlyForm === true}
-                        >
-                          {tipoDoc}
-                        </option>
-                      ))}
-                    </select>
-                    <label htmlFor="tdoc">tipo documento</label>
-                  </div>
-                  <div className="form-floating col-sm-6">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      id="ndoc"
-                      placeholder="num documento"
-                      readOnly={readonlyForm === true}
-                      autoComplete="off"
-                      ref={(el) => (formRef.current.ndoc = el)}
-                    />
-                    <label htmlFor="ndoc">num documento</label>
-                  </div>
-                  <div className="w-100" />
-                  <div className="form-floating col-sm-6">
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      id="ditta"
-                      placeholder="ditta"
-                      readOnly={readonlyForm === true}
-                      autoComplete="off"
-                      ref={(el) => (formRef.current.ditta = el)}
-                    />
-                    <label htmlFor="ditta">ditta</label>
-                  </div>
-                  <div className="w-100 mb-4" />
-                  <div className="col" />
-                  <div className="in-strutt-count col-sm-4">
-                    <b># in struttura:</b>{" "}
-                    {queryInStrutt.isSuccess ? queryInStrutt.data.length : 0}
-                  </div>
-                </div>
+              {currPostazione !== undefined &&
+                currPostazione.name !== "PAUSA" && (
+                  <>
+                    <div className="col-sm-1 mx-2">
+                      <button
+                        onClick={() => timbraBtnClickEvent(false, "0")}
+                        className="btn btn-success badge-form-btn"
+                      >
+                        Entrata
+                      </button>
+                    </div>
+                    <div className="col-sm-1 mx-2">
+                      <button
+                        onClick={() => timbraBtnClickEvent(false, "1")}
+                        className="btn btn-danger badge-form-btn"
+                      >
+                        Escita
+                      </button>
+                    </div>
+                    <div className="col-sm-1 mx-2">
+                      <button
+                        onClick={() => timbraBtnClickEvent(true)}
+                        className="btn btn-warning badge-form-btn"
+                      >
+                        Pausa
+                      </button>
+                    </div>
+                  </>
+                )}
+              <div className="w-100 mt-4"></div>
+              <div className="col-sm-9"></div>
+              <div className="col in-strutt-count p-1">
+                # In Struttura: {queryInStrutt.data?.length || 0}
               </div>
             </div>
           </div>
           <div className="col-sm-1">
             <div className="form-buttons">
               <div className="row align-items-center justify-content-start g-0">
-                {isAdmin(currentUser) === true && (
-                  <>
-                    <div className="col-auto">
-                      <button className="btn btn-success badge-form-btn">
-                        <div className="col btn-checkbox-input">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id="readonlyFormInput"
-                            checked={readonlyForm}
-                            onChange={(e) =>
-                              setReadonlyForm.setState(e.target.checked)
-                            }
-                          />
-                          <label
-                            className="form-check-label"
-                            htmlFor="readonlyFormInput"
-                          >
-                            Form
-                          </label>
-                        </div>
-                      </button>
-                    </div>
-                    <div className="w-100 mt-1" />
-                  </>
-                )}
-                {currPostazione !== undefined &&
-                  currPostazione.name !== "PAUSA" && (
-                    <>
-                      <div className="col">
-                        <button
-                          onClick={() => timbraBtnClickEvent(false, "0")}
-                          className="btn btn-success badge-form-btn"
-                        >
-                          Entra
-                        </button>
-                      </div>
-                      <div className="w-100 mt-1" />
-                      <div className="col">
-                        <button
-                          onClick={() => timbraBtnClickEvent(false, "1")}
-                          className="btn btn-success badge-form-btn"
-                        >
-                          Esci
-                        </button>
-                      </div>
-                      <div className="w-100 mt-1" />
-                      <div className="col">
-                        <button
-                          onClick={() => timbraBtnClickEvent(true)}
-                          className="btn btn-success badge-form-btn"
-                        >
-                          Pausa
-                        </button>
-                      </div>
-                      <div className="w-100 mt-1" />
-                    </>
-                  )}
-                {isAdmin(currentUser) === true && (
-                  <>
-                    <div className="col">
-                      <BadgePopup
-                        content={findInStrutt.data || []}
-                        trigger={
-                          <button className="btn btn-success badge-form-btn">
-                            Cerca
-                          </button>
-                        }
-                        onOpen={() => findInStrutt.refetch()}
-                        position="right top"
-                      />
-                    </div>
-                    <div className="w-100 mt-1" />
-                  </>
-                )}
-                {hasPerm(currentUser, TPermessi.canAccessInStruttReport) && (
-                  <div className="col">
-                    <button
-                      onClick={() =>
-                        htmlTableToExcel(TABLE_NAME, "in-struttura")
-                      }
-                      className="btn btn-success badge-form-btn"
-                    >
-                      Esporta
-                    </button>
-                  </div>
-                )}
-                <div className="w-100 mt-1" />
                 {currPostazione !== undefined &&
                   currPostazione.name !== "PAUSA" &&
                   hasPerm(currentUser, TPermessi.canMarkProvvisori) && (
@@ -570,6 +323,19 @@ export default function Badge({
                       </button>
                     </div>
                   )}
+                <div className="w-100 mt-1" />
+                {hasPerm(currentUser, TPermessi.canAccessInStruttReport) && (
+                  <div className="col">
+                    <button
+                      onClick={() =>
+                        htmlTableToExcel(TABLE_NAME, "in-struttura")
+                      }
+                      className="btn btn-success badge-form-btn"
+                    >
+                      Esporta
+                    </button>
+                  </div>
+                )}
                 <div className="w-100 mt-1" />
                 <div className="col">
                   <button className="btn btn-success badge-form-btn">
@@ -608,17 +374,25 @@ export default function Badge({
         scannedValue={scannedValue}
         clearScannedValue={clearScannedValue}
       />
+      <PopupWithImg
+        isOpen={isPopupShown}
+        onClose={() => setIsPopupShown.setFalse()}
+        bgColor={popupBgColor}
+        textColor={popupTxtColor}
+        textMsg={popupMsg}
+        imgSrc={pfpUrl}
+      ></PopupWithImg>
       <div className="badge-table-wrapper">
         {queryInStrutt.isSuccess && (
           <BadgeTable
             content={
               deletedRow
                 ? [
-                  deletedRow,
-                  ...queryInStrutt.data.filter(
-                    (row) => row.id !== deletedRow.id
-                  ),
-                ]
+                    deletedRow,
+                    ...queryInStrutt.data.filter(
+                      (row) => row.id !== deletedRow.id
+                    ),
+                  ]
                 : queryInStrutt.data
             }
             tableId={TABLE_NAME}

@@ -7,9 +7,9 @@
     text-decoration: underline;
 }
 
-#currPostazione {
-    max-height: 35px;
-    max-width: 350px;
+.navbar select {
+    max-height: 2.1875rem;
+    max-width: 21.875rem;
 }
 
 .scan-btn {
@@ -28,8 +28,8 @@
 }
 
 .navbar-img-brand {
-    max-width: 213px;
-    min-height: 23px;
+    max-width: 13.3125rem;
+    min-height: 1.4375rem;
 }
 
 .navbar-brand:hover {

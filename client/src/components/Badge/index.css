@@ -6,7 +6,8 @@
 }
 
 .in-strutt-count {
-    font-size: 20px;
+    font-size: 22px;
+    font-weight: bold;
 }
 
 .badge-container {
@@ -22,8 +23,8 @@
 
 .badge-table-wrapper {
     overflow: auto;
-    height: 60%;
-    max-height: 500px;
+    height: 66%;
+    max-height: 650px;
     background-color: white;
 }
 
@@ -42,13 +43,9 @@
     padding-bottom: 12px;
 }
 
-.badge-form .form-control {
-    height: 38px;
-}
-
-.badge-form .form-select {
-    height: 38px;
-    padding: 6px 0 1px 4px;
+.badge-form .form-floating input {
+    height: 2.375rem;
+    min-height: 2.375rem;
 }
 
 .badge-form .form-floating label {
@@ -56,13 +53,9 @@
     top: -25%;
 }
 
-.badge-form input[type="file"] {
-    font-size: 11px;
-}
-
 .badge-form-btn {
-    width: 100px;
-    height: 35px;
+    width: 6.25rem;
+    height: 2.1875rem;
 }
 
 .badge-form-b {

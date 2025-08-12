@@ -228,10 +228,7 @@ export default function OspitiPopup(props: {
                   <option key="-1" />
                   {assegnazioni.isSuccess &&
                     assegnazioni.data.map((assegnazione) => (
-                      <option
-                        value={assegnazione}
-                        key={assegnazione}
-                      >
+                      <option value={assegnazione} key={assegnazione}>
                         {assegnazione}
                       </option>
                     ))}
@@ -250,8 +247,6 @@ export default function OspitiPopup(props: {
                 />
                 <label htmlFor="osp-targa">targa</label>
               </div>
-            </div>
-            <div className="row">
               <div className="col-sm-4 input-group custom-input-file one-third-col">
                 <label htmlFor="docs" className="input-group-text">
                   documenti

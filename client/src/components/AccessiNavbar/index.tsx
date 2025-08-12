@@ -257,7 +257,7 @@ export default function AccessiNavbar({
               </div>
             )}
             {canAccessPage(currentUser, TPages.badge) && (
-              <div className="d-flex mx-1">
+              <div className="d-flex align-self-center mx-1">
                 <button
                   className="scanner-btn btn btn-light mx-1 scan-btn"
                   onClick={async () => await runBadgeScanner()}
@@ -271,7 +271,7 @@ export default function AccessiNavbar({
               </div>
             )}
             {canAccessPage(currentUser, TPages.chiavi) && (
-              <div className="d-flex">
+              <div className="d-flex align-self-center">
                 <button
                   className="scanner-btn btn btn-light mx-1 scan-btn"
                   onClick={async () => await runChiaviScanner()}

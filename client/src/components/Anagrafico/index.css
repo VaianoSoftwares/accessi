@@ -29,15 +29,17 @@
     padding-bottom: 12px;
 }
 
-.anagrafico-form .form-control {
-    height: 38px;
-}
-
+.anagrafico-form .form-floating input {
+    height: 2.375rem;
+    min-height: 2.375rem;
+  }
+  
 .anagrafico-form .form-select {
-    height: 38px;
-    padding: 10px 0 1px 4px;
+    height: 2.375rem;
+    min-height: 2.375rem;
+    padding: 6px 0 0 6px;
 }
-
+  
 .anagrafico-form .form-floating label {
     font-size: 13px;
     top: -25%;
@@ -45,7 +47,7 @@
 
 .anagrafico-form input[type=file] {
     font-size: 15px;
-    height: 35px;
+    height: 2.1875rem;
 }
 
 .anagrafico-form-btn {

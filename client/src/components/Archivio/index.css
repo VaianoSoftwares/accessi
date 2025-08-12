@@ -36,6 +36,22 @@
     top: -25%;
 }
 
+.archivio-form .form-floating input {
+    height: 2.375rem;
+    min-height: 2.375rem;
+  }
+  
+.archivio-form .form-select {
+    height: 2.375rem;
+    min-height: 2.375rem;
+    padding: 6px 0 0 6px;
+}
+  
+.archivio-form .form-floating label {
+    font-size: 13px;
+    top: -25%;
+}
+
 .archivio-form-btns button {
     height: 35px;
     width: 95px;

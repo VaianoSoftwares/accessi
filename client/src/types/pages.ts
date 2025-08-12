@@ -70,17 +70,6 @@ export const PAGES_INFO: ReadonlyMap<TPages, IPageInfo> = new Map([
     },
   ],
   [
-    TPages.protocollo,
-    {
-      pathname: "/protocollo",
-      name: "Protocollo",
-      title: "Protocollo Elettronico",
-      description: "Pagina per condivisione documenti",
-      admin: false,
-      imagePath: "/document_icon_128.png",
-    },
-  ],
-  [
     TPages.anagrafico,
     {
       pathname: "/anagrafico",
@@ -89,6 +78,17 @@ export const PAGES_INFO: ReadonlyMap<TPages, IPageInfo> = new Map([
       description: "Gestione personale e badge",
       admin: false,
       imagePath: "/id_icon_128.png",
+    },
+  ],
+  [
+    TPages.protocollo,
+    {
+      pathname: "/protocollo",
+      name: "Protocollo",
+      title: "Protocollo Elettronico",
+      description: "Pagina per condivisione documenti",
+      admin: false,
+      imagePath: "/document_icon_128.png",
     },
   ],
   [
