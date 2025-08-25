@@ -288,7 +288,7 @@ export default function Badge({
                         onClick={() => timbraBtnClickEvent(false, "1")}
                         className="btn btn-danger badge-form-btn"
                       >
-                        Escita
+                        Uscita
                       </button>
                     </div>
                     <div className="col-sm-1 mx-2">
