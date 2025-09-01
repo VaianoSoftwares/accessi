@@ -7,7 +7,6 @@ import { BarcodePrefix } from "../types/archivio.js";
 import BadgesFileManager from "../files/badges.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
 import MazziChiaviDB from "../db/mazzi.js";
-import { equal } from "assert";
 
 export default class ArchivioController {
   public static async apiGetArchivio(
@@ -245,9 +244,9 @@ export default class ArchivioController {
           const dbData = { ...parsed.data, chiavi, badge_cod: null };
           dbResult = await ArchivioDB.timbraChiaviNoBadge(dbData);
         }
-        if (dbResult.in.rowCount) {
-          const archId = dbResult.in.rows[0].id;
-          const personId = dbResult.in.rows[0].person_id;
+        if (dbResult.in.length > 0) {
+          const archId = dbResult.in[0].id;
+          const personId = dbResult.in[0].person_id;
 
           const docs = Array.isArray(req.files?.docs)
             ? req.files?.docs[0]
@@ -380,7 +379,7 @@ export default class ArchivioController {
       const result = dbResult.rows
         .map(
           (row) =>
-            `43 ${row.zuc_cod} ${row.formatted_data_in} I 0950 00 P\n43 ${row.zuc_cod} ${row.formatted_data_out} U 0950 00 P`
+            `43 ${row.zuc_cod} ${row.formatted_date} ${row.markType} 0950 00 P`
         )
         .join("\n");
 

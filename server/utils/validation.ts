@@ -1,6 +1,6 @@
 import z from "zod";
 import { TDOCS, TIPI_BADGE, STATI_BADGE, BadgeState } from "../types/badges.js";
-import { BarcodePrefix } from "../types/archivio.js";
+import { BarcodePrefix, MARK_TYPES } from "../types/archivio.js";
 
 function MISSING_ATTR_ERR_MSG(attribute: string) {
   return `Campo ${attribute} risulta mancante`;
@@ -506,6 +506,7 @@ export const UPDATE_PERSON_SCHEMA = z.object({
 export type UpdatePersonData = z.infer<typeof UPDATE_PERSON_SCHEMA>;
 
 export const GET_ARCHIVIO_SCHEMA = z.object({
+  id: ID_SCHEMA().optional(),
   badge: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
   targa: z.string().optional(),
   chiave: CODICE_CHIAVE_SCHEMA.optional(),
@@ -736,6 +737,10 @@ export const TIMBRA_BADGE_SCHEMA = z.object({
     BARCODE_PROV_ESCE_SCHEMA,
     CODICE_STUDENTE_SCHEMA,
   ]),
+  created_at: z
+    .union([z.string(), z.date()])
+    .optional()
+    .transform((v) => (!v ? undefined : new Date(v))),
   post_id: ID_SCHEMA("Postazione ID"),
   ip: z.string().default("unknown"),
   username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
@@ -750,25 +755,28 @@ export const TIMBRA_VEICOLO_SCHEMA = z.object({
 });
 export type TimbraVeicoloData = z.infer<typeof TIMBRA_VEICOLO_SCHEMA>;
 
-const validPrestaChiaviBadgeSchema = z.union([
-  BARCODE_CHIAVE_ENTRA_SCHEMA,
-  BARCODE_CHIAVE_ESCE_SCHEMA,
-  BARCODE_NOM_ENTRA_SCHEMA,
-  BARCODE_NOM_ESCE_SCHEMA,
-  BARCODE_PROV_ENTRA_SCHEMA,
-  BARCODE_PROV_ESCE_SCHEMA,
-  CODICE_CHIAVE_SCHEMA,
-  CODICE_NOM_SCHEMA,
-  CODICE_MAZZO_SCHEMA,
-  CODICE_PROV_SCHEMA,
-])
+const validPrestaChiaviBadgeSchema = z
+  .union([
+    BARCODE_CHIAVE_ENTRA_SCHEMA,
+    BARCODE_CHIAVE_ESCE_SCHEMA,
+    BARCODE_NOM_ENTRA_SCHEMA,
+    BARCODE_NOM_ESCE_SCHEMA,
+    BARCODE_PROV_ENTRA_SCHEMA,
+    BARCODE_PROV_ESCE_SCHEMA,
+    CODICE_CHIAVE_SCHEMA,
+    CODICE_NOM_SCHEMA,
+    CODICE_MAZZO_SCHEMA,
+    CODICE_PROV_SCHEMA,
+  ])
   .transform((v) => (v.length === 10 ? v.substring(1) : v));
 
 export const TIMBRA_CHIAVI_SCHEMA = z.object({
   post_id: ID_SCHEMA("Postazione ID"),
   barcodes: z.union([
-    validPrestaChiaviBadgeSchema.transform((v) => [v]), 
-    validPrestaChiaviBadgeSchema.array().nonempty(MISSING_ATTR_ERR_MSG("Barcodes")),
+    validPrestaChiaviBadgeSchema.transform((v) => [v]),
+    validPrestaChiaviBadgeSchema
+      .array()
+      .nonempty(MISSING_ATTR_ERR_MSG("Barcodes")),
   ]),
   ip: z.string().default("unknown"),
   username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
@@ -967,11 +975,7 @@ export const UPDATE_POSTAZIONE_SCHEMA = z.object({
 
 export const UPDATE_ARCHIVIO_SCHEMA = z.object({
   id: ID_SCHEMA("Archivio ID"),
-  data_in: z
-    .union([z.string(), z.date()])
-    .optional()
-    .transform((v) => (!v ? undefined : new Date(v))),
-  data_out: z
+  created_at: z
     .union([z.string(), z.date()])
     .optional()
     .transform((v) => (!v ? undefined : new Date(v))),

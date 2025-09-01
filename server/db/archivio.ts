@@ -15,6 +15,7 @@ import {
   Tracciato,
   TimbraChiaviProvData,
   TimbraChiaviNoBadgeData,
+  MarkType,
 } from "../types/archivio.js";
 import { BaseError } from "../types/errors.js";
 import {
@@ -26,8 +27,6 @@ import {
   InsertArchBadgeData,
   InsertArchVeicoloData,
   TimbraBadgeData,
-  TimbraNomInWithDateData,
-  TimbraNomOutWithDateData,
   TimbraVeicoloData,
   UpdateArchivioData,
 } from "../utils/validation.js";
@@ -43,7 +42,6 @@ import {
   Person,
   Provvisorio,
 } from "../types/badges.js";
-import PeopleDB from "./people.js";
 
 enum ArchTableName {
   NOMINATIVI = "archivio_nominativi",
@@ -106,7 +104,7 @@ export default class ArchivioDB {
 
   public static async getBadgesInStrutt(filter?: FindInStruttBadgesFilter) {
     let i = 1;
-    const prefixText = `SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
+    const prefixText = `SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, created_at FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
     let filterText = filter
       ? Object.entries(filter)
           .filter(([key, value]) => value && !["pausa"].includes(key))
@@ -119,9 +117,9 @@ export default class ArchivioDB {
                   postazioniFilters.push("postazione='PAUSA'");
                 return ["(", postazioniFilters.join(" OR "), ")"].join("");
               case "data_in_min":
-                return `data_in>=$${i++}`;
+                return `created_at>=$${i++}`;
               case "data_in_max":
-                return `data_in<=$${i++}`;
+                return `created_at<=$${i++}`;
               case "cliente":
                 return `${key}=$${i++}`;
               default:
@@ -161,7 +159,7 @@ export default class ArchivioDB {
 
   public static async getVeicoliInStrutt(filter?: FindInStruttVeicoliFilter) {
     let i = 1;
-    const prefixText = `SELECT id, targa, descrizione, tveicolo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM ${ArchTableName.FULL_VEICOLI_IN_STRUTT}`;
+    const prefixText = `SELECT id, targa, descrizione, tveicolo, assegnazione, cliente, postazione, nome, cognome, ditta, created_at FROM ${ArchTableName.FULL_VEICOLI_IN_STRUTT}`;
     const filterText =
       filter &&
       Object.entries(filter)
@@ -177,9 +175,9 @@ export default class ArchivioDB {
                   ].join("")
                 : "";
             case "data_in_min":
-              return `data_in>=$${i++}`;
+              return `created_at>=$${i++}`;
             case "data_in_max":
-              return `data_in<=$${i++}`;
+              return `created_at<=$${i++}`;
             default:
               return typeof value === "string"
                 ? `${key} LIKE $${i++}`
@@ -207,7 +205,7 @@ export default class ArchivioDB {
 
   public static async getInPrestito(filter?: FindInPrestitoFilter) {
     let i = 1;
-    const prefixText = `SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, indirizzo, citta, edificio, piano, data_in FROM ${ArchTableName.FULL_IN_PRESTITO}`;
+    const prefixText = `SELECT badge, chiave, cliente, postazione, assegnazione, nome, cognome, ditta, indirizzo, citta, edificio, piano, created_at FROM ${ArchTableName.FULL_IN_PRESTITO}`;
     const filterText =
       filter &&
       Object.entries(filter)
@@ -223,9 +221,9 @@ export default class ArchivioDB {
                   ].join("")
                 : "";
             case "data_in_min":
-              return `data_in>=$${i++}`;
+              return `created_at>=$${i++}`;
             case "data_in_max":
-              return `data_in<=$${i++}`;
+              return `created_at<=$${i++}`;
             default:
               return typeof value === "string"
                 ? `${key} LIKE $${i++}`
@@ -235,8 +233,8 @@ export default class ArchivioDB {
         .join(" AND ");
 
     const queryText = filterText
-      ? [prefixText, "WHERE", filterText, "ORDER BY data_in DESC"].join(" ")
-      : [prefixText, "ORDER BY data_in DESC"].join(" ");
+      ? [prefixText, "WHERE", filterText, "ORDER BY created_at DESC"].join(" ")
+      : [prefixText, "ORDER BY created_at DESC"].join(" ");
     const queryValues =
       filter &&
       Object.values(filter)
@@ -262,9 +260,7 @@ export default class ArchivioDB {
     );
   }
 
-  public static async timbraNominativoIn(
-    data: TimbraBadgeData | TimbraNomInWithDateData
-  ) {
+  public static async timbraNominativoIn(data: TimbraBadgeData) {
     const badgeCode = data.badge_cod;
     const existsBadge = await NominativiDB.getNominativoByCodice(badgeCode);
     if (!existsBadge.rowCount) {
@@ -315,7 +311,10 @@ export default class ArchivioDB {
       });
 
     const { rows: insertedRows, rowCount: numRowsInserted } =
-      await db.insertRow<ArchivioNominativo>(ArchTableName.NOMINATIVI, data);
+      await db.insertRow<ArchivioNominativo>(ArchTableName.NOMINATIVI, {
+        ...data,
+        mark_type: MarkType.in,
+      });
     if (!numRowsInserted) {
       throw new BaseError("Impossibile timbrare badge", {
         status: 500,
@@ -335,9 +334,7 @@ export default class ArchivioDB {
     return { row: inStruttRows[0], isEntering: true };
   }
 
-  public static async timbraNominativoOut(
-    data: TimbraBadgeData | TimbraNomOutWithDateData
-  ) {
+  public static async timbraNominativoOut(data: TimbraBadgeData) {
     const badgeCode = data.badge_cod;
     const existsBadge = await NominativiDB.getNominativoByCodice(badgeCode);
     if (!existsBadge.rowCount) {
@@ -381,26 +378,25 @@ export default class ArchivioDB {
       });
     }
 
-    const archId = fullInStruttRows[0].id;
-
+    const recordIdIn = fullInStruttRows[0].id;
     const { rowCount: numInStruttRows, rows: inStruttRows } =
-      await ArchivioDB.getBadgesInStrutt({ id: archId });
+      await ArchivioDB.getBadgesInStrutt({ id: recordIdIn });
     if (!numInStruttRows) {
       throw new BaseError("Impossibile reperire badge in struttura", {
         status: 500,
-        context: { archId, badgeCode },
+        context: { recordIdIn, badgeCode },
       });
     }
 
-    const { rowCount: updatedRowsNum } = await ArchivioDB.setArchRowDate(
-      archId,
-      ArchTableName.NOMINATIVI,
-      "out"
-    );
-    if (!updatedRowsNum) {
+    const { rowCount: numRowsInserted } =
+      await db.insertRow<ArchivioNominativo>(ArchTableName.NOMINATIVI, {
+        ...data,
+        mark_type: MarkType.out,
+      });
+    if (!numRowsInserted) {
       throw new BaseError("Impossibile timbrare badge", {
-        status: 400,
-        context: { archId, badgeCode },
+        status: 500,
+        context: { badgeCode },
       });
     }
 
@@ -441,30 +437,27 @@ export default class ArchivioDB {
 
     const { rowCount: numArchRows, rows: archRows } =
       await db.query<ArchivioProvvisorio>(
-        `SELECT * FROM ${ArchTableName.PROVVISORI} WHERE badge_cod = $1 ORDER BY data_in DESC, data_out DESC`,
+        `SELECT * FROM ${ArchTableName.PROVVISORI} WHERE badge_cod = $1 ORDER BY created_at DESC LIMIT 1`,
         [badgeCode]
       );
-    const currDate = new Date();
-    const dateIn = new Date(archRows[0].data_in);
-    const dateOut = new Date(archRows[0].data_out);
-    if (!numArchRows || dateOut < currDate) {
+    if (!numArchRows || archRows[0].mark_type !== MarkType.in) {
       throw new BaseError("Inserire il badge provvisorio prima di timbrare", {
         status: 400,
-        context: { badgeCode, dateOut, currDate, pred: dateOut < currDate },
+        context: { badgeCode },
       });
-    } else if (dateIn < currDate && dateOut > currDate) {
+    } else if (archRows[0].created_at !== null) {
       throw new BaseError("Badge già presente in struttura", {
         status: 400,
-        context: { badgeCode, dateIn: archRows[0].data_in },
+        context: { badgeCode },
       });
     }
 
     const archId = archRows[0].id;
+    const createdAt = data.created_at || new Date();
 
-    const { rowCount: numUpdatedRows } = await ArchivioDB.setArchRowDate(
-      archId,
-      ArchTableName.PROVVISORI,
-      "in"
+    const { rowCount: numUpdatedRows } = await db.query(
+      `UPDATE ${ArchTableName.PROVVISORI} SET created_at = $1 WHERE id = $2`,
+      [createdAt, archId]
     );
     if (!numUpdatedRows) {
       throw new BaseError("Impossibile timbrare badge", {
@@ -541,21 +534,20 @@ export default class ArchivioDB {
       });
     }
 
-    const { rowCount: numUpdatedRows } = await ArchivioDB.setArchRowDate(
-      archId,
+    const { rowCount: numInsertedRows } = await db.insertRow(
       ArchTableName.PROVVISORI,
-      "out"
+      {
+        ...data,
+        mark_type: MarkType.out,
+        created_at: data.created_at || new Date(),
+      }
     );
-    if (!numUpdatedRows) {
+    if (!numInsertedRows) {
       throw new BaseError("Impossibile timbrare badge", {
         status: 400,
         context: { archId, badgeCode },
       });
     }
-
-    // await db.query(
-    //   `CALL mark_out(${archId}, \'\"${ArchTableName.PROVVISORI}\"\')`
-    // );
 
     return { row: inStruttRows[0], isEntering: false };
   }
@@ -848,6 +840,7 @@ export default class ArchivioDB {
       const { queryText: insertArchRowText, queryValues: insertArchRowValues } =
         db.getInsertRowQuery(ArchTableName.PROVVISORI, {
           badge_cod: badgeCode,
+          mark_type: MarkType.in,
           person_id: personId,
           post_id: data.post_id,
           username: data.username,
@@ -1032,39 +1025,37 @@ export default class ArchivioDB {
         );
       }
 
-      const { rows: chiaviInPrestito } = await client.query<{
-        id: number;
-        chiave: string;
-      }>(
-        `SELECT DISTINCT id, chiave FROM ${ArchTableName.IN_PRESTITO} WHERE badge = $1 AND cliente = $2`,
+      const { rows: chiaviInPrestito } = await client.query<{ chiave: string }>(
+        `SELECT DISTINCT chiave FROM ${ArchTableName.IN_PRESTITO} WHERE badge = $1 AND cliente = $2`,
         [badgeCode, actualCliente]
       );
 
-      const chiaviIn: string[] = [];
-      const chiaviOut: number[] = [];
-      data.chiavi.forEach((chiave) => {
-        const id = chiaviInPrestito.find((row) => row.chiave == chiave)?.id;
-        if (id) chiaviOut.push(id);
-        else chiaviIn.push(chiave);
-      });
-
-      const chiaviInValues = chiaviIn.flatMap((chiaveCode) => [
-        badgeCode,
-        chiaveCode,
-        data.post_id,
-        data.ip,
-        data.username,
+      const chiaviInPrestitoArr = chiaviInPrestito.map((row) => row.chiave);
+      const chiaviInOut = data.chiavi.map((chiave) => [
+        chiave,
+        chiaviInPrestitoArr.includes(chiave) ? MarkType.keyOut : MarkType.keyIn,
       ]);
-      const chiaviInText =
-        chiaviIn.length > 0
+
+      const chiaviInOutValues = chiaviInOut.flatMap(
+        ([chiaveCode, markType]) => [
+          badgeCode,
+          chiaveCode,
+          markType,
+          data.post_id,
+          data.ip,
+          data.username,
+        ]
+      );
+      const chiaviInOutText =
+        chiaviInOut.length > 0
           ? [
               "WITH inserted AS (INSERT INTO",
               ArchTableName.CHIAVI,
-              "(badge_cod, chiave_cod, post_id, ip, username) VALUES",
-              chiaviInValues
+              "(badge_cod, chiave_cod, mark_type, post_id, ip, username) VALUES",
+              chiaviInOutValues
                 .map((_, i) => {
                   const queryArgTxt = `$${i + 1}`;
-                  const numRowValues = 5;
+                  const numRowValues = 6;
                   switch (i % numRowValues) {
                     case 0:
                       return "(".concat(queryArgTxt);
@@ -1075,38 +1066,21 @@ export default class ArchivioDB {
                   }
                 })
                 .join(","),
-              `RETURNING *) SELECT * FROM ${ArchTableName.FULL_IN_PRESTITO} WHERE id IN (SELECT id FROM inserted)`,
+              `RETURNING *) SELECT * FROM ${ArchTableName.FULL_ARCHIVIO} WHERE id IN (SELECT id FROM inserted)`,
             ].join(" ")
           : "";
-      const chiaviInRes = await client.query<ArchivioChiave>(
-        chiaviInText,
-        chiaviInValues
-      );
-
-      const chiaviOutText =
-        chiaviOut.length > 0
-          ? [
-              "UPDATE",
-              ArchTableName.CHIAVI,
-              "SET data_out = CURRENT_TIMESTAMP(0) WHERE",
-              chiaviOut.map((_, i) => `id = $${i + 1}`).join(" OR "),
-              "RETURNING *",
-            ].join(" ")
-          : "";
-      const chiaviOutRes = await client.query<ArchivioChiave>(
-        chiaviOutText,
-        chiaviOut
-      );
-
-      // await client.query(
-      //   `CALL mark_out_many({${chiaviOut.join(",")}}, \'\"${
-      //     ArchTableName.CHIAVI
-      //   }\"\')`
-      // );
 
       await client.query("COMMIT");
 
-      return { in: chiaviInRes, out: chiaviOutRes };
+      const dbRes = await client.query<ArchivioChiave>(
+        chiaviInOutText,
+        chiaviInOutValues
+      );
+
+      return {
+        in: dbRes.rows.filter((row) => row.mark_type === MarkType.keyIn),
+        out: dbRes.rows.filter((row) => row.mark_type === MarkType.keyOut),
+      };
     } catch (e) {
       await client.query("ROLLBACK");
       throw e;
@@ -1192,75 +1166,71 @@ export default class ArchivioDB {
         [badgeCode, actualCliente]
       );
 
-      const chiaviIn: string[] = [];
-      const chiaviOut: number[] = [];
-      data.chiavi.forEach((chiave) => {
-        const id = chiaviInPrestito.find((row) => row.chiave == chiave)?.id;
-        if (id) chiaviOut.push(id);
-        else chiaviIn.push(chiave);
-      });
+      const chiaviInPrestitoArr = chiaviInPrestito.map((row) => row.chiave);
+      const chiaviInOut = data.chiavi.map((chiave) => [
+        chiave,
+        chiaviInPrestitoArr.includes(chiave) ? MarkType.keyOut : MarkType.keyIn,
+      ]);
 
       let personId: number;
-      if (chiaviIn.length > 0) {
-        const existsPerson = await client.query<Person>(
-          "SELECT * FROM people WHERE cliente = $1 AND (cod_fisc = $2 OR (tdoc = $3 AND ndoc = $4) OR (nome = $5 AND cognome = $6)) LIMIT 1",
-          [
-            actualCliente,
-            data.cod_fisc,
-            data.tdoc,
-            data.ndoc,
-            data.nome,
-            data.cognome,
-          ]
-        );
+      const existsPerson = await client.query<Person>(
+        "SELECT * FROM people WHERE cliente = $1 AND (cod_fisc = $2 OR (tdoc = $3 AND ndoc = $4) OR (nome = $5 AND cognome = $6)) LIMIT 1",
+        [
+          actualCliente,
+          data.cod_fisc,
+          data.tdoc,
+          data.ndoc,
+          data.nome,
+          data.cognome,
+        ]
+      );
 
-        if (!existsPerson.rowCount) {
-          const { queryText, queryValues } = db.getInsertRowQuery("people", {
-            cliente: actualCliente,
-            cod_fisc: data.cod_fisc,
-            tdoc: data.tdoc,
-            ndoc: data.ndoc,
-            nome: data.nome,
-            cognome: data.cognome,
-            assegnazione: data.assegnazione,
-            ditta: data.ditta,
-            telefono: data.telefono,
+      if (!existsPerson.rowCount) {
+        const { queryText, queryValues } = db.getInsertRowQuery("people", {
+          cliente: actualCliente,
+          cod_fisc: data.cod_fisc,
+          tdoc: data.tdoc,
+          ndoc: data.ndoc,
+          nome: data.nome,
+          cognome: data.cognome,
+          assegnazione: data.assegnazione,
+          ditta: data.ditta,
+          telefono: data.telefono,
+        });
+
+        const insertPerson = await client.query<Person>(queryText, queryValues);
+        if (!insertPerson.rowCount) {
+          throw new BaseError("Impossibile inserire persona", {
+            status: 400,
+            context: queryValues,
           });
-
-          const insertPerson = await client.query<Person>(
-            queryText,
-            queryValues
-          );
-          if (!insertPerson.rowCount) {
-            throw new BaseError("Impossibile inserire persona", {
-              status: 400,
-              context: queryValues,
-            });
-          }
-          personId = insertPerson.rows[0].id;
-        } else {
-          personId = existsPerson.rows[0].id;
         }
+        personId = insertPerson.rows[0].id;
+      } else {
+        personId = existsPerson.rows[0].id;
       }
 
-      const chiaviInsertValues = chiaviIn.flatMap((chiaveCode) => [
-        badgeCode,
-        chiaveCode,
-        data.post_id,
-        data.ip,
-        data.username,
-        personId,
-      ]);
+      const chiaviInsertValues = chiaviInOut.flatMap(
+        ([chiaveCode, markType]) => [
+          badgeCode,
+          chiaveCode,
+          markType,
+          data.post_id,
+          data.ip,
+          data.username,
+          personId,
+        ]
+      );
       const chiaviInsertText =
-        chiaviIn.length > 0
+        chiaviInOut.length > 0
           ? [
-              "INSERT INTO",
+              "WITH inserted AS (INSERT INTO",
               ArchTableName.CHIAVI_PROV,
-              "(badge_cod, chiave_cod, post_id, ip, username, person_id) VALUES",
+              "(badge_cod, chiave_cod, mark_type, post_id, ip, username, person_id) VALUES",
               chiaviInsertValues
                 .map((_, i) => {
                   const queryArgTxt = `$${i + 1}`;
-                  const numRowValues = 6;
+                  const numRowValues = 7;
                   switch (i % numRowValues) {
                     case 0:
                       return "(".concat(queryArgTxt);
@@ -1271,40 +1241,20 @@ export default class ArchivioDB {
                   }
                 })
                 .join(","),
-              "RETURNING *",
+              `RETURNING *) SELECT * FROM ${ArchTableName.FULL_ARCHIVIO} WHERE id IN (SELECT id FROM inserted)`,
             ].join(" ")
           : "";
-      const chiaviInsertRes = await client.query<ArchivioChiave>(
-        chiaviInsertText,
-        chiaviInsertValues
-      );
-
-      const chiaviInValues = chiaviInsertRes.rows.map((row) => row.id);
-      const chiaviInText = `SELECT * FROM ${ArchTableName.FULL_IN_PRESTITO} 
-        WHERE id IN (${chiaviInValues.map((_, i) => `$${i + 1}`).join(",")})`;
-      const chiaviInRes = await client.query<ArchivioChiave>(
-        chiaviInText,
-        chiaviInValues
-      );
-
-      const chiaviOutText =
-        chiaviOut.length > 0
-          ? [
-              "UPDATE",
-              ArchTableName.CHIAVI_PROV,
-              "SET data_out = CURRENT_TIMESTAMP(0) WHERE",
-              chiaviOut.map((_, i) => `id = $${i + 1}`).join(" OR "),
-              "RETURNING *",
-            ].join(" ")
-          : "";
-      const chiaviOutRes = await client.query<ArchivioChiave>(
-        chiaviOutText,
-        chiaviOut
-      );
 
       await client.query("COMMIT");
 
-      return { in: chiaviInRes, out: chiaviOutRes };
+      const dbRes = await client.query<ArchivioChiave>(
+        chiaviInsertText,
+        chiaviInsertValues
+      );
+      return {
+        in: dbRes.rows.filter((row) => row.mark_type === MarkType.keyIn),
+        out: dbRes.rows.filter((row) => row.mark_type === MarkType.keyOut),
+      };
     } catch (e) {
       await client.query("ROLLBACK");
       throw e;
@@ -1402,31 +1352,32 @@ export default class ArchivioDB {
         [expectedCliente, personId]
       );
 
-      const chiaviIn: string[] = [];
-      const chiaviOut: number[] = [];
-      data.chiavi.forEach((chiave) => {
-        const id = chiaviInPrestito.find((row) => row.chiave == chiave)?.id;
-        if (id) chiaviOut.push(id);
-        else chiaviIn.push(chiave);
-      });
-
-      const chiaviInsertValues = chiaviIn.flatMap((chiaveCode) => [
-        chiaveCode,
-        data.post_id,
-        data.ip,
-        data.username,
-        personId,
+      const chiaviInPrestitoArr = chiaviInPrestito.map((row) => row.chiave);
+      const chiaviInOut = data.chiavi.map((chiave) => [
+        chiave,
+        chiaviInPrestitoArr.includes(chiave) ? MarkType.keyOut : MarkType.keyIn,
       ]);
+
+      const chiaviInsertValues = chiaviInOut.flatMap(
+        ([chiaveCode, markType]) => [
+          chiaveCode,
+          markType,
+          data.post_id,
+          data.ip,
+          data.username,
+          personId,
+        ]
+      );
       const chiaviInsertText =
-        chiaviIn.length > 0
+        chiaviInOut.length > 0
           ? [
-              "INSERT INTO",
+              "WITH inserted AS (INSERT INTO",
               ArchTableName.CHIAVI_PROV,
-              "(chiave_cod, post_id, ip, username, person_id) VALUES",
+              "(chiave_cod, mark_type, post_id, ip, username, person_id) VALUES",
               chiaviInsertValues
                 .map((_, i) => {
                   const queryArgTxt = `$${i + 1}`;
-                  const numRowValues = 5;
+                  const numRowValues = 6;
                   switch (i % numRowValues) {
                     case 0:
                       return "(".concat(queryArgTxt);
@@ -1437,43 +1388,20 @@ export default class ArchivioDB {
                   }
                 })
                 .join(","),
-              "RETURNING *",
+              `RETURNING *) SELECT * FROM ${ArchTableName.FULL_ARCHIVIO} WHERE id IN (SELECT id FROM inserted)`,
             ].join(" ")
           : "";
-      const chiaviInsertRes = await client.query<ArchivioChiave>(
-        chiaviInsertText,
-        chiaviInsertValues
-      );
-
-      const chiaviInValues = chiaviInsertRes.rows.map((row) => row.id);
-      const chiaviInText =
-        chiaviInValues.length > 0
-          ? `SELECT * FROM ${ArchTableName.FULL_IN_PRESTITO} 
-        WHERE id IN (${chiaviInValues.map((_, i) => `$${i + 1}`).join(",")})`
-          : "";
-      const chiaviInRes = await client.query<ArchivioChiave>(
-        chiaviInText,
-        chiaviInValues
-      );
-
-      const chiaviOutText =
-        chiaviOut.length > 0
-          ? [
-              "UPDATE",
-              ArchTableName.CHIAVI_PROV,
-              "SET data_out = CURRENT_TIMESTAMP(0) WHERE",
-              chiaviOut.map((_, i) => `id = $${i + 1}`).join(" OR "),
-              "RETURNING *",
-            ].join(" ")
-          : "";
-      const chiaviOutRes = await client.query<ArchivioChiave>(
-        chiaviOutText,
-        chiaviOut
-      );
 
       await client.query("COMMIT");
 
-      return { in: chiaviInRes, out: chiaviOutRes };
+      const dbRes = await client.query<ArchivioChiave>(
+        chiaviInsertText,
+        chiaviInsertValues
+      );
+      return {
+        in: dbRes.rows.filter((row) => row.mark_type === MarkType.keyIn),
+        out: dbRes.rows.filter((row) => row.mark_type === MarkType.keyOut),
+      };
     } catch (e) {
       await client.query("ROLLBACK");
       throw e;
@@ -1491,9 +1419,9 @@ export default class ArchivioDB {
         .map(([key], i) => {
           switch (key) {
             case "minDate":
-              return `data_in >= $${i + 1}`;
+              return `created_at >= $${i + 1}`;
             case "maxDate":
-              return `data_in <= $${i + 1}`;
+              return `created_at <= $${i + 1}`;
             default:
               return `${key}=$${i + 1}`;
           }
@@ -1523,39 +1451,27 @@ export default class ArchivioDB {
         });
       }
 
-      const existsReqPost = await client.query<Postazione>(
+      const { cliente: expectedCliente } = existsBadge.rows[0];
+
+      const postazioneMark = await client.query<Postazione>(
         PostazioniDB.getPostazioneByIdQueryText,
         [data.post_id]
       );
-      if (!existsReqPost.rowCount) {
+      if (!postazioneMark.rowCount) {
         throw new BaseError("Postazione non esistente", {
           status: 400,
           context: { postId: data.post_id },
         });
-      } else if (existsReqPost.rows[0].name === "PAUSA") {
-        throw new BaseError("Postazione non valida", {
+      } else if (postazioneMark.rows[0].cliente !== expectedCliente) {
+        throw new BaseError("Impossibile timbrare badge di un altro cliente", {
           status: 400,
-          context: { postId: data.post_id },
+          context: {
+            badgeCode,
+            expectedCliente,
+            actualCliente: postazioneMark.rows[0].cliente,
+          },
         });
       }
-
-      const reqPostazione = existsReqPost.rows[0];
-
-      const existsPausaPostazione = await client.query<Postazione>(
-        "SELECT * FROM postazioni WHERE name = 'PAUSA' AND cliente = $1",
-        [reqPostazione.cliente]
-      );
-      if (!existsPausaPostazione.rowCount) {
-        throw new BaseError(
-          "Pausa non disponibile per il cliente selezionato",
-          {
-            status: 400,
-            context: { cliente: reqPostazione.cliente },
-          }
-        );
-      }
-
-      const pausaPostId = existsPausaPostazione.rows[0].id;
 
       const { rows: inStruttRows, rowCount: numInStruttRows } =
         await client.query<FullBadgeInStrutt>(
@@ -1569,51 +1485,69 @@ export default class ArchivioDB {
         });
       }
 
-      const archId = inStruttRows[0].id;
+      const { mark_type: markType } = inStruttRows[0];
 
-      const isInPausa = inStruttRows[0].postazione === "PAUSA";
-      if (!isInPausa && reqPostazione.id != inStruttRows[0].post_id) {
+      if (
+        markType !== MarkType.pauseIn &&
+        postazioneMark.rows[0].id != inStruttRows[0].post_id
+      ) {
         throw new BaseError(
           "Impossibile timbrare badge da un'altra postazione",
           {
             status: 400,
             context: {
-              archId,
               expectedPostazione: inStruttRows[0].post_id,
-              actualPostazione: reqPostazione.id,
+              actualPostazione: postazioneMark.rows[0].id,
             },
           }
         );
-      } else if (
-        isInPausa &&
-        reqPostazione.cliente !== inStruttRows[0].cliente
-      ) {
-        throw new BaseError("Impossibile timbrare badge da un altro cliente", {
-          status: 400,
-          context: {
-            archId,
-            expectedCliente: inStruttRows[0].cliente,
-            actualCliente: reqPostazione.cliente,
-          },
+      }
+
+      let markTypeFirst: MarkType;
+      let markTypeSecond: MarkType;
+      switch (markType) {
+        case MarkType.in:
+          markTypeFirst = MarkType.out;
+          markTypeSecond = MarkType.pauseIn;
+          break;
+        case MarkType.pauseIn:
+          markTypeFirst = MarkType.pauseOut;
+          markTypeSecond = MarkType.in;
+          break;
+        default:
+          throw new BaseError("Tipo marcatura non valida", {
+            status: 500,
+            context: { markType },
+          });
+      }
+
+      const {
+        queryText: insertedQueryTextFirst,
+        queryValues: insertedQueryValuesFirst,
+      } = db.getInsertRowQuery(ArchTableName.NOMINATIVI, {
+        ...data,
+        mark_type: markTypeFirst,
+      });
+      const { rows: insertedRowsFirst, rowCount: numInsertedRowsFirst } =
+        await client.query(insertedQueryTextFirst, insertedQueryValuesFirst);
+      if (!numInsertedRowsFirst) {
+        throw new BaseError("Impossibile timbrare badge", {
+          status: 500,
+          context: { badgeCode },
         });
       }
 
-      const { rows: updatedRows, rowCount: numUpdatedRows } =
-        await client.query(
-          `UPDATE ${ArchTableName.NOMINATIVI} SET data_out = CURRENT_TIMESTAMP(0) WHERE id = $1`,
-          [archId]
-        );
-
-      const insertQueryData = isInPausa
-        ? data
-        : { ...data, post_id: pausaPostId };
-      const { queryText: insertQueryText, queryValues: insertQueryValues } =
-        db.getInsertRowQuery(ArchTableName.NOMINATIVI, insertQueryData);
-      const { rows: insertedRows, rowCount: numInsertedRows } =
-        await client.query(insertQueryText, insertQueryValues);
-
-      if (!numInsertedRows || !numUpdatedRows) {
-        throw new BaseError("Impossibile completare operazione", {
+      const {
+        queryText: insertedQueryTextSecond,
+        queryValues: insertedQueryValuesSecond,
+      } = db.getInsertRowQuery(ArchTableName.NOMINATIVI, {
+        ...data,
+        mark_type: markTypeSecond,
+      });
+      const { rows: insertedRowsSecond, rowCount: numInsertedRowsSecond } =
+        await client.query(insertedQueryTextSecond, insertedQueryValuesSecond);
+      if (!numInsertedRowsSecond) {
+        throw new BaseError("Impossibile timbrare badge", {
           status: 500,
           context: { badgeCode },
         });
@@ -1621,7 +1555,11 @@ export default class ArchivioDB {
 
       await client.query("COMMIT");
 
-      return { in: insertedRows[0], out: updatedRows[0], row: inStruttRows[0] };
+      return {
+        in: insertedRowsFirst[0],
+        out: insertedRowsSecond[0],
+        row: inStruttRows[0],
+      };
     } catch (e) {
       await client.query("ROLLBACK");
       throw e;
@@ -1630,14 +1568,10 @@ export default class ArchivioDB {
     }
   }
 
-  public static async updateArchivio({
-    id,
-    data_in,
-    data_out,
-  }: UpdateArchivioData) {
+  public static async updateArchivio({ id, created_at }: UpdateArchivioData) {
     return await db.updateRows(
       ArchTableName.NOMINATIVI,
-      { data_in, data_out },
+      { created_at },
       { id }
     );
   }

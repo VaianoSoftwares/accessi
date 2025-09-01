@@ -17,9 +17,27 @@ export enum BarcodePrefix {
   mazzoChiavi = "5",
 }
 
+export enum MarkType {
+  in = "I",
+  out = "O",
+  pauseIn = "PI",
+  pauseOut = "PO",
+  keyIn = "KI",
+  keyOut = "KO",
+}
+
+export const MARK_TYPES = [
+  MarkType.in,
+  MarkType.out,
+  MarkType.pauseIn,
+  MarkType.pauseOut,
+  MarkType.keyIn,
+  MarkType.keyOut,
+] as const;
+
 export interface BaseArchivio {
-  data_in: string;
-  data_out: string;
+  created_at: string;
+  mark_type: string;
   username: string;
   ip: string;
   post_id: number;
@@ -64,21 +82,21 @@ export type Archivio = WithId<
 
 export type BadgeInStrutt = WithId<
   Pick<BaseNominativo, "nome" | "cognome" | "assegnazione" | "ditta"> &
-    Pick<BaseArchivio, "data_in"> &
+    Pick<BaseArchivio, "created_at"> &
     Pick<BaseBadge, "codice" | "cliente"> & {
       postazione: string;
     }
 >;
 export type VeicoloInStrutt = WithId<
   Pick<BaseNominativo, "nome" | "cognome" | "assegnazione" | "ditta"> &
-    Pick<BaseArchivioVeicoloProv, "targa" | "data_in" | "tveicolo"> &
+    Pick<BaseArchivioVeicoloProv, "targa" | "created_at" | "tveicolo"> &
     Pick<BaseBadge, "cliente"> & {
       postazione: string;
     }
 >;
 
 export type FullBadgeInStrutt = BadgeInStrutt &
-  BaseNominativo & { post_id: number };
+  BaseNominativo & { post_id: number; mark_type: MarkType };
 export type FullVeicoloInStrutt = VeicoloInStrutt &
   BaseNominativo & { post_id: number };
 
@@ -104,8 +122,7 @@ export type TimbraChiaviProvData = TimbraChiaviNoBadgeData &
 
 export type Tracciato = {
   zuc_cod: string;
-  data_in: string | Date;
-  data_out: string | Date;
-  formatted_data_in: string;
-  formatted_data_out: string;
+  created_at: string | Date;
+  formatted_date: string;
+  markType: string;
 };
