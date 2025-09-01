@@ -20,6 +20,10 @@ CREATE TYPE mark_type AS ENUM ('I', 'O', 'PI', 'PO', 'KI', 'KO');
 CREATE SEQUENCE arch_ids;
 CREATE SEQUENCE barcode_ids;
 
+CREATE FUNCTION abs(interval) RETURNS interval AS
+  $$ select case when ($1<interval '0') then -$1 else $1 end; $$
+LANGUAGE sql immutable;
+
 CREATE OR REPLACE FUNCTION is_typeof(val TEXT, type_name TEXT) RETURNS BOOLEAN AS $$
 BEGIN
     EXECUTE format('SELECT %L::%s', val, type_name);
@@ -53,7 +57,7 @@ BEGIN
     INTO rec_created, rec_badge, rec_mark
     USING record_id;
 
-    IF rec_created IS NULL OR (rec_mark != 'I' AND rec_mark != 'PI' AND rec_mark != 'KI') THEN
+    IF rec_created IS NULL OR (rec_mark != 'I' AND rec_mark != 'PI' AND rec_mark != 'PO' AND rec_mark != 'KI') THEN
         RETURN FALSE;
     END IF;
 
@@ -62,27 +66,7 @@ BEGIN
     USING rec_badge;
 
     RETURN max_created = rec_created;
-END $$ LANGUAGE plpsql STABLE;
-
-CREATE OR REPLACE FUNCTION get_in_out_times(record_id BIGINT) 
-RETURNS TABLE (ts_in TIMESTAMP, ts_out TIMESTAMP) AS $$
-    WITH out_row AS (
-        SELECT created_at, badge_cod
-        FROM archivio_nominativi
-        WHERE id = record_id AND mark_type = 'O'
-    ),
-    in_row AS (
-        SELECT a.created_at
-        FROM archivio_nominativi a
-        JOIN out_row o ON a.badge_cod = o.badge_cod
-        WHERE a.mark_type = 'I' AND a.created_at < o.created_at
-        ORDER BY a.created_at DESC 
-        LIMIT 1
-    )
-    SELECT i.created_at AS ts_in, o.created_at AS ts_out
-    FROM out_row o
-    LEFT JOIN in_row i ON true;
-$$ LANGUAGE sql STABLE;
+END $$ LANGUAGE plpgsql STABLE;
 
 CREATE OR REPLACE FUNCTION format_diff_time(ts_start TIMESTAMP, ts_end TIMESTAMP) RETURNS TEXT AS $$
 DECLARE
@@ -91,7 +75,7 @@ DECLARE
     minutes INT;
     result TEXT;
 BEGIN
-    diff := abs(ts_start, ts_end);
+    diff := abs(ts_start - ts_end);
 
     hours := EXTRACT(HOURS FROM diff);
     minutes := EXTRACT(MINUTES FROM diff);
@@ -107,46 +91,6 @@ BEGIN
     RETURN result;
 END; $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION get_worked_time(record_id BIGINT)
-RETURNS TEXT AS $$
-    SELECT CASE
-            WHEN ts_in IS NULL OR ts_out IS NULL
-                THEN NULL
-            ELSE format_diff_time(ts_in, ts_out)
-        END
-    FROM get_in_out_times(record_id);
-$$ LANGUAGE sql STABLE;
-
-CREATE OR REPLACE FUNCTION is_night_shift(record_id BIGINT)
-RETURNS TEXT AS $$
-    SELECT CASE
-            WHEN ts_in IS NULL OR ts_out IS NULL
-                THEN NULL
-            WHEN ts_out::date = ts_in::date 
-                THEN 'NO'
-            ELSE 'SI'
-        END
-    FROM get_in_out_times(record_id);
-$$ LANGUAGE sql STABLE;
-
-CREATE OR REPLACE FUNCTION get_work_info(record_id BIGINT)
-RETURNS TABLE (durata_turno TEXT, notte TEXT) AS $$
-    SELECT 
-        CASE
-            WHEN ts_in IS NULL OR ts_out IS NULL
-                THEN NULL
-            ELSE format_diff_time(ts_in, ts_out)
-        END AS durata_turno,
-        CASE
-            WHEN ts_in IS NULL OR ts_out IS NULL
-                THEN NULL
-            WHEN ts_out::date = ts_in::date 
-                THEN 'NO'
-            ELSE 'SI'
-        END AS notte
-    FROM get_in_out_times(record_id);
-$$ LANGUAGE sql STABLE;
-
 CREATE OR REPLACE FUNCTION next_barcode(barcode_prefix) RETURNS TEXT AS $$
     SELECT $1||lpad(abs(('x'||substr(md5(nextval('barcode_ids')::TEXT),1,8))::BIT(32)::INT)::TEXT,8,'0');
 $$ LANGUAGE SQL;
@@ -160,6 +104,13 @@ $$ LANGUAGE SQL;
 CREATE OR REPLACE FUNCTION get_tracciato_date(TIMESTAMP) RETURNS TEXT AS $$
     SELECT lpad(extract(day from $1)::text,2,'0')||'/'||lpad(extract(month from $1)::text,2,'0')||'/'||substring(extract(year from $1)::text, 3, 2)||' '||lpad(extract(hours from $1)::text,2,'0')||':'||lpad(extract(minutes from $1)::text,2,'0');
 $$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION is_pause(TEXT) RETURNS TEXT AS $$
+    SELECT CASE WHEN ($1 = 'PI')
+        THEN 'SI'
+        ELSE 'NO' 
+    END;
+$$ LANGUAGE SQL immutable;
 
 CREATE TABLE IF NOT EXISTS clienti(
     name VARCHAR(64) PRIMARY KEY CHECK (name != '')
@@ -269,7 +220,7 @@ CREATE TABLE IF NOT EXISTS archivio_nominativi(
     mark_type VARCHAR(2) NOT NULL CHECK (is_typeof(mark_type, 'mark_type')),
     username VARCHAR(64) NOT NULL REFERENCES users (name),
     ip VARCHAR(32) NOT NULL CHECK (ip != ''),
-    UNIQUE (badge_cod, created_at)
+    UNIQUE (badge_cod, created_at, mark_type)
 );
 
 CREATE TABLE IF NOT EXISTS archivio_provvisori(
@@ -383,13 +334,73 @@ CREATE TABLE IF NOT EXISTS prot_visibile_da(
 --     piano TEXT
 -- );
 
+CREATE OR REPLACE FUNCTION get_in_out_times(record_id BIGINT, is_pause BOOLEAN) 
+RETURNS TABLE (ts_in TIMESTAMP, ts_out TIMESTAMP) AS $$
+    WITH out_row AS (
+        SELECT created_at, badge_cod
+        FROM archivio_nominativi
+        WHERE id = record_id AND mark_type = CASE WHEN is_pause THEN 'PO' ELSE 'O' END
+    ),
+    in_row AS (
+        SELECT a.created_at
+        FROM archivio_nominativi a
+        JOIN out_row o ON a.badge_cod = o.badge_cod
+        WHERE a.mark_type = CASE WHEN is_pause THEN 'PI' ELSE 'I' END AND a.created_at < o.created_at
+        ORDER BY a.created_at DESC 
+        LIMIT 1
+    )
+    SELECT i.created_at AS ts_in, o.created_at AS ts_out
+    FROM out_row o
+    LEFT JOIN in_row i ON true;
+$$ LANGUAGE sql STABLE;
+
+CREATE OR REPLACE FUNCTION get_worked_time(record_id BIGINT, is_pause BOOLEAN)
+RETURNS TEXT AS $$
+    SELECT CASE
+            WHEN ts_in IS NULL OR ts_out IS NULL
+                THEN NULL
+            ELSE format_diff_time(ts_in, ts_out)
+        END
+    FROM get_in_out_times(record_id, is_pause);
+$$ LANGUAGE sql STABLE;
+
+CREATE OR REPLACE FUNCTION is_night_shift(record_id BIGINT, is_pause BOOLEAN)
+RETURNS TEXT AS $$
+    SELECT CASE
+            WHEN ts_in IS NULL OR ts_out IS NULL
+                THEN NULL
+            WHEN ts_out::date = ts_in::date 
+                THEN 'NO'
+            ELSE 'SI'
+        END
+    FROM get_in_out_times(record_id, is_pause);
+$$ LANGUAGE sql STABLE;
+
+CREATE OR REPLACE FUNCTION get_work_info(record_id BIGINT, is_pause BOOLEAN)
+RETURNS TABLE (durata_turno TEXT, notte TEXT) AS $$
+    SELECT 
+        CASE
+            WHEN ts_in IS NULL OR ts_out IS NULL
+                THEN NULL
+            ELSE format_diff_time(ts_in, ts_out)
+        END AS durata_turno,
+        CASE
+            WHEN ts_in IS NULL OR ts_out IS NULL
+                THEN NULL
+            WHEN ts_out::date = ts_in::date 
+                THEN 'NO'
+            ELSE 'SI'
+        END AS notte
+    FROM get_in_out_times(record_id, is_pause);
+$$ LANGUAGE sql STABLE;
+
 CREATE VIEW full_archivio AS
     WITH full_archivio_nominativi AS (
         SELECT a.id, n.codice AS badge, n.nome, n.cognome, n.assegnazione, NULL AS targa, NULL AS chiave,
         a.mark_type, 'BADGE' AS tipo, 'NO' AS provvisorio,
         po.cliente, po.name AS postazione, po.id AS post_id, a.created_at,
-        get_worked_time(a.id) AS durata_turno,
-        is_night_shift(a.id) AS notte,
+        get_worked_time(a.id, true) AS durata_turno,
+        is_night_shift(a.id, true) AS notte,
         NULL AS tveicolo, n.ditta, n.cod_fisc, n.ndoc, n.tdoc, n.telefono, n.scadenza, NULL AS indirizzo, NULL AS citta, NULL AS edificio,
         NULL AS piano, a.username, a.ip, NULL AS documento
         FROM nominativi AS n
@@ -434,14 +445,14 @@ CREATE VIEW full_archivio AS
     ),
     full_archivio_chiavi AS (
         SELECT t1.id, t1.codice AS badge, t1.nome, t1.cognome, t1.assegnazione, NULL AS targa, t2.codice AS chiave, 
-        a.mark_type, 'CHIAVE' AS tipo, 'NO' AS provvisorio,
+        t1.mark_type, 'CHIAVE' AS tipo, 'NO' AS provvisorio,
         t1.cliente, t1.postazione, t1.post_id, t1.created_at,
         NULL AS durata_turno,
         NULL AS notte,
         NULL AS tveicolo, t1.ditta, t1.cod_fisc, t1.ndoc, t1.tdoc, t1.telefono, t1.scadenza, t2.indirizzo, t2.citta,
         CAST(t2.edificio AS TEXT) AS edificio, t2.piano, t1.username, t1.ip, NULL AS documento
         FROM (
-            SELECT a.id, n.codice, po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.data_out, a.username, a.ip, a.chiave_cod,
+            SELECT a.id, n.codice, po.cliente, po.name AS postazione, po.id AS post_id, a.created_at, a.mark_type, a.username, a.ip, a.chiave_cod,
             n.nome, n.cognome, n.ditta, n.cod_fisc, n.assegnazione, n.ndoc, n.tdoc, n.telefono, n.scadenza
             FROM nominativi AS n
             JOIN archivio_chiavi AS a ON n.codice = a.badge_cod
@@ -455,14 +466,14 @@ CREATE VIEW full_archivio AS
     ),
     full_archivio_chiavi_prov AS (
         SELECT t1.id, t1.badge_cod, t1.nome, t1.cognome, t1.assegnazione, NULL AS targa, t2.codice AS chiave, 
-        a.mark_type, 'CHIAVE' AS tipo, 'SI' AS provvisorio,
+        t1.mark_type, 'CHIAVE' AS tipo, 'SI' AS provvisorio,
         t1.cliente, t1.postazione, t1.post_id, t1.created_at,
         NULL AS durata_turno,
         NULL AS notte,
         NULL AS tveicolo, t1.ditta, t1.cod_fisc, t1.ndoc, t1.tdoc, t1.telefono, NULL::DATE AS scadenza, t2.indirizzo, t2.citta,
         CAST(t2.edificio AS TEXT) AS edificio, t2.piano, t1.username, t1.ip, NULL AS documento
         FROM (
-            SELECT a.id, a.badge_cod, po.cliente, po.name AS postazione, po.id AS post_id, a.data_in, a.data_out, a.username, a.ip, a.chiave_cod, 
+            SELECT a.id, a.badge_cod, po.cliente, po.name AS postazione, po.id AS post_id, a.created_at, a.mark_type, a.username, a.ip, a.chiave_cod, 
             pe.nome, pe.cognome, pe.ditta, pe.cod_fisc, pe.assegnazione, pe.ndoc, pe.tdoc, pe.telefono
             FROM people AS pe
             JOIN archivio_chiavi_prov AS a ON pe.id = a.person_id
@@ -488,7 +499,7 @@ CREATE VIEW full_archivio AS
         UNION
         (SELECT * FROM full_archivio_chiavi_prov)
     ) AS t
-    ORDER BY data_in, data_out;
+    ORDER BY created_at;
 
 CREATE VIEW tracciati AS
     SELECT n.zuc_cod, a.created_at, 
@@ -504,7 +515,7 @@ CREATE VIEW tracciati AS
 
 CREATE VIEW full_in_strutt_badges AS
     WITH full_archivio_nominativi AS (
-        SELECT a.id, n.codice, n.descrizione, po.cliente, po.name AS postazione, a.created_at, 
+        SELECT a.id, n.codice, n.descrizione, is_pause(a.mark_type) AS pausa, po.cliente, po.name AS postazione, a.created_at, 
         n.nome, n.cognome, n.assegnazione, n.ditta, n.cod_fisc, n.ndoc, n.tdoc, n.telefono, n.scadenza, po.id AS post_id, a.mark_type
         FROM nominativi AS n
         JOIN archivio_nominativi AS a ON n.codice = a.badge_cod
@@ -512,8 +523,8 @@ CREATE VIEW full_in_strutt_badges AS
         WHERE is_in_strutt('archivio_nominativi', a.id)
     ),
     full_archivio_provvisori AS (
-        SELECT a.id, a.badge_cod AS codice, NULL AS descrizione, po.cliente, po.name AS postazione, 
-        a.data_in, pe.nome, pe.cognome, pe.assegnazione, pe.ditta, pe.cod_fisc, pe.ndoc, pe.tdoc, pe.telefono, 
+        SELECT a.id, a.badge_cod AS codice, NULL AS descrizione, 'NO' AS pausa, po.cliente, po.name AS postazione, 
+        a.created_at, pe.nome, pe.cognome, pe.assegnazione, pe.ditta, pe.cod_fisc, pe.ndoc, pe.tdoc, pe.telefono, 
         NULL::DATE AS scadenza, po.id AS post_id, a.mark_type
         FROM people AS pe
         JOIN archivio_provvisori AS a ON pe.id = a.person_id
@@ -551,7 +562,7 @@ CREATE VIEW full_in_strutt_veicoli AS
         UNION
         (SELECT * FROM full_archivio_veicoli_prov)
     ) AS t
-    ORDER BY data_in DESC;
+    ORDER BY created_at DESC;
 
 CREATE VIEW full_in_prestito AS
     WITH full_archivio_chiavi AS (
@@ -570,7 +581,7 @@ CREATE VIEW full_in_prestito AS
             FROM chiavi AS ch
             JOIN archivio_chiavi AS a ON ch.codice = a.chiave_cod
         ) AS t2 ON t1.chiave_cod = t2.codice
-        WHERE is_in_strutt('archivio_chiavi', a.id)
+        WHERE is_in_strutt('archivio_chiavi', t1.id)
     ),
     full_archivio_chiavi_prov AS (
         SELECT DISTINCT t1.id, t1.badge_cod AS badge, t2.codice AS chiave, t1.cliente, t1.postazione, t1.created_at, t1.nome, t1.cognome,
@@ -588,7 +599,7 @@ CREATE VIEW full_in_prestito AS
             FROM chiavi AS ch
             JOIN archivio_chiavi_prov AS a ON ch.codice = a.chiave_cod
         ) AS t2 ON t1.chiave_cod = t2.codice
-        WHERE is_in_strutt('archivio_chiavi_prov', a.id)
+        WHERE is_in_strutt('archivio_chiavi_prov', t1.id)
     )
     SELECT t.*
     FROM (
@@ -596,16 +607,16 @@ CREATE VIEW full_in_prestito AS
         UNION
         (SELECT * FROM full_archivio_chiavi_prov)
     ) AS t
-    ORDER BY data_in DESC;
+    ORDER BY created_at DESC;
 
 CREATE VIEW in_strutt_badges AS
-    SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM full_in_strutt_badges;
+    SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, created_at FROM full_in_strutt_badges;
 
 CREATE VIEW in_strutt_veicoli AS
-    SELECT id, targa, descrizione, tveicolo, assegnazione, cliente, postazione, nome, cognome, ditta, data_in FROM full_in_strutt_veicoli;
+    SELECT id, targa, descrizione, tveicolo, assegnazione, cliente, postazione, nome, cognome, ditta, created_at FROM full_in_strutt_veicoli;
 
 CREATE VIEW in_prestito AS
-    SELECT id, badge, nome, cognome, ditta, cliente, postazione, chiave, data_in FROM full_in_prestito;
+    SELECT id, badge, nome, cognome, ditta, cliente, postazione, chiave, created_at FROM full_in_prestito;
 
 CREATE VIEW full_users AS 
     SELECT u.*,

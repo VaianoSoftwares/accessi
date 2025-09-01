@@ -316,7 +316,8 @@ export default function Chiavi(props: {
         {queryInPrestito.isSuccess && (
           <BadgeTable
             content={queryInPrestito.data}
-            timestampParams={["data_in", "data_out"]}
+            timestampParams={["created_at"]}
+            renamedParams={new Map([["created_at", "data"]])}
             tableId={TABLE_NAME}
           />
         )}

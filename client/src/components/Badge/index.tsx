@@ -48,7 +48,7 @@ export default function Badge({
   const [deletedRow, setDeletedRow] = useState<QueryBadgeInStrutt>();
 
   const [isOspPopupShown, setIsOspPopupShown] = useBool(false);
-  const [isPauseShown, setIsPauseShown] = useBool(true);
+  const [isPauseShown, setIsPauseShown] = useBool(hasPerm(currentUser, TPermessi.pause));
 
   const [pfpUrl, { updateImage }] = useImage((data) =>
     data ? `${PROXY}/api/v1/public/uploads/PFP_${data}.jpg` : ""
@@ -156,7 +156,7 @@ export default function Badge({
 
       setDeletedRow(undefined);
 
-      const { row: timbraRow } = response.data.result;
+      const { in: timbraRow } = response.data.result;
 
       updateImage(timbraRow.codice);
       setPopupMsg(`${timbraRow.nome || ""} ${timbraRow.cognome || ""} PAUSA`);
@@ -272,8 +272,7 @@ export default function Badge({
                 />
                 <label htmlFor="codice">barcode</label>
               </div>
-              {currPostazione !== undefined &&
-                currPostazione.name !== "PAUSA" && (
+              {currPostazione !== undefined && (
                   <>
                     <div className="col-sm-1 mx-2">
                       <button
@@ -291,14 +290,14 @@ export default function Badge({
                         Uscita
                       </button>
                     </div>
-                    <div className="col-sm-1 mx-2">
+                    {hasPerm(currentUser, TPermessi.pause) && <div className="col-sm-1 mx-2">
                       <button
                         onClick={() => timbraBtnClickEvent(true)}
                         className="btn btn-warning badge-form-btn"
                       >
                         Pausa
                       </button>
-                    </div>
+                    </div>}
                   </>
                 )}
               <div className="w-100 mt-4"></div>
@@ -312,7 +311,6 @@ export default function Badge({
             <div className="form-buttons">
               <div className="row align-items-center justify-content-start g-0">
                 {currPostazione !== undefined &&
-                  currPostazione.name !== "PAUSA" &&
                   hasPerm(currentUser, TPermessi.canMarkProvvisori) && (
                     <div className="col">
                       <button
@@ -336,6 +334,7 @@ export default function Badge({
                     </button>
                   </div>
                 )}
+                {hasPerm(currentUser, TPermessi.pause) && <>
                 <div className="w-100 mt-1" />
                 <div className="col">
                   <button className="btn btn-success badge-form-btn">
@@ -358,6 +357,7 @@ export default function Badge({
                     </div>
                   </button>
                 </div>
+                </>}
               </div>
             </div>
           </div>
@@ -398,7 +398,8 @@ export default function Badge({
             tableId={TABLE_NAME}
             omitedParams={["id"]}
             obfuscatedParams={isAdmin(currentUser) ? undefined : ["codice"]}
-            timestampParams={["data_in", "data_out"]}
+            timestampParams={["created_at"]}
+            renamedParams={new Map([["created_at", "data"]])}
           />
         )}
       </div>

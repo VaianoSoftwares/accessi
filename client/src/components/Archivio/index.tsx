@@ -9,7 +9,7 @@ import BadgeTable from "../BadgeTable";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormRef } from "../../types";
-import { TIPI_BADGE } from "../../types/badges";
+import { MARK_TYPES, TIPI_BADGE } from "../../types/badges";
 import { FindArchivioForm, FindArchivioFullForm } from "../../types/forms";
 import { CurrentUserContext, CurrPostazioneContext } from "../RootProvider";
 import useError from "../../hooks/useError";
@@ -41,12 +41,12 @@ export default function Archivio() {
     nome: null,
     cognome: null,
     ditta: null,
-    data_in_min: null,
-    data_in_max: null,
-    data_in: null,
-    data_out: null,
+    date_min: null,
+    date_max: null,
+    date_new: null,
     id: null,
     zuc_cod: null,
+    mark_type: null,
   });
 
   function formToObj(): FindArchivioFullForm {
@@ -160,8 +160,8 @@ export default function Archivio() {
   async function getTracciatoBtnEvHandler() {
     try {
       const reqData = {
-        minDate: formRef.current.data_in_min?.value,
-        maxDate: formRef.current.data_in_max?.value,
+        minDate: formRef.current.date_min?.value,
+        maxDate: formRef.current.date_max?.value,
         zuc_cod: formRef.current.zuc_cod?.value,
       };
 
@@ -198,7 +198,7 @@ export default function Archivio() {
                   className="form-control form-control-sm"
                   id="dataInizio"
                   autoComplete="off"
-                  ref={(el) => (formRef.current.data_in_min = el)}
+                  ref={(el) => (formRef.current.date_min = el)}
                   defaultValue={dateFormat(new Date(), "yyyy-mm-dd")}
                 />
                 <label htmlFor="dataInizio">resoconto inizio</label>
@@ -209,12 +209,12 @@ export default function Archivio() {
                   className="form-control form-control-sm"
                   id="dataFine"
                   autoComplete="off"
-                  ref={(el) => (formRef.current.data_in_max = el)}
+                  ref={(el) => (formRef.current.date_max = el)}
                   defaultValue={dateFormat(
                     new Date().setDate(new Date().getDate() + 1),
                     "yyyy-mm-dd"
                   )}
-                  // min={formRef.current?.data_in_max?.value}
+                  // min={formRef.current?.date_max?.value}
                 />
                 <label htmlFor="dataFine">resoconto fine</label>
               </div>
@@ -351,6 +351,22 @@ export default function Archivio() {
                 />
                 <label htmlFor="zuc_cod">cod zucchetti</label>
               </div>
+              <div className="w-100 mb-1" />
+              <div className="form-floating col-sm-3">
+                <select
+                  className="form-select form-select-sm"
+                  id="mark_type"
+                  ref={(el) => (formRef.current.mark_type = el)}
+                >
+                  <option key="-1"></option>
+                  {MARK_TYPES.map((a) => (
+                    <option value={a} key={a}>
+                      {a}
+                    </option>
+                  ))}
+                </select>
+                <label htmlFor="mark_type">marcatura</label>
+              </div>
               {hasPerm(currentUser, TPermessi.canEditArchivio) && (
                 <>
                   <div className="w-100 mb-1" />
@@ -369,21 +385,11 @@ export default function Archivio() {
                     <input
                       type="datetime-local"
                       className="form-control form-control-sm"
-                      id="data_in"
+                      id="date_new"
                       autoComplete="off"
-                      ref={(el) => (formRef.current.data_in = el)}
+                      ref={(el) => (formRef.current.date_new = el)}
                     />
-                    <label htmlFor="data_in">data ingresso</label>
-                  </div>
-                  <div className="form-floating col-sm-3">
-                    <input
-                      type="datetime-local"
-                      className="form-control form-control-sm"
-                      id="data_out"
-                      autoComplete="off"
-                      ref={(el) => (formRef.current.data_out = el)}
-                    />
-                    <label htmlFor="data_out">data uscita</label>
+                    <label htmlFor="date_new">nuova data</label>
                   </div>
                 </>
               )}
@@ -431,8 +437,7 @@ export default function Archivio() {
                         }
                         updateArchivio.mutate({
                           id: archId,
-                          data_in: formRef.current.data_in?.value,
-                          data_out: formRef.current.data_out?.value,
+                          created_at: formRef.current.date_new?.value,
                         });
                       }}
                     >
@@ -465,8 +470,9 @@ export default function Archivio() {
           <BadgeTable
             content={queryArchivio.data}
             tableId={TABLE_ID}
-            timestampParams={["data_in", "data_out"]}
+            timestampParams={["created_at"]}
             linkParams={["documento"]}
+            renamedParams={new Map([["created_at", "data"], ["mark_type", "marcatura"]])}
             linkParser={(value: string) => (
               <Link
                 to={`${PROXY}${UPLOADS_DIR}${value}`}

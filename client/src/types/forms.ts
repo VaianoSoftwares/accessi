@@ -150,12 +150,12 @@ export type FindArchivioForm = {
   nome?: string | undefined;
   cognome?: string | undefined;
   ditta?: string | undefined;
-  data_in_min?: string | undefined;
-  data_in_max?: string | undefined;
-  data_in?: string | undefined;
-  data_out?: string | undefined;
+  date_min?: string | undefined;
+  date_max?: string | undefined;
+  date_new?: string | undefined;
   id?: string | undefined;
   zuc_cod?: string | undefined;
+  mark_type?: string | undefined;
 };
 
 export type FindArchivioFullForm = FindArchivioForm & {

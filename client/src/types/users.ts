@@ -19,11 +19,13 @@ export enum TPermessi {
   showChiaviInAnagrafico = 1 << 12,
   showVeicoliInAnagrafico = 1 << 13,
   showMazziInAnagrafico = 1 << 14,
+  pause = 1 << 15,
 }
 
 export const PERMESSI_INFO: ReadonlyMap<TPermessi, string> = new Map([
   [TPermessi.device, "device"],
   [TPermessi.canLogout, "canLogout"],
+  [TPermessi.pause, "showPause"],
   [TPermessi.canAccessInStruttReport, "inStruttExcelReport"],
   [TPermessi.canMarkProvvisori, "timbraProvvisori"],
   [TPermessi.canEditArchivio, "canEditArchivio"],

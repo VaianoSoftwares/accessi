@@ -511,8 +511,9 @@ export const GET_ARCHIVIO_SCHEMA = z.object({
   targa: z.string().optional(),
   chiave: CODICE_CHIAVE_SCHEMA.optional(),
   tipo: z.enum(TIPI_BADGE).optional(),
-  data_in_min: z.coerce.date().optional(),
-  data_in_max: z.coerce.date().optional(),
+  mark_type: z.enum(MARK_TYPES).optional(),
+  date_min: z.coerce.date().optional(),
+  date_max: z.coerce.date().optional(),
   data_out_min: z.coerce.date().optional(),
   data_out_max: z.coerce.date().optional(),
   postazione: z.string().optional(),
@@ -572,8 +573,8 @@ export const GET_IN_STRUTT_BADGES_SCHEMA = z.object({
   codice: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
   tipo: z.enum(TIPI_BADGE).optional(),
   tipi: z.enum(TIPI_BADGE).array().nonempty().optional(),
-  data_in_min: z.coerce.date().optional(),
-  data_in_max: z.coerce.date().optional(),
+  date_min: z.coerce.date().optional(),
+  date_max: z.coerce.date().optional(),
   post_id: ID_SCHEMA("ID Postazione").optional(),
   postazioniIds: ID_SCHEMA("ID Postazione").array().nonempty().optional(),
   nome: z
@@ -617,8 +618,8 @@ export const GET_IN_STRUTT_VEICOLI_SCHEMA = z.object({
     .optional(),
   tipo: z.enum(TIPI_BADGE).optional(),
   tipi: z.enum(TIPI_BADGE).array().nonempty().optional(),
-  data_in_min: z.coerce.date().optional(),
-  data_in_max: z.coerce.date().optional(),
+  date_min: z.coerce.date().optional(),
+  date_max: z.coerce.date().optional(),
   post_id: ID_SCHEMA("ID Postazione").optional(),
   postazioniIds: ID_SCHEMA("ID Postazione").array().nonempty().optional(),
   nome: z
@@ -654,8 +655,8 @@ export type FindInStruttVeicoliFilter = z.infer<
 export const FIND_IN_PRESTITO_SCHEMA = z.object({
   badge: z.union([CODICE_NOM_SCHEMA, CODICE_PROV_SCHEMA]).optional(),
   chiave: CODICE_CHIAVE_SCHEMA.optional(),
-  data_in_min: z.coerce.date().optional(),
-  data_in_max: z.coerce.date().optional(),
+  date_min: z.coerce.date().optional(),
+  date_max: z.coerce.date().optional(),
   post_id: ID_SCHEMA("ID Postazione").optional(),
   postazioniIds: ID_SCHEMA("ID Postazione").array().nonempty().optional(),
   nome: z
@@ -1005,7 +1006,7 @@ export const TIMBRA_NOM_IN_WITH_DATE_SCHEMA = TIMBRA_NOM_UTILITY_SCHEMA.extend({
   const parsed = {
     ...o,
     badge_cod: o.badge_cod.substring(1),
-    data_in: o.created_at,
+    created_at: o.created_at,
   };
   const { ["created_at"]: omitted, ...result } = parsed;
   return result;

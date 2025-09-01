@@ -169,7 +169,6 @@ export type PrestitoChiaviRes = {
 };
 
 export type UpdateArchivioData = {
-  data_in?: Date | string | undefined;
-  data_out?: Date | string | undefined;
+  created_at?: Date | string | undefined;
   id: number | string;
 };

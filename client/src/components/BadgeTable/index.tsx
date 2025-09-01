@@ -14,6 +14,7 @@ export default function BadgeTable({
   timestampParams?: string[];
   dateParams?: string[];
   linkParams?: string[];
+  renamedParams?: Map<string, string>;
   linkParser?: (value: any) => any;
   clickRowEvent?: (e: HTMLElementEvent) => void;
 }) {
@@ -46,7 +47,7 @@ export default function BadgeTable({
                 )
                 .map((key) => (
                   <th scope="col" key={key} className="badge-table-th">
-                    {key}
+                    {props?.renamedParams?.get(key) || key}
                   </th>
                 ))}
             </tr>

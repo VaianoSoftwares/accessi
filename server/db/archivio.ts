@@ -68,14 +68,14 @@ export default class ArchivioDB {
         .filter(([, value]) => value)
         .map(([key, value], i) => {
           switch (key) {
-            case "data_in_min":
-              return `data_in>=$${i + 1}`;
-            case "data_in_max":
-              return `data_in<=$${i + 1}`;
+            case "date_min":
+              return `created_at>=$${i + 1}`;
+            case "date_max":
+              return `created_at<=$${i + 1}`;
             case "data_out_min":
-              return `data_out>=$${i + 1}`;
+              return `created_at>=$${i + 1}`;
             case "data_out_max":
-              return `data_out<=$${i + 1}`;
+              return `created_at<=$${i + 1}`;
             case "post_ids":
               return `(${(value as any[])
                 .map((_) => `post_id=$${i + 1}`)
@@ -97,14 +97,12 @@ export default class ArchivioDB {
         .filter((value) => value)
         .flatMap((value) => (typeof value !== "string" ? value : `%${value}%`));
 
-    console.log("patara", queryText, queryValues);
-
     return await db.query<Archivio>(queryText, queryValues);
   }
 
   public static async getBadgesInStrutt(filter?: FindInStruttBadgesFilter) {
     let i = 1;
-    const prefixText = `SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, created_at FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
+    const prefixText = `SELECT id, codice, descrizione, pausa, assegnazione, cliente, postazione, nome, cognome, ditta, created_at FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
     let filterText = filter
       ? Object.entries(filter)
           .filter(([key, value]) => value && !["pausa"].includes(key))
@@ -114,11 +112,11 @@ export default class ArchivioDB {
                 if (!Array.isArray(value)) return "";
                 const postazioniFilters = value.map(() => `post_id=$${i++}`);
                 if (filter?.pausa === true)
-                  postazioniFilters.push("postazione='PAUSA'");
+                  postazioniFilters.push(`(mark_type='${MarkType.pauseIn}')`);
                 return ["(", postazioniFilters.join(" OR "), ")"].join("");
-              case "data_in_min":
+              case "date_min":
                 return `created_at>=$${i++}`;
-              case "data_in_max":
+              case "date_max":
                 return `created_at<=$${i++}`;
               case "cliente":
                 return `${key}=$${i++}`;
@@ -132,7 +130,7 @@ export default class ArchivioDB {
       : "";
 
     if (filter?.pausa === undefined || filter?.pausa === false) {
-      const pauseFilter = "postazione!='PAUSA'";
+      const pauseFilter = `(mark_type!='${MarkType.pauseIn}')`; 
       filterText = filterText
         ? [filterText, pauseFilter].join(" AND ")
         : pauseFilter;
@@ -174,9 +172,9 @@ export default class ArchivioDB {
                     ")",
                   ].join("")
                 : "";
-            case "data_in_min":
+            case "date_min":
               return `created_at>=$${i++}`;
-            case "data_in_max":
+            case "date_max":
               return `created_at<=$${i++}`;
             default:
               return typeof value === "string"
@@ -788,7 +786,7 @@ export default class ArchivioDB {
 
       const { rowCount: numFullInStruttRows } =
         await client.query<FullBadgeInStrutt>(
-          `SELECT * FROM ${ArchTableName.PROVVISORI} WHERE badge_cod = $1 AND data_in > CURRENT_TIMESTAMP(0)`,
+          `SELECT * FROM ${ArchTableName.PROVVISORI} WHERE badge_cod = $1 AND created_at IS NULL`,
           [badgeCode]
         );
       if (numFullInStruttRows) {
@@ -864,7 +862,7 @@ export default class ArchivioDB {
 
   public static async insertVeicoloProvvisorio(data: InsertArchVeicoloData) {
     const { rowCount: numFullInStruttRows } = await db.query<FullBadgeInStrutt>(
-      `SELECT * FROM ${ArchTableName.VEICOLI_PROV} WHERE targa = $1 AND data_in > CURRENT_TIMESTAMP(0)`,
+      `SELECT * FROM ${ArchTableName.VEICOLI_PROV} WHERE targa = $1 AND created_at IS NULL`,
       [data.targa]
     );
     if (numFullInStruttRows) {
@@ -1435,12 +1433,8 @@ export default class ArchivioDB {
   }
 
   public static async pausa(data: TimbraBadgeData) {
-    const client = await db.getClient();
-    try {
-      await client.query("BEGIN");
-
       const badgeCode = data.badge_cod;
-      const existsBadge = await client.query<Nominativo>(
+      const existsBadge = await db.query<Nominativo>(
         NominativiDB.getNominativoByCodiceQueryText,
         [badgeCode]
       );
@@ -1453,7 +1447,7 @@ export default class ArchivioDB {
 
       const { cliente: expectedCliente } = existsBadge.rows[0];
 
-      const postazioneMark = await client.query<Postazione>(
+      const postazioneMark = await db.query<Postazione>(
         PostazioniDB.getPostazioneByIdQueryText,
         [data.post_id]
       );
@@ -1474,7 +1468,7 @@ export default class ArchivioDB {
       }
 
       const { rows: inStruttRows, rowCount: numInStruttRows } =
-        await client.query<FullBadgeInStrutt>(
+        await db.query<FullBadgeInStrutt>(
           `SELECT * FROM ${ArchTableName.FULL_BADGES_IN_STRUTT} WHERE codice = $1`,
           [badgeCode]
         );
@@ -1485,10 +1479,10 @@ export default class ArchivioDB {
         });
       }
 
-      const { mark_type: markType } = inStruttRows[0];
+      const { mark_type: markTypeIn } = inStruttRows[0];
 
       if (
-        markType !== MarkType.pauseIn &&
+        markTypeIn !== MarkType.pauseIn &&
         postazioneMark.rows[0].id != inStruttRows[0].post_id
       ) {
         throw new BaseError(
@@ -1498,74 +1492,43 @@ export default class ArchivioDB {
             context: {
               expectedPostazione: inStruttRows[0].post_id,
               actualPostazione: postazioneMark.rows[0].id,
+              markType: markTypeIn,
             },
           }
         );
       }
 
-      let markTypeFirst: MarkType;
-      let markTypeSecond: MarkType;
-      switch (markType) {
+      let markTypeOut: MarkType;
+      switch (markTypeIn) {
         case MarkType.in:
-          markTypeFirst = MarkType.out;
-          markTypeSecond = MarkType.pauseIn;
+          markTypeOut = MarkType.pauseIn;
           break;
         case MarkType.pauseIn:
-          markTypeFirst = MarkType.pauseOut;
-          markTypeSecond = MarkType.in;
+          markTypeOut = MarkType.pauseOut;
           break;
         default:
           throw new BaseError("Tipo marcatura non valida", {
             status: 500,
-            context: { markType },
+            context: { markType: markTypeIn },
           });
       }
 
-      const {
-        queryText: insertedQueryTextFirst,
-        queryValues: insertedQueryValuesFirst,
-      } = db.getInsertRowQuery(ArchTableName.NOMINATIVI, {
-        ...data,
-        mark_type: markTypeFirst,
-      });
-      const { rows: insertedRowsFirst, rowCount: numInsertedRowsFirst } =
-        await client.query(insertedQueryTextFirst, insertedQueryValuesFirst);
-      if (!numInsertedRowsFirst) {
+      const { rows: insertedRows, rowCount: numInsertedRows } =
+        await db.insertRow(ArchTableName.NOMINATIVI, {
+          ...data,
+          mark_type: markTypeOut,
+        });
+      if (!numInsertedRows) {
         throw new BaseError("Impossibile timbrare badge", {
           status: 500,
           context: { badgeCode },
         });
       }
-
-      const {
-        queryText: insertedQueryTextSecond,
-        queryValues: insertedQueryValuesSecond,
-      } = db.getInsertRowQuery(ArchTableName.NOMINATIVI, {
-        ...data,
-        mark_type: markTypeSecond,
-      });
-      const { rows: insertedRowsSecond, rowCount: numInsertedRowsSecond } =
-        await client.query(insertedQueryTextSecond, insertedQueryValuesSecond);
-      if (!numInsertedRowsSecond) {
-        throw new BaseError("Impossibile timbrare badge", {
-          status: 500,
-          context: { badgeCode },
-        });
-      }
-
-      await client.query("COMMIT");
 
       return {
-        in: insertedRowsFirst[0],
-        out: insertedRowsSecond[0],
-        row: inStruttRows[0],
+        in: inStruttRows[0],
+        out: insertedRows[0],
       };
-    } catch (e) {
-      await client.query("ROLLBACK");
-      throw e;
-    } finally {
-      client.release();
-    }
   }
 
   public static async updateArchivio({ id, created_at }: UpdateArchivioData) {
