@@ -44,6 +44,32 @@ export default function AccessiNavbar({
 
   const { handleError } = useError();
 
+  const clienti = useQuery({
+    queryKey: ["clienti"],
+    queryFn: async () => {
+      try {
+        const response = await ClientiDataService.getAll();
+        if (response.data.success === false) {
+          throw response.data.error;
+        }
+        console.log("queryClienti | response:", response);
+
+        const result = response.data.result;
+        if (currCliente === undefined) {
+          const newCurrCliente = result.find((cliente) =>
+            currentUser?.clienti.includes(cliente)
+          );
+          setCurrCliente(newCurrCliente);
+        }
+
+        return result;
+      } catch (e) {
+        handleError(e);
+        return [];
+      }
+    },
+  });
+
   const postazioni = useQuery({
     queryKey: ["postazioni" /*currentUser?.postazioni*/],
     queryFn: async (context) => {
@@ -65,23 +91,6 @@ export default function AccessiNavbar({
           setCurrPostazione(result[0]);
 
         return result;
-      } catch (e) {
-        handleError(e);
-        return [];
-      }
-    },
-  });
-
-  const clienti = useQuery({
-    queryKey: ["clienti"],
-    queryFn: async () => {
-      try {
-        const response = await ClientiDataService.getAll();
-        if (response.data.success === false) {
-          throw response.data.error;
-        }
-        console.log("queryClienti | response:", response);
-        return response.data.result;
       } catch (e) {
         handleError(e);
         return [];

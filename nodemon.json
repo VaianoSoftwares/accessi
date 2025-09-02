@@ -1,6 +1,6 @@
 {
     "watch": ["server", "client/src"],
-    "ext": ".ts,.js,.tsx",
+    "ext": ".ts,.js,.tsx,.json",
     "ignore": [],
-    "exec": "NODE_ENV=development node --no-warnings --experimental-specifier-resolution=node --loader ts-node/esm ./server/index.ts"
+    "exec": "NODE_ENV=development node ./dist/index.js"
 }

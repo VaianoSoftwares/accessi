@@ -18,26 +18,13 @@ export enum BarcodePrefix {
 }
 
 export enum MarkType {
-  in = "I",
-  out = "O",
-  pauseIn = "PI",
-  pauseOut = "PO",
-  keyIn = "KI",
-  keyOut = "KO",
+  inOut = 1 << 0,
+  pause = 1 << 1,
 }
-
-export const MARK_TYPES = [
-  MarkType.in,
-  MarkType.out,
-  MarkType.pauseIn,
-  MarkType.pauseOut,
-  MarkType.keyIn,
-  MarkType.keyOut,
-] as const;
 
 export interface BaseArchivio {
   created_at: string;
-  mark_type: string;
+  mark_type: number;
   username: string;
   ip: string;
   post_id: number;
@@ -96,7 +83,7 @@ export type VeicoloInStrutt = WithId<
 >;
 
 export type FullBadgeInStrutt = BadgeInStrutt &
-  BaseNominativo & { post_id: number; mark_type: MarkType };
+  BaseNominativo & { post_id: number; mark_type: number };
 export type FullVeicoloInStrutt = VeicoloInStrutt &
   BaseNominativo & { post_id: number };
 

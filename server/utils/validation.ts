@@ -1,6 +1,6 @@
 import z from "zod";
 import { TDOCS, TIPI_BADGE, STATI_BADGE, BadgeState } from "../types/badges.js";
-import { BarcodePrefix, MARK_TYPES } from "../types/archivio.js";
+import { BarcodePrefix } from "../types/archivio.js";
 
 function MISSING_ATTR_ERR_MSG(attribute: string) {
   return `Campo ${attribute} risulta mancante`;
@@ -511,7 +511,8 @@ export const GET_ARCHIVIO_SCHEMA = z.object({
   targa: z.string().optional(),
   chiave: CODICE_CHIAVE_SCHEMA.optional(),
   tipo: z.enum(TIPI_BADGE).optional(),
-  mark_type: z.enum(MARK_TYPES).optional(),
+  in_out: z.string().optional(),
+  pausa: z.string().optional(),
   date_min: z.coerce.date().optional(),
   date_max: z.coerce.date().optional(),
   data_out_min: z.coerce.date().optional(),

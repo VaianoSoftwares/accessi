@@ -112,7 +112,7 @@ export default class ArchivioDB {
                 if (!Array.isArray(value)) return "";
                 const postazioniFilters = value.map(() => `post_id=$${i++}`);
                 if (filter?.pausa === true)
-                  postazioniFilters.push(`(mark_type='${MarkType.pauseIn}')`);
+                  postazioniFilters.push("(is_in_pause(mark_type))");
                 return ["(", postazioniFilters.join(" OR "), ")"].join("");
               case "date_min":
                 return `created_at>=$${i++}`;
@@ -130,7 +130,7 @@ export default class ArchivioDB {
       : "";
 
     if (filter?.pausa === undefined || filter?.pausa === false) {
-      const pauseFilter = `(mark_type!='${MarkType.pauseIn}')`; 
+      const pauseFilter = "(NOT is_in_pause(mark_type))";
       filterText = filterText
         ? [filterText, pauseFilter].join(" AND ")
         : pauseFilter;
@@ -309,10 +309,7 @@ export default class ArchivioDB {
       });
 
     const { rows: insertedRows, rowCount: numRowsInserted } =
-      await db.insertRow<ArchivioNominativo>(ArchTableName.NOMINATIVI, {
-        ...data,
-        mark_type: MarkType.in,
-      });
+      await db.insertRow<ArchivioNominativo>(ArchTableName.NOMINATIVI, data);
     if (!numRowsInserted) {
       throw new BaseError("Impossibile timbrare badge", {
         status: 500,
@@ -374,6 +371,14 @@ export default class ArchivioDB {
           actualPostazione: data.post_id,
         },
       });
+    } else if (
+      (fullInStruttRows[0].mark_type & MarkType.pause) !== 0 &&
+      (fullInStruttRows[0].mark_type & MarkType.inOut) === 0
+    ) {
+      throw new BaseError("Badge è in pausa", {
+        status: 400,
+        context: { badgeCode, markType: fullInStruttRows[0].mark_type },
+      });
     }
 
     const recordIdIn = fullInStruttRows[0].id;
@@ -389,7 +394,7 @@ export default class ArchivioDB {
     const { rowCount: numRowsInserted } =
       await db.insertRow<ArchivioNominativo>(ArchTableName.NOMINATIVI, {
         ...data,
-        mark_type: MarkType.out,
+        mark_type: MarkType.inOut,
       });
     if (!numRowsInserted) {
       throw new BaseError("Impossibile timbrare badge", {
@@ -438,7 +443,7 @@ export default class ArchivioDB {
         `SELECT * FROM ${ArchTableName.PROVVISORI} WHERE badge_cod = $1 ORDER BY created_at DESC LIMIT 1`,
         [badgeCode]
       );
-    if (!numArchRows || archRows[0].mark_type !== MarkType.in) {
+    if (!numArchRows || (archRows[0].mark_type & MarkType.inOut) !== 0) {
       throw new BaseError("Inserire il badge provvisorio prima di timbrare", {
         status: 400,
         context: { badgeCode },
@@ -536,7 +541,7 @@ export default class ArchivioDB {
       ArchTableName.PROVVISORI,
       {
         ...data,
-        mark_type: MarkType.out,
+        mark_type: MarkType.inOut,
         created_at: data.created_at || new Date(),
       }
     );
@@ -838,7 +843,6 @@ export default class ArchivioDB {
       const { queryText: insertArchRowText, queryValues: insertArchRowValues } =
         db.getInsertRowQuery(ArchTableName.PROVVISORI, {
           badge_cod: badgeCode,
-          mark_type: MarkType.in,
           person_id: personId,
           post_id: data.post_id,
           username: data.username,
@@ -1031,7 +1035,7 @@ export default class ArchivioDB {
       const chiaviInPrestitoArr = chiaviInPrestito.map((row) => row.chiave);
       const chiaviInOut = data.chiavi.map((chiave) => [
         chiave,
-        chiaviInPrestitoArr.includes(chiave) ? MarkType.keyOut : MarkType.keyIn,
+        chiaviInPrestitoArr.includes(chiave) ? MarkType.inOut : 0,
       ]);
 
       const chiaviInOutValues = chiaviInOut.flatMap(
@@ -1076,8 +1080,8 @@ export default class ArchivioDB {
       );
 
       return {
-        in: dbRes.rows.filter((row) => row.mark_type === MarkType.keyIn),
-        out: dbRes.rows.filter((row) => row.mark_type === MarkType.keyOut),
+        in: dbRes.rows.filter((row) => (row.mark_type & MarkType.inOut) === 0),
+        out: dbRes.rows.filter((row) => (row.mark_type & MarkType.inOut) !== 0),
       };
     } catch (e) {
       await client.query("ROLLBACK");
@@ -1167,7 +1171,7 @@ export default class ArchivioDB {
       const chiaviInPrestitoArr = chiaviInPrestito.map((row) => row.chiave);
       const chiaviInOut = data.chiavi.map((chiave) => [
         chiave,
-        chiaviInPrestitoArr.includes(chiave) ? MarkType.keyOut : MarkType.keyIn,
+        chiaviInPrestitoArr.includes(chiave) ? MarkType.inOut : 0,
       ]);
 
       let personId: number;
@@ -1250,8 +1254,8 @@ export default class ArchivioDB {
         chiaviInsertValues
       );
       return {
-        in: dbRes.rows.filter((row) => row.mark_type === MarkType.keyIn),
-        out: dbRes.rows.filter((row) => row.mark_type === MarkType.keyOut),
+        in: dbRes.rows.filter((row) => (row.mark_type & MarkType.inOut) === 0),
+        out: dbRes.rows.filter((row) => (row.mark_type & MarkType.inOut) !== 0),
       };
     } catch (e) {
       await client.query("ROLLBACK");
@@ -1353,7 +1357,7 @@ export default class ArchivioDB {
       const chiaviInPrestitoArr = chiaviInPrestito.map((row) => row.chiave);
       const chiaviInOut = data.chiavi.map((chiave) => [
         chiave,
-        chiaviInPrestitoArr.includes(chiave) ? MarkType.keyOut : MarkType.keyIn,
+        chiaviInPrestitoArr.includes(chiave) ? MarkType.inOut : 0,
       ]);
 
       const chiaviInsertValues = chiaviInOut.flatMap(
@@ -1397,8 +1401,8 @@ export default class ArchivioDB {
         chiaviInsertValues
       );
       return {
-        in: dbRes.rows.filter((row) => row.mark_type === MarkType.keyIn),
-        out: dbRes.rows.filter((row) => row.mark_type === MarkType.keyOut),
+        in: dbRes.rows.filter((row) => (row.mark_type & MarkType.inOut) === 0),
+        out: dbRes.rows.filter((row) => (row.mark_type & MarkType.inOut) !== 0),
       };
     } catch (e) {
       await client.query("ROLLBACK");
@@ -1433,102 +1437,95 @@ export default class ArchivioDB {
   }
 
   public static async pausa(data: TimbraBadgeData) {
-      const badgeCode = data.badge_cod;
-      const existsBadge = await db.query<Nominativo>(
-        NominativiDB.getNominativoByCodiceQueryText,
+    const badgeCode = data.badge_cod;
+    const existsBadge = await db.query<Nominativo>(
+      NominativiDB.getNominativoByCodiceQueryText,
+      [badgeCode]
+    );
+    if (!existsBadge.rowCount) {
+      throw new BaseError("Badge non esistente", {
+        status: 400,
+        context: { badgeCode },
+      });
+    }
+
+    const { cliente: expectedCliente } = existsBadge.rows[0];
+
+    const postazioneMark = await db.query<Postazione>(
+      PostazioniDB.getPostazioneByIdQueryText,
+      [data.post_id]
+    );
+    if (!postazioneMark.rowCount) {
+      throw new BaseError("Postazione non esistente", {
+        status: 400,
+        context: { postId: data.post_id },
+      });
+    } else if (postazioneMark.rows[0].cliente !== expectedCliente) {
+      throw new BaseError("Impossibile timbrare badge di un altro cliente", {
+        status: 400,
+        context: {
+          badgeCode,
+          expectedCliente,
+          actualCliente: postazioneMark.rows[0].cliente,
+        },
+      });
+    }
+
+    const { rows: inStruttRows, rowCount: numInStruttRows } =
+      await db.query<FullBadgeInStrutt>(
+        `SELECT * FROM ${ArchTableName.FULL_BADGES_IN_STRUTT} WHERE codice = $1`,
         [badgeCode]
       );
-      if (!existsBadge.rowCount) {
-        throw new BaseError("Badge non esistente", {
-          status: 400,
-          context: { badgeCode },
-        });
-      }
+    if (!numInStruttRows) {
+      throw new BaseError("Badge non presente in struttura", {
+        status: 400,
+        context: { badgeCode },
+      });
+    }
 
-      const { cliente: expectedCliente } = existsBadge.rows[0];
+    const { mark_type: markTypeIn } = inStruttRows[0];
 
-      const postazioneMark = await db.query<Postazione>(
-        PostazioniDB.getPostazioneByIdQueryText,
-        [data.post_id]
-      );
-      if (!postazioneMark.rowCount) {
-        throw new BaseError("Postazione non esistente", {
-          status: 400,
-          context: { postId: data.post_id },
-        });
-      } else if (postazioneMark.rows[0].cliente !== expectedCliente) {
-        throw new BaseError("Impossibile timbrare badge di un altro cliente", {
-          status: 400,
-          context: {
-            badgeCode,
-            expectedCliente,
-            actualCliente: postazioneMark.rows[0].cliente,
-          },
-        });
-      }
+    if (
+      (markTypeIn & MarkType.pause) === 0 &&
+      (markTypeIn & MarkType.inOut) === 0 &&
+      postazioneMark.rows[0].id != inStruttRows[0].post_id
+    ) {
+      throw new BaseError("Impossibile timbrare badge da un'altra postazione", {
+        status: 400,
+        context: {
+          expectedPostazione: inStruttRows[0].post_id,
+          actualPostazione: postazioneMark.rows[0].id,
+          markType: markTypeIn,
+        },
+      });
+    }
 
-      const { rows: inStruttRows, rowCount: numInStruttRows } =
-        await db.query<FullBadgeInStrutt>(
-          `SELECT * FROM ${ArchTableName.FULL_BADGES_IN_STRUTT} WHERE codice = $1`,
-          [badgeCode]
-        );
-      if (!numInStruttRows) {
-        throw new BaseError("Badge non presente in struttura", {
-          status: 400,
-          context: { badgeCode },
-        });
-      }
+    let markTypeOut = MarkType.pause;
+    if ((markTypeIn & MarkType.inOut) !== 0) {
+      throw new BaseError("Tipo marcatura non valida", {
+        status: 500,
+        context: { markType: markTypeIn },
+      });
+    } else if ((markTypeIn & MarkType.pause) !== 0) {
+      markTypeOut |= MarkType.inOut;
+    }
 
-      const { mark_type: markTypeIn } = inStruttRows[0];
+    const { rows: insertedRows, rowCount: numInsertedRows } =
+      await db.insertRow(ArchTableName.NOMINATIVI, {
+        ...data,
+        mark_type: markTypeOut,
+      });
+    if (!numInsertedRows) {
+      throw new BaseError("Impossibile timbrare badge", {
+        status: 500,
+        context: { badgeCode },
+      });
+    }
 
-      if (
-        markTypeIn !== MarkType.pauseIn &&
-        postazioneMark.rows[0].id != inStruttRows[0].post_id
-      ) {
-        throw new BaseError(
-          "Impossibile timbrare badge da un'altra postazione",
-          {
-            status: 400,
-            context: {
-              expectedPostazione: inStruttRows[0].post_id,
-              actualPostazione: postazioneMark.rows[0].id,
-              markType: markTypeIn,
-            },
-          }
-        );
-      }
-
-      let markTypeOut: MarkType;
-      switch (markTypeIn) {
-        case MarkType.in:
-          markTypeOut = MarkType.pauseIn;
-          break;
-        case MarkType.pauseIn:
-          markTypeOut = MarkType.pauseOut;
-          break;
-        default:
-          throw new BaseError("Tipo marcatura non valida", {
-            status: 500,
-            context: { markType: markTypeIn },
-          });
-      }
-
-      const { rows: insertedRows, rowCount: numInsertedRows } =
-        await db.insertRow(ArchTableName.NOMINATIVI, {
-          ...data,
-          mark_type: markTypeOut,
-        });
-      if (!numInsertedRows) {
-        throw new BaseError("Impossibile timbrare badge", {
-          status: 500,
-          context: { badgeCode },
-        });
-      }
-
-      return {
-        in: inStruttRows[0],
-        out: insertedRows[0],
-      };
+    return {
+      in: inStruttRows[0],
+      out: insertedRows[0],
+    };
   }
 
   public static async updateArchivio({ id, created_at }: UpdateArchivioData) {

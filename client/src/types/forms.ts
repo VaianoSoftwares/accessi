@@ -155,11 +155,12 @@ export type FindArchivioForm = {
   date_new?: string | undefined;
   id?: string | undefined;
   zuc_cod?: string | undefined;
-  mark_type?: string | undefined;
+  in_out?: string | undefined;
+  pausa?: string | undefined;
 };
 
 export type FindArchivioFullForm = FindArchivioForm & {
-  post_ids?: number[] | undefined; 
+  post_ids?: number[] | undefined;
 };
 
 export type ProtocolloForm = {

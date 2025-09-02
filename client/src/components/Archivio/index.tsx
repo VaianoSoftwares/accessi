@@ -9,7 +9,7 @@ import BadgeTable from "../BadgeTable";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormRef } from "../../types";
-import { MARK_TYPES, TIPI_BADGE } from "../../types/badges";
+import { TIPI_BADGE } from "../../types/badges";
 import { FindArchivioForm, FindArchivioFullForm } from "../../types/forms";
 import { CurrentUserContext, CurrPostazioneContext } from "../RootProvider";
 import useError from "../../hooks/useError";
@@ -46,7 +46,8 @@ export default function Archivio() {
     date_new: null,
     id: null,
     zuc_cod: null,
-    mark_type: null,
+    in_out: null,
+    pausa: null,
   });
 
   function formToObj(): FindArchivioFullForm {
@@ -54,7 +55,7 @@ export default function Archivio() {
     Object.entries(formRef.current)
       .filter(([, el]) => el !== null)
       .forEach(([key, el]) => {
-        switch(key) {
+        switch (key) {
           case "cliente":
             obj[key] = el?.value || currCliente;
             break;
@@ -65,7 +66,8 @@ export default function Archivio() {
             obj[key] = currentUser?.postazioni_ids;
             break;
           default:
-            obj[key as keyof Omit<FindArchivioFullForm, "post_ids">] = el?.value;
+            obj[key as keyof Omit<FindArchivioFullForm, "post_ids">] =
+              el?.value;
         }
       });
     return obj;
@@ -356,16 +358,31 @@ export default function Archivio() {
                 <select
                   className="form-select form-select-sm"
                   id="mark_type"
-                  ref={(el) => (formRef.current.mark_type = el)}
+                  ref={(el) => (formRef.current.in_out = el)}
                 >
                   <option key="-1"></option>
-                  {MARK_TYPES.map((a) => (
+                  {["I", "O"].map((a) => (
                     <option value={a} key={a}>
                       {a}
                     </option>
                   ))}
                 </select>
-                <label htmlFor="mark_type">marcatura</label>
+                <label htmlFor="mark_type">I/O</label>
+              </div>
+              <div className="form-floating col-sm-3">
+                <select
+                  className="form-select form-select-sm"
+                  id="mark_type"
+                  ref={(el) => (formRef.current.pausa = el)}
+                >
+                  <option key="-1"></option>
+                  {["SI", "NO"].map((a) => (
+                    <option value={a} key={a}>
+                      {a}
+                    </option>
+                  ))}
+                </select>
+                <label htmlFor="mark_type">pausa</label>
               </div>
               {hasPerm(currentUser, TPermessi.canEditArchivio) && (
                 <>
@@ -472,7 +489,12 @@ export default function Archivio() {
             tableId={TABLE_ID}
             timestampParams={["created_at"]}
             linkParams={["documento"]}
-            renamedParams={new Map([["created_at", "data"], ["mark_type", "marcatura"]])}
+            renamedParams={
+              new Map([
+                ["created_at", "data"],
+                ["in_out", "ingresso/uscita"],
+              ])
+            }
             linkParser={(value: string) => (
               <Link
                 to={`${PROXY}${UPLOADS_DIR}${value}`}
@@ -482,7 +504,7 @@ export default function Archivio() {
                 {value}
               </Link>
             )}
-            omitedParams={["post_id"]}
+            omitedParams={["post_id", "mark_type"]}
           />
         )}
       </div>

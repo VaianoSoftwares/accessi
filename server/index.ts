@@ -1,10 +1,11 @@
+import { setupGlobalLogger } from "./utils/logger.js";
+setupGlobalLogger();
+
 import app from "./server.js";
 import https from "https";
 import http from "http";
 import fs from "fs";
 import path from "path";
-// import WebSocket, { WebSocketServer } from "ws";
-// import { WSOnUpgradeCb } from "./utils/wss.js";
 
 const httpPort = process.env.HTTP_PORT || 4316;
 const httpsPort = process.env.HTTPS_PORT || 4317;
@@ -28,26 +29,6 @@ const httpsOptions = {
 
 const httpServer = http.createServer(app);
 const httpsServer = https.createServer(httpsOptions, app);
-
-// const wss = new WebSocketServer({ noServer: true });
-// wss.on("connection", (ws) => {
-//   ws.on("error", console.error);
-
-//   ws.on("message", (msg) => {
-//     const msgAsStr = msg.toString();
-//     console.log("Received message from client", msgAsStr);
-//     wss.clients.forEach((client) => {
-//       if (client !== ws && client.readyState !== WebSocket.OPEN) {
-//         ws.send(msgAsStr);
-//       }
-//     });
-//   });
-
-//   console.log("Connection to new client enstablished");
-// });
-
-// httpServer.on("upgrade", WSOnUpgradeCb);
-// httpsServer.on("upgrade", WSOnUpgradeCb);
 
 httpServer.listen(httpPort, () =>
   console.log(`HTTP Server running on port ${httpPort}.`)
