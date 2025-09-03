@@ -16,6 +16,7 @@ import {
   TimbraChiaviProvData,
   TimbraChiaviNoBadgeData,
   MarkType,
+  checkMarkType,
 } from "../types/archivio.js";
 import { BaseError } from "../types/errors.js";
 import {
@@ -1483,11 +1484,30 @@ export default class ArchivioDB {
       });
     }
 
-    const { mark_type: markTypeIn } = inStruttRows[0];
+    const mask = MarkType.inOut | MarkType.pause;
+    const markTypeIn = inStruttRows[0].mark_type & mask;
+
+    let markTypeOut = MarkType.pause;
+    let canChangePostazione = false;
+
+    switch (markTypeIn) {
+      case 0:
+        break;
+      case MarkType.inOut:
+        throw new BaseError("Tipo marcatura non valida", {
+          status: 500,
+          context: { markType: markTypeIn },
+        });
+      case MarkType.pause:
+        markTypeOut |= MarkType.inOut;
+        canChangePostazione = true;
+        break;
+      case MarkType.inOut | MarkType.pause:
+        break;
+    }
 
     if (
-      (markTypeIn & MarkType.pause) === 0 &&
-      (markTypeIn & MarkType.inOut) === 0 &&
+      !canChangePostazione &&
       postazioneMark.rows[0].id != inStruttRows[0].post_id
     ) {
       throw new BaseError("Impossibile timbrare badge da un'altra postazione", {
@@ -1498,16 +1518,6 @@ export default class ArchivioDB {
           markType: markTypeIn,
         },
       });
-    }
-
-    let markTypeOut = MarkType.pause;
-    if ((markTypeIn & MarkType.inOut) !== 0) {
-      throw new BaseError("Tipo marcatura non valida", {
-        status: 500,
-        context: { markType: markTypeIn },
-      });
-    } else if ((markTypeIn & MarkType.pause) !== 0) {
-      markTypeOut |= MarkType.inOut;
     }
 
     const { rows: insertedRows, rowCount: numInsertedRows } =

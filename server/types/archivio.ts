@@ -22,6 +22,12 @@ export enum MarkType {
   pause = 1 << 1,
 }
 
+export function checkMarkType(n: number, ones: number[], zeros: number[]) {
+  const onesMask = ones.reduce((m, b) => m | b, 0);
+  const zerosMask = zeros.reduce((m, b) => m | b, 0);
+  return !((n & onesMask) ^ onesMask) && !(n & zerosMask);
+}
+
 export interface BaseArchivio {
   created_at: string;
   mark_type: number;
