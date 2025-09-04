@@ -24,6 +24,9 @@ import PopupWithImg from "../PopupWithImg";
 const TABLE_NAME = "in_strutt_table";
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 
+const TEXT_COLOR_DARK = "rgba(220, 220, 220, 255)";
+const POPUP_BG_COLOR_DEFAULT = "green";
+
 export default function Badge({
   scannedValue,
   clearScannedValue,
@@ -48,16 +51,16 @@ export default function Badge({
   const [deletedRow, setDeletedRow] = useState<QueryBadgeInStrutt>();
 
   const [isOspPopupShown, setIsOspPopupShown] = useBool(false);
-  const [isPauseShown, setIsPauseShown] = useBool(hasPerm(currentUser, TPermessi.pause));
+  const [isPauseShown, setIsPauseShown] = useBool(
+    hasPerm(currentUser, TPermessi.pause)
+  );
 
   const [pfpUrl, { updateImage }] = useImage((data) =>
     data ? `${PROXY}/api/v1/public/uploads/PFP_${data}.jpg` : ""
   );
   const [isPopupShown, setIsPopupShown] = useBool(false);
-  const [popupBgColor, setPopupBgColor] = useState("green");
-  const [popupTxtColor, setPopupTxtColor] = useState(
-    "rgba(220, 220, 220, 255)"
-  );
+  const [popupBgColor, setPopupBgColor] = useState(POPUP_BG_COLOR_DEFAULT);
+  const [popupTxtColor, setPopupTxtColor] = useState(TEXT_COLOR_DARK);
   const [popupMsg, setPopupMsg] = useState("");
 
   const queryInStrutt = useQuery({
@@ -101,25 +104,23 @@ export default function Badge({
 
       await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
 
-      const { row: timbraRow, isEntering } = response.data.result;
+      const { row: timbraRow, isEnter } = response.data.result;
 
-      setDeletedRow(isEntering === false ? timbraRow : undefined);
+      setDeletedRow(!isEnter ? timbraRow : undefined);
 
       updateImage(timbraRow.codice);
       setPopupMsg(
         `${timbraRow.nome || ""} ${timbraRow.cognome || ""} ${
-          isEntering ? "ENTRATA" : "USCITA"
+          isEnter ? "ENTRATA" : "USCITA"
         }`
       );
-      setPopupBgColor(isEntering ? "green" : "red");
-      setPopupTxtColor("rgba(220, 220, 220, 255)");
+      setPopupBgColor(isEnter ? POPUP_BG_COLOR_DEFAULT : "red");
+      setPopupTxtColor(TEXT_COLOR_DARK);
       setIsPopupShown.setTrue();
 
       const badgeTable = document.getElementById(TABLE_NAME);
       if (badgeTable) {
-        badgeTable.classList.add(
-          isEntering === true ? "added-row" : "removed-row"
-        );
+        badgeTable.classList.add(isEnter ? "added-row" : "removed-row");
       }
 
       await sleep(1000);
@@ -156,7 +157,7 @@ export default function Badge({
 
       setDeletedRow(undefined);
 
-      const { in: timbraRow } = response.data.result;
+      const { row: timbraRow } = response.data.result;
 
       updateImage(timbraRow.codice);
       setPopupMsg(`${timbraRow.nome || ""} ${timbraRow.cognome || ""} PAUSA`);
@@ -273,33 +274,35 @@ export default function Badge({
                 <label htmlFor="codice">barcode</label>
               </div>
               {currPostazione !== undefined && (
-                  <>
+                <>
+                  <div className="col-sm-1 mx-2">
+                    <button
+                      onClick={() => timbraBtnClickEvent(false, "0")}
+                      className="btn btn-success badge-form-btn"
+                    >
+                      Entrata
+                    </button>
+                  </div>
+                  <div className="col-sm-1 mx-2">
+                    <button
+                      onClick={() => timbraBtnClickEvent(false, "1")}
+                      className="btn btn-danger badge-form-btn"
+                    >
+                      Uscita
+                    </button>
+                  </div>
+                  {hasPerm(currentUser, TPermessi.pause) && (
                     <div className="col-sm-1 mx-2">
-                      <button
-                        onClick={() => timbraBtnClickEvent(false, "0")}
-                        className="btn btn-success badge-form-btn"
-                      >
-                        Entrata
-                      </button>
-                    </div>
-                    <div className="col-sm-1 mx-2">
-                      <button
-                        onClick={() => timbraBtnClickEvent(false, "1")}
-                        className="btn btn-danger badge-form-btn"
-                      >
-                        Uscita
-                      </button>
-                    </div>
-                    {hasPerm(currentUser, TPermessi.pause) && <div className="col-sm-1 mx-2">
                       <button
                         onClick={() => timbraBtnClickEvent(true)}
                         className="btn btn-warning badge-form-btn"
                       >
                         Pausa
                       </button>
-                    </div>}
-                  </>
-                )}
+                    </div>
+                  )}
+                </>
+              )}
               <div className="w-100 mt-4"></div>
               <div className="col-sm-9"></div>
               <div className="col in-strutt-count p-1">
@@ -334,30 +337,32 @@ export default function Badge({
                     </button>
                   </div>
                 )}
-                {hasPerm(currentUser, TPermessi.pause) && <>
-                <div className="w-100 mt-1" />
-                <div className="col">
-                  <button className="btn btn-success badge-form-btn">
-                    <div className="col btn-checkbox-input">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id="isPauseShownInput"
-                        checked={isPauseShown}
-                        onChange={(e) =>
-                          setIsPauseShown.setState(e.target.checked)
-                        }
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="isPauseShownInput"
-                      >
-                        Pause
-                      </label>
+                {hasPerm(currentUser, TPermessi.pause) && (
+                  <>
+                    <div className="w-100 mt-1" />
+                    <div className="col">
+                      <button className="btn btn-success badge-form-btn">
+                        <div className="col btn-checkbox-input">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="isPauseShownInput"
+                            checked={isPauseShown}
+                            onChange={(e) =>
+                              setIsPauseShown.setState(e.target.checked)
+                            }
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor="isPauseShownInput"
+                          >
+                            Pause
+                          </label>
+                        </div>
+                      </button>
                     </div>
-                  </button>
-                </div>
-                </>}
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -8,7 +8,8 @@ export type QueryBadgeInStrutt = {
   nome: string;
   cognome: string;
   ditta: string;
-  data_in: Date | string;
+  created_at: Date | string;
+  mark_type: number;
 };
 
 export type FindBadgeInStrutt = {
@@ -23,7 +24,8 @@ export type FindBadgeInStrutt = {
   ndoc: string;
   tdoc: string;
   telefono: string;
-  data_in: Date | string;
+  created_at: Date | string;
+  mark_type: number;
 };
 
 export type QueryVeicoloInStrutt = {
@@ -37,7 +39,8 @@ export type QueryVeicoloInStrutt = {
   nome: string;
   cognome: string;
   ditta: string;
-  data_in: Date | string;
+  created_at: Date | string;
+  mark_type: number;
 };
 
 export type FindVeicoloInStrutt = {
@@ -53,7 +56,8 @@ export type FindVeicoloInStrutt = {
   ndoc: string;
   tdoc: string;
   telefono: string;
-  data_in: Date | string;
+  created_at: Date | string;
+  mark_type: number;
 };
 
 export type QueryInPrestito = {
@@ -65,7 +69,8 @@ export type QueryInPrestito = {
   nome: string;
   cognome: string;
   ditta: string;
-  data_in: Date | string;
+  created_at: Date | string;
+  mark_type: number;
 };
 
 export type FindInPrestito = {
@@ -84,7 +89,8 @@ export type FindInPrestito = {
   citta: string;
   edificio: string;
   piano: string;
-  data_in: Date | string;
+  created_at: Date | string;
+  mark_type: number;
 };
 
 export type InsertArchBadgeData = {
@@ -155,12 +161,17 @@ export type FindInPrestitoData = {
 
 export type TimbraBadgeRes = {
   row: QueryBadgeInStrutt;
-  isEntering: boolean;
+  isEnter: boolean;
 };
 
 export type TimbraVeicoloRes = {
   row: QueryVeicoloInStrutt;
-  isEntering: boolean;
+  isEnter: boolean;
+};
+
+export type TimbraPausaRes = {
+  row: QueryBadgeInStrutt;
+  newRow: QueryBadgeInStrutt;
 };
 
 export type PrestitoChiaviRes = {

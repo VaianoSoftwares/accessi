@@ -16,6 +16,7 @@ import {
   FindVeicoloInStrutt,
   TimbraVeicoloRes,
   UpdateArchivioData,
+  TimbraPausaRes,
 } from "../types/archivio";
 import { GetTracciatoForm } from "../types/forms";
 
@@ -132,7 +133,12 @@ class ArchivioDataService extends DataServices {
   }
 
   pausa(data: TimbraBadgeDoc, signal?: GenericAbortSignal) {
-    return super.request({ url: "/pausa", method: "POST", data, signal });
+    return super.request<TimbraPausaRes>({
+      url: "/pausa",
+      method: "POST",
+      data,
+      signal,
+    });
   }
 
   updateArchivio(data: UpdateArchivioData, signal?: GenericAbortSignal) {

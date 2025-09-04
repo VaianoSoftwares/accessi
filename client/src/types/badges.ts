@@ -29,6 +29,11 @@ export enum DocType {
   TESSERINO_PROFESSIONALE = "TESSERINO PROFESSIONALE",
 }
 
+export enum MarkType {
+  inOut = 1 << 0,
+  pause = 1 << 1,
+}
+
 export const TIPI_BADGE = [
   BadgeType.NOMINATIVO,
   BadgeType.PROVVISORIO,

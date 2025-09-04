@@ -1,6 +1,6 @@
 import z from "zod";
 import { TDOCS, TIPI_BADGE, STATI_BADGE, BadgeState } from "../types/badges.js";
-import { BarcodePrefix } from "../types/archivio.js";
+import { BarcodePrefix, MarkType } from "../types/archivio.js";
 
 function MISSING_ATTR_ERR_MSG(attribute: string) {
   return `Campo ${attribute} risulta mancante`;
@@ -700,32 +700,32 @@ export const FIND_IN_PRESTITO_SCHEMA = z.object({
 });
 export type FindInPrestitoFilter = z.infer<typeof FIND_IN_PRESTITO_SCHEMA>;
 
-const BARCODE_NOM_ENTRA_SCHEMA = z
+const BARCODE_NOM_IN_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
   .startsWith(BarcodePrefix.nominativoIn, "Barcode non valido")
   .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
   .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
-const BARCODE_NOM_ESCE_SCHEMA = z
+const BARCODE_NOM_OUT_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
   .startsWith(BarcodePrefix.nominativoOut, "Barcode non valido")
   .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
   .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
-const BARCODE_PROV_ENTRA_SCHEMA = z
+const BARCODE_PROV_IN_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
   .startsWith(BarcodePrefix.provvisorioIn, "Barcode non valido")
   .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
   .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
-const BARCODE_PROV_ESCE_SCHEMA = z
+const BARCODE_PROV_OUT_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
   .startsWith(BarcodePrefix.provvisorioOut, "Barcode non valido")
   .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
   .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
-const BARCODE_CHIAVE_ENTRA_SCHEMA = z
+const BARCODE_CHIAVE_IN_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
   .startsWith(BarcodePrefix.chiaveIn, "Barcode non valido")
   .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
   .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
-const BARCODE_CHIAVE_ESCE_SCHEMA = z
+const BARCODE_CHIAVE_OUT_SCHEMA = z
   .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
   .startsWith(BarcodePrefix.chiaveOut, "Barcode non valido")
   .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
@@ -733,10 +733,10 @@ const BARCODE_CHIAVE_ESCE_SCHEMA = z
 
 export const TIMBRA_BADGE_SCHEMA = z.object({
   badge_cod: z.union([
-    BARCODE_NOM_ENTRA_SCHEMA,
-    BARCODE_NOM_ESCE_SCHEMA,
-    BARCODE_PROV_ENTRA_SCHEMA,
-    BARCODE_PROV_ESCE_SCHEMA,
+    BARCODE_NOM_IN_SCHEMA,
+    BARCODE_NOM_OUT_SCHEMA,
+    BARCODE_PROV_IN_SCHEMA,
+    BARCODE_PROV_OUT_SCHEMA,
     CODICE_STUDENTE_SCHEMA,
   ]),
   created_at: z
@@ -759,12 +759,12 @@ export type TimbraVeicoloData = z.infer<typeof TIMBRA_VEICOLO_SCHEMA>;
 
 const validPrestaChiaviBadgeSchema = z
   .union([
-    BARCODE_CHIAVE_ENTRA_SCHEMA,
-    BARCODE_CHIAVE_ESCE_SCHEMA,
-    BARCODE_NOM_ENTRA_SCHEMA,
-    BARCODE_NOM_ESCE_SCHEMA,
-    BARCODE_PROV_ENTRA_SCHEMA,
-    BARCODE_PROV_ESCE_SCHEMA,
+    BARCODE_CHIAVE_IN_SCHEMA,
+    BARCODE_CHIAVE_OUT_SCHEMA,
+    BARCODE_NOM_IN_SCHEMA,
+    BARCODE_NOM_OUT_SCHEMA,
+    BARCODE_PROV_IN_SCHEMA,
+    BARCODE_PROV_OUT_SCHEMA,
     CODICE_CHIAVE_SCHEMA,
     CODICE_NOM_SCHEMA,
     CODICE_MAZZO_SCHEMA,
@@ -816,11 +816,7 @@ export type TimbraChiaviData = z.infer<typeof TIMBRA_CHIAVI_SCHEMA>;
 
 export const PAUSA_SCHEMA = z.object({
   badge_cod: z
-    .union([
-      BARCODE_NOM_ENTRA_SCHEMA,
-      BARCODE_NOM_ESCE_SCHEMA,
-      CODICE_NOM_SCHEMA,
-    ])
+    .union([BARCODE_NOM_IN_SCHEMA, BARCODE_NOM_OUT_SCHEMA, CODICE_NOM_SCHEMA])
     .transform((value) => (value.length === 9 ? value : value.substring(1))),
   post_id: ID_SCHEMA("Postazione ID"),
   ip: z.string().default("unknown"),
@@ -830,8 +826,8 @@ export const PAUSA_SCHEMA = z.object({
 export const INSERT_ARCH_BADGE_SCHEMA = z.object({
   badge_cod: z
     .union([
-      BARCODE_PROV_ENTRA_SCHEMA,
-      BARCODE_PROV_ESCE_SCHEMA,
+      BARCODE_PROV_IN_SCHEMA,
+      BARCODE_PROV_OUT_SCHEMA,
       CODICE_PROV_SCHEMA,
     ])
     .transform((v) => (v.length === 10 ? v.substring(1) : v)),
@@ -984,56 +980,36 @@ export const UPDATE_ARCHIVIO_SCHEMA = z.object({
 });
 export type UpdateArchivioData = z.infer<typeof UPDATE_ARCHIVIO_SCHEMA>;
 
-export const TIMBRA_NOM_UTILITY_SCHEMA = z.object({
-  badge_cod: z.union([BARCODE_NOM_ENTRA_SCHEMA, BARCODE_NOM_ESCE_SCHEMA]),
-  post_id: ID_SCHEMA("Postazione ID"),
-  created_at: z.coerce.date({ invalid_type_error: "Data non valida" }),
-});
-
-export const TIMBRA_NOM_UTILITY_SCHEMA_ARRAY = z
+export const TIMBRA_NOM_ITEM_SCHEMA = z
   .object({
-    badge_cod: z.union([BARCODE_NOM_ENTRA_SCHEMA, BARCODE_NOM_ESCE_SCHEMA]),
+    badge_cod: z.union([BARCODE_NOM_IN_SCHEMA, BARCODE_NOM_OUT_SCHEMA]),
     post_id: ID_SCHEMA("Postazione ID"),
     created_at: z.coerce.date({ invalid_type_error: "Data non valida" }),
   })
-  .array()
-  .nonempty("Nessuna timbratura fornita");
-
-export const TIMBRA_NOM_IN_WITH_DATE_SCHEMA = TIMBRA_NOM_UTILITY_SCHEMA.extend({
-  ip: z.string().default("unknown"),
-  username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
-  badge_cod: BARCODE_NOM_ENTRA_SCHEMA,
-}).transform((o) => {
-  const parsed = {
+  .transform((o) => ({
     ...o,
     badge_cod: o.badge_cod.substring(1),
-    created_at: o.created_at,
-  };
-  const { ["created_at"]: omitted, ...result } = parsed;
-  return result;
-});
-export type TimbraNomInWithDateData = z.infer<
-  typeof TIMBRA_NOM_IN_WITH_DATE_SCHEMA
->;
+    mark_type:
+      o.badge_cod.substring(0, 2) === BarcodePrefix.nominativoIn
+        ? 0
+        : MarkType.inOut,
+  }));
 
-export const TIMBRA_NOM_OUT_WITH_DATE_SCHEMA = TIMBRA_NOM_UTILITY_SCHEMA.extend(
-  {
+export const TIMBRA_NOM_BODY_SCHEMA = z
+  .object({
+    items: TIMBRA_NOM_ITEM_SCHEMA.array().nonempty(
+      "Nessuna timbratura fornita"
+    ),
     ip: z.string().default("unknown"),
     username: z.string({ required_error: MISSING_ATTR_ERR_MSG("Username") }),
-    badge_cod: BARCODE_NOM_ESCE_SCHEMA,
-  }
-).transform((o) => {
-  const parsed = {
-    ...o,
-    badge_cod: o.badge_cod.substring(1),
-    data_out: o.created_at,
-  };
-  const { ["created_at"]: omitted, ...result } = parsed;
-  return result;
-});
-export type TimbraNomOutWithDateData = z.infer<
-  typeof TIMBRA_NOM_OUT_WITH_DATE_SCHEMA
->;
+  })
+  .transform(({ items, ip, username }) =>
+    items.map((item) => ({
+      ...item,
+      ip,
+      username,
+    }))
+  );
 
 export const GET_FREE_KEYS_SCHEMA = z
   .object({

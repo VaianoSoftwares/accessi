@@ -3,7 +3,7 @@ import ArchivioDB from "../db/archivio.js";
 import { Err, Ok } from "../types/index.js";
 import { BaseError } from "../types/errors.js";
 import * as Validator from "../utils/validation.js";
-import { BarcodePrefix } from "../types/archivio.js";
+import { BarcodePrefix, MarkType } from "../types/archivio.js";
 import BadgesFileManager from "../files/badges.js";
 import enforceBaseErr from "../utils/enforceBaseErr.js";
 import MazziChiaviDB from "../db/mazzi.js";
@@ -16,7 +16,7 @@ export default class ArchivioController {
   ) {
     try {
       const parsed = Validator.GET_ARCHIVIO_SCHEMA.safeParse(req.query);
-      if (parsed.success === false) {
+      if (!parsed.success) {
         throw new BaseError(parsed.error.errors[0].message, {
           status: 400,
           cause: parsed.error,
@@ -36,7 +36,7 @@ export default class ArchivioController {
   ) {
     try {
       const parsed = Validator.GET_IN_STRUTT_BADGES_SCHEMA.safeParse(req.query);
-      if (parsed.success === false) {
+      if (!parsed.success) {
         throw new BaseError(parsed.error.errors[0].message, {
           status: 400,
           cause: parsed.error,
@@ -58,7 +58,7 @@ export default class ArchivioController {
       const parsed = Validator.GET_IN_STRUTT_VEICOLI_SCHEMA.safeParse(
         req.query
       );
-      if (parsed.success === false) {
+      if (!parsed.success) {
         throw new BaseError(parsed.error.errors[0].message, {
           status: 400,
           cause: parsed.error,
@@ -78,7 +78,7 @@ export default class ArchivioController {
   ) {
     try {
       const parsed = Validator.FIND_IN_PRESTITO_SCHEMA.safeParse(req.query);
-      if (parsed.success === false) {
+      if (!parsed.success) {
         throw new BaseError(parsed.error.errors[0].message, {
           status: 400,
           cause: parsed.error,
@@ -102,7 +102,7 @@ export default class ArchivioController {
         ip: req.ip,
         username: req.user?.name,
       });
-      if (parsed.success === false) {
+      if (!parsed.success) {
         throw new BaseError(parsed.error.errors[0].message, {
           status: 400,
           cause: parsed.error,
@@ -159,7 +159,7 @@ export default class ArchivioController {
         ip: req.ip,
         username: req.user?.name,
       });
-      if (parsed.success === false) {
+      if (!parsed.success) {
         throw new BaseError(parsed.error.errors[0].message, {
           status: 400,
           cause: parsed.error,
@@ -183,7 +183,7 @@ export default class ArchivioController {
         ip: req.ip,
         username: req.user?.name,
       });
-      if (parsed.success === false) {
+      if (!parsed.success) {
         throw new BaseError(parsed.error.errors[0].message, {
           status: 400,
           cause: parsed.error,
@@ -284,7 +284,7 @@ export default class ArchivioController {
         ip: req.ip,
         username: req.user?.name,
       });
-      if (parsed.success === false) {
+      if (!parsed.success) {
         throw new BaseError(parsed.error.errors[0].message, {
           status: 400,
           cause: parsed.error,
@@ -328,7 +328,7 @@ export default class ArchivioController {
         ip: req.ip,
         username: req.user?.name,
       });
-      if (parsed.success === false) {
+      if (!parsed.success) {
         throw new BaseError(parsed.error.errors[0].message, {
           status: 400,
           cause: parsed.error,
@@ -368,7 +368,7 @@ export default class ArchivioController {
   ) {
     try {
       const parsed = Validator.GET_RESOCONTO_SCHEMA.safeParse(req.query);
-      if (parsed.success === false) {
+      if (!parsed.success) {
         throw new BaseError(parsed.error.errors[0].message, {
           status: 400,
           cause: parsed.error,
@@ -400,7 +400,7 @@ export default class ArchivioController {
         ip: req.ip,
         username: req.user?.name,
       });
-      if (parsed.success === false) {
+      if (!parsed.success) {
         throw new BaseError(parsed.error.errors[0].message, {
           status: 400,
           cause: parsed.error,
@@ -421,7 +421,7 @@ export default class ArchivioController {
   ) {
     try {
       const parsed = Validator.UPDATE_ARCHIVIO_SCHEMA.safeParse(req.body);
-      if (parsed.success === false) {
+      if (!parsed.success) {
         throw new BaseError(parsed.error.errors[0].message, {
           status: 400,
           cause: parsed.error,
@@ -440,10 +440,12 @@ export default class ArchivioController {
     next: NextFunction
   ) {
     try {
-      const parsed = Validator.TIMBRA_NOM_UTILITY_SCHEMA_ARRAY.safeParse(
-        req.body
-      );
-      if (parsed.success === false) {
+      const parsed = Validator.TIMBRA_NOM_BODY_SCHEMA.safeParse({
+        ...req.body,
+        username: req.user?.name,
+        ip: req.ip,
+      });
+      if (!parsed.success) {
         throw new BaseError(parsed.error.errors[0].message, {
           status: 400,
           cause: parsed.error,
@@ -451,42 +453,16 @@ export default class ArchivioController {
       }
 
       const response = await Promise.all(
-        parsed.data
-          .map((o) => ({ ...o, username: req.user?.name, ip: req.ip }))
-          .map(async (o) => {
-            try {
-              const timbraDataIn =
-                Validator.TIMBRA_NOM_IN_WITH_DATE_SCHEMA.safeParse(o);
-              if (timbraDataIn.success === true) {
-                const result = await ArchivioDB.timbraNominativoIn(
-                  timbraDataIn.data
-                );
-                return Ok(result);
-              }
-
-              const timbraDataOut =
-                Validator.TIMBRA_NOM_OUT_WITH_DATE_SCHEMA.safeParse(o);
-              if (timbraDataOut.success === true) {
-                const result = await ArchivioDB.timbraNominativoOut(
-                  timbraDataOut.data
-                );
-                return Ok(result);
-              }
-
-              return Err(
-                new BaseError("Invalid timbra data", {
-                  status: 400,
-                  context: parsed.data,
-                  cause:
-                    o.badge_cod.charAt(0) === "0"
-                      ? timbraDataIn.error
-                      : timbraDataOut.error,
-                })
-              );
-            } catch (e) {
-              return Err(enforceBaseErr(e));
-            }
-          })
+        parsed.data.map(async (o) => {
+          try {
+            const result = await ((o.mark_type & MarkType.inOut) === 0
+              ? ArchivioDB.timbraNominativoIn(o)
+              : ArchivioDB.timbraNominativoOut(o));
+            return Ok(result);
+          } catch (e) {
+            return Err(enforceBaseErr(e));
+          }
+        })
       );
 
       res.json(Ok(response));

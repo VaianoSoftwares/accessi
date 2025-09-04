@@ -16,7 +16,6 @@ import {
   TimbraChiaviProvData,
   TimbraChiaviNoBadgeData,
   MarkType,
-  checkMarkType,
 } from "../types/archivio.js";
 import { BaseError } from "../types/errors.js";
 import {
@@ -327,7 +326,7 @@ export default class ArchivioDB {
         context: { archId, badgeCode },
       });
     }
-    return { row: inStruttRows[0], isEntering: true };
+    return { row: inStruttRows[0], isEnter: true };
   }
 
   public static async timbraNominativoOut(data: TimbraBadgeData) {
@@ -404,7 +403,7 @@ export default class ArchivioDB {
       });
     }
 
-    return { row: inStruttRows[0], isEntering: false };
+    return { row: inStruttRows[0], isEnter: false };
   }
 
   public static async timbraProvvisorioIn(data: TimbraBadgeData) {
@@ -480,7 +479,7 @@ export default class ArchivioDB {
         context: { archId, badgeCode },
       });
     }
-    return { row: inStruttRows[0], isEntering: true };
+    return { row: inStruttRows[0], isEnter: true };
   }
 
   public static async timbraProvvisorioOut(data: TimbraBadgeData) {
@@ -553,7 +552,7 @@ export default class ArchivioDB {
       });
     }
 
-    return { row: inStruttRows[0], isEntering: false };
+    return { row: inStruttRows[0], isEnter: false };
   }
 
   public static async timbraVeicolo(data: TimbraVeicoloData) {
@@ -615,7 +614,7 @@ export default class ArchivioDB {
           context: { archId, targa },
         });
       }
-      return { row: inStruttRows[0], isEntering: true };
+      return { row: inStruttRows[0], isEnter: true };
     } else {
       const archId = fullInStruttRows[0].id;
 
@@ -657,11 +656,7 @@ export default class ArchivioDB {
         });
       }
 
-      // await db.query(
-      //   `CALL mark_out(${archId}, \'\"${ArchTableName.VEICOLI}\"\')`
-      // );
-
-      return { row: inStruttRows[0], isEntering: false };
+      return { row: inStruttRows[0], isEnter: false };
     }
   }
 
@@ -692,7 +687,7 @@ export default class ArchivioDB {
           context: { archId, targa: data.targa },
         });
       }
-      return { row: inStruttRows[0], isEntering: true };
+      return { row: inStruttRows[0], isEnter: true };
     } else {
       const archId = fullInStruttRows[0].id;
 
@@ -735,11 +730,7 @@ export default class ArchivioDB {
         });
       }
 
-      // await db.query(
-      //   `CALL mark_out(${archId}, \'\"${ArchTableName.VEICOLI_PROV}\"\')`
-      // );
-
-      return { row: inStruttRows[0], isEntering: false };
+      return { row: inStruttRows[0], isEnter: false };
     }
   }
 
@@ -910,7 +901,7 @@ export default class ArchivioDB {
           context: { archId, badgeCode },
         });
       }
-      return { row: inStruttRows[0], isEntering: true };
+      return { row: inStruttRows[0], isEnter: true };
     } else {
       const archId = fullInStruttRows[0].id;
 
@@ -947,11 +938,7 @@ export default class ArchivioDB {
         });
       }
 
-      // await db.query(
-      //   `CALL mark_out(${archId}, \'\"${ArchTableName.PROVVISORI}\"\')`
-      // );
-
-      return { row: inStruttRows[0], isEntering: false };
+      return { row: inStruttRows[0], isEnter: false };
     }
   }
 
@@ -1533,8 +1520,8 @@ export default class ArchivioDB {
     }
 
     return {
-      in: inStruttRows[0],
-      out: insertedRows[0],
+      row: inStruttRows[0],
+      newRow: insertedRows[0],
     };
   }
 

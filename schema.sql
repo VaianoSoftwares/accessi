@@ -651,10 +651,12 @@ CREATE VIEW full_in_prestito AS
     ORDER BY created_at DESC;
 
 CREATE VIEW in_strutt_badges AS
-    SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, created_at FROM full_in_strutt_badges;
+    SELECT id, codice, descrizione, assegnazione, cliente, postazione, nome, cognome, ditta, created_at
+    FROM full_in_strutt_badges;
 
 CREATE VIEW in_strutt_veicoli AS
-    SELECT id, targa, descrizione, tveicolo, assegnazione, cliente, postazione, nome, cognome, ditta, created_at FROM full_in_strutt_veicoli;
+    SELECT id, targa, descrizione, tveicolo, assegnazione, cliente, postazione, nome, cognome, ditta, created_at 
+    FROM full_in_strutt_veicoli;
 
 CREATE VIEW in_prestito AS
     SELECT id, badge, nome, cognome, ditta, cliente, postazione, chiave, created_at FROM full_in_prestito;
