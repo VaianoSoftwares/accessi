@@ -441,7 +441,7 @@ export default class ArchivioController {
   ) {
     try {
       const parsed = Validator.TIMBRA_NOM_BODY_SCHEMA.safeParse({
-        ...req.body,
+        items: req.body,
         username: req.user?.name,
         ip: req.ip,
       });
@@ -452,18 +452,30 @@ export default class ArchivioController {
         });
       }
 
-      const response = await Promise.all(
-        parsed.data.map(async (o) => {
-          try {
-            const result = await ((o.mark_type & MarkType.inOut) === 0
-              ? ArchivioDB.timbraNominativoIn(o)
-              : ArchivioDB.timbraNominativoOut(o));
-            return Ok(result);
-          } catch (e) {
-            return Err(enforceBaseErr(e));
-          }
-        })
-      );
+      let response = [];
+      for (const item of parsed.data) {
+        try {
+          const result = await ((item.mark_type & MarkType.inOut) === 0
+            ? ArchivioDB.timbraNominativoIn(item)
+            : ArchivioDB.timbraNominativoOut(item));
+          response.push(Ok(result));
+        } catch (e) {
+          response.push(Err(enforceBaseErr(e)));
+        }
+      }
+
+      // const response = await Promise.all(
+      //   parsed.data.map(async (o) => {
+      //     try {
+      //       const result = await ((o.mark_type & MarkType.inOut) === 0
+      //         ? ArchivioDB.timbraNominativoIn(o)
+      //         : ArchivioDB.timbraNominativoOut(o));
+      //       return Ok(result);
+      //     } catch (e) {
+      //       return Err(enforceBaseErr(e));
+      //     }
+      //   })
+      // );
 
       res.json(Ok(response));
     } catch (e) {
