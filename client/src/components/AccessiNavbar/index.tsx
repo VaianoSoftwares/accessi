@@ -55,7 +55,7 @@ export default function AccessiNavbar({
         console.log("queryClienti | response:", response);
 
         const result = response.data.result;
-        if (currCliente === undefined) {
+        if (currCliente === undefined || currCliente === "{") {
           const newCurrCliente = result.find((cliente) =>
             currentUser?.clienti.includes(cliente)
           );
@@ -202,7 +202,7 @@ export default function AccessiNavbar({
             )}
           </ul>
           <ul className="navbar-nav me-auto mb-2 mb-lg-0 w-100 m-1 secondary-nav">
-            {clienti.isSuccess && (
+            {clienti.isSuccess && currCliente && (
               <div className="d-flex">
                 <select
                   className="form-select me-2"
@@ -223,7 +223,7 @@ export default function AccessiNavbar({
                 </select>
               </div>
             )}
-            {postazioni.isSuccess && (
+            {postazioni.isSuccess && currCliente && (
               <div className="d-flex">
                 <select
                   className="form-select me-2"
