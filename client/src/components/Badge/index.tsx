@@ -9,7 +9,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useImage from "../../hooks/useImage";
 import { toast } from "react-hot-toast";
 import { TPermessi, hasPerm, isAdmin } from "../../types/users";
-import { BadgeType } from "../../types/badges";
+import { BadgeType, MarkType } from "../../types/badges";
 import htmlTableToExcel from "../../utils/htmlTableToExcel";
 import {
   FindBadgeInStruttData,
@@ -306,7 +306,7 @@ export default function Badge({
               <div className="w-100 mt-4"></div>
               <div className="col-sm-9"></div>
               <div className="col in-strutt-count p-1">
-                # In Struttura: {queryInStrutt.data?.length || 0}
+                # In Struttura: {queryInStrutt.data?.filter(row => !(row.mark_type & MarkType.pause)).length || 0}
               </div>
             </div>
           </div>
@@ -401,7 +401,7 @@ export default function Badge({
                 : queryInStrutt.data
             }
             tableId={TABLE_NAME}
-            omitedParams={["id"]}
+            omitedParams={["id", "mark_type"]}
             obfuscatedParams={isAdmin(currentUser) ? undefined : ["codice"]}
             timestampParams={["created_at"]}
             renamedParams={new Map([["created_at", "data"]])}

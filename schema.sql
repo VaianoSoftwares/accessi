@@ -118,9 +118,9 @@ BEGIN
         RETURN FALSE;
     END IF;
 
-    EXECUTE format('SELECT MAX(created_at) FROM %s WHERE badge_cod = $1 AND pause_flag(mark_type) = pause_flag(rec_mark)', tbl)
+    EXECUTE format('SELECT MAX(created_at) FROM %s WHERE badge_cod = $1 AND pause_flag(mark_type) = pause_flag($2)', tbl)
     INTO max_created
-    USING rec_badge;
+    USING rec_badge, rec_mark;
 
     RETURN max_created = rec_created;
 END $$ LANGUAGE plpgsql STABLE;
@@ -265,12 +265,12 @@ CREATE TABLE IF NOT EXISTS archivio_nominativi(
     mark_type INT NOT NULL DEFAULT 0,
     username non_empty_text64 NOT NULL REFERENCES users (name),
     ip non_empty_text32 NOT NULL,
-    UNIQUE (badge_cod, created_at)
+    UNIQUE (badge_cod, created_at, mark_type)
 );
 
 CREATE TABLE IF NOT EXISTS archivio_provvisori(
     id BIGINT PRIMARY KEY DEFAULT nextval('arch_ids'),
-    badge_cod badge_code NOT NULL REFERENCES provvisori (codice),
+    badge_cod provv_code NOT NULL REFERENCES provvisori (codice),
     person_id INT NOT NULL REFERENCES people (id),
     post_id INT NOT NULL REFERENCES postazioni (id),
     created_at TIMESTAMP,
@@ -557,7 +557,7 @@ CREATE VIEW full_in_strutt_badges AS
         SELECT a.id, n.codice, n.descrizione, 
         CASE WHEN is_in_pause(a.mark_type) THEN 'SI' ELSE 'NO' END AS pausa, 
         po.cliente, po.name AS postazione, a.created_at, 
-        n.nome, n.cognome, n.assegnazione, n.ditta, n.cod_fisc, n.ndoc, n.tdoc, n.telefono, n.scadenza, po.id AS post_id, a.mark_type
+        n.nome, n.cognome, n.assegnazione, n.ditta, n.cod_fisc, n.ndoc, n.tdoc, n.telefono, n.scadenza, po.id AS post_id, a.mark_type, NULL::INT AS person_id
         FROM nominativi AS n
         JOIN archivio_nominativi AS a ON n.codice = a.badge_cod
         JOIN postazioni AS po ON a.post_id = po.id
@@ -566,7 +566,7 @@ CREATE VIEW full_in_strutt_badges AS
     full_archivio_provvisori AS (
         SELECT a.id, a.badge_cod AS codice, NULL AS descrizione, 'NO' AS pausa, po.cliente, po.name AS postazione, 
         a.created_at, pe.nome, pe.cognome, pe.assegnazione, pe.ditta, pe.cod_fisc, pe.ndoc, pe.tdoc, pe.telefono, 
-        NULL::DATE AS scadenza, po.id AS post_id, a.mark_type
+        NULL::DATE AS scadenza, po.id AS post_id, a.mark_type, a.person_id
         FROM people AS pe
         JOIN archivio_provvisori AS a ON pe.id = a.person_id
         JOIN postazioni AS po ON a.post_id = po.id

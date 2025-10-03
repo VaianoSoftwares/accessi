@@ -112,9 +112,9 @@ export function getInsertRowsQuery(
     tableName,
     "(",
     rowsFieldsText,
-    ") VALUES (",
+    ") VALUES",
     rowsValuesText,
-    ") RETURNING *",
+    "RETURNING *",
   ].join(" ");
   const queryValues = rowsEntries.flatMap((row) =>
     row.map(([, value]) => value)

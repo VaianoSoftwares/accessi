@@ -83,7 +83,7 @@ export type VeicoloInStrutt = WithId<
 >;
 
 export type FullBadgeInStrutt = BadgeInStrutt &
-  BaseNominativo & { post_id: number; mark_type: number };
+  BaseNominativo & { post_id: number; mark_type: number; person_id: number | null };
 export type FullVeicoloInStrutt = VeicoloInStrutt &
   BaseNominativo & { post_id: number };
 

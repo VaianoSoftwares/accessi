@@ -102,7 +102,7 @@ export default class ArchivioDB {
 
   public static async getBadgesInStrutt(filter?: FindInStruttBadgesFilter) {
     let i = 1;
-    const prefixText = `SELECT id, codice, descrizione, pausa, assegnazione, cliente, postazione, nome, cognome, ditta, created_at FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
+    const prefixText = `SELECT id, codice, descrizione, pausa, assegnazione, cliente, postazione, nome, cognome, ditta, created_at, mark_type FROM ${ArchTableName.FULL_BADGES_IN_STRUTT}`;
     let filterText = filter
       ? Object.entries(filter)
           .filter(([key, value]) => value && !["pausa"].includes(key))
@@ -529,7 +529,7 @@ export default class ArchivioDB {
     const archId = fullInStruttRows[0].id;
 
     const { rowCount: numInStruttRows, rows: inStruttRows } =
-      await ArchivioDB.getBadgesInStrutt({ id: archId });
+      await db.query<FullBadgeInStrutt>(`SELECT * FROM ${ArchTableName.FULL_BADGES_IN_STRUTT} WHERE id = $1`, [archId]);
     if (!numInStruttRows) {
       throw new BaseError("Impossibile reperire badge in struttura", {
         status: 500,
@@ -543,6 +543,7 @@ export default class ArchivioDB {
         ...data,
         mark_type: MarkType.inOut,
         created_at: data.created_at || new Date(),
+        person_id: fullInStruttRows[0].person_id,
       }
     );
     if (!numInsertedRows) {
@@ -1513,8 +1514,7 @@ export default class ArchivioDB {
         );
       }
 
-      let result: any;
-      result.row = inStruttRows[0];
+      let result = { row: inStruttRows[0], newRows: new Array<any>()};
 
       if (switchedPos) {
         const insertData = [
