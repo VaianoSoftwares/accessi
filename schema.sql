@@ -114,11 +114,11 @@ BEGIN
     INTO rec_created, rec_badge, rec_mark
     USING record_id;
 
-    IF rec_created IS NULL OR (NOT pause_flag(rec_mark) AND in_out_flag(rec_mark)) THEN
+    IF rec_created IS NULL OR in_out_flag(rec_mark) THEN
         RETURN FALSE;
     END IF;
 
-    EXECUTE format('SELECT MAX(created_at) FROM %s WHERE badge_cod = $1', tbl)
+    EXECUTE format('SELECT MAX(created_at) FROM %s WHERE badge_cod = $1 AND pause_flag(mark_type) = pause_flag(rec_mark)', tbl)
     INTO max_created
     USING rec_badge;
 

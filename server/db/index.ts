@@ -15,10 +15,12 @@ const pool = new Pool({
 
 export async function query<T extends QueryResultRow = any>(
   text: string,
-  values?: any[]
+  values?: any[],
+  client?: pg.PoolClient
 ) {
+  const runner = client ?? pool;
   const timerStart = Date.now();
-  const res = await pool.query<T>(values ? { text, values } : text);
+  const res = await runner.query<T>(values ? { text, values } : text);
   const execTime = Date.now() - timerStart;
   console.log("Executed query", {
     text,
@@ -94,6 +96,33 @@ export function getInsertRowQuery(
   return { queryText, queryValues };
 }
 
+export function getInsertRowsQuery(
+  tableName: string,
+  insertData: Record<PropertyKey, any>[]
+) {
+  const rowsEntries = insertData.map((row) => Object.entries(row));
+  const rowsFieldsText = rowsEntries[0].map(([key]) => key).join(",");
+  let i = 1;
+  const rowsValuesText = rowsEntries
+    .map((row) => `(${row.map((_) => `$${i++}`).join(",")})`)
+    .join(",");
+
+  const queryText = [
+    "INSERT INTO",
+    tableName,
+    "(",
+    rowsFieldsText,
+    ") VALUES (",
+    rowsValuesText,
+    ") RETURNING *",
+  ].join(" ");
+  const queryValues = rowsEntries.flatMap((row) =>
+    row.map(([, value]) => value)
+  );
+
+  return { queryText, queryValues };
+}
+
 export function getUpdateRowsQuery(
   tableName: string,
   updateData: Record<PropertyKey, any>,
@@ -154,29 +183,41 @@ export function getDeleteRowsQuery(
 
 export async function insertRow<T extends QueryResultRow>(
   tableName: string,
-  insertData: Record<PropertyKey, any>
+  insertData: Record<PropertyKey, any>,
+  client?: pg.PoolClient
 ) {
   const { queryText, queryValues } = getInsertRowQuery(tableName, insertData);
-  return await query<T>(queryText, queryValues);
+  return await query<T>(queryText, queryValues, client);
+}
+
+export async function insertRows<T extends QueryResultRow>(
+  tableName: string,
+  insertData: Record<PropertyKey, any>[],
+  client?: pg.PoolClient
+) {
+  const { queryText, queryValues } = getInsertRowsQuery(tableName, insertData);
+  return await query<T>(queryText, queryValues, client);
 }
 
 export async function updateRows<T extends QueryResultRow>(
   tableName: string,
   updateData: Record<PropertyKey, any>,
-  filter?: Record<PropertyKey, any>
+  filter?: Record<PropertyKey, any>,
+  client?: pg.PoolClient
 ) {
   const { queryText, queryValues } = getUpdateRowsQuery(
     tableName,
     updateData,
     filter
   );
-  return await query<T>(queryText, queryValues);
+  return await query<T>(queryText, queryValues, client);
 }
 
 export async function deleteRows<T extends QueryResultRow>(
   tableName: string,
-  filter?: Record<PropertyKey, any>
+  filter?: Record<PropertyKey, any>,
+  client?: pg.PoolClient
 ) {
   const { queryText, queryValues } = getDeleteRowsQuery(tableName, filter);
-  return await query<T>(queryText, queryValues);
+  return await query<T>(queryText, queryValues, client);
 }
