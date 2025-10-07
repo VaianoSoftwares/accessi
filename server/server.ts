@@ -53,6 +53,14 @@ app.use(
 // public route
 app.use("/api/v1/public", express.static(path.resolve("server", "public")));
 
+// certificate challenges
+if (process.env.NODE_ENV != "development") {
+  app.use(
+    "/.well-known/acme-challenge",
+    express.static("/var/www/letsencrypt/.well-known/acme-challenge")
+  );
+}
+
 // routes
 mountRoutes(app);
 
