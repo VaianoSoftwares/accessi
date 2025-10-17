@@ -730,6 +730,11 @@ const BARCODE_CHIAVE_OUT_SCHEMA = z
   .startsWith(BarcodePrefix.chiaveOut, "Barcode non valido")
   .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
   .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
+const BARCODE_PAUSE_SCHEMA = z
+  .string({ required_error: MISSING_ATTR_ERR_MSG("Barcode") })
+  .startsWith(BarcodePrefix.pause, "Barcode non valido")
+  .regex(/^\d+$/, "Barcode deve contenere solo cifre numeriche")
+  .length(BARCODE_LEN, BARCODE_LEN_ERR_MSG);
 
 export const TIMBRA_BADGE_SCHEMA = z.object({
   badge_cod: z.union([
@@ -737,6 +742,7 @@ export const TIMBRA_BADGE_SCHEMA = z.object({
     BARCODE_NOM_OUT_SCHEMA,
     BARCODE_PROV_IN_SCHEMA,
     BARCODE_PROV_OUT_SCHEMA,
+    BARCODE_PAUSE_SCHEMA,
     CODICE_STUDENTE_SCHEMA,
   ]),
   created_at: z

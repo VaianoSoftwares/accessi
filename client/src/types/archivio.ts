@@ -161,17 +161,14 @@ export type FindInPrestitoData = {
 
 export type TimbraBadgeRes = {
   row: QueryBadgeInStrutt;
-  isEnter: boolean;
+  markType: number;
+  newRows?: QueryBadgeInStrutt[];
 };
 
 export type TimbraVeicoloRes = {
   row: QueryVeicoloInStrutt;
-  isEnter: boolean;
-};
-
-export type TimbraPausaRes = {
-  row: QueryBadgeInStrutt;
-  newRow: QueryBadgeInStrutt;
+  markType: number;
+  newRows?: QueryVeicoloInStrutt[];
 };
 
 export type PrestitoChiaviRes = {

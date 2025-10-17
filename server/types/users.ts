@@ -36,7 +36,8 @@ export enum TPermessi {
   showChiaviInAnagrafico = 1 << 12,
   showVeicoliInAnagrafico = 1 << 13,
   showMazziInAnagrafico = 1 << 14,
-  pause = 1 << 15,
+  showPause = 1 << 15,
+  canPerformPause = 1 << 16,
 }
 export enum TPages {
   admin = MAX_UINT32,

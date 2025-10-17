@@ -112,7 +112,7 @@ export default class ArchivioController {
       const { badge_cod: badgeCode } = parsed.data;
 
       const barcodeType =
-        badgeCode.length === 10 ? badgeCode.substring(0, 2) : "UNI";
+        badgeCode.length === 10 ? badgeCode.substring(0, 2) : "";
 
       const timbraData = {
         ...parsed.data,
@@ -135,6 +135,10 @@ export default class ArchivioController {
 
         case BarcodePrefix.provvisorioOut:
           dbRes = await ArchivioDB.timbraProvvisorioOut(timbraData);
+          break;
+
+        case BarcodePrefix.pause:
+          dbRes = await ArchivioDB.pausa(timbraData);
           break;
 
         default:
@@ -389,30 +393,30 @@ export default class ArchivioController {
     }
   }
 
-  public static async apiPausa(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const parsed = Validator.PAUSA_SCHEMA.safeParse({
-        ...req.body,
-        ip: req.ip,
-        username: req.user?.name,
-      });
-      if (!parsed.success) {
-        throw new BaseError(parsed.error.errors[0].message, {
-          status: 400,
-          cause: parsed.error,
-        });
-      }
+  // public static async apiPausa(
+  //   req: Request,
+  //   res: Response,
+  //   next: NextFunction
+  // ) {
+  //   try {
+  //     const parsed = Validator.PAUSA_SCHEMA.safeParse({
+  //       ...req.body,
+  //       ip: req.ip,
+  //       username: req.user?.name,
+  //     });
+  //     if (!parsed.success) {
+  //       throw new BaseError(parsed.error.errors[0].message, {
+  //         status: 400,
+  //         cause: parsed.error,
+  //       });
+  //     }
 
-      const result = await ArchivioDB.pausa(parsed.data);
-      res.json(Ok(result));
-    } catch (e) {
-      next(e);
-    }
-  }
+  //     const result = await ArchivioDB.pausa(parsed.data);
+  //     res.json(Ok(result));
+  //   } catch (e) {
+  //     next(e);
+  //   }
+  // }
 
   public static async apiUpdateArchivio(
     req: Request,

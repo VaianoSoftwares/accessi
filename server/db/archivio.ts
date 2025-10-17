@@ -326,7 +326,7 @@ export default class ArchivioDB {
         context: { archId, badgeCode },
       });
     }
-    return { row: inStruttRows[0], isEnter: true };
+    return { row: inStruttRows[0], markType: 0 };
   }
 
   public static async timbraNominativoOut(data: TimbraBadgeData) {
@@ -403,7 +403,7 @@ export default class ArchivioDB {
       });
     }
 
-    return { row: inStruttRows[0], isEnter: false };
+    return { row: inStruttRows[0], markType: MarkType.inOut };
   }
 
   public static async timbraProvvisorioIn(data: TimbraBadgeData) {
@@ -479,7 +479,7 @@ export default class ArchivioDB {
         context: { archId, badgeCode },
       });
     }
-    return { row: inStruttRows[0], isEnter: true };
+    return { row: inStruttRows[0], markType: 0 };
   }
 
   public static async timbraProvvisorioOut(data: TimbraBadgeData) {
@@ -529,7 +529,10 @@ export default class ArchivioDB {
     const archId = fullInStruttRows[0].id;
 
     const { rowCount: numInStruttRows, rows: inStruttRows } =
-      await db.query<FullBadgeInStrutt>(`SELECT * FROM ${ArchTableName.FULL_BADGES_IN_STRUTT} WHERE id = $1`, [archId]);
+      await db.query<FullBadgeInStrutt>(
+        `SELECT * FROM ${ArchTableName.FULL_BADGES_IN_STRUTT} WHERE id = $1`,
+        [archId]
+      );
     if (!numInStruttRows) {
       throw new BaseError("Impossibile reperire badge in struttura", {
         status: 500,
@@ -553,7 +556,7 @@ export default class ArchivioDB {
       });
     }
 
-    return { row: inStruttRows[0], isEnter: false };
+    return { row: inStruttRows[0], markType: MarkType.inOut };
   }
 
   public static async timbraVeicolo(data: TimbraVeicoloData) {
@@ -615,7 +618,7 @@ export default class ArchivioDB {
           context: { archId, targa },
         });
       }
-      return { row: inStruttRows[0], isEnter: true };
+      return { row: inStruttRows[0], markType: 0 };
     } else {
       const archId = fullInStruttRows[0].id;
 
@@ -657,7 +660,7 @@ export default class ArchivioDB {
         });
       }
 
-      return { row: inStruttRows[0], isEnter: false };
+      return { row: inStruttRows[0], markType: MarkType.inOut };
     }
   }
 
@@ -688,7 +691,7 @@ export default class ArchivioDB {
           context: { archId, targa: data.targa },
         });
       }
-      return { row: inStruttRows[0], isEnter: true };
+      return { row: inStruttRows[0], markType: 0 };
     } else {
       const archId = fullInStruttRows[0].id;
 
@@ -731,7 +734,7 @@ export default class ArchivioDB {
         });
       }
 
-      return { row: inStruttRows[0], isEnter: false };
+      return { row: inStruttRows[0], markType: MarkType.inOut };
     }
   }
 
@@ -902,7 +905,7 @@ export default class ArchivioDB {
           context: { archId, badgeCode },
         });
       }
-      return { row: inStruttRows[0], isEnter: true };
+      return { row: inStruttRows[0], markType: 0 };
     } else {
       const archId = fullInStruttRows[0].id;
 
@@ -939,7 +942,7 @@ export default class ArchivioDB {
         });
       }
 
-      return { row: inStruttRows[0], isEnter: false };
+      return { row: inStruttRows[0], markType: MarkType.inOut };
     }
   }
 
@@ -1514,7 +1517,11 @@ export default class ArchivioDB {
         );
       }
 
-      let result = { row: inStruttRows[0], newRows: new Array<any>()};
+      let result = {
+        row: inStruttRows[0],
+        newRows: new Array<any>(),
+        markType: MarkType.pause,
+      };
 
       if (switchedPos) {
         const insertData = [

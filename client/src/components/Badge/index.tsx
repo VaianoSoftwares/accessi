@@ -25,7 +25,10 @@ const TABLE_NAME = "in_strutt_table";
 const PROXY = import.meta.env.DEV ? import.meta.env.VITE_PROXY : "";
 
 const TEXT_COLOR_DARK = "rgba(220, 220, 220, 255)";
-const POPUP_BG_COLOR_DEFAULT = "green";
+const TEXT_COLOR_LIGHT = "rgba(40, 40, 40, 255)";
+const POPUP_BG_IN = "green";
+const POPUP_BG_OUT = "red";
+const POPUP_BG_PAUSE = "gold";
 
 export default function Badge({
   scannedValue,
@@ -52,14 +55,14 @@ export default function Badge({
 
   const [isOspPopupShown, setIsOspPopupShown] = useBool(false);
   const [isPauseShown, setIsPauseShown] = useBool(
-    hasPerm(currentUser, TPermessi.pause)
+    hasPerm(currentUser, TPermessi.showPause)
   );
 
   const [pfpUrl, { updateImage }] = useImage((data) =>
     data ? `${PROXY}/api/v1/public/uploads/PFP_${data}.jpg` : ""
   );
   const [isPopupShown, setIsPopupShown] = useBool(false);
-  const [popupBgColor, setPopupBgColor] = useState(POPUP_BG_COLOR_DEFAULT);
+  const [popupBgColor, setPopupBgColor] = useState(POPUP_BG_IN);
   const [popupTxtColor, setPopupTxtColor] = useState(TEXT_COLOR_DARK);
   const [popupMsg, setPopupMsg] = useState("");
 
@@ -104,23 +107,49 @@ export default function Badge({
 
       await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
 
-      const { row: timbraRow, isEnter } = response.data.result;
+      const { row: timbraRow, markType } = response.data.result;
 
-      setDeletedRow(!isEnter ? timbraRow : undefined);
+      let deleteRow;
+      let popupMsg = `${timbraRow.nome || ""} ${timbraRow.cognome || ""} `;
+      let bgColor = "";
+      let txtColor = "";
+      let rowClass = "";
+      switch (markType & (MarkType.inOut | MarkType.pause)) {
+        case 0:
+          deleteRow = undefined;
+          popupMsg += "ENTRATA";
+          bgColor = POPUP_BG_IN;
+          txtColor = TEXT_COLOR_DARK;
+          rowClass = "added-row";
+          break;
+        case MarkType.inOut:
+          deleteRow = timbraRow;
+          popupMsg += "USCITA";
+          bgColor = POPUP_BG_OUT;
+          txtColor = TEXT_COLOR_DARK;
+          rowClass = "removed-row";
+          break;
+        case MarkType.pause:
+        case MarkType.pause | MarkType.inOut:
+          deleteRow = undefined;
+          popupMsg += "PAUSA";
+          bgColor = POPUP_BG_PAUSE;
+          txtColor = TEXT_COLOR_LIGHT;
+          rowClass = "updated-row";
+          break;
+      }
+
+      setDeletedRow(deleteRow);
 
       updateImage(timbraRow.codice);
-      setPopupMsg(
-        `${timbraRow.nome || ""} ${timbraRow.cognome || ""} ${
-          isEnter ? "ENTRATA" : "USCITA"
-        }`
-      );
-      setPopupBgColor(isEnter ? POPUP_BG_COLOR_DEFAULT : "red");
-      setPopupTxtColor(TEXT_COLOR_DARK);
+      setPopupMsg(popupMsg);
+      setPopupBgColor(bgColor);
+      setPopupTxtColor(txtColor);
       setIsPopupShown.setTrue();
 
       const badgeTable = document.getElementById(TABLE_NAME);
       if (badgeTable) {
-        badgeTable.classList.add(isEnter ? "added-row" : "removed-row");
+        badgeTable.classList.add(rowClass);
       }
 
       await sleep(1000);
@@ -131,52 +160,6 @@ export default function Badge({
       refreshPage(false);
 
       setDeletedRow(undefined);
-      await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
-      if (currentUser?.postazioni_ids.length !== 1) clearCurrPostazione();
-
-      timeoutRunning.current = false;
-    },
-    onError: async (err) => {
-      setDeletedRow(undefined);
-      handleError(err, "timbra");
-    },
-  });
-
-  const mutatePausa = useMutation({
-    mutationFn: (data: TimbraBadgeDoc) => ArchivioDataService.pausa(data),
-    onSuccess: async (response) => {
-      console.log("timbra | response:", response);
-      if (response.data.success === false) {
-        throw response.data.error;
-      }
-
-      if (timeoutRunning.current === true) return;
-      timeoutRunning.current = true;
-
-      await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
-
-      setDeletedRow(undefined);
-
-      const { row: timbraRow } = response.data.result;
-
-      updateImage(timbraRow.codice);
-      setPopupMsg(`${timbraRow.nome || ""} ${timbraRow.cognome || ""} PAUSA`);
-      setPopupBgColor("gold");
-      setPopupTxtColor("rgba(40, 40, 40, 255)");
-      setIsPopupShown.setTrue();
-
-      const badgeTable = document.getElementById(TABLE_NAME);
-      if (badgeTable) {
-        badgeTable.classList.add("updated-row");
-      }
-
-      await sleep(1000);
-
-      if (badgeTable) {
-        badgeTable.classList.remove("added-row", "removed-row", "updated-row");
-      }
-      refreshPage(false);
-
       await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
       if (currentUser?.postazioni_ids.length !== 1) clearCurrPostazione();
 
@@ -204,7 +187,7 @@ export default function Badge({
     refetch && queryInStrutt.refetch();
   }
 
-  function timbraBtnClickEvent(pausa: boolean, barcodePrefix = "0") {
+  function timbraBtnClickEvent(barcodePrefix = "0") {
     if (!currPostazione && currentUser?.postazioni_ids.length !== 1) {
       toast.error("Selezionare la postazione");
       return;
@@ -214,14 +197,11 @@ export default function Badge({
     }
 
     const timbraData = {
-      badge_cod: pausa
-        ? badgeCodRef.current!.value
-        : barcodePrefix.concat(badgeCodRef.current!.value),
+      badge_cod: barcodePrefix.concat(badgeCodRef.current!.value),
       post_id: currPostazione?.id || currentUser!.postazioni_ids[0],
     };
 
-    if (pausa) mutatePausa.mutate(timbraData);
-    else mutateInStrutt.mutate(timbraData);
+    mutateInStrutt.mutate(timbraData);
   }
 
   useEffect(() => {
@@ -277,7 +257,7 @@ export default function Badge({
                 <>
                   <div className="col-sm-1 mx-2">
                     <button
-                      onClick={() => timbraBtnClickEvent(false, "0")}
+                      onClick={() => timbraBtnClickEvent("0")}
                       className="btn btn-success badge-form-btn"
                     >
                       Entrata
@@ -285,16 +265,16 @@ export default function Badge({
                   </div>
                   <div className="col-sm-1 mx-2">
                     <button
-                      onClick={() => timbraBtnClickEvent(false, "1")}
+                      onClick={() => timbraBtnClickEvent("1")}
                       className="btn btn-danger badge-form-btn"
                     >
                       Uscita
                     </button>
                   </div>
-                  {hasPerm(currentUser, TPermessi.pause) && (
+                  {hasPerm(currentUser, TPermessi.canPerformPause) && (
                     <div className="col-sm-1 mx-2">
                       <button
-                        onClick={() => timbraBtnClickEvent(true)}
+                        onClick={() => timbraBtnClickEvent("2")}
                         className="btn btn-warning badge-form-btn"
                       >
                         Pausa
@@ -306,7 +286,10 @@ export default function Badge({
               <div className="w-100 mt-4"></div>
               <div className="col-sm-9"></div>
               <div className="col in-strutt-count p-1">
-                # In Struttura: {queryInStrutt.data?.filter(row => !(row.mark_type & MarkType.pause)).length || 0}
+                # In Struttura:{" "}
+                {queryInStrutt.data?.filter(
+                  (row) => !(row.mark_type & MarkType.pause)
+                ).length || 0}
               </div>
             </div>
           </div>
@@ -337,7 +320,7 @@ export default function Badge({
                     </button>
                   </div>
                 )}
-                {hasPerm(currentUser, TPermessi.pause) && (
+                {hasPerm(currentUser, TPermessi.showPause) && (
                   <>
                     <div className="w-100 mt-1" />
                     <div className="col">

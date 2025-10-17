@@ -6,6 +6,7 @@ export enum BarcodePrefix {
   nominativoOut = "11",
   provvisorioIn = "02",
   provvisorioOut = "12",
+  pause = "21",
   chiaveIn = "03",
   chiaveOut = "13",
   veicoloIn = "04",
@@ -83,7 +84,11 @@ export type VeicoloInStrutt = WithId<
 >;
 
 export type FullBadgeInStrutt = BadgeInStrutt &
-  BaseNominativo & { post_id: number; mark_type: number; person_id: number | null };
+  BaseNominativo & {
+    post_id: number;
+    mark_type: number;
+    person_id: number | null;
+  };
 export type FullVeicoloInStrutt = VeicoloInStrutt &
   BaseNominativo & { post_id: number };
 
