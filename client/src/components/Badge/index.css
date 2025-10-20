@@ -82,8 +82,11 @@ table.added-row tbody tr:first-child td {
 table.removed-row tbody tr:first-child td {
     background-color: red;
 }
-table.updated-row tbody tr:first-child td {
+table.added-pause-row tbody tr:first-child td {
     background-color: gold;
+}
+table.removed-pause-row tbody tr:first-child td {
+    background-color: blueviolet;
 }
 
 .btn-checkbox-input input:hover {

@@ -1486,6 +1486,12 @@ export default class ArchivioDB {
       let markTypeOut = MarkType.pause;
       let canChangePostazione = false;
 
+      let result = {
+        row: inStruttRows[0],
+        newRows: new Array<any>(),
+        markType: MarkType.pause,
+      };
+
       switch (markTypeIn) {
         case 0:
         case MarkType.inOut | MarkType.pause:
@@ -1496,6 +1502,7 @@ export default class ArchivioDB {
             context: { markType: markTypeIn },
           });
         case MarkType.pause:
+          result.markType |= MarkType.inOut;
           markTypeOut |= MarkType.inOut;
           canChangePostazione = true;
           break;
@@ -1516,12 +1523,6 @@ export default class ArchivioDB {
           }
         );
       }
-
-      let result = {
-        row: inStruttRows[0],
-        newRows: new Array<any>(),
-        markType: MarkType.pause,
-      };
 
       if (switchedPos) {
         const insertData = [

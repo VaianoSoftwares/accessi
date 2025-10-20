@@ -28,7 +28,8 @@ const TEXT_COLOR_DARK = "rgba(220, 220, 220, 255)";
 const TEXT_COLOR_LIGHT = "rgba(40, 40, 40, 255)";
 const POPUP_BG_IN = "green";
 const POPUP_BG_OUT = "red";
-const POPUP_BG_PAUSE = "gold";
+const POPUP_BG_PAUSE_IN = "gold";
+const POPUP_BG_PAUSE_OUT = "blueviolet";
 
 export default function Badge({
   scannedValue,
@@ -130,12 +131,18 @@ export default function Badge({
           rowClass = "removed-row";
           break;
         case MarkType.pause:
+          deleteRow = undefined;
+          popupMsg += "PAUSA ENTRATA";
+          bgColor = POPUP_BG_PAUSE_IN;
+          txtColor = TEXT_COLOR_LIGHT;
+          rowClass = isPauseShown ? "added-pause-row" : "";
+          break;
         case MarkType.pause | MarkType.inOut:
           deleteRow = undefined;
-          popupMsg += "PAUSA";
-          bgColor = POPUP_BG_PAUSE;
-          txtColor = TEXT_COLOR_LIGHT;
-          rowClass = "updated-row";
+          popupMsg += "PAUSA USCITA";
+          bgColor = POPUP_BG_PAUSE_OUT;
+          txtColor = TEXT_COLOR_DARK;
+          rowClass = isPauseShown ? "removed-pause-row" : "";
           break;
       }
 
@@ -148,14 +155,19 @@ export default function Badge({
       setIsPopupShown.setTrue();
 
       const badgeTable = document.getElementById(TABLE_NAME);
-      if (badgeTable) {
+      if (badgeTable && rowClass) {
         badgeTable.classList.add(rowClass);
       }
 
       await sleep(1000);
 
       if (badgeTable) {
-        badgeTable.classList.remove("added-row", "removed-row", "updated-row");
+        badgeTable.classList.remove(
+          "added-row",
+          "removed-row",
+          "added-pause-row",
+          "removed-pause-row"
+        );
       }
       refreshPage(false);
 
