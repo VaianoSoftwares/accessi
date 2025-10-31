@@ -988,18 +988,29 @@ export type UpdateArchivioData = z.infer<typeof UPDATE_ARCHIVIO_SCHEMA>;
 
 export const TIMBRA_NOM_ITEM_SCHEMA = z
   .object({
-    badge_cod: z.union([BARCODE_NOM_IN_SCHEMA, BARCODE_NOM_OUT_SCHEMA]),
+    badge_cod: z.union([BARCODE_NOM_IN_SCHEMA, BARCODE_NOM_OUT_SCHEMA, BARCODE_PAUSE_SCHEMA]),
     post_id: ID_SCHEMA("Postazione ID"),
     created_at: z.coerce.date({ invalid_type_error: "Data non valida" }),
   })
-  .transform((o) => ({
-    ...o,
-    badge_cod: o.badge_cod.substring(1),
-    mark_type:
-      o.badge_cod.substring(0, 2) === BarcodePrefix.nominativoIn
-        ? 0
-        : MarkType.inOut,
-  }));
+  .transform((o) => {
+    let markType = 0;
+    switch (o.badge_cod.substring(0, 2)) {
+      case BarcodePrefix.nominativoIn:
+        markType = 0;
+        break;
+      case BarcodePrefix.nominativoOut:
+        markType = MarkType.inOut;
+        break;
+      case BarcodePrefix.pause:
+        markType = MarkType.pause;
+        break;
+    }
+    return {
+      ...o,
+      badge_cod: o.badge_cod.substring(1),
+      mark_type: markType,
+    };
+  });
 
 export const TIMBRA_NOM_BODY_SCHEMA = z
   .object({

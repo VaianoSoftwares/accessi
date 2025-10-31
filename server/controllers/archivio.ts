@@ -459,9 +459,24 @@ export default class ArchivioController {
       let response = [];
       for (const item of parsed.data) {
         try {
-          const result = await ((item.mark_type & MarkType.inOut) === 0
-            ? ArchivioDB.timbraNominativoIn(item)
-            : ArchivioDB.timbraNominativoOut(item));
+          let result;
+          switch (item.mark_type & (MarkType.inOut | MarkType.pause)) {
+            case 0:
+              result = await ArchivioDB.timbraNominativoIn(item);
+              break;
+            case MarkType.inOut:
+              result = await ArchivioDB.timbraNominativoOut(item);
+              break;
+            case MarkType.pause:
+            case MarkType.inOut | MarkType.pause:
+              result = await ArchivioDB.pausa(item);
+              break;
+            default:
+              throw new BaseError("not a valid mark type", {
+                status: 400,
+                context: { markType: item.mark_type },
+              });
+          }
           response.push(Ok(result));
         } catch (e) {
           response.push(Err(enforceBaseErr(e)));
