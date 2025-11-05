@@ -175,7 +175,11 @@ export default function Register() {
               postazioni.data
                 .filter(
                   ({ cliente, name }) =>
-                    cliente && name && currentUser?.clienti.includes(cliente)
+                    cliente &&
+                    name &&
+                    currentUser?.postazioni
+                      .map((p) => p.cliente)
+                      .includes(cliente)
                 )
                 .map(({ id, cliente, name }) => (
                   <option key={id} value={id}>

@@ -48,7 +48,7 @@ export default function Chiavi(props: {
       {
         postazioniIds: currPostazione
           ? [currPostazione.id]
-          : currentUser?.postazioni_ids,
+          : currentUser?.postazioni.map((p) => p.id),
       },
     ],
     queryFn: async (context) => {

@@ -73,7 +73,7 @@ export default function Badge({
       {
         postazioniIds: currPostazione
           ? [currPostazione.id]
-          : currentUser?.postazioni_ids,
+          : currentUser?.postazioni.map((p) => p.id),
         pausa: isPauseShown,
         cliente: currPostazione?.cliente || currCliente || "",
       },
@@ -173,7 +173,7 @@ export default function Badge({
 
       setDeletedRow(undefined);
       await queryClient.invalidateQueries({ queryKey: ["inStrutt"] });
-      if (currentUser?.postazioni_ids.length !== 1) clearCurrPostazione();
+      if (currentUser?.postazioni.length !== 1) clearCurrPostazione();
 
       timeoutRunning.current = false;
     },
@@ -200,7 +200,7 @@ export default function Badge({
   }
 
   function timbraBtnClickEvent(barcodePrefix = "0") {
-    if (!currPostazione && currentUser?.postazioni_ids.length !== 1) {
+    if (!currPostazione && currentUser?.postazioni.length !== 1) {
       toast.error("Selezionare la postazione");
       return;
     } else if (!badgeCodRef.current?.value) {
@@ -210,7 +210,7 @@ export default function Badge({
 
     const timbraData = {
       badge_cod: barcodePrefix.concat(badgeCodRef.current!.value),
-      post_id: currPostazione?.id || currentUser!.postazioni_ids[0],
+      post_id: currPostazione?.id || currentUser!.postazioni[0].id,
     };
 
     mutateInStrutt.mutate(timbraData);

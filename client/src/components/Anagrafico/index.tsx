@@ -1170,7 +1170,9 @@ export default function Anagrafico() {
                       {clienti.isSuccess &&
                         clienti.data
                           .filter((cliente) =>
-                            currentUser?.clienti.includes(cliente)
+                            currentUser?.postazioni
+                              .map((p) => p.cliente)
+                              .includes(cliente)
                           )
                           .map((cliente) => (
                             <option value={cliente} key={cliente}>

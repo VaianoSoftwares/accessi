@@ -84,7 +84,9 @@ export default function Postazioni() {
               Seleziona un cliente
             </option>
             {clienti.data
-              ?.filter((cliente) => currentUser?.clienti.includes(cliente))
+              ?.filter((cliente) =>
+                currentUser?.postazioni.map((p) => p.cliente).includes(cliente)
+              )
               .map((cliente, index) => (
                 <option value={cliente} key={index}>
                   {cliente}

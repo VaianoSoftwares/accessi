@@ -59,7 +59,7 @@ export default function Login() {
         console.log(dataResp.name, "logged In.");
 
         setCurrentUser(dataResp);
-        setCurrCliente(dataResp.clienti[0]);
+        setCurrCliente(dataResp.postazioni[0].cliente);
 
         navigate("/home");
       })

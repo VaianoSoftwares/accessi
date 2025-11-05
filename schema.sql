@@ -661,19 +661,17 @@ CREATE VIEW in_strutt_veicoli AS
 CREATE VIEW in_prestito AS
     SELECT id, badge, nome, cognome, ditta, cliente, postazione, chiave, created_at FROM full_in_prestito;
 
-CREATE VIEW full_users AS 
-    SELECT u.*,
-    ARRAY(
-        SELECT DISTINCT p.cliente FROM postazioni AS p
-        LEFT JOIN postazioni_user AS pu ON p.id = pu.post_id
-        WHERE u.id = pu.usr_id OR is_admin(u.permessi)
-    ) AS clienti,
-    ARRAY(
-        SELECT DISTINCT p.id FROM postazioni AS p
-        LEFT JOIN postazioni_user AS pu ON p.id = pu.post_id
-        WHERE u.id = pu.usr_id OR is_admin(u.permessi)
-    ) AS postazioni_ids
-    FROM users AS u;
+CREATE VIEW full_users AS
+    SELECT
+        u.*,
+        COALESCE(
+            json_agg(DISTINCT to_jsonb(p)) FILTER (WHERE p.id IS NOT NULL),
+            '[]'::json
+        ) AS postazioni
+    FROM users u
+    LEFT JOIN postazioni_user pu ON pu.usr_id = u.id
+    LEFT JOIN postazioni p ON p.id = pu.post_id OR is_admin(u.permessi)
+    GROUP BY u.id;
 
 CREATE VIEW full_protocolli AS
     SELECT pr.id, pr.date, pr.descrizione AS prot_descrizione, d.filename, d.descrizione AS doc_descrizione,

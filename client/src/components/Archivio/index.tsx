@@ -63,7 +63,7 @@ export default function Archivio() {
             obj[key] = el?.value || currPostazione?.name;
             break;
           case "post_ids":
-            obj[key] = currentUser?.postazioni_ids;
+            obj[key] = currentUser?.postazioni.map((p) => p.id);
             break;
           default:
             obj[key as keyof Omit<FindArchivioFullForm, "post_ids">] =
@@ -91,7 +91,7 @@ export default function Archivio() {
   });
 
   const postazioni = useQuery({
-    queryKey: ["postazioni", currentUser?.postazioni_ids],
+    queryKey: ["postazioni", currentUser?.postazioni.map((p) => p.id)],
     queryFn: async (context) => {
       try {
         const response = await PostazioniDataService.get({
@@ -230,7 +230,9 @@ export default function Archivio() {
                   {clienti.isSuccess &&
                     clienti.data
                       .filter((cliente) =>
-                        currentUser?.clienti.includes(cliente)
+                        currentUser?.postazioni
+                          .map((p) => p.cliente)
+                          .includes(cliente)
                       )
                       .map((cliente, index) => (
                         <option value={cliente} key={index}>

@@ -1,6 +1,7 @@
 import { MAX_UINT32 } from ".";
 import { checkBits, bitCount, getFirst } from "../utils/bitwise";
 import { TPages } from "./pages";
+import { Postazione } from "./postazioni";
 
 export enum TPermessi {
   admin = MAX_UINT32,
@@ -49,8 +50,7 @@ export type TUser = {
   password: string;
   permessi: number;
   pages: number;
-  clienti: string[];
-  postazioni_ids: number[];
+  postazioni: Postazione[];
 };
 
 export type LoginUserData = Pick<TUser, "name" | "password">;

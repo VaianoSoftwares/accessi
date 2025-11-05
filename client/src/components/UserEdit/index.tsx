@@ -106,7 +106,7 @@ export default function UserEdit() {
         password: "password",
         permessi: flagsToFlagArray(result.permessi, PERMESSI_INFO.keys()),
         pages: flagsToFlagArray(result.pages, PAGES_INFO.keys()),
-        postazioni_ids: result.postazioni_ids.map((p) => String(p)),
+        postazioni_ids: result.postazioni.map((p) => String(p.id)),
       });
 
       return result;
@@ -175,7 +175,8 @@ export default function UserEdit() {
             ({ cliente, name }) =>
               cliente &&
               name &&
-              (disabled || currentUser?.clienti.includes(cliente))
+              (disabled ||
+                currentUser?.postazioni.map((p) => p.cliente).includes(cliente))
           )
           .map(({ id, cliente, name }) => (
             <option key={id} value={id} disabled={disabled}>

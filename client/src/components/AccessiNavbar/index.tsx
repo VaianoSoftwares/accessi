@@ -57,7 +57,7 @@ export default function AccessiNavbar({
         const result = response.data.result;
         if (currCliente === undefined || currCliente === "{") {
           const newCurrCliente = result.find((cliente) =>
-            currentUser?.clienti.includes(cliente)
+            currentUser?.postazioni.map((p) => p.cliente).includes(cliente)
           );
           setCurrCliente(newCurrCliente);
         }
@@ -75,7 +75,7 @@ export default function AccessiNavbar({
     queryFn: async (context) => {
       try {
         const response = await PostazioniDataService.get({
-          ids: currentUser?.postazioni_ids,
+          ids: currentUser?.postazioni.map((p) => p.id),
         });
         // const response = await PostazioniDataService.get({
         //   ids: context.queryKey[1] as number[],
@@ -214,7 +214,11 @@ export default function AccessiNavbar({
                   value={currCliente}
                 >
                   {clienti.data
-                    .filter((cliente) => currentUser?.clienti.includes(cliente))
+                    .filter((cliente) =>
+                      currentUser?.postazioni
+                        .map((p) => p.cliente)
+                        .includes(cliente)
+                    )
                     .map((cliente) => (
                       <option value={cliente} key={cliente}>
                         {cliente}
