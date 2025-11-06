@@ -27,7 +27,7 @@ export async function query<T extends QueryResultRow = any>(
     values,
     execTime,
     rowCount: res.rowCount,
-    rows: res.rows,
+    // rows: res.rows,
   });
   return res;
 }

@@ -456,7 +456,14 @@ export default class ArchivioController {
         });
       }
 
-      let response = [];
+      type Response = {
+        ok: Ok<any>[];
+        fail: Err<any>[];
+      };
+      let response: Response = {
+        ok: [],
+        fail: [],
+      };
       for (const item of parsed.data) {
         try {
           let result;
@@ -477,9 +484,9 @@ export default class ArchivioController {
                 context: { markType: item.mark_type },
               });
           }
-          response.push(Ok(result));
+          response.ok.push(Ok(result));
         } catch (e) {
-          response.push(Err(enforceBaseErr(e)));
+          response.fail.push(Err(enforceBaseErr(e)));
         }
       }
 
@@ -495,6 +502,18 @@ export default class ArchivioController {
       //     }
       //   })
       // );
+
+      console.log(
+        `Mark requests from utility have been handleded. Success Rate: ${response.ok}/${parsed.data.length}`
+      );
+      console.log(
+        "Ok:",
+        response.ok.map((el) => el.result)
+      );
+      console.log(
+        "Fail:",
+        response.fail.map((el) => el.error)
+      );
 
       res.json(Ok(response));
     } catch (e) {
