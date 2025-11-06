@@ -490,21 +490,8 @@ export default class ArchivioController {
         }
       }
 
-      // const response = await Promise.all(
-      //   parsed.data.map(async (o) => {
-      //     try {
-      //       const result = await ((o.mark_type & MarkType.inOut) === 0
-      //         ? ArchivioDB.timbraNominativoIn(o)
-      //         : ArchivioDB.timbraNominativoOut(o));
-      //       return Ok(result);
-      //     } catch (e) {
-      //       return Err(enforceBaseErr(e));
-      //     }
-      //   })
-      // );
-
       console.log(
-        `Mark requests from utility have been handleded. Success Rate: ${response.ok}/${parsed.data.length}`
+        `Mark requests from utility have been handleded. Success Rate: ${response.ok.length}/${parsed.data.length}`
       );
       console.log(
         "Ok:",
