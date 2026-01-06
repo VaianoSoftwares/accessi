@@ -10,16 +10,26 @@ import path from "path";
 const httpPort = process.env.HTTP_PORT || 4316;
 const httpsPort = process.env.HTTPS_PORT || 4317;
 
-const certsPath = process.env.CERT_PATH
+const privKeyPath = process.env.PRIVKEY_PATH
+  ? path.resolve(process.env.PRIVKEY_PATH)
+  : path.join("server", "certs", "privkey.pem");
+const certPath = process.env.CERT_PATH
   ? path.resolve(process.env.CERT_PATH)
-  : path.join("server", "certs");
+  : path.join("server", "certs", "cert.pem");
+const chainPath = process.env.CHAIN_PATH
+  ? path.resolve(process.env.CHAIN_PATH)
+  : path.join("server", "certs", "fullchain.pem");
 
-function loadCerts() {
-  const privateKey = fs.readFileSync(path.join(certsPath, "privkey.pem"));
-  const certificate = fs.readFileSync(path.join(certsPath, "cert.pem"));
+function loadCerts(
+  privKeyPath: string,
+  certPath: string,
+  chainPath?: string | undefined
+) {
+  const privateKey = fs.readFileSync(privKeyPath);
+  const certificate = fs.readFileSync(certPath);
   const chain =
-    process.env.NODE_ENV != "development"
-      ? fs.readFileSync(path.join(certsPath, "fullchain.pem")) || undefined
+    process.env.NODE_ENV != "development" && chainPath
+      ? fs.readFileSync(chainPath) || undefined
       : undefined;
 
   return {
@@ -29,7 +39,7 @@ function loadCerts() {
   };
 }
 
-const httpsOptions = loadCerts();
+const httpsOptions = loadCerts(privKeyPath, certPath, chainPath);
 
 const httpServer = http.createServer(app);
 const httpsServer = https.createServer(httpsOptions, app);
@@ -49,7 +59,7 @@ httpsServer.headersTimeout = httpsServer.keepAliveTimeout + 1000;
 process.on("SIGHUP", () => {
   console.log("Renewing HTTPS certificates...");
   try {
-    const newOptions = loadCerts();
+    const newOptions = loadCerts(privKeyPath, certPath, chainPath);
     httpsServer.setSecureContext(newOptions);
     console.log("Certificates renewed successfully");
   } catch (err) {
